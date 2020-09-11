@@ -43,7 +43,7 @@ The pipeline is controlled via a json config file containing the following param
 
     "report_title": "Secret Vices Dataset",
     "report_visuals": {
-        "vices": ["drugs:1", "alcohol:1", "gambling:1", ...],
+        "vices": ["chocolate:1", "beer:1", "napping:1", ...],
         ...
     },
     "report_pages": {
@@ -122,7 +122,7 @@ These combined attributes may be used alonside existing column names in `report_
 python showcase.py <config_path> --verbose | --v
 ```
 
-runs the complete pipeline using the specified json config file, or run the pipeline for individual stages as described below. Use either form of the verbose flag for detailed output logs.
+Runs the complete pipeline using the specified json config file. To run the pipeline for individual stages, see the sections below. Use either form of the verbose flag for detailed output logs.
 
 Multiple stages may also be specified, with any missing stage inputs resulting in prior stages being executed automatically. The complete pipeline can be executed with all stages specified as follows:
 
@@ -154,7 +154,7 @@ Generates the `synthetic_microdata` tsv file containing synthetic microdata repr
 python showcase.py <config_path> --evaluate | --eval
 ```
 
-Compares the `synthetic_microdata` to the `sensitive_microdata` in terms of the mean absolute error between the counts of attribute combinations up to `reporting_length` in length. Reads from the `sensitive_aggregates` tsv file if available.
+Compares the `synthetic_microdata` to the `sensitive_microdata` in terms of the proportion of sensitive combination counts that are preserved by the synthetic data (up to `reporting_length` in length). Reads from the `sensitive_aggregates` tsv file if available.
 
 Outputs of this stage are tsv and svg summaries of:
 
