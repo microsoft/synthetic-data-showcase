@@ -9,17 +9,13 @@ In many cases, the best way to share sensitive datasets is not to share the actu
 2. *Aggregate data* reporting the number of individuals with different combinations of attributes, without disclosing small or precise counts.
 3. *Data dashboards* enabling exploratory visual analysis of both datasets, without the need for custom data science or interface development.
 
-All of these elements are inherently privacy preserving and may be freely shared or published subject to the following privacy guarantees.
+All of these elements preserve privacy by design and may be freely shared or published subject to clear privacy guarantees. The final data showcase is generated as a [Power BI](https://powerbi.microsoft.com/en-us/desktop/) report.
 
 ## Privacy guarantees
 
 The main privacy control offered by the pipeline is based on the numbers of individuals described by different combinations of attributes. The `reporting_threshold` specified by the pipeline user determines the minimum group size that will be (a) reported explicitly in the aggregate data and (b) represented implicitly by the records of the synthetic data. This makes it possible to offer privacy guarantees in clearly understandable terms, e.g.:
 
-"No attribute combinations in this synthetic dataset describe groups of less than 10 individuals in the original sensitive dataset"
-
-or conversely:
-
-"All attribute combinations in this synthetic dataset describe groups of 10 or more individuals in the original sensitive dataset"
+"All attribute combinations in this synthetic dataset describe groups of 10 or more individuals in the original sensitive dataset, therefore may never be used to infer the presence of individuals or groups smaller than 10"
 
 Under such guarantees, it is impossible for attackers to infer the presence of groups whose size is below the `reporting_threshold`. For groups at or above this threshold, the 'safety in numbers' principle applies &ndash; the higher the limit, the harder it becomes to make inferences about the presence of known individuals.
 
