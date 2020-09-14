@@ -107,7 +107,7 @@ The showcase interface is created as a Power BI report that may be opened, explo
 
 The `report_title` parameter specifies the user-facing title shown within the Power BI report.
 
-Related attributes spanning multiple columns in the sensitive dataset may be grouped together in a single visual by specifying `report_visuals` as a new configuration attribute. This contains a mapping from the name of the visual to a list of `column:value` pairs. The `column:value` pairs are combined into a single visual with the given name. In the exmple below the visual name is `vices` and it combines the list of `column:value` pairs that follow. Up to 10 such visuala may be created.
+Related attributes spanning multiple columns in the sensitive dataset may be grouped together in a single visual by specifying `report_visuals` as a new configuration attribute. This contains a mapping from the name of the visual to a list of `column:value` pairs. The `column:value` pairs are combined into a single visual with the given name. In the exmple below the visual name is `vices` and it combines the list of `column:value` pairs that follow. Up to 10 such visuals may be created.
 
 
 ```sh
@@ -182,7 +182,7 @@ Outputs of this stage are tsv and svg summaries of:
 python showcase.py <config_path> --navigate | --nav
 ```
 
-Creates the `data_showcase.pbit` Power BI template file combining both synthetic and aggregate data. Open this file in Power BI Desktop and when prompted enter the data path as the `output_dir` folder specified in the json config file. This will load the output data files into the template, which may then be saved and shared as a `.pbix` report file. The path must be specififed as an absolute path.
+Creates the `data_showcase.pbit` Power BI template file combining both synthetic and aggregate data. Open this file in Power BI Desktop and when prompted enter the data path as the `output_dir` folder specified in the json config file. This will load the output data files into the template, which may then be saved and shared as a `.pbix` report file. The path must be specified as an absolute path.
 
 ### Example
 
