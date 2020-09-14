@@ -30,9 +30,9 @@ The pipeline is controlled via a json config file containing a variety of parame
 {
     "sensitive_microdata_path": "./secret_vices.csv",
     "sensitive_microdata_delimiter": ",",
-    "sensitive_zeros": [],
     "use_columns": [],
     "record_limit": -1,
+    "sensitive_zeros": [],
 
     "reporting_threshold": 10,
     "reporting_precision": 10,
@@ -78,7 +78,7 @@ Similarly, `record_limit` may be used to limit data synthesis to the specified n
 
 The pipeline distinguishes 'positive' attribute values that indidicate the presence of specific sensitive data from 'negative' attribute values that indicate the absence of such data. By default, the integer zero (`0`) and the empty string (`""`) and not taken into account when creating and counting attribute combinations. Any columns where zero values are of interest (and thus sensitive) should be listed in `sensitive_zeros`. This pipeline treats such `sensitive_zeros` in the same way as positive values.
 
-### Reportable aggregate generation
+### Aggregate data generation
 
 To complement the synthetic microdata, the pipeline also precomputes reportable counts of sensitive records containing all short combinations of attributes. The privacy risk with such aggregate data is that small aggregate counts may identify specific groups of individuals, while precise counts may allow the detection of small differences over time. The pipeline thus protects the reported aggregate counts by first thresholding the raw count to filter out small values (using `reporting_threshold`), rounding to a fixed precision (using `reporting_precision`), and then thresholding again to remove any below-threshold values created by rounding.
 
