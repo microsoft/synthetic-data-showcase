@@ -112,7 +112,7 @@ def runPipeline(config):
         navigator = Navigator(config)
         navigator.process()
 
-    json.dump(config, open(path.join(config['output_dir'], config['prefix'] + '_config.json'), 'w'))
+    json.dump(config, open(path.join(config['output_dir'], config['prefix'] + '_config.json'), 'w'), indent=1)
 
 if __name__ == '__main__':
     main( )
