@@ -114,16 +114,11 @@ def compareDatasets(sensitive_length_to_combo_to_count, synthetic_length_to_comb
         max_syn_count = max(syn_count, max_syn_count)
         preservation = 0
         try:
-            preservation = syn_count / sen_count #abs(syn_count - sen_count)
+            preservation = syn_count / sen_count
         except:
-            print(f'For {combo}, syn is {syn_count} but no sen count')
+            logging.error(f'Error: For {combo}, syn is {syn_count} but no sen count')
         all_count_length_preservation.append((syn_count, length, preservation))
         max_syn_count = max(syn_count, max_syn_count)
-
-        if length == 1:
-            print(combo)
-            print(sen_count)
-            print(syn_count)
 
     generateStatsAndGraphics(output_dir, max_syn_count, all_count_length_preservation, prefix)
     

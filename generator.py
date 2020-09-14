@@ -307,8 +307,6 @@ def sampleFromCounts(counts, preferNotNone):
                 sampled_value = v
                 break
         sampled_value = v
-    # if sampled_value == '1':
-    #     print(f'{dist} : {r}')
     return sampled_value
 
 
@@ -459,10 +457,6 @@ def suppressToTargets(records, columns, att_to_ids, threshold, precision):
             new_records.append(record)
         elif new_records != empty_record:
             new_records.append(new_record)
-
-    if sum(targets.values()) > 0:
-        print(f'Could not suppress all values:')
-        print(targets)
 
     return new_records
 
