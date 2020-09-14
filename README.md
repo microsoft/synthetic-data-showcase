@@ -93,6 +93,8 @@ The `record_limit` may be used to limit data synthesis to the specified number o
 
 The `parallel_jobs` parameter specifies the extent of parallel processing (e.g., based on the number of available processor cores). For local processing, this should be set to the number of available CPU cores. For faster processing of larger and more complex datasets, use of a virtual machine with multiple cores is recommended.
 
+The `memory_limit_pct` parameter sets the percentage utilization of system memory at which synthetic data generation will stop adding computed counts to a cache.
+
 Output files are saved to the `output_dir` directory and prefixed with the `prefix` string. The json config file used to generate the outputs is also copied to this directory as a record of the parameters used, and should therefore be stored outside `output_dir`.
 
 ### Interface configuration
