@@ -272,8 +272,7 @@ def plotStats(x_axis, x_axis_title, y_bar, y_bar_title, y_line, y_line_title, co
     ax2.set_ylabel(y_line_title, fontsize=font_size, color=pct_color)
     ax2.set_yticklabels(ax2.get_yticks(), fontsize=font_size)
     ax2.set_xticklabels(ax2.get_xmajorticklabels(), fontsize=font_size)
-    if df[y_line].max() <= 1.1:
-        ax2.set_ylim([-0.1, 1.1])
+    ax2.set_ylim([-0.1, df[y_line].max() + 0.1])
     ax2.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: '{:,.2f}'.format(x)))
     x = list(range(0, len(df[x_axis].values)))
     y = df[y_line]

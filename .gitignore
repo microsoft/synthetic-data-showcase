@@ -1,6 +1,8 @@
-# Sample outputs
+# Sample / typical outputs
 german_credit_showcase/
 credit_config.json
+*data*/
+*output*/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
