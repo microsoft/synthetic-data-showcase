@@ -110,7 +110,7 @@ Related attributes spanning multiple columns in the sensitive dataset may be gro
 
 ```sh
 "report_visuals": {
-    "vices": ["drugs:1", "alcohol:1", "gambling:1", ...],
+    "vices": ["chocolate:1", "beer:1", "napping:1", ...],
     ...
 }
 ```
