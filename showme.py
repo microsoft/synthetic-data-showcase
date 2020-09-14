@@ -51,9 +51,9 @@ def main():
 
         logging.info('Retrieved')
         logging.info('Processing dataset...')
-        values, labels = binValuesAndLabels(df['Duration in month'].max(), 24)
+        values, labels = binValuesAndLabels(df['Duration in month'].max(), 12)
         df['Duration in month'] = pd.cut(df['Duration in month'], bins=values, labels=labels)   
-        values, labels = binValuesAndLabels(df['Credit amount'].max(), 5000)
+        values, labels = binValuesAndLabels(df['Credit amount'].max(), 2500)
         df['Credit amount'] = pd.cut(df['Credit amount'], bins=values, labels=labels)
         values, labels = binValuesAndLabels(df['Age in years'].max(), 20)
         df['Age in years'] = pd.cut(df['Age in years'], bins=values, labels=labels)
@@ -70,12 +70,16 @@ def main():
         del df['Telephone']
         del df['Other debtors / guarantors']
         del df['Number of people being liable to provide maintenance for']
+        del df['Other installment plans']
+        del df['Savings account/bonds']
+        del df['Present employment since']
+        del df['Status of existing checking account']
 
         df.to_csv(sensitive_microdata_path, sep='\t', index=False)
         logging.info('Processed')
 
     config = {
-        'parallel_jobs': 4,
+        'parallel_jobs': 1,
         'memory_limit_pct': 90,
         'use_columns': [],
         'record_limit': -1,
