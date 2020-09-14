@@ -58,13 +58,13 @@ The pipeline is controlled via a json config file containing a variety of parame
 }
 ```
 
-Use of each of these paramters is described in the following sections.
+Use of each of these parameters is described in the following sections.
 
 ### Input data format
 
 The data at `sensitive_microdata_path` should be in comma separated values (.csv) or tab separated values (.tsv) format, with the `sensitive_microdata_delimiter` set accordingly (e.g., `","` or `"\t"`).
 
-The pipeline assumes deidentified microdata as input, i.e., a table in which each row contains all data (but no personally-identifable information, PII) relating to an individual.
+The pipeline assumes deidentified microdata as input, i.e., a table in which each row contains all data (but no personally-identifiable information, PII) relating to an individual.
 
 Single-valued attributes (e.g., gender) are represented as columns of categorical variables whose values are shared by multiple rows. Any continuous numeric variables (e.g., age) should be quantized in advance (e.g., into age ranges) to ensure there are sufficient instances of each value.
 
@@ -76,13 +76,13 @@ Similarly, `record_limit` may be used to limit data synthesis to the specified n
 
 ### Negative value interpretation
 
-The pipeline distinguishes 'positive' attribute values that indidicate the presence of specific sensitive data from 'negative' attribute values that indicate the absence of such data. By default, the integer zero (`0`) and the empty string (`""`) and not taken into account when creating and counting attribute combinations. Any columns where zero values are of interest (and thus sensitive) should be listed in `sensitive_zeros`. This pipeline treats such `sensitive_zeros` in the same way as positive values.
+The pipeline distinguishes 'positive' attribute values that indicate the presence of specific sensitive data from 'negative' attribute values that indicate the absence of such data. By default, the integer zero (`0`) and the empty string (`""`) and not taken into account when creating and counting attribute combinations. Any columns where zero values are of interest (and thus sensitive) should be listed in `sensitive_zeros`. This pipeline treats such `sensitive_zeros` in the same way as positive values.
 
 ### Aggregate data generation
 
 To complement the synthetic microdata, the pipeline also precomputes reportable counts of sensitive records containing all short combinations of attributes. The privacy risk with such aggregate data is that small aggregate counts may identify specific groups of individuals, while precise counts may allow the detection of small differences over time. The pipeline thus protects the reported aggregate counts by first thresholding the raw count to filter out small values (using `reporting_threshold`), rounding to a fixed precision (using `reporting_precision`), and then thresholding again to remove any below-threshold values created by rounding.
 
-The `reporting_length` determines the maximum length of attribute combination for which aggregate counts are precomputed and reported. In the user interface, this value determines how many attribute value selections a user may make while retaining the ability to compare estimated (synthetic) vs actual values. The number of selections is always one less than the `reporting_length`. Specifying a `reporting_length` of `-1` indicates that combinations of all lengths should be computed. This is not recommended except for small or sparse datasets as the numbe of attribute combinations grows rapidly with their length.
+The `reporting_length` determines the maximum length of attribute combination for which aggregate counts are precomputed and reported. In the user interface, this value determines how many attribute value selections a user may make while retaining the ability to compare estimated (synthetic) vs actual values. The number of selections is always one less than the `reporting_length`. Specifying a `reporting_length` of `-1` indicates that combinations of all lengths should be computed. This is not recommended except for small or sparse datasets as the number of attribute combinations grows rapidly with their length.
 
 
 ### Synthetic data generation
@@ -107,7 +107,7 @@ The showcase interface is created as a Power BI report that may be opened, explo
 
 The `report_title` parameter specifies the user-facing title shown within the Power BI report.
 
-Related attributes spanning multiple columns in the sensitive dataset may be grouped together in a single visual by specifying `report_visuals` as a new configuration attribute. This contains a mapping from the name of the visual to a list of `column:value` pairs. The `column:value` pairs are combined into a single visual with the given name. In the exmple below the visual name is `vices` and it combines the list of `column:value` pairs that follow. Up to 10 such visuals may be created.
+Related attributes spanning multiple columns in the sensitive dataset may be grouped together in a single visual by specifying `report_visuals` as a new configuration attribute. This contains a mapping from the name of the visual to a list of `column:value` pairs. The `column:value` pairs are combined into a single visual with the given name. In the example below the visual name is `vices` and it combines the list of `column:value` pairs that follow. Up to 10 such visuals may be created.
 
 
 ```sh
