@@ -31,13 +31,15 @@ The pipeline is controlled via a json config file containing a variety of parame
     "sensitive_microdata_path": "./secret_vices.csv",
     "sensitive_microdata_delimiter": ",",
     "sensitive_zeros": [],
+    "use_columns": [],
+    "record_limit": -1,
 
     "reporting_threshold": 10,
     "reporting_precision": 10,
     "reporting_length": 5,
 
+
     "seeded": true,
-    "record_limit": -1,
     "parallel_jobs": 8,
     "memory_limit_pct": 95,
     "output_dir": "./vices_output",
@@ -68,6 +70,10 @@ Single-valued attributes (e.g., gender) are represented as columns of categorica
 
 Multi-valued attributes (e.g., interests) are represented as multiple columns of binary variables (integer values of `0` and `1`) indicating the different values of that attribute (e.g., food, sports, politics).
 
+The `use_columns` parameter may be used to specify which data columns at `sensitive_microdata_path` should be included in the output. An empty list `[]` indicates that all columns should be used.
+
+Similarly, `record_limit` may be used to limit data synthesis to the specified number of records, taken from the start of the sensitive data. A value of `-1` indicates that all sensitive records should be modelled and synthesized.
+
 ### Negative value interpretation
 
 The pipeline distinguishes 'positive' attribute values that indidicate the presence of specific sensitive data from 'negative' attribute values that indicate the absence of such data. By default, the integer zero (`0`) and the empty string (`""`) and not taken into account when creating and counting attribute combinations. Any columns where zero values are of interest (and thus sensitive) should be listed in `sensitive_zeros`. This pipeline treats such `sensitive_zeros` in the same way as positive values.
@@ -88,8 +94,6 @@ Seeded synthesis proceeds by sampling attributes from a sensitive record until t
 Since precise attribute counts create a privacy risk, it is advisable to create some uncertainty over the actual counts by adding noise to the synthetic data. The same `reporting_precision` used to create aggregate counts is used again here to suppress attributes or synthesize additional records such that synthetic attribute counts are equal to the (already imprecise) reported count.
 
 ### Data processing and output
-
-The `record_limit` may be used to limit data synthesis to the specified number of records, taken from the start of the sensitive data. A value of `-1` indicates that all sensitive records should be modelled and synthesized.
 
 The `parallel_jobs` parameter specifies the extent of parallel processing (e.g., based on the number of available processor cores). For local processing, this should be set to the number of available CPU cores. For faster processing of larger and more complex datasets, use of a virtual machine with multiple cores is recommended.
 

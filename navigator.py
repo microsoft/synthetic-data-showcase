@@ -16,6 +16,7 @@ class Navigator ():
         self.column_group_separator = ':'
         self.prefix = config.get('prefix', '')
         self.output_dir = config.get('output_dir', './')
+        self.use_columns = config.get('use_columns', [])
         self.reportable_aggregates = '%s/%s_reportable_aggregates.tsv' %(self.output_dir, self.prefix)
         self.synthetic_microdata = '%s/%s_synthetic_microdata.tsv'  %(self.output_dir, self.prefix)
         self.renamed_reportable_aggregates = '%s/rounded_aggregates.tsv' %(self.output_dir)
@@ -157,7 +158,7 @@ class Navigator ():
         logging.info('Renaming and reformatting files with records...')
 
         copyfile(self.reportable_aggregates, self.renamed_reportable_aggregates)
-        df = util.loadMicrodata(self.synthetic_microdata, '\t', -1) 
+        df = util.loadMicrodata(self.synthetic_microdata, '\t', -1, use_columns=self.use_columns) 
         new_df = []
         for i, row in df.iterrows():
             [new_df.append([i, ind, value]) for ind, value in row.items() if str(value) != '']

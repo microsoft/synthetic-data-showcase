@@ -50,6 +50,7 @@ def main():
         config['memory_limit_pct'] = config.get('memory_limit_pct', 80)
 
         # numeric parameters controlling synthesis and aggregation
+        config['use_columns'] = config.get('use_columns', [])
         config['record_limit'] = config.get('record_limit', -1) # use all sensitive records
         config['reporting_length'] = config.get('reporting_length', 3) # support any 2 selections
         config['reporting_threshold'] = config.get('reporting_threshold', 10) # only allow/report counts >= this

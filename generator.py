@@ -21,6 +21,7 @@ def generate(config):
         config: options from the json config file, else default values.
     """
 
+    use_columns = config['use_columns']
     parallel_jobs = config['parallel_jobs']
     record_limit = config['record_limit']
     sensitive_microdata_path = config['sensitive_microdata_path']
@@ -35,7 +36,7 @@ def generate(config):
     logging.info(f'Generate {sensitive_microdata_path}')
     start_time = time.time()  
 
-    df = util.loadMicrodata(path=sensitive_microdata_path, delimiter=sensitive_microdata_delimiter, record_limit=record_limit)
+    df = util.loadMicrodata(path=sensitive_microdata_path, delimiter=sensitive_microdata_delimiter, record_limit=record_limit, use_columns=use_columns)
     columns = df.columns.values 
     num = len(df)
     logging.info(f'Prepared data')

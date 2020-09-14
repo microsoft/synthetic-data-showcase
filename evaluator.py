@@ -16,6 +16,7 @@ def evaluate(config):
         config: options from the json config file, else default values.
     """
 
+    use_columns = config['use_columns']
     record_limit = config['record_limit']
     reporting_length = config['reporting_length']
     reporting_threshold = config['reporting_threshold']
@@ -33,7 +34,7 @@ def evaluate(config):
     sen_counts = None
     if not path.exists(config['sensitive_aggregates_path']):
         logging.info('Computing sensitive aggregates...')
-        sen_df = util.loadMicrodata(path=sensitive_microdata_path, delimiter=sensitive_microdata_delimiter, record_limit=record_limit)
+        sen_df = util.loadMicrodata(path=sensitive_microdata_path, delimiter=sensitive_microdata_delimiter, record_limit=record_limit, use_columns=use_columns)
         row_list = util.genRowList(sen_df, sensitive_zeros)
         if reporting_length == -1:
             reporting_length = max([len(row) for row in row_list])
@@ -43,8 +44,12 @@ def evaluate(config):
         sen_counts = util.loadSavedAggregates(config['sensitive_aggregates_path'])
         if reporting_length == -1:
             reporting_length = max(sen_counts.keys())
+
+    if use_columns != []:
+        reporting_length = min(reporting_length, len(use_columns))
+    
     filtered_sen_counts = {length: {combo: count for combo, count in combo_to_counts.items() if count >= reporting_threshold} for length, combo_to_counts in sen_counts.items()}
-    syn_df = util.loadMicrodata(path=synthetic_microdata_path, delimiter='\t', record_limit=-1)
+    syn_df = util.loadMicrodata(path=synthetic_microdata_path, delimiter='\t', record_limit=-1, use_columns=use_columns)
     
     syn_counts = util.countAllCombos(util.genRowList(syn_df, sensitive_zeros), reporting_length, parallel_jobs)
 

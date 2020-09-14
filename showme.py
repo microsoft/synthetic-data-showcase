@@ -77,6 +77,7 @@ def main():
     config = {
         'parallel_jobs': 4,
         'memory_limit_pct': 90,
+        'use_columns': [],
         'record_limit': -1,
         'reporting_length': 5,
         'reporting_precision': 2,

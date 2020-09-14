@@ -22,6 +22,7 @@ def aggregate(config):
         config: options from the json config file, else default values.
     """
 
+    use_columns = config['use_columns']
     reporting_length = config['reporting_length']
     reporting_threshold = config['reporting_threshold']
     reporting_precision = config['reporting_precision']
@@ -38,10 +39,12 @@ def aggregate(config):
     logging.info(f'Aggregate {sensitive_microdata_path}')
     start_time = time.time()  
 
-    df = util.loadMicrodata(path=sensitive_microdata_path, delimiter=sensitive_microdata_delimiter, record_limit=record_limit)
+    df = util.loadMicrodata(path=sensitive_microdata_path, delimiter=sensitive_microdata_delimiter, record_limit=record_limit, use_columns=use_columns)
     row_list = util.genRowList(df=df, sensitive_zeros=sensitive_zeros)
     if reporting_length == -1:
         reporting_length = max([len(row) for row in row_list])
+    if use_columns != []:
+        reporting_length = min(reporting_length, len(use_columns))
     length_to_combo_to_count = util.countAllCombos(row_list=row_list, length_limit=reporting_length, parallel_jobs=parallel_jobs)
 
     len_to_combo_count = {length: len(combo_to_count) for length, combo_to_count in length_to_combo_to_count.items()}
