@@ -196,7 +196,7 @@ def synthesizeRowsUnseeded(chunk, num_rows, columns, col_val_ids, threshold, mem
 
     for i in range(chunk):
         if i % 100 == 99:
-            print(f'{(100*i/chunk):.1f}% through row synthesis, cache utilization {100*overall_cache_hits/(overall_cache_hits + overall_cache_misses):.1f}%')
+            logging.info(f'{(100*i/chunk):.1f}% through row synthesis, cache utilization {100*overall_cache_hits/(overall_cache_hits + overall_cache_misses):.1f}%')
         filters, cache_hits, cache_misses = synthesizeRowUnseeded(filter_cache, num_rows, columns, col_val_ids, threshold,  memory_limit)
         overall_cache_hits += cache_hits
         overall_cache_misses += cache_misses
