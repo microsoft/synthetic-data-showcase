@@ -121,7 +121,7 @@ def synthesizeRowsSeeded(seeds, num_rows, columns, att_to_ids, threshold, memory
     
     for i, seed in enumerate(seeds):
         if i % 100 == 99:
-            print(f'{(100*i/l):.1f}% through row synthesis, cache utilization {100*overall_cache_hits/(overall_cache_hits + overall_cache_misses):.1f}%')
+            logging.info(f'{(100*i/l):.1f}% through row synthesis, cache utilization {100*overall_cache_hits/(overall_cache_hits + overall_cache_misses):.1f}%')
         filters, row_cache_hits, row_cache_misses = synthesizeRowSeeded(seed, (), [], filter_cache, num_rows, columns, att_to_ids, threshold, memory_limit)
         overall_cache_hits += row_cache_hits
         overall_cache_misses += row_cache_misses
