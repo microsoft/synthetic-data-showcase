@@ -19,7 +19,7 @@ def evaluate(config):
     use_columns = config['use_columns']
     record_limit = config['record_limit']
     reporting_length = config['reporting_length']
-    reporting_threshold = config['reporting_threshold']
+    reporting_resolution = config['reporting_resolution']
     sensitive_microdata_path = config['sensitive_microdata_path']
     sensitive_microdata_delimiter = config['sensitive_microdata_delimiter']
     synthetic_microdata_path = config['synthetic_microdata_path']
@@ -49,14 +49,14 @@ def evaluate(config):
     if use_columns != []:
         reporting_length = min(reporting_length, len(use_columns))
     
-    filtered_sen_counts = {length: {combo: count for combo, count in combo_to_counts.items() if count >= reporting_threshold} for length, combo_to_counts in sen_counts.items()}
+    filtered_sen_counts = {length: {combo: count for combo, count in combo_to_counts.items() if count >= reporting_resolution} for length, combo_to_counts in sen_counts.items()}
     syn_df = util.loadMicrodata(path=synthetic_microdata_path, delimiter='\t', record_limit=-1, use_columns=use_columns)
     syn_records = util.genRowList(syn_df, sensitive_zeros)
     syn_counts = util.countAllCombos(syn_records, reporting_length, parallel_jobs)
 
     len_to_syn_count = {length: len(combo_to_count) for length, combo_to_count in syn_counts.items()}
-    len_to_sen_rare = {length: {combo : count for combo, count in combo_to_count.items() if count < reporting_threshold} for length, combo_to_count in sen_counts.items()}
-    len_to_syn_rare = {length: {combo : count for combo, count in combo_to_count.items() if count < reporting_threshold} for length, combo_to_count in syn_counts.items()}
+    len_to_sen_rare = {length: {combo : count for combo, count in combo_to_count.items() if count < reporting_resolution} for length, combo_to_count in sen_counts.items()}
+    len_to_syn_rare = {length: {combo : count for combo, count in combo_to_count.items() if count < reporting_resolution} for length, combo_to_count in syn_counts.items()}
     len_to_syn_leak = {length: len([1 for rare in rares if rare in syn_counts[length].keys()]) for length, rares in len_to_sen_rare.items()}
 
     sen_unique_to_sen_records, sen_rare_to_sen_records, _ = util.mapShortestUniqueRareComboLengthToRecords(sen_records, len_to_sen_rare)
@@ -72,14 +72,14 @@ def evaluate(config):
 
     record_analysis_tsv = path.join(output_dir, f'{prefix}_record_analysis_by_length.tsv')
     with open(record_analysis_tsv, 'w') as f:
-        f.write('\t'.join(['combo_length', 'sen_rare_in_sen', 'sen_unique_in_sen' 'syn_rare_in_syn', 'syn_unique_in_syn', 'sen_rare_in_syn'])+'\n')
+        f.write('\t'.join(['combo_length', 'sen_rare_in_sen', 'sen_unique_in_sen', 'syn_rare_in_syn', 'syn_unique_in_syn', 'sen_rare_in_syn'])+'\n')
         for length in len_to_syn_count.keys():
             f.write('\t'.join([str(length), str(sen_rare_to_sen_count.get(length, 0)), str(sen_unique_to_sen_count.get(length, 0)),
                 str(syn_rare_to_syn_count.get(length, 0)), str(syn_unique_to_syn_count.get(length, 0)), str(sen_rare_to_syn_count.get(length, 0)),])+'\n')
 
     combos_tsv = path.join(output_dir, f'{prefix}_synthetic_rare_combos_by_length.tsv')
     with open(combos_tsv, 'w') as f:
-        f.write('\t'.join(['combo_length', 'combo', 'record_id' 'syn_count', 'sen_count'])+'\n')
+        f.write('\t'.join(['combo_length', 'combo', 'record_id', 'syn_count', 'sen_count'])+'\n')
         for length, combo_to_rare in syn_length_to_combo_to_rare.items():
             for combo, rare_ids in combo_to_rare.items():
                 for rare_id in rare_ids:
@@ -103,7 +103,7 @@ def evaluate(config):
         y_bar='combo_count', 
         y_bar_title='Count of Combinations', 
         y_line='leak_proportion', 
-        y_line_title=f'Proportion of Leaked (<{reporting_threshold}) Combinations',
+        y_line_title=f'Proportion of Leaked (<{reporting_resolution}) Combinations',
         color='violet',
         darker_color='darkviolet',
         stats_tsv=leakage_tsv,

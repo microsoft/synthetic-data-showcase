@@ -8,7 +8,7 @@ import re
 from itertools import combinations
 from collections import defaultdict
 import seaborn as sns
-from math import ceil
+from math import ceil, floor
 import matplotlib
 matplotlib.use('Agg') # fixes matplotlib + joblib bug "RuntimeError: main thread is not in main loop Tcl_AsyncDelete: async handler deleted by the wrong thread"
 import matplotlib.pyplot as plt
@@ -207,19 +207,15 @@ def mapShortestUniqueRareComboLengthToRecords(records, length_to_rare):
     return unique_to_records, rare_to_records, length_to_combo_to_rare
 
 
-def protect(value, threshold, precision):
-    """Protects a value from a privacy perspective by rounding to a precision level and reporting if at or above a threshold.
+def protect(value, resolution):
+    """Protects a value from a privacy perspective by rounding down to the closest multiple of the supplied resolution.
 
     Args:
         value: the value to protect.
-        threshold: the minimum reportable value, else 0.
-        precision: round values to the closest multiple of this.
+        resolution: round values down to the closest multiple of this.
     """
-    rounded =  int(round(value / precision) * precision)
-    if rounded >= threshold:
-        return rounded
-    else:
-        return 0
+    rounded = floor(round(value / resolution) * resolution)
+    return rounded
 
 
 def comboToString(combo_tuple):

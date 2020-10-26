@@ -13,11 +13,11 @@ All of these elements preserve privacy by design and may be freely shared or pub
 
 ## Privacy guarantees
 
-The main privacy control offered by the pipeline is based on the numbers of individuals described by different combinations of attributes. The `reporting_threshold` specified by the pipeline user determines the minimum group size that will be (a) reported explicitly in the aggregate data and (b) represented implicitly by the records of the synthetic data. This makes it possible to offer privacy guarantees in clearly understandable terms, e.g.:
+The main privacy control offered by the pipeline is based on the numbers of individuals described by different combinations of attributes. The `reporting_resolution` specified by the pipeline user determines the minimum group size that will be (a) reported explicitly in the aggregate data and (b) represented implicitly by the records of the synthetic data. This makes it possible to offer privacy guarantees in clearly understandable terms, e.g.:
 
 "All attribute combinations in this synthetic dataset describe groups of 10 or more individuals in the original sensitive dataset, therefore may never be used to infer the presence of individuals or groups smaller than 10"
 
-Under such guarantees, it is impossible for attackers to infer the presence of groups whose size is below the `reporting_threshold`. For groups at or above this threshold, the 'safety in numbers' principle applies &ndash; the higher the limit, the harder it becomes to make inferences about the presence of known individuals.
+Under such guarantees, it is impossible for attackers to infer the presence of groups whose size is below the `reporting_resolution`. For groups at or above this resolution, the 'safety in numbers' principle applies &ndash; the higher the limit, the harder it becomes to make inferences about the presence of known individuals.
 
 This anonymization method can be viewed as enforcing [k-anonymity](https://en.wikipedia.org/wiki/K-anonymity) across all columns of a sensitive dataset. While typical implementations of k-anonymity divide data columns into quasi-identifiers and sensitive attributes, only enforcing k-anonymity over quasi-identifiers leaves the remaining attributes open to linking attacks based on background knowledge. The data synthesis approach used to create a synthetic data showcase safeguards against such attacks while preserving the structure and statistics of the sensitive dataset.
 
@@ -34,8 +34,7 @@ The pipeline is controlled via a json config file containing a variety of parame
     "record_limit": -1,
     "sensitive_zeros": [],
 
-    "reporting_threshold": 10,
-    "reporting_precision": 10,
+    "reporting_resolution": 10,
     "reporting_length": 5,
     "analysis_length": 5,
 
@@ -80,7 +79,7 @@ The pipeline distinguishes 'positive' attribute values that indicate the presenc
 
 ### Aggregate data generation
 
-To complement the synthetic microdata, the pipeline also precomputes reportable counts of sensitive records containing all short combinations of attributes. The privacy risk with such aggregate data is that small aggregate counts may identify specific groups of individuals, while precise counts may allow the detection of small differences over time. The pipeline thus protects the reported aggregate counts by first thresholding the raw count to filter out small values (using `reporting_threshold`), rounding to a fixed precision (using `reporting_precision`), and then thresholding again to remove any below-threshold values created by rounding.
+To complement the synthetic microdata, the pipeline also precomputes reportable counts of sensitive records containing all short combinations of attributes. The privacy risk with such aggregate data is that small aggregate counts may identify specific groups of individuals, while precise counts may allow the detection of small differences over time. The pipeline thus protects the reported aggregate counts by rounding counts down to the closest multiple of the specified `reporting_resolution`. The `reporting_resolution` therefore acts as both the minimum threshold for reporting and the mininum difference between reported counts.
 
 The `reporting_length` determines the maximum length of attribute combination for which aggregate counts are precomputed and reported. In the user interface, this value determines how many attribute value selections a user may make while retaining the ability to compare estimated (synthetic) vs actual values. The number of selections is always one less than the `reporting_length`. Specifying a `reporting_length` of `-1` indicates that combinations of all lengths should be computed. This is not recommended except for small or sparse datasets as the number of attribute combinations grows rapidly with their length.
 
@@ -89,9 +88,9 @@ The `reporting_length` determines the maximum length of attribute combination fo
 
 The `seeded` parameter indicated whether synthetic records should be seeded with a corresponding sensitive record (`true`) or generated in an unseeded way by randomly sampling joint attribute distributions (`false`). Seeded synthesis is faster and better preserves statistics for visual analytics, but unseeded synthesis creates longer records of more uniform length that may better preserve structure for machine learning.
 
-Seeded synthesis proceeds by sampling attributes from a sensitive record until the addition of further attributes would create a rare combination based on the `reporting_threshold`. These privacy-preserving subsets of sensitive records are collected for output as synthetic records. The unused attributes of each seed are also collected, with further output records synthesized from these (without replacement) until all sensitive attributes are accounted for in a synthetic record.
+Seeded synthesis proceeds by sampling attributes from a sensitive record until the addition of further attributes would create a rare combination based on the `reporting_resolution`. These privacy-preserving subsets of sensitive records are collected for output as synthetic records. The unused attributes of each seed are also collected, with further output records synthesized from these (without replacement) until all sensitive attributes are accounted for in a synthetic record.
 
-Since precise attribute counts create a privacy risk, it is advisable to create some uncertainty over the actual counts by adding noise to the synthetic data. The same `reporting_precision` used to create aggregate counts is used again here to suppress attributes or synthesize additional records such that synthetic attribute counts are equal to the (already imprecise) reported count.
+Since precise attribute counts create a privacy risk, it is advisable to create some uncertainty over the actual counts by adding noise to the synthetic data. The same `reporting_resolution` used to create aggregate counts is used again here to suppress attributes or synthesize additional records such that synthetic attribute counts are equal to the (already imprecise) reported count.
 
 ### Data processing and output
 
@@ -152,7 +151,7 @@ python showcase.py <config_path> --aggregate | --agg
 
 Generates the `reportable_aggregates` tsv file containing precomputed and protected counts of all sensitive attribute combinations up to `reporting_length` in length, as well as a  `sensitive_aggregates` tsv file storing the actual counts. This file is used in the `--evaluate` pipeline stage to avoid recomputing combinations, and may be used to confirm actual values. Since these are highly sensitive, the file should be protected in the same way as the original microdata.
 
-Additional outputs of this stage are tsv and svg summaries of `sensitive_rare_by_length` &ndash; how many sensitive attribute combinations exist up to `reporting_length` and what proportion of these are rare, i.e., occurring with a frequency below `reporting_threshold`.
+Additional outputs of this stage are tsv and svg summaries of `sensitive_rare_by_length` &ndash; how many sensitive attribute combinations exist up to `reporting_length` and what proportion of these are rare, i.e., occurring with a frequency below `reporting_resolution`.
 
 ### Generate
 
