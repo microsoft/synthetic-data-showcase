@@ -162,6 +162,51 @@ def genAllCombos(row, length):
     return res
 
 
+def mapShortestUniqueRareComboLengthToRecords(records, length_to_rare):
+    """
+    Maps each record to the shortest combination length that isolates it within a rare group (i.e., below resolution).
+
+    Args:
+        records: the input records.
+        length_to_rare: a dict of length to rare combo to count.
+
+    Returns:
+        rare_to_records: dict of rare combination lengths mapped to record lists
+    """
+    rare_to_records = defaultdict(list)
+    unique_to_records = defaultdict(list)
+    length_to_combo_to_rare = {length: defaultdict(set) for length in length_to_rare.keys()}
+    for i, record in enumerate(records):
+        matchedRare = False
+        matchedUnique = False
+        for length in sorted(length_to_rare.keys()):
+            if matchedUnique:
+                break
+            for combo in combinations(record, length):
+                canonical_combo = tuple(sorted(list(combo), key=lambda x: f'{x[0]}:{x[1]}'.lower()))
+                if canonical_combo in length_to_rare[length].keys():
+                    if length_to_rare[length][canonical_combo] == 1: # unique
+                        unique_to_records[length].append(i)
+                        matchedUnique = True
+                        length_to_combo_to_rare[length][canonical_combo].add(i)
+                        if not matchedRare:
+                            rare_to_records[length].append(i)
+                            length_to_combo_to_rare[length][canonical_combo].add(i)
+                            matchedRare = True
+                    elif not matchedRare: # only store first rare match
+                        rare_to_records[length].append(i)
+                        length_to_combo_to_rare[length][canonical_combo].add(i)
+                        matchedRare = True
+                    
+            if matchedUnique:
+                break
+        if not matchedRare:
+            rare_to_records[0].append(record)
+        if not matchedUnique:
+            unique_to_records[0].append(record)
+    return unique_to_records, rare_to_records, length_to_combo_to_rare
+
+
 def protect(value, threshold, precision):
     """Protects a value from a privacy perspective by rounding to a precision level and reporting if at or above a threshold.
 

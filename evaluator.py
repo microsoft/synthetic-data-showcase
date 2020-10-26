@@ -32,13 +32,14 @@ def evaluate(config):
     start_time = time.time()  
 
     sen_counts = None
+    sen_records = None
+    sen_df = util.loadMicrodata(path=sensitive_microdata_path, delimiter=sensitive_microdata_delimiter, record_limit=record_limit, use_columns=use_columns)
+    sen_records = util.genRowList(sen_df, sensitive_zeros)
     if not path.exists(config['sensitive_aggregates_path']):
         logging.info('Computing sensitive aggregates...')
-        sen_df = util.loadMicrodata(path=sensitive_microdata_path, delimiter=sensitive_microdata_delimiter, record_limit=record_limit, use_columns=use_columns)
-        row_list = util.genRowList(sen_df, sensitive_zeros)
         if reporting_length == -1:
-            reporting_length = max([len(row) for row in row_list])
-        sen_counts = util.countAllCombos(row_list, reporting_length, parallel_jobs)
+            reporting_length = max([len(row) for row in sen_records])
+        sen_counts = util.countAllCombos(sen_records, reporting_length, parallel_jobs)
     else:
         logging.info('Loading sensitive aggregates...')
         sen_counts = util.loadSavedAggregates(config['sensitive_aggregates_path'])
@@ -50,12 +51,42 @@ def evaluate(config):
     
     filtered_sen_counts = {length: {combo: count for combo, count in combo_to_counts.items() if count >= reporting_threshold} for length, combo_to_counts in sen_counts.items()}
     syn_df = util.loadMicrodata(path=synthetic_microdata_path, delimiter='\t', record_limit=-1, use_columns=use_columns)
-    
-    syn_counts = util.countAllCombos(util.genRowList(syn_df, sensitive_zeros), reporting_length, parallel_jobs)
+    syn_records = util.genRowList(syn_df, sensitive_zeros)
+    syn_counts = util.countAllCombos(syn_records, reporting_length, parallel_jobs)
 
     len_to_syn_count = {length: len(combo_to_count) for length, combo_to_count in syn_counts.items()}
     len_to_sen_rare = {length: {combo : count for combo, count in combo_to_count.items() if count < reporting_threshold} for length, combo_to_count in sen_counts.items()}
+    len_to_syn_rare = {length: {combo : count for combo, count in combo_to_count.items() if count < reporting_threshold} for length, combo_to_count in syn_counts.items()}
     len_to_syn_leak = {length: len([1 for rare in rares if rare in syn_counts[length].keys()]) for length, rares in len_to_sen_rare.items()}
+
+    sen_unique_to_sen_records, sen_rare_to_sen_records, _ = util.mapShortestUniqueRareComboLengthToRecords(sen_records, len_to_sen_rare)
+    sen_rare_to_sen_count = {length: len(records) for length, records in sen_rare_to_sen_records.items()}
+
+    syn_unique_to_syn_records, syn_rare_to_syn_records, syn_length_to_combo_to_rare = util.mapShortestUniqueRareComboLengthToRecords(syn_records, len_to_syn_rare)
+    syn_rare_to_syn_count = {length: len(records) for length, records in syn_rare_to_syn_records.items()}
+
+    _, sen_rare_to_syn_records, _ = util.mapShortestUniqueRareComboLengthToRecords(syn_records, len_to_sen_rare)
+    sen_rare_to_syn_count = {length: len(records) for length, records in sen_rare_to_syn_records.items()}
+    sen_unique_to_sen_count = {length: len(records) for length, records in sen_unique_to_sen_records.items()}
+    syn_unique_to_syn_count = {length: len(records) for length, records in syn_unique_to_syn_records.items()}
+
+    record_analysis_tsv = path.join(output_dir, f'{prefix}_record_analysis_by_length.tsv')
+    with open(record_analysis_tsv, 'w') as f:
+        f.write('\t'.join(['combo_length', 'sen_rare_in_sen', 'sen_unique_in_sen' 'syn_rare_in_syn', 'syn_unique_in_syn', 'sen_rare_in_syn'])+'\n')
+        for length in len_to_syn_count.keys():
+            f.write('\t'.join([str(length), str(sen_rare_to_sen_count.get(length, 0)), str(sen_unique_to_sen_count.get(length, 0)),
+                str(syn_rare_to_syn_count.get(length, 0)), str(syn_unique_to_syn_count.get(length, 0)), str(sen_rare_to_syn_count.get(length, 0)),])+'\n')
+
+    combos_tsv = path.join(output_dir, f'{prefix}_synthetic_rare_combos_by_length.tsv')
+    with open(combos_tsv, 'w') as f:
+        f.write('\t'.join(['combo_length', 'combo', 'record_id' 'syn_count', 'sen_count'])+'\n')
+        for length, combo_to_rare in syn_length_to_combo_to_rare.items():
+            for combo, rare_ids in combo_to_rare.items():
+                for rare_id in rare_ids:
+                    sen_count = sen_counts[length][combo]
+                    syn_count = syn_counts[length][combo]
+                    f.write('\t'.join([str(length), util.comboToString(combo).replace(';',' AND '), str(rare_id), str(syn_count), str(sen_count)])+'\n')
+
 
     leakage_tsv = path.join(output_dir, f'{prefix}_synthetic_leakage_by_length.tsv')
     leakage_svg = path.join(output_dir, f'{prefix}_synthetic_leakage_by_length.svg')
@@ -65,8 +96,6 @@ def evaluate(config):
             combo_count = len_to_syn_count[length]
             leak_prop = leak_count / len_to_syn_count[length]
             f.write('\t'.join([str(length), str(combo_count), str(leak_count), str(leak_prop)])+'\n')
-
-  
 
     util.plotStats(
         x_axis='syn_combo_length', 
@@ -84,6 +113,8 @@ def evaluate(config):
         palette='magma')
 
     compareDatasets(filtered_sen_counts, syn_counts, output_dir, prefix)
+
+
 
     logging.info(f'Evaluated {synthetic_microdata_path} vs {sensitive_microdata_path}, took {datetime.timedelta(seconds = time.time() - start_time)}s')
 

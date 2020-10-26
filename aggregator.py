@@ -74,11 +74,6 @@ def aggregate(config):
         style='whitegrid',
         palette='magma')
 
-    for _, combo_to_count in list(length_to_combo_to_count.items()):
-        for combo, count in list(combo_to_count.items()):
-            if util.protect(count, reporting_threshold, reporting_precision) == 0:
-                del combo_to_count[combo]
-
     with open(reportable_aggregates_path, 'w') as ra:
         with open(sensitive_aggregates_path, 'w') as sa:
             sa.write('\t'.join(['selections', 'count'])+'\n')
