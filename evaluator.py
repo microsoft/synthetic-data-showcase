@@ -59,34 +59,51 @@ def evaluate(config):
     len_to_syn_rare = {length: {combo : count for combo, count in combo_to_count.items() if count < reporting_resolution} for length, combo_to_count in syn_counts.items()}
     len_to_syn_leak = {length: len([1 for rare in rares if rare in syn_counts[length].keys()]) for length, rares in len_to_sen_rare.items()}
 
-    sen_unique_to_sen_records, sen_rare_to_sen_records, _ = util.mapShortestUniqueRareComboLengthToRecords(sen_records, len_to_sen_rare)
-    sen_rare_to_sen_count = {length: len(records) for length, records in sen_rare_to_sen_records.items()}
+    sen_unique_to_records, sen_rare_to_records, _ = util.mapShortestUniqueRareComboLengthToRecords(sen_records, len_to_sen_rare)
+    sen_rare_to_sen_count = {length: util.protect(len(records), reporting_resolution) for length, records in sen_rare_to_records.items()}
+    sen_unique_to_sen_count = {length: util.protect(len(records), reporting_resolution) for length, records in sen_unique_to_records.items()}
+    
+    total_sen = util.protect(len(sen_records), reporting_resolution)
+    unique_total = sum([v for k, v in sen_unique_to_sen_count.items() if k > 0])
+    rare_total = sum([v for k, v in sen_rare_to_sen_count.items() if k > 0])
+    risky_total = unique_total + rare_total
+    risky_total_pct = 100*risky_total/total_sen
 
-    syn_unique_to_syn_records, syn_rare_to_syn_records, syn_length_to_combo_to_rare = util.mapShortestUniqueRareComboLengthToRecords(syn_records, len_to_syn_rare)
-    syn_rare_to_syn_count = {length: len(records) for length, records in syn_rare_to_syn_records.items()}
-
-    _, sen_rare_to_syn_records, _ = util.mapShortestUniqueRareComboLengthToRecords(syn_records, len_to_sen_rare)
-    sen_rare_to_syn_count = {length: len(records) for length, records in sen_rare_to_syn_records.items()}
-    sen_unique_to_sen_count = {length: len(records) for length, records in sen_unique_to_sen_records.items()}
-    syn_unique_to_syn_count = {length: len(records) for length, records in syn_unique_to_syn_records.items()}
-
-    record_analysis_tsv = path.join(output_dir, f'{prefix}_record_analysis_by_length.tsv')
+    record_analysis_tsv = path.join(output_dir, f'{prefix}_sensitive_analysis_by_length.tsv')
     with open(record_analysis_tsv, 'w') as f:
-        f.write('\t'.join(['combo_length', 'sen_rare_in_sen', 'sen_unique_in_sen', 'syn_rare_in_syn', 'syn_unique_in_syn', 'sen_rare_in_syn'])+'\n')
-        for length in len_to_syn_count.keys():
-            f.write('\t'.join([str(length), str(sen_rare_to_sen_count.get(length, 0)), str(sen_unique_to_sen_count.get(length, 0)),
-                str(syn_rare_to_syn_count.get(length, 0)), str(syn_unique_to_syn_count.get(length, 0)), str(sen_rare_to_syn_count.get(length, 0)),])+'\n')
+        f.write('\t'.join(['combo_length', 'sen_rare', 'sen_rare_pct', 'sen_unique', 'sen_unique_pct', 'sen_risky', 'sen_risky_pct'])+'\n')
+        for length in sen_counts.keys():
+            sen_rare = sen_rare_to_sen_count.get(length, 0)
+            sen_rare_pct = 100*sen_rare / total_sen
+            sen_unique = sen_unique_to_sen_count.get(length, 0)
+            sen_unique_pct = 100*sen_unique / total_sen
+            sen_risky = sen_rare + sen_unique
+            sen_risky_pct = 100*sen_risky / total_sen
+            f.write('\t'.join([str(length), str(sen_rare), str(sen_rare_pct), str(sen_unique), str(sen_unique_pct), str(sen_risky), str(sen_risky_pct)])+'\n')
 
+    _, _, syn_length_to_combo_to_rare = util.mapShortestUniqueRareComboLengthToRecords(syn_records, len_to_syn_rare)
     combos_tsv = path.join(output_dir, f'{prefix}_synthetic_rare_combos_by_length.tsv')
     with open(combos_tsv, 'w') as f:
         f.write('\t'.join(['combo_length', 'combo', 'record_id', 'syn_count', 'sen_count'])+'\n')
         for length, combo_to_rare in syn_length_to_combo_to_rare.items():
             for combo, rare_ids in combo_to_rare.items():
+                syn_count = len(rare_ids)
                 for rare_id in rare_ids:
-                    sen_count = sen_counts[length][combo]
-                    syn_count = syn_counts[length][combo]
+                    sen_count = util.protect(sen_counts[length][combo], reporting_resolution)
                     f.write('\t'.join([str(length), util.comboToString(combo).replace(';',' AND '), str(rare_id), str(syn_count), str(sen_count)])+'\n')
 
+
+    parameters_tsv = path.join(output_dir, f'{prefix}_parameters.tsv')
+
+    with open(parameters_tsv, 'w') as f:
+        f.write('\t'.join(['parameter', 'value'])+'\n')
+        f.write('\t'.join(['resolution', str(reporting_resolution)])+'\n')
+        f.write('\t'.join(['limit', str(reporting_length)])+'\n')
+        f.write('\t'.join(['total_sensitive_records', str(total_sen)])+'\n')
+        f.write('\t'.join(['unique_identifiable', str(unique_total)])+'\n')
+        f.write('\t'.join(['rare_identifiable', str(rare_total)])+'\n')
+        f.write('\t'.join(['risky_identifiable', str(risky_total)])+'\n')
+        f.write('\t'.join(['risky_identifiable_pct', str(risky_total_pct)])+'\n')
 
     leakage_tsv = path.join(output_dir, f'{prefix}_synthetic_leakage_by_length.tsv')
     leakage_svg = path.join(output_dir, f'{prefix}_synthetic_leakage_by_length.svg')

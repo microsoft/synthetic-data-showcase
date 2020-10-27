@@ -173,8 +173,8 @@ def mapShortestUniqueRareComboLengthToRecords(records, length_to_rare):
     Returns:
         rare_to_records: dict of rare combination lengths mapped to record lists
     """
-    rare_to_records = defaultdict(list)
-    unique_to_records = defaultdict(list)
+    rare_to_records = defaultdict(set)
+    unique_to_records = defaultdict(set)
     length_to_combo_to_rare = {length: defaultdict(set) for length in length_to_rare.keys()}
     for i, record in enumerate(records):
         matchedRare = False
@@ -186,24 +186,20 @@ def mapShortestUniqueRareComboLengthToRecords(records, length_to_rare):
                 canonical_combo = tuple(sorted(list(combo), key=lambda x: f'{x[0]}:{x[1]}'.lower()))
                 if canonical_combo in length_to_rare[length].keys():
                     if length_to_rare[length][canonical_combo] == 1: # unique
-                        unique_to_records[length].append(i)
+                        unique_to_records[length].add(i)
                         matchedUnique = True
                         length_to_combo_to_rare[length][canonical_combo].add(i)
-                        if not matchedRare:
-                            rare_to_records[length].append(i)
-                            length_to_combo_to_rare[length][canonical_combo].add(i)
-                            matchedRare = True
-                    elif not matchedRare: # only store first rare match
-                        rare_to_records[length].append(i)
-                        length_to_combo_to_rare[length][canonical_combo].add(i)
+                    else:
+                        rare_to_records[length].add(i)
                         matchedRare = True
-                    
+                        length_to_combo_to_rare[length][canonical_combo].add(i)
+                        
             if matchedUnique:
                 break
         if not matchedRare:
-            rare_to_records[0].append(record)
+            rare_to_records[0].add(i)
         if not matchedUnique:
-            unique_to_records[0].append(record)
+            unique_to_records[0].add(i)
     return unique_to_records, rare_to_records, length_to_combo_to_rare
 
 
