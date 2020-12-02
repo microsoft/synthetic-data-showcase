@@ -3,7 +3,7 @@
 
 > Generates synthetic data and user interfaces for privacy-preserving data sharing and analysis.
 
-In many cases, the best way to share sensitive datasets is not to share the actual sensitive datasets, but user interfaces to derived datasets that are inherently anonymous. Our name for such an interface is a *data showcase*. In this project, we provide an automated pipeline for generating the three elements of a *synthetic data showcase*:
+In many cases, the best way to share sensitive data is not to share the actual sensitive datasets, but user interfaces to derived datasets that are inherently anonymous. Our name for such an interface is a *data showcase*. In this project, we provide an automated pipeline for generating the three elements of a *synthetic data showcase*:
 
 1. *Synthetic data* representing the overall structure and statistics of the input data, without describing actual identifiable individuals.
 2. *Aggregate data* reporting the number of individuals with different combinations of attributes, without disclosing small or precise counts.
@@ -30,15 +30,15 @@ The pipeline is controlled via a json config file containing a variety of parame
 {
     "sensitive_microdata_path": "./secret_vices.csv",
     "sensitive_microdata_delimiter": ",",
+    "identifier_column": None,
+    "event_column": None,
     "use_columns": [],
     "record_limit": -1,
     "sensitive_zeros": [],
 
     "reporting_resolution": 10,
     "reporting_length": 5,
-    "analysis_length": 5,
 
-    "seeded": true,
     "parallel_jobs": 8,
     "memory_limit_pct": 95,
     "output_dir": "./vices_output",
@@ -67,7 +67,9 @@ The pipeline assumes deidentified microdata as input, i.e., a table in which eac
 
 Single-valued attributes (e.g., gender) are represented as columns of categorical variables whose values are shared by multiple rows. Any continuous numeric variables (e.g., age) should be quantized in advance (e.g., into age ranges) to ensure there are sufficient instances of each value.
 
-Multi-valued attributes (e.g., interests) are represented as multiple columns of binary variables (integer values of `0` and `1`) indicating the different values of that attribute (e.g., food, sports, politics).
+Multi-valued attributes (e.g., interests) may be represented in one of two ways. The first is through multiple columns of binary variables (integer values of `0` and `1`) indicating the different values of that attribute (e.g., food, sports, politics). The second is through a single categorical column with one record per value. These records need not be fully denormalized &ndash; it suffices to include just the additional attribute together with the identifier for the data subject represented in an `identifier_column`.
+
+For log-like microdata in which each data subject may be linked to multiple events, an `event_column` may be used to connect multiple attributes to an event and multiple events to a data subject. In this case, reported counts relate to counts of events, not subjects. However, the resolution applies to both event counts and subject counts &ndash; event counts are rounded down to the closest multiple of the `reporting_resolution` and only reported when then count of distinct data subjects generating those events exceeds the `reporting_resolution`. In the synthetic output data, subject identifiers are dropped and actual event identifiers are replaced with a new set of event ids. The result is that any synthetic event could have been sampled from `reporting_resolution` or more unknown data subjects (or synthesized from unsampled attributes).
 
 The `use_columns` parameter may be used to specify which data columns at `sensitive_microdata_path` should be included in the output. An empty list `[]` indicates that all columns should be used.
 
@@ -86,9 +88,7 @@ The `reporting_length` determines the maximum length of attribute combination fo
 
 ### Synthetic data generation
 
-The `seeded` parameter indicated whether synthetic records should be seeded with a corresponding sensitive record (`true`) or generated in an unseeded way by randomly sampling joint attribute distributions (`false`). Seeded synthesis is faster and better preserves statistics for visual analytics, but unseeded synthesis creates longer records of more uniform length that may better preserve structure for machine learning.
-
-Seeded synthesis proceeds by sampling attributes from a sensitive record until the addition of further attributes would create a rare combination based on the `reporting_resolution`. These privacy-preserving subsets of sensitive records are collected for output as synthetic records. The unused attributes of each seed are also collected, with further output records synthesized from these (without replacement) until all sensitive attributes are accounted for in a synthetic record.
+Synthesis proceeds by sampling attributes from a sensitive record until the addition of further attributes would create a rare combination based on the `reporting_resolution`. These privacy-preserving subsets of sensitive records are collected for output as synthetic records. The unused attributes of each seed are also collected, with further output records synthesized from these (without replacement) until all sensitive attributes are accounted for in a synthetic record.
 
 Since precise attribute counts create a privacy risk, it is advisable to create some uncertainty over the actual counts by adding noise to the synthetic data. The same `reporting_resolution` used to create aggregate counts is used again here to suppress attributes or synthesize additional records such that synthetic attribute counts are equal to the (already imprecise) reported count.
 

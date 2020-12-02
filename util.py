@@ -14,7 +14,7 @@ matplotlib.use('Agg') # fixes matplotlib + joblib bug "RuntimeError: main thread
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 
-def loadMicrodata(path, delimiter, record_limit, use_columns):
+def loadMicrodata(path, delimiter, record_limit, use_columns, identifier_column):
     """Loads delimited microdata with column headers into a pandas dataframe.
 
     Args:
@@ -22,77 +22,107 @@ def loadMicrodata(path, delimiter, record_limit, use_columns):
         delimiter: the delimiter used to delimit data columns.
         record_limit: how many rows to load (-1 loads all rows).
         use_columns: which columns to load.
+        identifier_column: in the sensitive data, the column representing the identity of the individual data subject associated with the record.
     """
     df = pd.read_csv(path, delimiter).astype(str) \
         .replace(to_replace=r'^nan$', value='', regex=True) \
         .replace(to_replace=r'\.0$', value='', regex=True) \
         .replace(to_replace=';', value='.,', regex=False) \
         .replace(to_replace=':', value='..', regex=False)  # fix pandas type coercion for numbers and remove reserved delimiters
+    
+    if identifier_column == None:
+        identifier_column = 'NATURAL_INDEX'
+        df[identifier_column] = list(range(1, len(df) + 1))
+
     if use_columns != []:
+        if identifier_column not in use_columns:
+            use_columns = [identifier_column] + use_columns
         df = df[use_columns]
     if record_limit > 0:
         df = df[:record_limit]
-    return df
+    return df, identifier_column
 
 
-def genRowList(df, sensitive_zeros):
-    """Converts a dataframe to a list of rows.
-
+def genEventRows(df, sensitive_zeros, identifier_column, event_column):
+    """Converts a dataframe to a dictionary mapping event ids to row lists.
+    
+    Rows are represented as lists of (attribute, value) tuples.
+ 
     Args:
         df: the dataframe.
         sensitive_zeros: columns for which negative values should be controlled.
+        identifier_column: in the sensitive data, the column representing the identity of the individual data subject associated with the record.
+        event_column: in the sensitive data, the column representing the identity of the event associated with the record.
 
     Returns:
-        row_list: the list of rows.
+        event_rows: a dict mapping event ids to row lists.
     """
-    row_list = []
+    event_rows = defaultdict(set)
     for _, row in df.iterrows():
+        id = row[identifier_column]
+        event = id
+        if event_column != None:
+            event = row[event_column]
         res = []
         for c in df.columns:
             val = str(row[c])
             if val != '' and (c in sensitive_zeros or val != '0'):
                 res.append((c, val))
         row2 = sorted(res, key=lambda x: f'{x[0]}:{x[1]}'.lower())
-        row_list.append(row2)
-    return row_list
+        event_rows[event].update(row2)
+    return event_rows
 
-def computeAttToIds(row_list):
-    """Maps each attribute in the rows of row_list to a set of row ids.
+def computeAttToEvents(event_rows, identifier_column, event_column):
+    """Maps each attribute to a set of event ids and each event id to a subject id.
 
     Args:
-        row_list: a list of rows with non-senstitive/blank values filtered out.
-    
-    Returns:
-        atts_to_ids: a dict mapping each attribute in the rows of row_list to a set of row ids.
-    """
-    att_to_ids = defaultdict(set)
-    for i, row in enumerate(row_list):
-        for val in row:
-            att_to_ids[val].add(i)
-    return att_to_ids
+        event_rows: a dict mapping event ids to row lists.
+        identifier_column: in the sensitive data, the column representing the identity of the individual data subject associated with the record.
+        event_column: in the sensitive data, the column representing the identity of the event associated with the record.
 
-def genColValIdsDict(df, sensitive_zeros):
+    Returns:
+        atts_to_events: a dict mapping each attribute to a set of event ids.
+        events_to_ids: a dict mapping each event id to its subject id.
+    """
+    att_to_events = defaultdict(set)
+    event_to_ids = {}
+    for event, row in event_rows.items():
+        id = event
+        if identifier_column != None:
+            id = [r[1] for r in row if r[0] == identifier_column][0]
+        event_to_ids[event] = id
+        for val in row:
+            if val[0] != identifier_column and val[0] != event_column:
+                att_to_events[val].add(event)
+    return att_to_events, event_to_ids
+
+def genColValIdsDict(df, sensitive_zeros, event_column):
     """Converts a dataframe to a dict of col->val->ids.
 
     Args:
-        df: the dataframe
+        df: the dataframe.
+        sensitive_zeros: columns for which negative values should be controlled.
+        event_column: in the sensitive data, the column representing the identity of the event associated with the record.
 
     Returns:
         colValIds: the dict of col->val->ids.
     """
     colValIds = {}
     for rid, row in df.iterrows():
+        event = rid
+        if event_column != None:
+            event = row[event_column]
         for c in df.columns:
             val = str(row[c])
             if c not in colValIds.keys():
                 colValIds[c] = defaultdict(list)
             if val == '0':
                 if c in sensitive_zeros:
-                    colValIds[c][val].append(rid)
+                    colValIds[c][val].append(event)
                 else:
-                    colValIds[c][''].append(rid)
+                    colValIds[c][''].append(event)
             else:
-                colValIds[c][val].append(rid)
+                colValIds[c][val].append(event)
 
     return colValIds
 
@@ -116,67 +146,80 @@ def rowToCombo(row, columns):
     return combo
 
 
-def countAllCombos(row_list, length_limit, parallel_jobs):
+def countAllCombos(identifier_column, event_column, event_rows, length_limit, parallel_jobs):
     """Counts all combinations in the given rows up to a limit.
 
     Args:
-        row_list: a list of rows.
+        identifier_column: in the sensitive data, the column representing the identity of the individual data subject associated with the record.
+        event_column: in the sensitive data, the column representing the identity of the event associated with the record.
+        event_rows: a dict mapping event ids to row lists.
         length_limit: the maximum length to compute counts for (all lengths if -1).
         parallel_jobs: the number of processor cores to use for parallelized counting.
 
     Returns:
-        length_to_combo_to_count: a dict mapping combination lengths to dicts mapping combinations to counts. 
+        length_to_combo_to_counts: a dict mapping combination lengths to dicts mapping combinations to count tuples (subject count, event count). 
     """
-    length_to_combo_to_count = {}
+    length_to_combo_to_events = {}
     if length_limit == -1:
-        length_limit = max([len(x) for x in row_list])
+        length_limit = max([max([len(x) for x in row_list]) for row_list in event_rows.values()])
     for length in range(1, length_limit+1):
         logging.info(f'counting combos of length {length}')
-        res = joblib.Parallel(n_jobs=parallel_jobs, backend='loky', verbose=1) (joblib.delayed(genAllCombos)(row, length) for row in row_list)
-        length_to_combo_to_count[length] = defaultdict(int)
-        for combos in res:
-            for combo in combos:
-                length_to_combo_to_count[length][combo] += 1
-    
-    return length_to_combo_to_count
+        res = joblib.Parallel(n_jobs=parallel_jobs, backend='loky', verbose=1) (joblib.delayed(genAllCombos)(identifier_column, event_column, event, row, length) for event, row in event_rows.items())
+        length_to_combo_to_events[length] = defaultdict(set)
+        for (id, event_to_combos) in res:
+            for event, combos in event_to_combos.items():
+                for combo in combos:
+                    length_to_combo_to_events[length][combo].add((id, event))
+    length_to_combo_to_counts = {length: {combo: (len(set([x[0] for x in events])), len(events)) for combo, events in combo_to_events.items()} for length, combo_to_events in length_to_combo_to_events.items()}
+    return length_to_combo_to_counts
 
 
-def genAllCombos(row, length):
-    """Generates all combos from row up to and including size length.
+def genAllCombos(identifier_column, event_column, event, row, length):
+    """Generates all combos from the row up to and including size length.
 
     Args:
-        row: the row to extract combinations from.
+        identifier_column: in the sensitive data, the column representing the identity of the individual data subject associated with the record.
+        event_column: in the sensitive data, the column representing the identity of the event associated with the record.row: the row to extract combinations from.
+        event: the event id associated with the row.
+        row: the attributes of the row.
         length: the maximum combination length to extract.
 
     Returns:
-        combos: list of combinations extracted from row.
+        id: the id extracted from the row.
+        res: a dict mapping event id to attribute combinations.
     """
-    res = []
+    res = defaultdict(list)
+    id = event
+    if identifier_column != None:
+        id = [r[1] for r in row if r[0] == identifier_column][0]
+    row = [r for r in row if r[0] != identifier_column and r[0] != event_column]
     if len(row) == length:
         canonical_combo = tuple(sorted(list(row), key=lambda x: f'{x[0]}:{x[1]}'.lower()))
-        res.append(canonical_combo)
+        res[event].append(canonical_combo)
     else:
         for combo in combinations(row, length):
             canonical_combo = tuple(sorted(list(combo), key=lambda x: f'{x[0]}:{x[1]}'.lower()))
-            res.append(canonical_combo)
-    return res
+            res[event].append(canonical_combo)
+    return (id, res)
 
 
-def mapShortestUniqueRareComboLengthToRecords(records, length_to_rare):
+def mapShortestUniqueRareComboLengthToRecords(event_to_records, length_to_rare):
     """
     Maps each record to the shortest combination length that isolates it within a rare group (i.e., below resolution).
 
     Args:
-        records: the input records.
+        event_to_records: a dict mapping event id to a list of records.
         length_to_rare: a dict of length to rare combo to count.
 
     Returns:
-        rare_to_records: dict of rare combination lengths mapped to record lists
+        unique_to_records: dict of unique combination lengths mapped to record lists.
+        rare_to_records: dict of rare combination lengths mapped to record lists.
+        length_to_combo_to_rare: a dict mapping combination length to combination to event ids.
     """
     rare_to_records = defaultdict(set)
     unique_to_records = defaultdict(set)
     length_to_combo_to_rare = {length: defaultdict(set) for length in length_to_rare.keys()}
-    for i, record in enumerate(records):
+    for event, record in event_to_records.items():
         matchedRare = False
         matchedUnique = False
         for length in sorted(length_to_rare.keys()):
@@ -186,20 +229,20 @@ def mapShortestUniqueRareComboLengthToRecords(records, length_to_rare):
                 canonical_combo = tuple(sorted(list(combo), key=lambda x: f'{x[0]}:{x[1]}'.lower()))
                 if canonical_combo in length_to_rare[length].keys():
                     if length_to_rare[length][canonical_combo] == 1: # unique
-                        unique_to_records[length].add(i)
+                        unique_to_records[length].add(event)
                         matchedUnique = True
-                        length_to_combo_to_rare[length][canonical_combo].add(i)
+                        length_to_combo_to_rare[length][canonical_combo].add(event)
                     else:
-                        rare_to_records[length].add(i)
+                        rare_to_records[length].add(event)
                         matchedRare = True
-                        length_to_combo_to_rare[length][canonical_combo].add(i)
+                        length_to_combo_to_rare[length][canonical_combo].add(event)
                         
             if matchedUnique:
                 break
         if not matchedRare:
-            rare_to_records[0].add(i)
+            rare_to_records[0].add(event)
         if not matchedUnique:
-            unique_to_records[0].add(i)
+            unique_to_records[0].add(event)
     return unique_to_records, rare_to_records, length_to_combo_to_rare
 
 
@@ -246,7 +289,7 @@ def loadSavedAggregates(path):
             parts = [x.strip() for x in line.split('\t')]
             if len(parts[0]) > 0:
                 length, combo = stringToLengthAndCombo(parts[0])
-                length_to_combo_to_count[length][combo] = int(parts[1])
+                length_to_combo_to_count[length][combo] = (int(parts[1]), int(parts[2]))
     return length_to_combo_to_count
 
 
@@ -257,6 +300,7 @@ def stringToLengthAndCombo(combo_string):
         combo_string: string representation of (attribute, value) tuples.
 
     Returns:
+        length: the length of the combination.
         combo_tuple: tuple of (attribute, value) tuples.
     """
     length = len(combo_string.split(';'))

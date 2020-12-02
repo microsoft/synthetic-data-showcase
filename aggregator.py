@@ -23,6 +23,8 @@ def aggregate(config):
     """
 
     use_columns = config['use_columns']
+    identifier_column = config['identifier_column']
+    event_column = config['event_column']
     reporting_length = config['reporting_length']
     reporting_resolution = config['reporting_resolution']
     parallel_jobs = config['parallel_jobs']
@@ -38,16 +40,16 @@ def aggregate(config):
     logging.info(f'Aggregate {sensitive_microdata_path}')
     start_time = time.time()  
 
-    df = util.loadMicrodata(path=sensitive_microdata_path, delimiter=sensitive_microdata_delimiter, record_limit=record_limit, use_columns=use_columns)
-    row_list = util.genRowList(df=df, sensitive_zeros=sensitive_zeros)
+    df, identifier_column = util.loadMicrodata(path=sensitive_microdata_path, delimiter=sensitive_microdata_delimiter, record_limit=record_limit, use_columns=use_columns, identifier_column=identifier_column)
+    event_rows = util.genEventRows(df=df, sensitive_zeros=sensitive_zeros, identifier_column=identifier_column, event_column=event_column)
     if reporting_length == -1:
-        reporting_length = max([len(row) for row in row_list])
+        reporting_length = max([max([len(x) for x in row_list]) for row_list in event_rows.values()])
     if use_columns != []:
         reporting_length = min(reporting_length, len(use_columns))
-    length_to_combo_to_count = util.countAllCombos(row_list=row_list, length_limit=reporting_length, parallel_jobs=parallel_jobs)
+    length_to_combo_to_counts = util.countAllCombos(identifier_column=identifier_column, event_column=event_column, event_rows=event_rows, length_limit=reporting_length, parallel_jobs=parallel_jobs)
 
-    len_to_combo_count = {length: len(combo_to_count) for length, combo_to_count in length_to_combo_to_count.items()}
-    len_to_rare_count = {length: len([1 for combo, count in combo_to_count.items() if count < reporting_resolution]) for length, combo_to_count in length_to_combo_to_count.items()}
+    len_to_combo_count = {length: len(combo_to_counts) for length, combo_to_counts in length_to_combo_to_counts.items()}
+    len_to_rare_count = {length: len([1 for combo, counts in combo_to_counts.items() if counts[0] < reporting_resolution]) for length, combo_to_counts in length_to_combo_to_counts.items()}
 
     leakage_tsv = path.join(output_dir, f'{prefix}_sensitive_rare_by_length.tsv')
     leakage_svg = path.join(output_dir, f'{prefix}_sensitive_rare_by_length.svg')
@@ -75,17 +77,18 @@ def aggregate(config):
 
     with open(reportable_aggregates_path, 'w') as ra:
         with open(sensitive_aggregates_path, 'w') as sa:
-            sa.write('\t'.join(['selections', 'count'])+'\n')
+            sa.write('\t'.join(['selections', 'id_count', 'event_count'])+'\n')
             sa.write('\t'.join(['', str(len(df))])+'\n')
             ra.write('\t'.join(['selections', 'protected_count'])+'\n')
             ra.write('\t'.join(['selections', str(util.protect(len(df), reporting_resolution))])+'\n')
-            for _, combo_to_count in length_to_combo_to_count.items():
-                for combo, count in combo_to_count.items():
+            for _, combo_to_count in length_to_combo_to_counts.items():
+                for combo, counts in combo_to_count.items():
+                    protected_ids = util.protect(counts[0], reporting_resolution)
+                    protected_events = util.protect(counts[1], reporting_resolution)
                     selections_string = util.comboToString(combo)
-                    protected_count = util.protect(count, reporting_resolution)
-                    sa.write('\t'.join([str(selections_string), str(count)])+'\n')
-                    if protected_count > 0:
-                        ra.write('\t'.join([str(selections_string), str(protected_count)])+'\n')
+                    sa.write('\t'.join([str(selections_string), str(counts[0]), str(counts[1])])+'\n')
+                    if protected_ids > 0:
+                        ra.write('\t'.join([str(selections_string), str(protected_events)])+'\n')
 
 
     logging.info(f'Aggregated {sensitive_microdata_path} into {reportable_aggregates_path}, took {datetime.timedelta(seconds = time.time() - start_time)}s')

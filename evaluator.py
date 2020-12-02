@@ -17,6 +17,8 @@ def evaluate(config):
     """
 
     use_columns = config['use_columns']
+    identifier_column = config['identifier_column']
+    event_column = config['event_column']
     record_limit = config['record_limit']
     reporting_length = config['reporting_length']
     reporting_resolution = config['reporting_resolution']
@@ -30,40 +32,45 @@ def evaluate(config):
 
     logging.info(f'Evaluate {synthetic_microdata_path} vs {sensitive_microdata_path}')
     start_time = time.time()  
+    sen_len_to_combo_to_counts = None
+    sen_event_rows = None
+    sen_df, sen_identifier_column = util.loadMicrodata(path=sensitive_microdata_path, delimiter=sensitive_microdata_delimiter, record_limit=record_limit, use_columns=use_columns, identifier_column=identifier_column)
 
-    sen_counts = None
-    sen_records = None
-    sen_df = util.loadMicrodata(path=sensitive_microdata_path, delimiter=sensitive_microdata_delimiter, record_limit=record_limit, use_columns=use_columns)
-    sen_records = util.genRowList(sen_df, sensitive_zeros)
+    sen_event_rows = util.genEventRows(sen_df, sensitive_zeros, sen_identifier_column, event_column)
+    max_atts = max([max([len(row) for row in rows]) for event, rows in sen_event_rows.items()])
     if not path.exists(config['sensitive_aggregates_path']):
         logging.info('Computing sensitive aggregates...')
         if reporting_length == -1:
-            reporting_length = max([len(row) for row in sen_records])
-        sen_counts = util.countAllCombos(sen_records, reporting_length, parallel_jobs)
+            reporting_length = max_atts
+        sen_len_to_combo_to_counts = util.countAllCombos(sen_identifier_column, event_column, sen_event_rows, reporting_length, parallel_jobs)
     else:
         logging.info('Loading sensitive aggregates...')
-        sen_counts = util.loadSavedAggregates(config['sensitive_aggregates_path'])
+        sen_len_to_combo_to_counts = util.loadSavedAggregates(config['sensitive_aggregates_path'])
         if reporting_length == -1:
-            reporting_length = max(sen_counts.keys())
-
+            reporting_length = max_atts
     if use_columns != []:
-        reporting_length = min(reporting_length, len(use_columns))
+        reporting_length = min(reporting_length, max_atts)
     
-    filtered_sen_counts = {length: {combo: count for combo, count in combo_to_counts.items() if count >= reporting_resolution} for length, combo_to_counts in sen_counts.items()}
-    syn_df = util.loadMicrodata(path=synthetic_microdata_path, delimiter='\t', record_limit=-1, use_columns=use_columns)
-    syn_records = util.genRowList(syn_df, sensitive_zeros)
-    syn_counts = util.countAllCombos(syn_records, reporting_length, parallel_jobs)
+    filtered_sen_len_to_combo_to_counts = {length: {combo: counts for combo, counts in combo_to_counts.items() if counts[0] >= reporting_resolution} for length, combo_to_counts in sen_len_to_combo_to_counts.items()}
+    sen_counts = sen_len_to_combo_to_counts
+    syn_use_columns = use_columns
+    if use_columns != [] and identifier_column != None:
+        syn_use_columns.remove(identifier_column)
 
-    len_to_syn_count = {length: len(combo_to_count) for length, combo_to_count in syn_counts.items()}
-    len_to_sen_rare = {length: {combo : count for combo, count in combo_to_count.items() if count < reporting_resolution} for length, combo_to_count in sen_counts.items()}
-    len_to_syn_rare = {length: {combo : count for combo, count in combo_to_count.items() if count < reporting_resolution} for length, combo_to_count in syn_counts.items()}
-    len_to_syn_leak = {length: len([1 for rare in rares if rare in syn_counts[length].keys()]) for length, rares in len_to_sen_rare.items()}
+    syn_df, syn_identifier_column = util.loadMicrodata(path=synthetic_microdata_path, delimiter='\t', record_limit=-1, use_columns=syn_use_columns, identifier_column=None)
+    syn_event_rows = util.genEventRows(syn_df, sensitive_zeros, syn_identifier_column, event_column)
+    syn_counts = util.countAllCombos(syn_identifier_column, event_column, syn_event_rows, reporting_length, parallel_jobs)
 
-    sen_unique_to_records, sen_rare_to_records, _ = util.mapShortestUniqueRareComboLengthToRecords(sen_records, len_to_sen_rare)
+    len_to_syn_count = {length: len(combo_to_counts) for length, combo_to_counts in syn_counts.items()}
+    len_to_sen_rare = {length: {combo : counts[0] for combo, counts in combo_to_counts.items() if counts[0] < reporting_resolution} for length, combo_to_counts in sen_counts.items()}
+    len_to_syn_rare = {length: {combo : counts[0] for combo, counts in combo_to_counts.items() if counts[0] < reporting_resolution} for length, combo_to_counts in syn_counts.items()}
+    len_to_syn_leak = {length: len([1 for rare in rares if rare in syn_counts.get(length, {}).keys()]) for length, rares in len_to_sen_rare.items()}
+
+    sen_unique_to_records, sen_rare_to_records, _ = util.mapShortestUniqueRareComboLengthToRecords(sen_event_rows, len_to_sen_rare)
     sen_rare_to_sen_count = {length: util.protect(len(records), reporting_resolution) for length, records in sen_rare_to_records.items()}
     sen_unique_to_sen_count = {length: util.protect(len(records), reporting_resolution) for length, records in sen_unique_to_records.items()}
     
-    total_sen = util.protect(len(sen_records), reporting_resolution)
+    total_sen = util.protect(len(sen_event_rows), reporting_resolution)
     unique_total = sum([v for k, v in sen_unique_to_sen_count.items() if k > 0])
     rare_total = sum([v for k, v in sen_rare_to_sen_count.items() if k > 0])
     risky_total = unique_total + rare_total
@@ -74,14 +81,14 @@ def evaluate(config):
         f.write('\t'.join(['combo_length', 'sen_rare', 'sen_rare_pct', 'sen_unique', 'sen_unique_pct', 'sen_risky', 'sen_risky_pct'])+'\n')
         for length in sen_counts.keys():
             sen_rare = sen_rare_to_sen_count.get(length, 0)
-            sen_rare_pct = 100*sen_rare / total_sen
+            sen_rare_pct = min(100, 100*sen_rare / total_sen)
             sen_unique = sen_unique_to_sen_count.get(length, 0)
-            sen_unique_pct = 100*sen_unique / total_sen
+            sen_unique_pct = min(100, 100*sen_unique / total_sen)
             sen_risky = sen_rare + sen_unique
-            sen_risky_pct = 100*sen_risky / total_sen
+            sen_risky_pct = min(100, 100*sen_risky / total_sen)
             f.write('\t'.join([str(length), str(sen_rare), str(sen_rare_pct), str(sen_unique), str(sen_unique_pct), str(sen_risky), str(sen_risky_pct)])+'\n')
 
-    _, _, syn_length_to_combo_to_rare = util.mapShortestUniqueRareComboLengthToRecords(syn_records, len_to_syn_rare)
+    _, _, syn_length_to_combo_to_rare = util.mapShortestUniqueRareComboLengthToRecords(syn_event_rows, len_to_syn_rare)
     combos_tsv = path.join(output_dir, f'{prefix}_synthetic_rare_combos_by_length.tsv')
     with open(combos_tsv, 'w') as f:
         f.write('\t'.join(['combo_length', 'combo', 'record_id', 'syn_count', 'sen_count'])+'\n')
@@ -89,7 +96,7 @@ def evaluate(config):
             for combo, rare_ids in combo_to_rare.items():
                 syn_count = len(rare_ids)
                 for rare_id in rare_ids:
-                    sen_count = util.protect(sen_counts[length][combo], reporting_resolution)
+                    sen_count = util.protect(sen_counts[length].get(combo, (0,0))[0], reporting_resolution)
                     f.write('\t'.join([str(length), util.comboToString(combo).replace(';',' AND '), str(rare_id), str(syn_count), str(sen_count)])+'\n')
 
 
@@ -129,7 +136,7 @@ def evaluate(config):
         style='whitegrid',
         palette='magma')
 
-    compareDatasets(filtered_sen_counts, syn_counts, output_dir, prefix)
+    compareDatasets(filtered_sen_len_to_combo_to_counts, syn_counts, output_dir, prefix)
 
 
 
@@ -162,8 +169,8 @@ def compareDatasets(sensitive_length_to_combo_to_count, synthetic_length_to_comb
     for i, (length, combo) in enumerate(all_combos):
         if i % 10000 == 0:
             logging.info(f'{100*i/tot:.1f}% through comparisons')
-        sen_count = sensitive_length_to_combo_to_count[length].get(combo, 0)
-        syn_count = synthetic_length_to_combo_to_count[length].get(combo, 0)
+        sen_count = sensitive_length_to_combo_to_count[length].get(combo, (0,0))[1]
+        syn_count = synthetic_length_to_combo_to_count[length].get(combo, (0,0))[1]
         max_syn_count = max(syn_count, max_syn_count)
         preservation = 0
         try:

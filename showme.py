@@ -58,7 +58,6 @@ def main():
         values, labels = binValuesAndLabels(df['Age in years'].max(), 20)
         df['Age in years'] = pd.cut(df['Age in years'], bins=values, labels=labels)
 
-
         df = df.astype(str).replace(to_replace=r'^nan$', value='', regex=True)
 
         for att in attributes:
@@ -75,17 +74,20 @@ def main():
         del df['Present employment since']
         del df['Status of existing checking account']
 
+
+
         df.to_csv(sensitive_microdata_path, sep='\t', index=False)
         logging.info('Processed')
 
     config = {
+        'event_column': None,
+        'identifier_column': None,
         'parallel_jobs': 1,
         'memory_limit_pct': 90,
         'use_columns': [],
         'record_limit': -1,
         'reporting_length': 5,
         'reporting_resolution': 2,
-        'seeded': True,
         'sensitive_zeros': [],
         'prefix': 'credit',
         'output_dir': output_dir,

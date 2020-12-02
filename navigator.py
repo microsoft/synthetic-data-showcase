@@ -17,6 +17,8 @@ class Navigator ():
         self.prefix = config.get('prefix', '')
         self.output_dir = config.get('output_dir', './')
         self.use_columns = config.get('use_columns', [])
+        self.identifier_column = config.get('identifier_column', None)
+        self.event_column = config.get('event_column', None)
         self.reportable_aggregates = '%s/%s_reportable_aggregates.tsv' %(self.output_dir, self.prefix)
         self.synthetic_microdata = '%s/%s_synthetic_microdata.tsv'  %(self.output_dir, self.prefix)
         self.renamed_reportable_aggregates = '%s/rounded_aggregates.tsv' %(self.output_dir)
@@ -158,10 +160,13 @@ class Navigator ():
         logging.info('Renaming and reformatting files with records...')
 
         copyfile(self.reportable_aggregates, self.renamed_reportable_aggregates)
-        df = util.loadMicrodata(self.synthetic_microdata, '\t', -1, use_columns=self.use_columns) 
+        df, self.identifier_column = util.loadMicrodata(self.synthetic_microdata, '\t', -1, use_columns=self.use_columns, identifier_column=None) 
+        if self.event_column == None:
+            self.event_column = self.identifier_column
         new_df = []
         for i, row in df.iterrows():
-            [new_df.append([i, ind, value]) for ind, value in row.items() if str(value) != '']
+            event = row[self.event_column]
+            [new_df.append([event, ind, value]) for ix, (ind, value) in enumerate(row.items()) if str(value) != '' and ind != self.event_column and ind != self.identifier_column]
         self.test_table = pd.DataFrame(new_df)
         self.test_table.to_csv(self.synthetic_attributes, sep="\t", index=False, header=None)
         logging.info('Done with record files in %s seconds' %( time.time() - start_time ))

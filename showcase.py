@@ -50,6 +50,8 @@ def main():
         config['memory_limit_pct'] = config.get('memory_limit_pct', 80)
 
         # numeric parameters controlling synthesis and aggregation
+        config['identifier_column'] = config.get('identifier_column', None)
+        config['event_column'] = config.get('event_column', None)
         config['use_columns'] = config.get('use_columns', [])
         config['record_limit'] = config.get('record_limit', -1) # use all sensitive records
         config['reporting_length'] = config.get('reporting_length', 3) # support any 2 selections
@@ -57,7 +59,6 @@ def main():
 
         # parameters affecting the representation and interpretation of values
         config['sensitive_zeros'] = config.get('sensitive_zeros', [])
-        config['seeded'] = config.get('seeded', True)
 
         # specified parameters affecting file I/O
         config['prefix'] = config.get('prefix', 'my')
