@@ -30,8 +30,8 @@ The pipeline is controlled via a json config file containing a variety of parame
 {
     "sensitive_microdata_path": "./secret_vices.csv",
     "sensitive_microdata_delimiter": ",",
-    "identifier_column": None,
-    "event_column": None,
+    "identifier_column": null,
+    "event_column": null,
     "use_columns": [],
     "record_limit": -1,
     "sensitive_zeros": [],

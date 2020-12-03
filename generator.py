@@ -399,7 +399,7 @@ def normalize(columns, atts, identifier_column, event_column):
             for row in rows:
                 row.append(event_id)
         else:
-            c_atts = list(col_to_atts.get(c, []))
+            c_atts = [x for x in col_to_atts.get(c, []) if x != '']
             if len(c_atts) == 0:
                 for row in rows:
                     row.append('')
@@ -412,7 +412,7 @@ def normalize(columns, atts, identifier_column, event_column):
                     new_rows.extend([list(row) for row in rows])
                 rows = new_rows
                 for ix, row in enumerate(rows):
-                    row.append(c_atts[ix%len(atts)][1])
+                    row.append(c_atts[ix%len(c_atts)][1])
 
     return rows
 
