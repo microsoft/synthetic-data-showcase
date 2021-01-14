@@ -161,12 +161,10 @@ class Navigator ():
 
         copyfile(self.reportable_aggregates, self.renamed_reportable_aggregates)
         df, self.identifier_column = util.loadMicrodata(self.synthetic_microdata, '\t', -1, use_columns=self.use_columns, identifier_column=None) 
-        if self.event_column == None:
-            self.event_column = self.identifier_column
         new_df = []
         for i, row in df.iterrows():
-            event = row[self.event_column]
-            [new_df.append([event, ind, value]) for ix, (ind, value) in enumerate(row.items()) if str(value) != '' and ind != self.event_column and ind != self.identifier_column]
+            natural_index = row[self.identifier_column]
+            [new_df.append([natural_index, ind, value]) for ix, (ind, value) in enumerate(row.items()) if str(value) != '' and ind != self.identifier_column]
         self.test_table = pd.DataFrame(new_df)
         self.test_table.to_csv(self.synthetic_attributes, sep="\t", index=False, header=None)
         logging.info('Done with record files in %s seconds' %( time.time() - start_time ))
