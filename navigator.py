@@ -100,19 +100,29 @@ class Navigator ():
     def change_visual(self, attr_container, name, table, title):
         '''Transforms visual container of Attribute Slicer to handle a new column'''    
         visual_config = json.loads(attr_container['config'])
-        visual_config['singleVisual']['projections']['Values'][0]['queryRef'] = 'CountNonNull({0}.{1})'.format(table, name)
+        event = self.event_column if self.event_column else name
+        agg_function = 2 if self.event_column and name != self.event_column else 5
+        visual_config['singleVisual']['projections']['Values'][0]['queryRef'] = 'CountNonNull({0}.{1})'.format(table, event)
         visual_config['singleVisual']['projections']['Category'][0]['queryRef'] = '{0}.{1}'.format(table, name)
         visual_config['singleVisual']['prototypeQuery']['From'][0]['Name'] = table[0]
         visual_config['singleVisual']['prototypeQuery']['From'][0]['Entity'] = table
-        visual_config['singleVisual']['prototypeQuery']['Select'][1]['Name'] = 'CountNonNull({0}.{1})'.format(table, name)
-        visual_config['singleVisual']['prototypeQuery']['Select'][1]['Aggregation']['Expression']['Column']['Property'] = name
+        visual_config['singleVisual']['prototypeQuery']['Select'][1]['Name'] = 'CountNonNull({0}.{1})'.format(table, event)
+        visual_config['singleVisual']['prototypeQuery']['Select'][1]['Aggregation']['Expression']['Column']['Property'] = event
         visual_config['singleVisual']['prototypeQuery']['Select'][1]['Aggregation']['Expression']['Column']['Expression']['SourceRef']['Source'] = table[0]
+        visual_config['singleVisual']['prototypeQuery']['Select'][1]['Aggregation']['Function'] = agg_function
         visual_config['singleVisual']['prototypeQuery']['Select'][0]['Column']['Expression']['SourceRef']['Source'] = table[0]
         visual_config['singleVisual']['prototypeQuery']['Select'][0]['Column']['Property'] = name
         visual_config['singleVisual']['prototypeQuery']['Select'][0]['Name'] = '{0}.{1}'.format(table, name)
         visual_config['singleVisual']['prototypeQuery']['OrderBy'][0]['Expression']['Aggregation']['Expression']['Column']['Expression']['SourceRef']['Source'] = table[0]
-        visual_config['singleVisual']['prototypeQuery']['OrderBy'][0]['Expression']['Aggregation']['Expression']['Column']['Property'] = name
+        visual_config['singleVisual']['prototypeQuery']['OrderBy'][0]['Expression']['Aggregation']['Expression']['Column']['Property'] = event
+        visual_config['singleVisual']['prototypeQuery']['OrderBy'][0]['Expression']['Aggregation']['Function'] = agg_function
         visual_config['singleVisual']['vcObjects']['title'][0]['properties']['text']['expr']['Literal']['Value'] = "'{0}'".format(title)
+        if self.event_column and name == self.event_column:
+            visual_config['singleVisual']['projections']['Color'] = [{'queryRef':'{0}.{1}'.format(table, name)}]
+            visual_config['singleVisual']['objects']['dataPoint'] = [
+                {'properties': {'colorMode': {'expr': {'Literal': {'Value': '0D'}}},
+                                'startColor': {'solid': {'color': {'expr': {'ThemeDataColor': {'ColorId': 0, 'Percent': -0.3}}}}},
+                                'endColor': {'solid': {'color': {'expr': {'ThemeDataColor': {'ColorId': 0, 'Percent': -0.3}}}}}}}]
         attr_container['config'] = json.dumps(visual_config)
         filters = []
         attr_container['filters'] = json.dumps(filters)
