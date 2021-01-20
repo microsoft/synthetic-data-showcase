@@ -149,6 +149,30 @@ class Navigator ():
         new_config = json.dumps(visual_config)
         attr_container['config'] = new_config
         return attr_container
+    
+    def change_compare_slicer(self, attr_container):
+        '''Changes the layout of the slicer to dropdown list and filter out an event column'''
+        visual_config= json.loads(attr_container['config'])
+        visual_config['singleVisual']['objects']['data'][0]['properties']['mode']['expr']['Literal']['Value'] = "'Dropdown'"
+        new_config =json.dumps(visual_config)
+        attr_container['config'] = new_config
+        if self.event_column:
+            visual_filters = json.loads(attr_container['filters'])
+            new_filter = {'name': 'Filter563d6c74639a7a39a3c6',
+                          'expression': {'Column': {'Expression': {'SourceRef': {'Entity': 'disconnected_table'}}, 'Property': 'Attribute'}},
+                          'filter': {'Version': 2,
+                                     'From': [{'Name': 'd', 'Entity': 'disconnected_table', 'Type': 0}],
+                                     'Where': [{'Condition': {'Not': {'Expression': {'Comparison': {'ComparisonKind': 0, 
+                                                                                                    'Left': {'Column': {'Expression': {'SourceRef': {'Source': 'd'}}, 'Property': 'Attribute'}},
+                                                                                                    'Right': {'Literal': {'Value': "'{0}'".format(self.event_column)}}}}}}}]},
+                          'type': 'Advanced', 
+                          'howCreated': 0, 
+                          'objects': {'general': [{'properties': {'isInvertedSelectionMode': {'expr': {'Literal': {'Value': 'true'}}}}}]},
+                          'isHiddenInViewMode': False}
+            visual_filters.append(new_filter)
+            new_filters = json.dumps(visual_filters)
+            attr_container['filters'] = new_filters
+        return attr_container
 
 
     def prepare_layout(self):
@@ -292,6 +316,7 @@ class Navigator ():
                 new += [containers[ind] for ind in persistent_viz_index[1:]]
             else:
                 new = [containers[ind] for ind in persistent_viz_index]
+            new[3] = self.change_compare_slicer(containers[4])
             viz_index = 0
             while viz_index < len(attributes_viz_index) and names_index < len(prepared_layout[i]):
                 attr_container = copy.deepcopy(containers[attributes_viz_index[viz_index]])
