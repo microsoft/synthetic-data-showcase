@@ -62,6 +62,15 @@ class Navigator ():
         all_filters = all_filters_pre + ', '.join(all_filters_list)
         whole += all_filters + '), [attribute:value] <> BLANK()))\nVAR sorted_filter = CONCATENATEX(all_filters, [attribute:value], ";", [attribute:value], ASC)\nVAR corrected_filter = IF(ISBLANK(sorted_filter), "", sorted_filter)\nVAR actual_count = LOOKUPVALUE(rounded_aggregates[protected_count], rounded_aggregates[selections], corrected_filter, BLANK())\nRETURN actual_count'    
         return whole
+    
+    def estimated_measure(self):
+        '''Creates a measure string for filtered synthesized aggreagetd results'''
+        target_attribute = '\nVAR target_attribute = SELECTEDVALUE(\'disconnected_table\'[attribute:value])'
+        filtered_attribute = '\nVAR filtered_attribute = IF(FIND("{0}:", target_attribute, 1,-1) = 1, BLANK(), target_attribute)'.format(self.event_column)
+        id_table = '\nVAR id_table = SELECTCOLUMNS(FILTER(ALL(synthesized_pivoted), [{0}] in SELECTCOLUMNS(synthesized_pivoted, "{0}", synthesized_pivoted[{0}])), "Id", [Id])'.format(self.event_column) 
+        estimated_count= '\nVAR estimated_count = COUNTROWS(DISTINCT(SELECTCOLUMNS(ADDCOLUMNS(FILTER(FILTER(ALL(synthesized_attributes), [Id] in id_table), [attribute:value] == filtered_attribute), "EVENT", LOOKUPVALUE(synthesized_pivoted[{0}], synthesized_pivoted[Id], [Id])), "EVENT", [EVENT])))'.format(self.event_column)
+        whole = target_attribute + filtered_attribute + id_table + estimated_count + '\nRETURN estimated_count'
+        return whole
 
 
     def add_filter_steps(self, m_expression, filters_list):
@@ -97,23 +106,27 @@ class Navigator ():
         return mashup
 
 
-    def change_visual(self, attr_container, name, table, title):
-        '''Transforms visual container of Attribute Slicer to handle a new column'''    
+    def change_visual(self, attr_container, name, title, combo_table=None):
+        '''Transforms visual container of Attribute Slicer to handle a new column'''
+        default_table = 'synthesized_pivoted'
+        table = combo_table if combo_table else default_table    
         visual_config = json.loads(attr_container['config'])
         event = self.event_column if self.event_column else name
         agg_function = 2 if self.event_column and name != self.event_column else 5
-        visual_config['singleVisual']['projections']['Values'][0]['queryRef'] = 'CountNonNull({0}.{1})'.format(table, event)
+        visual_config['singleVisual']['projections']['Values'][0]['queryRef'] = 'CountNonNull({0}.{1})'.format(default_table, event)
         visual_config['singleVisual']['projections']['Category'][0]['queryRef'] = '{0}.{1}'.format(table, name)
         visual_config['singleVisual']['prototypeQuery']['From'][0]['Name'] = table[0]
         visual_config['singleVisual']['prototypeQuery']['From'][0]['Entity'] = table
-        visual_config['singleVisual']['prototypeQuery']['Select'][1]['Name'] = 'CountNonNull({0}.{1})'.format(table, event)
+        if combo_table:
+           visual_config['singleVisual']['prototypeQuery']['From'].append({'Name':'{0}'.format(default_table[0]), 'Entity':'{0}'.format(default_table), 'Type':0}) 
+        visual_config['singleVisual']['prototypeQuery']['Select'][1]['Name'] = 'CountNonNull({0}.{1})'.format(default_table, event)
         visual_config['singleVisual']['prototypeQuery']['Select'][1]['Aggregation']['Expression']['Column']['Property'] = event
-        visual_config['singleVisual']['prototypeQuery']['Select'][1]['Aggregation']['Expression']['Column']['Expression']['SourceRef']['Source'] = table[0]
+        visual_config['singleVisual']['prototypeQuery']['Select'][1]['Aggregation']['Expression']['Column']['Expression']['SourceRef']['Source'] = default_table[0]
         visual_config['singleVisual']['prototypeQuery']['Select'][1]['Aggregation']['Function'] = agg_function
         visual_config['singleVisual']['prototypeQuery']['Select'][0]['Column']['Expression']['SourceRef']['Source'] = table[0]
         visual_config['singleVisual']['prototypeQuery']['Select'][0]['Column']['Property'] = name
         visual_config['singleVisual']['prototypeQuery']['Select'][0]['Name'] = '{0}.{1}'.format(table, name)
-        visual_config['singleVisual']['prototypeQuery']['OrderBy'][0]['Expression']['Aggregation']['Expression']['Column']['Expression']['SourceRef']['Source'] = table[0]
+        visual_config['singleVisual']['prototypeQuery']['OrderBy'][0]['Expression']['Aggregation']['Expression']['Column']['Expression']['SourceRef']['Source'] = default_table[0]
         visual_config['singleVisual']['prototypeQuery']['OrderBy'][0]['Expression']['Aggregation']['Expression']['Column']['Property'] = event
         visual_config['singleVisual']['prototypeQuery']['OrderBy'][0]['Expression']['Aggregation']['Function'] = agg_function
         visual_config['singleVisual']['vcObjects']['title'][0]['properties']['text']['expr']['Literal']['Value'] = "'{0}'".format(title)
@@ -202,6 +215,8 @@ class Navigator ():
         with open(self.data_schema_loc, 'r', encoding='utf-16-le') as json_file:
             data = json.load(json_file)
         data['model']['tables'][4]['measures'][1]['expression'] = self.actual_measure(combo_tables)
+        if self.event_column:
+            data['model']['tables'][4]['measures'][0]['expression'] = self.estimated_measure()
         logging.info('Measure strings are added')
         if combo_tables:
             for visual_name, table_name in combo_tables.items():
@@ -282,9 +297,9 @@ class Navigator ():
                 attr_container = copy.deepcopy(containers[attributes_viz_index[viz_index]])
                 name = prepared_layout[i][names_index]
                 if name in combo_tables:
-                    attr_container = self.change_visual(attr_container, 'attribute:value', combo_tables[name], name)
+                    attr_container = self.change_visual(attr_container, 'attribute:value', name, combo_tables[name])
                 else:
-                    self.change_visual(attr_container, name, 'synthesized_pivoted', name)               
+                    self.change_visual(attr_container, name, name)               
                 new.append(attr_container)
                 names_index += 1
                 viz_index +=1
