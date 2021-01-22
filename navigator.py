@@ -102,13 +102,21 @@ class Navigator ():
         return mashup
 
 
-    def change_visual(self, attr_container, name, title, combo_table=None):
+    def change_visual(self, attr_container, box, name, title, combo_table=None):
         '''Transforms visual container of Attribute Slicer to handle a new column'''
         default_table = 'synthesized_pivoted'
-        table = combo_table if combo_table else default_table    
+        table = combo_table if combo_table else default_table 
+        attr_container['x'] = box[0]
+        attr_container['y'] = box[1]
+        attr_container['width'] = box[2]
+        attr_container['height'] = box[3]   
         visual_config = json.loads(attr_container['config'])
         event = self.event_column if self.event_column else name
         agg_function = 2 if self.event_column and name != self.event_column else 5
+        visual_config['layouts'][0]['position']['x'] = box[0]
+        visual_config['layouts'][0]['position']['y'] = box[1]
+        visual_config['layouts'][0]['position']['width'] = box[2]
+        visual_config['layouts'][0]['position']['height'] = box[3]
         visual_config['singleVisual']['projections']['Values'][0]['queryRef'] = 'CountNonNull({0}.{1})'.format(default_table, event)
         visual_config['singleVisual']['projections']['Category'][0]['queryRef'] = '{0}.{1}'.format(table, name)
         visual_config['singleVisual']['prototypeQuery']['From'][0]['Name'] = table[0]
@@ -189,7 +197,28 @@ class Navigator ():
                     name_index +=1
                 layout.append(page)
             logging.info('Default layout is applied') 
-        return layout, page_names 
+        return layout, page_names
+    
+    def calculate_visual_boxes(self, prepared_layout):
+        '''Returns tuples of (x,y, width, height) for every visual'''
+        layout = [(1,2), (1,2), (1,3), (2,2), (2,3), (2,3), (2,4), (2,4), (3,3), (3,4), (3,4), (3,4), (4,4), (4,4), (4,4), (4,4)]  
+        margin = 16
+        total_width = 880
+        y_start = 86
+        total_height = 644
+        
+        bounding_boxes = []
+        for page in prepared_layout:
+            page_boxes = []
+            page_layout = layout[len(page)-1]
+            width = (total_width - (page_layout[1]-1)*margin)/page_layout[1]
+            height = (total_height - (page_layout[0]-1)*margin)/page_layout[0]
+            for i in range(len(page)):
+                x = margin*(i%page_layout[1]) + width*(i%page_layout[1])
+                y = y_start + margin*(math.floor(i/page_layout[1])) + height*(math.floor(i/page_layout[1]))
+                page_boxes.append((x,y,width,height))
+            bounding_boxes.append(page_boxes)
+        return bounding_boxes                
 
 
     def process(self):
@@ -283,7 +312,8 @@ class Navigator ():
         ### change Layout to support new columns
         with open(self.layout_loc, 'r', encoding='utf-16-le') as json_file:
             layout = json.load(json_file)
-        prepared_layout, page_names = self.prepare_layout()      
+        prepared_layout, page_names = self.prepare_layout()
+        bounding_boxes = self.calculate_visual_boxes(prepared_layout)      
 
         # remove extra pages
         pages_to_remove = len(prepared_layout)-len(layout['sections'][4:])
@@ -311,9 +341,9 @@ class Navigator ():
                 attr_container = copy.deepcopy(containers[attributes_viz_index[viz_index]])
                 name = prepared_layout[i][names_index]
                 if name in combo_tables:
-                    attr_container = self.change_visual(attr_container, 'attribute:value', name, combo_tables[name])
+                    attr_container = self.change_visual(attr_container, bounding_boxes[i][names_index], 'attribute:value', name, combo_tables[name])
                 else:
-                    self.change_visual(attr_container, name, name)               
+                    self.change_visual(attr_container, bounding_boxes[i][names_index], name, name)               
                 new.append(attr_container)
                 names_index += 1
                 viz_index +=1
