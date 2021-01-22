@@ -19,10 +19,6 @@ class Navigator ():
         self.use_columns = config.get('use_columns', [])
         self.identifier_column = config.get('identifier_column', None)
         self.event_column = config.get('event_column', None)
-        self.reportable_aggregates = '%s/%s_reportable_aggregates.tsv' %(self.output_dir, self.prefix)
-        self.synthetic_microdata = '%s/%s_synthetic_microdata.tsv'  %(self.output_dir, self.prefix)
-        self.renamed_reportable_aggregates = '%s/rounded_aggregates.tsv' %(self.output_dir)
-        self.synthetic_attributes = '%s/synthesized_attributes.tsv' %(self.output_dir)
         self.template_original_loc = './template/data_showcase.pbit'
         self.temporary_zip_loc = '%s/privatize.zip' %(self.output_dir)
         self.temporary_folder_loc = '%s/privatize' %(self.output_dir)
@@ -41,7 +37,7 @@ class Navigator ():
         self.template_layout = config.get('report_pages', {})
         self.template_combined_attributes = config.get('report_visuals', {})
 
-
+   
     def actual_measure(self, combo_tables):
         '''Creates a measure string for filtered actual aggregated results'''
         whole = '\nVAR target_attribute = SELECTCOLUMNS(synthesized_attributes, "attribute:value", SELECTEDVALUE(disconnected_table[attribute:value]))'
@@ -100,7 +96,7 @@ class Navigator ():
         for item in filters_list:
             filter_expressions.append('[#"attribute:value"] = "' + item + '"')
         all_filters = ' or '.join(filter_expressions)
-        first_split = mashup.split('shared {0}'.format(table_name))
+        first_split = mashup.split('shared {0}'.format(table_name), 1)
         second_split = first_split[1].split('\nin\n    #"Changed Type"', 1)
         mashup = first_split[0] + 'shared {0}'.format(table_name) + second_split[0] + ',\n    #"Filtered Rows" = Table.SelectRows(#"Changed Type", each ({0}))\nin\n    #"Filtered Rows"'.format(all_filters) + second_split[1]
         return mashup
@@ -151,27 +147,22 @@ class Navigator ():
         return attr_container
     
     def change_compare_slicer(self, attr_container):
-        '''Changes the layout of the slicer to dropdown list and filter out an event column'''
-        visual_config= json.loads(attr_container['config'])
-        visual_config['singleVisual']['objects']['data'][0]['properties']['mode']['expr']['Literal']['Value'] = "'Dropdown'"
-        new_config =json.dumps(visual_config)
-        attr_container['config'] = new_config
-        if self.event_column:
-            visual_filters = json.loads(attr_container['filters'])
-            new_filter = {'name': 'Filter563d6c74639a7a39a3c6',
-                          'expression': {'Column': {'Expression': {'SourceRef': {'Entity': 'disconnected_table'}}, 'Property': 'Attribute'}},
-                          'filter': {'Version': 2,
-                                     'From': [{'Name': 'd', 'Entity': 'disconnected_table', 'Type': 0}],
-                                     'Where': [{'Condition': {'Not': {'Expression': {'Comparison': {'ComparisonKind': 0, 
-                                                                                                    'Left': {'Column': {'Expression': {'SourceRef': {'Source': 'd'}}, 'Property': 'Attribute'}},
-                                                                                                    'Right': {'Literal': {'Value': "'{0}'".format(self.event_column)}}}}}}}]},
-                          'type': 'Advanced', 
-                          'howCreated': 0, 
-                          'objects': {'general': [{'properties': {'isInvertedSelectionMode': {'expr': {'Literal': {'Value': 'true'}}}}}]},
-                          'isHiddenInViewMode': False}
-            visual_filters.append(new_filter)
-            new_filters = json.dumps(visual_filters)
-            attr_container['filters'] = new_filters
+        '''Filters out an event column from a slicer dropdown list'''
+        visual_filters = json.loads(attr_container['filters'])
+        new_filter = {'name': 'Filter563d6c74639a7a39a3c6',
+                        'expression': {'Column': {'Expression': {'SourceRef': {'Entity': 'disconnected_table'}}, 'Property': 'Attribute'}},
+                        'filter': {'Version': 2,
+                                    'From': [{'Name': 'd', 'Entity': 'disconnected_table', 'Type': 0}],
+                                    'Where': [{'Condition': {'Not': {'Expression': {'Comparison': {'ComparisonKind': 0, 
+                                                                                                'Left': {'Column': {'Expression': {'SourceRef': {'Source': 'd'}}, 'Property': 'Attribute'}},
+                                                                                                'Right': {'Literal': {'Value': "'{0}'".format(self.event_column)}}}}}}}]},
+                        'type': 'Advanced', 
+                        'howCreated': 0, 
+                        'objects': {'general': [{'properties': {'isInvertedSelectionMode': {'expr': {'Literal': {'Value': 'true'}}}}}]},
+                        'isHiddenInViewMode': False}
+        visual_filters.append(new_filter)
+        new_filters = json.dumps(visual_filters)
+        attr_container['filters'] = new_filters
         return attr_container
 
 
@@ -203,17 +194,14 @@ class Navigator ():
 
     def process(self):
         start_time = time.time()
-
-        logging.info('Renaming and reformatting files with records...')
-
-        copyfile(self.reportable_aggregates, self.renamed_reportable_aggregates)
-        df, self.identifier_column = util.loadMicrodata(self.synthetic_microdata, '\t', -1, use_columns=self.use_columns, identifier_column=None) 
+        logging.info('Reformatting files with records...')
+        df, self.identifier_column = util.loadMicrodata('%s/%s_synthetic_microdata.tsv'  %(self.output_dir, self.prefix), '\t', -1, use_columns=self.use_columns, identifier_column=None) 
         new_df = []
         for i, row in df.iterrows():
             natural_index = row[self.identifier_column]
             [new_df.append([natural_index, ind, value]) for ix, (ind, value) in enumerate(row.items()) if str(value) != '' and ind != self.identifier_column]
         self.test_table = pd.DataFrame(new_df)
-        self.test_table.to_csv(self.synthetic_attributes, sep="\t", index=False, header=None)
+        self.test_table.to_csv('%s/%s_synthesized_attributes.tsv' %(self.output_dir, self.prefix), sep="\t", index=False, header=None)
         logging.info('Done with record files in %s seconds' %( time.time() - start_time ))
 
         self.names = self.test_table[1].unique().tolist()
@@ -298,16 +286,16 @@ class Navigator ():
         prepared_layout, page_names = self.prepare_layout()      
 
         # remove extra pages
-        pages_to_remove = len(prepared_layout)-len(layout['sections'])
-        layout['pods'] = (layout['pods'][:pages_to_remove] if pages_to_remove < 0  else layout['pods'])
+        pages_to_remove = len(prepared_layout)-len(layout['sections'][4:])
+        #layout['pods'] = (layout['pods'][:pages_to_remove] if pages_to_remove < 0  else layout['pods'])
         pages = layout['sections']
         pages = (pages[:pages_to_remove] if pages_to_remove < 0  else layout['sections'])
 
         # assign attributes/columns to visuals, change title.
-        persistent_viz_index = [0,1,3,4] 
+        persistent_viz_index = [0,1,3,4,20] 
         attributes_viz_index = [2,7,10,13,5,8,11,14,6,9,12,15,16,17,18,19]  
         
-        for i, page in enumerate(pages):
+        for i, page in enumerate(pages[4:]):
             names_index = 0
             page['displayName'] = page_names[i] if len(page_names)>i else page['displayName']
             containers = page['visualContainers'].copy()
@@ -316,7 +304,8 @@ class Navigator ():
                 new += [containers[ind] for ind in persistent_viz_index[1:]]
             else:
                 new = [containers[ind] for ind in persistent_viz_index]
-            new[3] = self.change_compare_slicer(containers[4])
+            if self.event_column:
+                new[3] = self.change_compare_slicer(containers[4])
             viz_index = 0
             while viz_index < len(attributes_viz_index) and names_index < len(prepared_layout[i]):
                 attr_container = copy.deepcopy(containers[attributes_viz_index[viz_index]])
@@ -328,7 +317,7 @@ class Navigator ():
                 new.append(attr_container)
                 names_index += 1
                 viz_index +=1
-            pages[i]['visualContainers'] = new
+            pages[i+4]['visualContainers'] = new
         layout['sections'] = pages
 
         with open(self.layout_loc, 'w', encoding='utf-16-le') as outfile:
