@@ -36,6 +36,7 @@ class Navigator ():
         self.template_title = config.get('report_title', '')
         self.template_layout = config.get('report_pages', {})
         self.template_combined_attributes = config.get('report_visuals', {})
+        self.resolution = config.get('reporting_resolution', 10)
 
    
     def actual_measure(self, combo_tables):
@@ -153,6 +154,14 @@ class Navigator ():
         new_config = json.dumps(visual_config)
         attr_container['config'] = new_config
         return attr_container
+    
+    def change_resolution(self, attr_container):
+        '''Inserts resolution from config file into textbox visual'''
+        visual_config= json.loads(attr_container['config'])
+        visual_config['singleVisual']['objects']['general'][0]['properties']['paragraphs'][0]['textRuns'][0]['value'] = 'Privacy resolution (%s)' %self.resolution
+        new_config = json.dumps(visual_config)
+        attr_container['config'] = new_config
+        return attr_container        
     
     def change_compare_slicer(self, attr_container):
         '''Filters out an event column from a slicer dropdown list'''
@@ -332,7 +341,8 @@ class Navigator ():
             containers = page['visualContainers'].copy()
             if self.template_title:
                 new = [self.change_title(containers[0])]
-                new += [containers[ind] for ind in persistent_viz_index[1:]]
+                new +=[self.change_resolution(containers[1])]
+                new += [containers[ind] for ind in persistent_viz_index[2:]]
             else:
                 new = [containers[ind] for ind in persistent_viz_index]
             if self.event_column:
