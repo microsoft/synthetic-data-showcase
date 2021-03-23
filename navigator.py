@@ -224,7 +224,7 @@ class Navigator ():
     def process(self):
         start_time = time.time()
         logging.info('Reformatting files with records...')
-        df, self.identifier_column = util.loadMicrodata('%s/%s_synthetic_microdata.tsv'  %(self.output_dir, self.prefix), '\t', -1, use_columns=self.use_columns, identifier_column=None) 
+        df, self.identifier_column = util.loadMicrodata('%s/%s_synthetic_microdata.tsv'  %(self.output_dir, self.prefix), '\t', -1, use_columns=self.use_columns, identifier_column=self.identifier_column) 
         new_df = []
         for i, row in df.iterrows():
             natural_index = row[self.identifier_column]
@@ -316,16 +316,17 @@ class Navigator ():
         bounding_boxes = self.calculate_visual_boxes(prepared_layout)      
 
         # remove extra pages
-        pages_to_remove = len(prepared_layout)-len(layout['sections'][4:])
+        pages_to_remove = len(prepared_layout)
         #layout['pods'] = (layout['pods'][:pages_to_remove] if pages_to_remove < 0  else layout['pods'])
         pages = layout['sections']
-        pages = (pages[:pages_to_remove] if pages_to_remove < 0  else layout['sections'])
+        explainer_pages = pages[4:]
+        pages = pages[:pages_to_remove] 
 
         # assign attributes/columns to visuals, change title.
         persistent_viz_index = [0,1,3,4,20] 
         attributes_viz_index = [2,7,10,13,5,8,11,14,6,9,12,15,16,17,18,19]  
         
-        for i, page in enumerate(pages[4:]):
+        for i, page in enumerate(pages):
             names_index = 0
             page['displayName'] = page_names[i] if len(page_names)>i else page['displayName']
             containers = page['visualContainers'].copy()
@@ -347,8 +348,8 @@ class Navigator ():
                 new.append(attr_container)
                 names_index += 1
                 viz_index +=1
-            pages[i+4]['visualContainers'] = new
-        layout['sections'] = pages
+            pages[i]['visualContainers'] = new
+        layout['sections'] = pages + explainer_pages
 
         with open(self.layout_loc, 'w', encoding='utf-16-le') as outfile:
             json.dump(layout, outfile, separators=(',', ':')) 
