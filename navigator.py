@@ -156,12 +156,20 @@ class Navigator ():
         return attr_container
     
     def change_resolution(self, attr_container):
-        '''Inserts resolution from config file into textbox visual'''
+        '''Inserts resolution from config file into textbox visual on overview pages'''
         visual_config= json.loads(attr_container['config'])
         visual_config['singleVisual']['objects']['general'][0]['properties']['paragraphs'][0]['textRuns'][0]['value'] = 'Privacy resolution (%s)' %self.resolution
         new_config = json.dumps(visual_config)
         attr_container['config'] = new_config
         return attr_container        
+    
+    def change_resolution_risk_page(self, attr_container):
+        '''Inserts resolution from config file into textbox visual on "Risk" page'''
+        visual_config= json.loads(attr_container['config'])
+        visual_config['singleVisual']['objects']['general'][0]['properties']['paragraphs'][1]['textRuns'][0]['value'] = 'Each of the "Rare Attribute Combinations" below matches less than %s records in an example dataset.' %self.resolution
+        new_config = json.dumps(visual_config)
+        attr_container['config'] = new_config
+        return attr_container 
     
     def change_compare_slicer(self, attr_container):
         '''Filters out an event column from a slicer dropdown list'''
@@ -326,11 +334,17 @@ class Navigator ():
 
         # remove extra pages
         pages_to_remove = len(prepared_layout)
-        #layout['pods'] = (layout['pods'][:pages_to_remove] if pages_to_remove < 0  else layout['pods'])
         pages = layout['sections']
         explainer_pages = pages[4:]
         pages = pages[:pages_to_remove] 
-
+        
+        #insert resolution parameter into 'Risk' page
+        risk_page = explainer_pages[0].copy()
+        containers = risk_page['visualContainers'].copy()
+        containers[0] = self.change_resolution_risk_page(containers[0])
+        risk_page['visualContainers'] = containers
+        explainer_pages[0] = risk_page
+        
         # assign attributes/columns to visuals, change title.
         persistent_viz_index = [0,1,3,4,20] 
         attributes_viz_index = [2,7,10,13,5,8,11,14,6,9,12,15,16,17,18,19]  
@@ -345,6 +359,7 @@ class Navigator ():
                 new += [containers[ind] for ind in persistent_viz_index[2:]]
             else:
                 new = [containers[ind] for ind in persistent_viz_index]
+                new[1] = self.change_resolution(containers[1])
             if self.event_column:
                 new[3] = self.change_compare_slicer(containers[4])
             viz_index = 0
