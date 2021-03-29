@@ -14,32 +14,25 @@ matplotlib.use('Agg') # fixes matplotlib + joblib bug "RuntimeError: main thread
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 
-def loadMicrodata(path, delimiter, record_limit, use_columns, identifier_column):
+def loadMicrodata(path, delimiter, record_limit, use_columns):
     """Loads delimited microdata with column headers into a pandas dataframe.
     Args:
         path: the microdata file path.
         delimiter: the delimiter used to delimit data columns.
         record_limit: how many rows to load (-1 loads all rows).
         use_columns: which columns to load.
-        identifier_column: in the sensitive data, the column representing the identity of the individual data subject associated with the record.
     """
     df = pd.read_csv(path, delimiter).astype(str) \
         .replace(to_replace=r'^nan$', value='', regex=True) \
         .replace(to_replace=r'\.0$', value='', regex=True) \
         .replace(to_replace=';', value='.,', regex=False) \
         .replace(to_replace=':', value='..', regex=False)  # fix pandas type coercion for numbers and remove reserved delimiters
-    
-    if identifier_column == None:
-        identifier_column = 'NATURAL_INDEX'
-        df[identifier_column] = list(range(1, len(df) + 1))
 
     if use_columns != []:
-        if identifier_column not in use_columns:
-            use_columns = [identifier_column] + use_columns
         df = df[use_columns]
     if record_limit > 0:
         df = df[:record_limit]
-    return df, identifier_column
+    return df
 
 
 def genRowList(df, sensitive_zeros):

@@ -17,7 +17,6 @@ class Navigator ():
         self.prefix = config.get('prefix', '')
         self.output_dir = config.get('output_dir', './')
         self.use_columns = config.get('use_columns', [])
-        self.identifier_column = config.get('identifier_column', None)
         self.event_column = config.get('event_column', None)
         self.template_original_loc = './template/data_showcase.pbit'
         self.temporary_zip_loc = '%s/privatize.zip' %(self.output_dir)
@@ -241,11 +240,10 @@ class Navigator ():
     def process(self):
         start_time = time.time()
         logging.info('Reformatting files with records...')
-        df, self.identifier_column = util.loadMicrodata('%s/%s_synthetic_microdata.tsv'  %(self.output_dir, self.prefix), '\t', -1, use_columns=self.use_columns, identifier_column=self.identifier_column) 
+        df = util.loadMicrodata('%s/%s_synthetic_microdata.tsv'  %(self.output_dir, self.prefix), '\t', -1, use_columns=self.use_columns) 
         new_df = []
         for i, row in df.iterrows():
-            natural_index = row[self.identifier_column]
-            [new_df.append([natural_index, ind, value]) for ix, (ind, value) in enumerate(row.items()) if str(value) != '' and ind != self.identifier_column]
+            [new_df.append([i, ind, value]) for ind, value in row.items() if str(value) != '']
         self.test_table = pd.DataFrame(new_df)
         self.test_table.to_csv('%s/%s_synthesized_attributes.tsv' %(self.output_dir, self.prefix), sep="\t", index=False, header=None)
         logging.info('Done with record files in %s seconds' %( time.time() - start_time ))
