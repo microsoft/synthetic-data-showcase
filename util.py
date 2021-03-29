@@ -136,7 +136,7 @@ def countAllCombos(row_list, length_limit, parallel_jobs):
         length_to_combo_to_count[length] = defaultdict(int)
         for combos in res:
             for combo in combos:
-                length_to_combo_to_count[length][combo] += 1
+                length_to_combo_to_count.get(length, {})[combo] += 1
     
     return length_to_combo_to_count
 
@@ -184,15 +184,15 @@ def mapShortestUniqueRareComboLengthToRecords(records, length_to_rare):
                 break
             for combo in combinations(record, length):
                 canonical_combo = tuple(sorted(list(combo), key=lambda x: f'{x[0]}:{x[1]}'.lower()))
-                if canonical_combo in length_to_rare[length].keys():
-                    if length_to_rare[length][canonical_combo] == 1: # unique
+                if canonical_combo in length_to_rare.get(length, {}).keys():
+                    if length_to_rare.get(length, {})[canonical_combo] == 1: # unique
                         unique_to_records[length].add(i)
                         matchedUnique = True
-                        length_to_combo_to_rare[length][canonical_combo].add(i)
+                        length_to_combo_to_rare.get(length, {})[canonical_combo].add(i)
                     else:
                         rare_to_records[length].add(i)
                         matchedRare = True
-                        length_to_combo_to_rare[length][canonical_combo].add(i)
+                        length_to_combo_to_rare.get(length, {})[canonical_combo].add(i)
                         
             if matchedUnique:
                 break

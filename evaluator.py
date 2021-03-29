@@ -57,7 +57,7 @@ def evaluate(config):
     len_to_syn_count = {length: len(combo_to_count) for length, combo_to_count in syn_counts.items()}
     len_to_sen_rare = {length: {combo : count for combo, count in combo_to_count.items() if count < reporting_resolution} for length, combo_to_count in sen_counts.items()}
     len_to_syn_rare = {length: {combo : count for combo, count in combo_to_count.items() if count < reporting_resolution} for length, combo_to_count in syn_counts.items()}
-    len_to_syn_leak = {length: len([1 for rare in rares if rare in syn_counts[length].keys()]) for length, rares in len_to_sen_rare.items()}
+    len_to_syn_leak = {length: len([1 for rare in rares if rare in syn_counts.get(length, {}).keys()]) for length, rares in len_to_sen_rare.items()}
 
     sen_unique_to_records, sen_rare_to_records, _ = util.mapShortestUniqueRareComboLengthToRecords(sen_records, len_to_sen_rare)
     sen_rare_to_sen_count = {length: util.protect(len(records), reporting_resolution) for length, records in sen_rare_to_records.items()}
@@ -89,7 +89,7 @@ def evaluate(config):
             for combo, rare_ids in combo_to_rare.items():
                 syn_count = len(rare_ids)
                 for rare_id in rare_ids:
-                    sen_count = util.protect(sen_counts[length][combo], reporting_resolution)
+                    sen_count = util.protect(sen_counts.get(length, {})[combo], reporting_resolution)
                     f.write('\t'.join([str(length), util.comboToString(combo).replace(';',' AND '), str(rare_id), str(syn_count), str(sen_count)])+'\n')
 
 
@@ -162,8 +162,8 @@ def compareDatasets(sensitive_length_to_combo_to_count, synthetic_length_to_comb
     for i, (length, combo) in enumerate(all_combos):
         if i % 10000 == 0:
             logging.info(f'{100*i/tot:.1f}% through comparisons')
-        sen_count = sensitive_length_to_combo_to_count[length].get(combo, 0)
-        syn_count = synthetic_length_to_combo_to_count[length].get(combo, 0)
+        sen_count = sensitive_length_to_combo_to_count.get(length, {}).get(combo, 0)
+        syn_count = synthetic_length_to_combo_to_count.get(length, {}).get(combo, 0)
         max_syn_count = max(syn_count, max_syn_count)
         preservation = 0
         try:

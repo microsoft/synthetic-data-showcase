@@ -54,7 +54,7 @@ def aggregate(config):
     with open(leakage_tsv, 'w') as f:
         f.write('\t'.join(['sen_combo_length', 'combo_count', 'rare_count', 'rare_proportion'])+'\n')
         for length, combo_count in len_to_combo_count.items():
-            rare_count = len_to_rare_count[length]
+            rare_count = len_to_rare_count.get(length, 0)
             rare_prop = rare_count / combo_count
             f.write('\t'.join([str(length), str(combo_count), str(rare_count), str(rare_prop)])+'\n')
 
