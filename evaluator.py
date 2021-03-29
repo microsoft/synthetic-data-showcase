@@ -110,8 +110,8 @@ def evaluate(config):
     with open(leakage_tsv, 'w') as f:
         f.write('\t'.join(['syn_combo_length', 'combo_count', 'leak_count', 'leak_proportion'])+'\n')
         for length, leak_count in len_to_syn_leak.items():
-            combo_count = len_to_syn_count[length]
-            leak_prop = leak_count / len_to_syn_count[length]
+            combo_count = len_to_syn_count.get(length, 0)
+            leak_prop = 0 if combo_count == 0 else leak_count/combo_count
             f.write('\t'.join([str(length), str(combo_count), str(leak_count), str(leak_prop)])+'\n')
 
     util.plotStats(

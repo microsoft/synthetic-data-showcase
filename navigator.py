@@ -241,146 +241,149 @@ class Navigator ():
         start_time = time.time()
         logging.info('Reformatting files with records...')
         df = util.loadMicrodata('%s/%s_synthetic_microdata.tsv'  %(self.output_dir, self.prefix), '\t', -1, use_columns=self.use_columns) 
-        new_df = []
-        for i, row in df.iterrows():
-            [new_df.append([i, ind, value]) for ind, value in row.items() if str(value) != '']
-        self.test_table = pd.DataFrame(new_df)
-        self.test_table.to_csv('%s/%s_synthesized_attributes.tsv' %(self.output_dir, self.prefix), sep="\t", index=False, header=None)
-        logging.info('Done with record files in %s seconds' %( time.time() - start_time ))
+        if len(df)==0:
+            logging.info("There is no data, Power BI template is not created")
+        else:
+            new_df = []
+            for i, row in df.iterrows():
+                [new_df.append([i, ind, value]) for ind, value in row.items() if str(value) != '']
+            self.test_table = pd.DataFrame(new_df)
+            self.test_table.to_csv('%s/%s_synthesized_attributes.tsv' %(self.output_dir, self.prefix), sep="\t", index=False, header=None)
+            logging.info('Done with record files in %s seconds' %( time.time() - start_time ))
 
-        self.names = self.test_table[1].unique().tolist()
-        # assign combined attributes to tables(max 10)
-        combo_tables = {}
-        if self.template_combined_attributes:
-            checked_type = isinstance(self.template_combined_attributes, dict)
-            if not checked_type:
-                logging.info('"report_visuals" parameter is in the wrong format. The dictionary as follows is expected: {"Combined Attribute Name 1": ["attribute1:value", "attribute2:value"]}.')
-            combo_list = list(self.template_combined_attributes.keys())[:min(self.number_of_combo_tables, len(self.template_combined_attributes))] if checked_type else []
-            combo_tables = {each:'copy_{0}'.format(i+1) for i, each in enumerate(combo_list)}
-            self.names  +=  combo_list
-        self.sorted_names = sorted(self.names)
+            self.names = self.test_table[1].unique().tolist()
+            # assign combined attributes to tables(max 10)
+            combo_tables = {}
+            if self.template_combined_attributes:
+                checked_type = isinstance(self.template_combined_attributes, dict)
+                if not checked_type:
+                    logging.info('"report_visuals" parameter is in the wrong format. The dictionary as follows is expected: {"Combined Attribute Name 1": ["attribute1:value", "attribute2:value"]}.')
+                combo_list = list(self.template_combined_attributes.keys())[:min(self.number_of_combo_tables, len(self.template_combined_attributes))] if checked_type else []
+                combo_tables = {each:'copy_{0}'.format(i+1) for i, each in enumerate(combo_list)}
+                self.names  +=  combo_list
+            self.sorted_names = sorted(self.names)
 
-        # extract files from the original template
-        copyfile(self.template_original_loc, self.temporary_zip_loc)
-        with zipfile.ZipFile(self.temporary_zip_loc) as myzip:
-            myzip.extractall(path= self.temporary_folder_loc) 
-        os.remove(self.temporary_zip_loc)
-        logging.info('Done extracting template files')
+            # extract files from the original template
+            copyfile(self.template_original_loc, self.temporary_zip_loc)
+            with zipfile.ZipFile(self.temporary_zip_loc) as myzip:
+                myzip.extractall(path= self.temporary_folder_loc) 
+            os.remove(self.temporary_zip_loc)
+            logging.info('Done extracting template files')
 
-        ### add modified measures to DataModelSchema file and add filtering steps to tables data model schema
-        with open(self.data_schema_loc, 'r', encoding='utf-16-le') as json_file:
-            data = json.load(json_file)
-        data['model']['tables'][4]['measures'][1]['expression'] = self.actual_measure(combo_tables)
-        if self.event_column:
-            data['model']['tables'][4]['measures'][0]['expression'] = self.estimated_measure()
-        logging.info('Measure strings are added')
-        if combo_tables:
-            for visual_name, table_name in combo_tables.items():
-                data = self.change_table_schema(data, visual_name, table_name)
-            logging.info('Filtering steps are added to tables schema')
-        with open(self.data_schema_loc, 'w', encoding='utf-16-le') as outfile:
-            json.dump(data, outfile, indent=2)   
-            
-        if combo_tables:        
-            ### filter tables in DataMashup file to support combined attributes
-            with open(self.data_mashup_loc, "rb") as f:
-                bn = f.read()
-            # dissassemble to pieces
-            pre = bn[:4]
-            size_of_zip_bn = bn[4:8]
-            size_of_zip = int.from_bytes(bn[4:8], "little")
-            # ZIP archive
-            start = 8
-            end = 8+size_of_zip
-            zip_arch = bn[start:end]
-            tail = bn[end:]
-
-            # write zipped portion as bin and extract files
-            with open(self.data_mashup_zip_loc, "wb") as outfile:
-                outfile.write(zip_arch)
-            with zipfile.ZipFile(self.data_mashup_zip_loc) as myzip:
-                myzip.extractall(path= self.data_mashup_temp_loc)
-
-            # open Section1.m file and add filtering steps
-            with open(self.m_file_loc,'r', encoding='utf-8') as myfile:
-                mashup = myfile.read()
-            for visual_name, table_name in combo_tables.items():
-                mashup = self.change_table_mashup(mashup, visual_name, table_name)
-            with open(self.m_file_loc, 'w', encoding='utf-8') as outfile:
-                outfile.writelines(mashup)
-
-            # zip the archive with changes
-            make_archive(self.data_mashup_temp_loc, 'zip', self.data_mashup_temp_loc)
-            with open(self.data_mashup_zip_loc, "rb") as z:
-                zip_arch = z.read()
-            size_of_zip_bn = (len(zip_arch)).to_bytes(4, byteorder='little')
-
-            # remove extra files and directories
-            os.remove(self.data_mashup_zip_loc)
-            rmtree(self.data_mashup_temp_loc)
-
-            # write down the binary file
-            with open(self.data_mashup_loc, "wb") as f:
-                f.write(pre + size_of_zip_bn + zip_arch + tail)
-            logging.info('Tables are filtered to support combined attributes')
-
-        ### change Layout to support new columns
-        with open(self.layout_loc, 'r', encoding='utf-16-le') as json_file:
-            layout = json.load(json_file)
-        prepared_layout, page_names = self.prepare_layout()
-        bounding_boxes = self.calculate_visual_boxes(prepared_layout)      
-
-        # remove extra pages
-        pages_to_remove = len(prepared_layout)
-        pages = layout['sections']
-        explainer_pages = pages[4:]
-        pages = pages[:pages_to_remove] 
-        
-        #insert resolution parameter into 'Risk' page
-        risk_page = explainer_pages[0].copy()
-        containers = risk_page['visualContainers'].copy()
-        containers[0] = self.change_resolution_risk_page(containers[0])
-        risk_page['visualContainers'] = containers
-        explainer_pages[0] = risk_page
-        
-        # assign attributes/columns to visuals, change title.
-        persistent_viz_index = [0,1,3,4,20] 
-        attributes_viz_index = [2,7,10,13,5,8,11,14,6,9,12,15,16,17,18,19]  
-        
-        for i, page in enumerate(pages):
-            names_index = 0
-            page['displayName'] = page_names[i] if len(page_names)>i else page['displayName']
-            containers = page['visualContainers'].copy()
-            if self.template_title:
-                new = [self.change_title(containers[0])]
-                new +=[self.change_resolution(containers[1])]
-                new += [containers[ind] for ind in persistent_viz_index[2:]]
-            else:
-                new = [containers[ind] for ind in persistent_viz_index]
-                new[1] = self.change_resolution(containers[1])
+            ### add modified measures to DataModelSchema file and add filtering steps to tables data model schema
+            with open(self.data_schema_loc, 'r', encoding='utf-16-le') as json_file:
+                data = json.load(json_file)
+            data['model']['tables'][4]['measures'][1]['expression'] = self.actual_measure(combo_tables)
             if self.event_column:
-                new[3] = self.change_compare_slicer(containers[4])
-            viz_index = 0
-            while viz_index < len(attributes_viz_index) and names_index < len(prepared_layout[i]):
-                attr_container = copy.deepcopy(containers[attributes_viz_index[viz_index]])
-                name = prepared_layout[i][names_index]
-                if name in combo_tables:
-                    attr_container = self.change_visual(attr_container, bounding_boxes[i][names_index], 'attribute:value', name, combo_tables[name])
+                data['model']['tables'][4]['measures'][0]['expression'] = self.estimated_measure()
+            logging.info('Measure strings are added')
+            if combo_tables:
+                for visual_name, table_name in combo_tables.items():
+                    data = self.change_table_schema(data, visual_name, table_name)
+                logging.info('Filtering steps are added to tables schema')
+            with open(self.data_schema_loc, 'w', encoding='utf-16-le') as outfile:
+                json.dump(data, outfile, indent=2)   
+                
+            if combo_tables:        
+                ### filter tables in DataMashup file to support combined attributes
+                with open(self.data_mashup_loc, "rb") as f:
+                    bn = f.read()
+                # dissassemble to pieces
+                pre = bn[:4]
+                size_of_zip_bn = bn[4:8]
+                size_of_zip = int.from_bytes(bn[4:8], "little")
+                # ZIP archive
+                start = 8
+                end = 8+size_of_zip
+                zip_arch = bn[start:end]
+                tail = bn[end:]
+
+                # write zipped portion as bin and extract files
+                with open(self.data_mashup_zip_loc, "wb") as outfile:
+                    outfile.write(zip_arch)
+                with zipfile.ZipFile(self.data_mashup_zip_loc) as myzip:
+                    myzip.extractall(path= self.data_mashup_temp_loc)
+
+                # open Section1.m file and add filtering steps
+                with open(self.m_file_loc,'r', encoding='utf-8') as myfile:
+                    mashup = myfile.read()
+                for visual_name, table_name in combo_tables.items():
+                    mashup = self.change_table_mashup(mashup, visual_name, table_name)
+                with open(self.m_file_loc, 'w', encoding='utf-8') as outfile:
+                    outfile.writelines(mashup)
+
+                # zip the archive with changes
+                make_archive(self.data_mashup_temp_loc, 'zip', self.data_mashup_temp_loc)
+                with open(self.data_mashup_zip_loc, "rb") as z:
+                    zip_arch = z.read()
+                size_of_zip_bn = (len(zip_arch)).to_bytes(4, byteorder='little')
+
+                # remove extra files and directories
+                os.remove(self.data_mashup_zip_loc)
+                rmtree(self.data_mashup_temp_loc)
+
+                # write down the binary file
+                with open(self.data_mashup_loc, "wb") as f:
+                    f.write(pre + size_of_zip_bn + zip_arch + tail)
+                logging.info('Tables are filtered to support combined attributes')
+
+            ### change Layout to support new columns
+            with open(self.layout_loc, 'r', encoding='utf-16-le') as json_file:
+                layout = json.load(json_file)
+            prepared_layout, page_names = self.prepare_layout()
+            bounding_boxes = self.calculate_visual_boxes(prepared_layout)      
+
+            # remove extra pages
+            pages_to_remove = len(prepared_layout)
+            pages = layout['sections']
+            explainer_pages = pages[4:]
+            pages = pages[:pages_to_remove] 
+            
+            #insert resolution parameter into 'Risk' page
+            risk_page = explainer_pages[0].copy()
+            containers = risk_page['visualContainers'].copy()
+            containers[0] = self.change_resolution_risk_page(containers[0])
+            risk_page['visualContainers'] = containers
+            explainer_pages[0] = risk_page
+            
+            # assign attributes/columns to visuals, change title.
+            persistent_viz_index = [0,1,3,4,20] 
+            attributes_viz_index = [2,7,10,13,5,8,11,14,6,9,12,15,16,17,18,19]  
+            
+            for i, page in enumerate(pages):
+                names_index = 0
+                page['displayName'] = page_names[i] if len(page_names)>i else page['displayName']
+                containers = page['visualContainers'].copy()
+                if self.template_title:
+                    new = [self.change_title(containers[0])]
+                    new +=[self.change_resolution(containers[1])]
+                    new += [containers[ind] for ind in persistent_viz_index[2:]]
                 else:
-                    self.change_visual(attr_container, bounding_boxes[i][names_index], name, name)               
-                new.append(attr_container)
-                names_index += 1
-                viz_index +=1
-            pages[i]['visualContainers'] = new
-        layout['sections'] = pages + explainer_pages
+                    new = [containers[ind] for ind in persistent_viz_index]
+                    new[1] = self.change_resolution(containers[1])
+                if self.event_column:
+                    new[3] = self.change_compare_slicer(containers[4])
+                viz_index = 0
+                while viz_index < len(attributes_viz_index) and names_index < len(prepared_layout[i]):
+                    attr_container = copy.deepcopy(containers[attributes_viz_index[viz_index]])
+                    name = prepared_layout[i][names_index]
+                    if name in combo_tables:
+                        attr_container = self.change_visual(attr_container, bounding_boxes[i][names_index], 'attribute:value', name, combo_tables[name])
+                    else:
+                        self.change_visual(attr_container, bounding_boxes[i][names_index], name, name)               
+                    new.append(attr_container)
+                    names_index += 1
+                    viz_index +=1
+                pages[i]['visualContainers'] = new
+            layout['sections'] = pages + explainer_pages
 
-        with open(self.layout_loc, 'w', encoding='utf-16-le') as outfile:
-            json.dump(layout, outfile, separators=(',', ':')) 
-        logging.info('Visual layout is adjusted')
+            with open(self.layout_loc, 'w', encoding='utf-16-le') as outfile:
+                json.dump(layout, outfile, separators=(',', ':')) 
+            logging.info('Visual layout is adjusted')
 
-        # pack the template and remove temporary files
-        make_archive(self.temporary_folder_loc, 'zip', self.temporary_folder_loc)
-        move(self.temporary_zip_loc, self.template_final_loc)
-        rmtree(self.temporary_folder_loc)
-        logging.info('The template is created')
-        logging.info('Total time is %s seconds' %(time.time() - start_time ))
+            # pack the template and remove temporary files
+            make_archive(self.temporary_folder_loc, 'zip', self.temporary_folder_loc)
+            move(self.temporary_zip_loc, self.template_final_loc)
+            rmtree(self.temporary_folder_loc)
+            logging.info('The template is created')
+            logging.info('Total time is %s seconds' %(time.time() - start_time ))
