@@ -25,8 +25,8 @@ def loadMicrodata(path, delimiter, record_limit, use_columns):
     df = pd.read_csv(path, delimiter).astype(str) \
         .replace(to_replace=r'^nan$', value='', regex=True) \
         .replace(to_replace=r'\.0$', value='', regex=True) \
-        .replace(to_replace=';', value='.,', regex=False) \
-        .replace(to_replace=':', value='..', regex=False)  # fix pandas type coercion for numbers and remove reserved delimiters
+        .replace(to_replace=';', value='.,', regex=True) \
+        .replace(to_replace=':', value='..', regex=True)  # fix pandas type coercion for numbers and remove reserved delimiters
 
     if use_columns != []:
         df = df[use_columns]
