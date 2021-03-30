@@ -74,11 +74,11 @@ def evaluate(config):
         f.write('\t'.join(['combo_length', 'sen_rare', 'sen_rare_pct', 'sen_unique', 'sen_unique_pct', 'sen_risky', 'sen_risky_pct'])+'\n')
         for length in sen_counts.keys():
             sen_rare = sen_rare_to_sen_count.get(length, 0)
-            sen_rare_pct = 100*sen_rare / total_sen
+            sen_rare_pct = 100*sen_rare / total_sen if total_sen > 0 else 0
             sen_unique = sen_unique_to_sen_count.get(length, 0)
-            sen_unique_pct = 100*sen_unique / total_sen
+            sen_unique_pct = 100*sen_unique / total_sen if total_sen > 0 else 0
             sen_risky = sen_rare + sen_unique
-            sen_risky_pct = 100*sen_risky / total_sen
+            sen_risky_pct = 100*sen_risky / total_sen if total_sen > 0 else 0
             f.write('\t'.join([str(length), str(sen_rare), str(sen_rare_pct), str(sen_unique), str(sen_unique_pct), str(sen_risky), str(sen_risky_pct)])+'\n')
 
     _, _, syn_length_to_combo_to_rare = util.mapShortestUniqueRareComboLengthToRecords(syn_records, len_to_syn_rare)
@@ -111,7 +111,7 @@ def evaluate(config):
         f.write('\t'.join(['syn_combo_length', 'combo_count', 'leak_count', 'leak_proportion'])+'\n')
         for length, leak_count in len_to_syn_leak.items():
             combo_count = len_to_syn_count.get(length, 0)
-            leak_prop = 0 if combo_count == 0 else leak_count/combo_count
+            leak_prop = leak_count/combo_count if combo_count > 0 else 0
             f.write('\t'.join([str(length), str(combo_count), str(leak_count), str(leak_prop)])+'\n')
 
     util.plotStats(
@@ -166,10 +166,9 @@ def compareDatasets(sensitive_length_to_combo_to_count, synthetic_length_to_comb
         syn_count = synthetic_length_to_combo_to_count.get(length, {}).get(combo, 0)
         max_syn_count = max(syn_count, max_syn_count)
         preservation = 0
-        try:
-            preservation = syn_count / sen_count
-        except:
-            logging.error(f'Error: For {combo}, syn is {syn_count} but no sen count')
+        preservation = syn_count / sen_count if sen_count > 0 else 0
+        if sen_count == 0:
+            logging.error(f'Error: For {combo}, synthetic count is {syn_count} but no sensitive count')
         all_count_length_preservation.append((syn_count, length, preservation))
         max_syn_count = max(syn_count, max_syn_count)
 

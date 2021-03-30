@@ -311,7 +311,7 @@ def plotStats(x_axis, x_axis_title, y_bar, y_bar_title, y_line, y_line_title, co
         pct_color = darker_color
         ax2 = sns.pointplot(x=x_axis, y=y_line, data=df, color=pct_color, order=df[x_axis].values)
         ax2.set_ylabel(y_line_title, fontsize=font_size, color=pct_color)
-        ax2.set_yticklabels(ax2.get_yticks(), fontsize=font_size)
+        ax2.tick_params(axis='y', labelsize=font_size)
         ax2.set_xticklabels(ax2.get_xmajorticklabels(), fontsize=font_size)
         ax2.set_ylim([-0.1, max(1.0, df[y_line].max()) + 0.1])
         ax2.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: '{:,.2f}'.format(x)))
