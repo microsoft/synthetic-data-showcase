@@ -92,6 +92,7 @@ def main():
         'sensitive_microdata_path': sensitive_microdata_path,
         'sensitive_microdata_delimiter': '\t',
         'report_title': 'German Credit Data Showcase',
+        "prefix": "example"
 
     }
 
