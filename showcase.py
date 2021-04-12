@@ -53,8 +53,7 @@ def main():
         config['use_columns'] = config.get('use_columns', [])
         config['record_limit'] = config.get('record_limit', -1) # use all sensitive records
         config['reporting_length'] = config.get('reporting_length', 3) # support any 2 selections
-        config['reporting_threshold'] = config.get('reporting_threshold', 10) # only allow/report counts >= this
-        config['reporting_precision'] = config.get('reporting_precision', 10) # only report counts to the closest precision
+        config['reporting_resolution'] = config.get('reporting_resolution', 10) # only report counts rounded down to the closest resolution
 
         # parameters affecting the representation and interpretation of values
         config['sensitive_zeros'] = config.get('sensitive_zeros', [])

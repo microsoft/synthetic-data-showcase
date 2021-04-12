@@ -84,8 +84,7 @@ def main():
         'use_columns': [],
         'record_limit': -1,
         'reporting_length': 5,
-        'reporting_precision': 2,
-        'reporting_threshold': 2,
+        'reporting_resolution': 2,
         'seeded': True,
         'sensitive_zeros': [],
         'prefix': 'credit',
@@ -93,6 +92,7 @@ def main():
         'sensitive_microdata_path': sensitive_microdata_path,
         'sensitive_microdata_delimiter': '\t',
         'report_title': 'German Credit Data Showcase',
+        "prefix": "example"
 
     }
 
