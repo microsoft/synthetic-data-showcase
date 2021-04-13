@@ -36,7 +36,6 @@ The pipeline is controlled via a json config file containing a variety of parame
 
     "reporting_resolution": 10,
     "reporting_length": 5,
-    "analysis_length": 5,
 
     "seeded": true,
     "parallel_jobs": 8,
