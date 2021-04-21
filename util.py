@@ -189,14 +189,18 @@ def mapShortestUniqueRareComboLengthToRecords(records, length_to_rare):
                         unique_to_records[length].add(i)
                         matchedUnique = True
                         length_to_combo_to_rare.get(length, {})[canonical_combo].add(i)
+                        if i in rare_to_records[length]:
+                            rare_to_records[length].remove(i)
+
                     else:
-                        rare_to_records[length].add(i)
+                        if i not in unique_to_records[length]:
+                            rare_to_records[length].add(i)
                         matchedRare = True
                         length_to_combo_to_rare.get(length, {})[canonical_combo].add(i)
                         
             if matchedUnique:
                 break
-        if not matchedRare:
+        if not matchedRare and not matchedUnique:
             rare_to_records[0].add(i)
         if not matchedUnique:
             unique_to_records[0].add(i)

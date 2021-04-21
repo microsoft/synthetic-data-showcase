@@ -65,7 +65,7 @@ def evaluate(config):
     
     total_sen = util.protect(len(sen_records), reporting_resolution)
     unique_total = sum([v for k, v in sen_unique_to_sen_count.items() if k > 0])
-    rare_total = sum([v for k, v in sen_rare_to_sen_count.items() if k > 0]) - unique_total
+    rare_total = sum([v for k, v in sen_rare_to_sen_count.items() if k > 0])
     risky_total = unique_total + rare_total
     risky_total_pct = 100*risky_total/total_sen
 
