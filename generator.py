@@ -4,7 +4,6 @@ import logging
 import joblib
 import psutil
 import pandas as pd
-from os import path
 from math import ceil
 from collections import defaultdict, Counter
 from itertools import chain
@@ -33,14 +32,15 @@ def generate(config):
     seeded = config['seeded']
 
     logging.info(f'Generate {sensitive_microdata_path}')
-    start_time = time.time()  
+    start_time = time.time()
 
-    df = util.loadMicrodata(path=sensitive_microdata_path, delimiter=sensitive_microdata_delimiter, record_limit=record_limit, use_columns=use_columns)
-    columns = df.columns.values 
+    df = util.loadMicrodata(path=sensitive_microdata_path, delimiter=sensitive_microdata_delimiter,
+                            record_limit=record_limit, use_columns=use_columns)
+    columns = df.columns.values
     num = len(df)
     logging.info(f'Prepared data')
     records = []
-    
+
     chunk = ceil(num/(parallel_jobs))
     if seeded:
         logging.info(f'Generating from seeds')
@@ -48,16 +48,20 @@ def generate(config):
         att_to_ids = util.computeAttToIds(row_list=row_list)
         all_available_atts = defaultdict(int)
         chunks = [row_list[i:i + chunk] for i in range(0, len(row_list), chunk)]
-        res = joblib.Parallel(n_jobs=parallel_jobs, backend='loky', verbose=1) (joblib.delayed(synthesizeRowsSeeded)(seeds, num, columns, att_to_ids, resolution, memory_limit) for seeds in chunks)
+        res = joblib.Parallel(
+            n_jobs=parallel_jobs, backend='loky', verbose=1)(
+            joblib.delayed(synthesizeRowsSeeded)(seeds, num, columns, att_to_ids, resolution, memory_limit)
+            for seeds in chunks)
         for (rows, available_atts) in res:
             records.extend(rows)
             for attribute, available in available_atts.items():
                 all_available_atts[attribute] += available
         logging.info(f'Consolidating')
-        all_available_atts = {k : v for k, v in all_available_atts.items() if v > 0 and len(att_to_ids[k]) >= resolution}
-        
+        all_available_atts = {k: v for k, v in all_available_atts.items() if v > 0 and len(att_to_ids[k]) >= resolution}
+
         # These are the attribute additions/removals necessary for final attribute counts to match reported (i.e., rounded) values
-        targets =  {att: util.protect(len(att_to_ids[att]), resolution) - len(att_to_ids[att]) for att, ids in att_to_ids.items() if len(ids) >= resolution}
+        targets = {att: util.protect(len(att_to_ids[att]), resolution) - len(att_to_ids[att])
+                   for att, ids in att_to_ids.items() if len(ids) >= resolution}
 
         # Some of the targets we can address by making attributes available for consolidation
         for att, target in targets.items():
@@ -68,7 +72,8 @@ def generate(config):
             all_available_atts[att] = max(0, all_available_atts[att])
             if all_available_atts[att] == 0:
                 del all_available_atts[att]
-        consolidated = divideAndConsolidate(all_available_atts, columns, att_to_ids, num, resolution, memory_limit, parallel_jobs)
+        consolidated = divideAndConsolidate(all_available_atts, columns, att_to_ids,
+                                            num, resolution, memory_limit, parallel_jobs)
         records.extend(consolidated)
         # Negative targets are resolved in a final stage of suppresion / synthesis
         records = suppressToTargets(records, columns, att_to_ids, resolution)
@@ -77,20 +82,24 @@ def generate(config):
         logging.info(f'Generating unseeded')
         chunks = [chunk for i in range(parallel_jobs)]
         col_val_ids = util.genColValIdsDict(df, sensitive_zeros)
-        res = joblib.Parallel(n_jobs=parallel_jobs, backend='loky', verbose=1) (joblib.delayed(synthesizeRowsUnseeded)(chunk, num, columns, col_val_ids, resolution, memory_limit) for chunk in chunks)
+        res = joblib.Parallel(
+            n_jobs=parallel_jobs, backend='loky', verbose=1)(
+            joblib.delayed(synthesizeRowsUnseeded)(chunk, num, columns, col_val_ids, resolution, memory_limit)
+            for chunk in chunks)
         for rows in res:
             records.extend(rows)
-        records = records[:num] # trim any overgenerated records because of uniform chunk size  
+        records = records[:num]  # trim any overgenerated records because of uniform chunk size
 
     records.sort()
-    records.sort(key = lambda x : len([y for y in x if y != '']), reverse=True)
+    records.sort(key=lambda x: len([y for y in x if y != '']), reverse=True)
 
-    sdf = pd.DataFrame(records, columns = df.columns)
+    sdf = pd.DataFrame(records, columns=df.columns)
     syn_ratio = len(sdf) / len(df)
     config['expansion_ratio'] = syn_ratio
-    sdf.to_csv(synthetic_microdata_path, sep = '\t', index=False)
+    sdf.to_csv(synthetic_microdata_path, sep='\t', index=False)
 
-    logging.info(f'Generated {synthetic_microdata_path} from {sensitive_microdata_path} with synthesis ratio {syn_ratio}, took {datetime.timedelta(seconds = time.time() - start_time)}s')
+    logging.info(
+        f'Generated {synthetic_microdata_path} from {sensitive_microdata_path} with synthesis ratio {syn_ratio}, took {datetime.timedelta(seconds = time.time() - start_time)}s')
 
 
 def synthesizeRowsSeeded(seeds, num_rows, columns, att_to_ids, resolution, memory_limit):
@@ -106,7 +115,7 @@ def synthesizeRowsSeeded(seeds, num_rows, columns, att_to_ids, resolution, memor
         atts_to_ids: a dict mapping attributes to row ids.
         resolution: the minimum count of sensitive attribute combinations for inclusion in synthetic records.
         memory_limit: the percentage memory use not to exceed.
-    
+
     Returns:
         rows: synthetic rows created from legal fragments of seed rows, else synthesized from distributions if seed is None.
         available_atts: dict of leftover attribute counts from seeded synthesis.
@@ -117,11 +126,13 @@ def synthesizeRowsSeeded(seeds, num_rows, columns, att_to_ids, resolution, memor
     overall_cache_misses = 0
     l = len(seeds)
     available_atts = defaultdict(int)
-    
+
     for i, seed in enumerate(seeds):
         if i % 100 == 99:
-            logging.info(f'{(100*i/l):.1f}% through row synthesis, cache utilization {100*overall_cache_hits/(overall_cache_hits + overall_cache_misses):.1f}%')
-        filters, row_cache_hits, row_cache_misses = synthesizeRowSeeded(seed, (), [], filter_cache, num_rows, columns, att_to_ids, resolution, memory_limit)
+            logging.info(
+                f'{(100*i/l):.1f}% through row synthesis, cache utilization {100*overall_cache_hits/(overall_cache_hits + overall_cache_misses):.1f}%')
+        filters, row_cache_hits, row_cache_misses = synthesizeRowSeeded(
+            seed, (), [], filter_cache, num_rows, columns, att_to_ids, resolution, memory_limit)
         overall_cache_hits += row_cache_hits
         overall_cache_misses += row_cache_misses
 
@@ -129,14 +140,16 @@ def synthesizeRowsSeeded(seeds, num_rows, columns, att_to_ids, resolution, memor
             remaining = set(seed).difference(filters)
             for rem_att in remaining:
                 available_atts[rem_att] += 1
-    
-        if len(filters) > 0:           
+
+        if len(filters) > 0:
             row = normalize(columns, filters)
             rows.append(row)
 
     return rows, available_atts
 
-def synthesizeRowSeeded(seed, filters, disallowed, filter_cache, num_rows, columns, att_to_ids, resolution, memory_limit):
+
+def synthesizeRowSeeded(
+        seed, filters, disallowed, filter_cache, num_rows, columns, att_to_ids, resolution, memory_limit):
     """Maps a seed record into a synthetic record.
 
     Args:
@@ -149,7 +162,7 @@ def synthesizeRowSeeded(seed, filters, disallowed, filter_cache, num_rows, colum
         atts_to_ids: a dict mapping attributes to row ids.
         resolution: the minimum count of sensitive attribute combinations for inclusion in synthetic records.
         memory_limit: the percentage memory use not to exceed.
-    
+
     Returns:
         new_filters: the filters of the synthesized row.
         row_cache_hits: the number of times the cache was hit.
@@ -158,14 +171,16 @@ def synthesizeRowSeeded(seed, filters, disallowed, filter_cache, num_rows, colum
     """
     row_cache_hits = 0
     row_cache_misses = 0
-    nxt, cache_hits, cache_misses = sampleNextAttribute(seed, disallowed, filter_cache, columns, num_rows, filters, att_to_ids, resolution, memory_limit)
+    nxt, cache_hits, cache_misses = sampleNextAttribute(
+        seed, disallowed, filter_cache, columns, num_rows, filters, att_to_ids, resolution, memory_limit)
 
     row_cache_hits += cache_hits
     row_cache_misses += cache_misses
     new_filters = filters
     while nxt != None:
         new_filters = tuple(sorted((*new_filters, nxt), key=lambda x: f'{x[0]}:{x[1]}'.lower()))
-        nxt, cache_hits, cache_misses = sampleNextAttribute(seed, disallowed, filter_cache, columns, num_rows, new_filters, att_to_ids, resolution, memory_limit)
+        nxt, cache_hits, cache_misses = sampleNextAttribute(
+            seed, disallowed, filter_cache, columns, num_rows, new_filters, att_to_ids, resolution, memory_limit)
         row_cache_hits += cache_hits
         row_cache_misses += cache_misses
 
@@ -182,7 +197,7 @@ def synthesizeRowsUnseeded(chunk, num_rows, columns, col_val_ids, resolution, me
         atts_to_ids: a dict mapping attributes to row ids.
         resolution: the minimum count of sensitive attribute combinations for inclusion in synthetic records.
         memory_limit: the percentage memory use not to exceed.
-    
+
     Returns:
         rows: synthetic records created through unconstrained sampling of attribute distributions.
         overall_cache_hits: the number of times the cache was hit.
@@ -195,8 +210,10 @@ def synthesizeRowsUnseeded(chunk, num_rows, columns, col_val_ids, resolution, me
 
     for i in range(chunk):
         if i % 100 == 99:
-            logging.info(f'{(100*i/chunk):.1f}% through row synthesis, cache utilization {100*overall_cache_hits/(overall_cache_hits + overall_cache_misses):.1f}%')
-        filters, cache_hits, cache_misses = synthesizeRowUnseeded(filter_cache, num_rows, columns, col_val_ids, resolution,  memory_limit)
+            logging.info(
+                f'{(100*i/chunk):.1f}% through row synthesis, cache utilization {100*overall_cache_hits/(overall_cache_hits + overall_cache_misses):.1f}%')
+        filters, cache_hits, cache_misses = synthesizeRowUnseeded(
+            filter_cache, num_rows, columns, col_val_ids, resolution, memory_limit)
         overall_cache_hits += cache_hits
         overall_cache_misses += cache_misses
         row = normalize(columns, filters)
@@ -214,7 +231,7 @@ def synthesizeRowUnseeded(filter_cache, num_rows, columns, col_val_ids, resoluti
         atts_to_ids: a dict mapping attributes to row ids.
         resolution: the minimum count of sensitive attribute combinations for inclusion in synthetic records.
         memory_limit: the percentage memory use not to exceed.
-    
+
     Returns:
         row: a synthetic record created through unconstrained sampling of attribute distributions.
         row_cache_hits: the number of times the cache was hit.
@@ -226,7 +243,7 @@ def synthesizeRowUnseeded(filter_cache, num_rows, columns, col_val_ids, resoluti
     residual_ids = set(range(num_rows))
     row_cache_hits = 0
     row_cache_misses = 0
-    use_cache = psutil.virtual_memory()[2] <= memory_limit # do not add to cache once memory limit is reached
+    use_cache = psutil.virtual_memory()[2] <= memory_limit  # do not add to cache once memory limit is reached
     for col in shuffled_columns:
         vals_to_sample = {}
         for val, ids in col_val_ids[col].items():
@@ -252,13 +269,13 @@ def synthesizeRowUnseeded(filter_cache, num_rows, columns, col_val_ids, resoluti
         if sampled_val != None:
             output_atts.append((col, sampled_val))
             residual_ids = set(vals_to_sample[sampled_val])
-        
 
     filters = tuple(sorted(output_atts, key=lambda x: f'{x[0]}:{x[1]}'.lower()))
     return filters, row_cache_hits, row_cache_misses
 
 
-def sampleNextAttribute(seed, disallowed, filter_cache, columns, num_rows, filters, att_to_ids, resolution, memory_limit):
+def sampleNextAttribute(
+        seed, disallowed, filter_cache, columns, num_rows, filters, att_to_ids, resolution, memory_limit):
     """Samples the next attribute in the process of synthetic record generation.
 
     If the seed value is None, the synthetic record is generated through unconstrained sampling of attribute distributions.
@@ -274,15 +291,17 @@ def sampleNextAttribute(seed, disallowed, filter_cache, columns, num_rows, filte
         atts_to_ids: a dict mapping attributes to row ids.
         resolution: the minimum count of sensitive attribute combinations for inclusion in synthetic records.
         memory_limit: the percentage memory use not to exceed.
-    
+
     Returns:
         sampled_value: the sampled attribute value to add to the synthetic record being generated.
         cache_hits: the number of times the cache was hit.
         cache_misses: the number of times the cache was missed.
     """
-    residualCounts, cache_hits, cache_misses = residualAttributeCounts(seed, disallowed, filter_cache, columns, att_to_ids, num_rows, filters, resolution, memory_limit)
-    sampled_value = sampleFromCounts(residualCounts, preferNotNone=filters==())
+    residualCounts, cache_hits, cache_misses = residualAttributeCounts(
+        seed, disallowed, filter_cache, columns, att_to_ids, num_rows, filters, resolution, memory_limit)
+    sampled_value = sampleFromCounts(residualCounts, preferNotNone=filters == ())
     return sampled_value, cache_hits, cache_misses
+
 
 def sampleFromCounts(counts, preferNotNone):
     """Samples from a dict of counts based on their relative frequency
@@ -310,7 +329,8 @@ def sampleFromCounts(counts, preferNotNone):
     return sampled_value
 
 
-def residualAttributeCounts(seed, disallowed, filter_cache, columns, att_to_ids, num_rows, filters, resolution, memory_limit):
+def residualAttributeCounts(
+        seed, disallowed, filter_cache, columns, att_to_ids, num_rows, filters, resolution, memory_limit):
     """Computes the counts of records remaining after filtering.
 
     If the seed value is None, the residual attribute counts are drawn from all attributes.
@@ -326,20 +346,20 @@ def residualAttributeCounts(seed, disallowed, filter_cache, columns, att_to_ids,
         filters: the attribute combination filtering the dataset.
         resolution: the minimum count of sensitive attribute combinations for inclusion in synthetic records.
         memory_limit: the percentage memory use not to exceed.
-    
+
     Returns:
         residual_counts: the counts of records remaining after filtering for all linked attributes.
         cache_hits: the number of times the cache was hit.
         cache_misses: the number of times the cache was missed.
     """
-    sorted_filters = sorted(filters, key = lambda x: len(att_to_ids[x]), reverse=False)
+    sorted_filters = sorted(filters, key=lambda x: len(att_to_ids[x]), reverse=False)
     residual_ids = set()
     residual_counts = {}
     cache_hits = 0
     cache_misses = 0
-    use_cache = psutil.virtual_memory()[2] <= memory_limit # do not add to cache once memory limit is reached
+    use_cache = psutil.virtual_memory()[2] <= memory_limit  # do not add to cache once memory limit is reached
     if filters in filter_cache.keys():
-        residual_ids = filter_cache[filters] # use cached value if possible
+        residual_ids = filter_cache[filters]  # use cached value if possible
         cache_hits += 1
     else:
         cache_misses += 1
@@ -350,9 +370,9 @@ def residualAttributeCounts(seed, disallowed, filter_cache, columns, att_to_ids,
         else:
             residual_ids = set(range(num_rows))
         if use_cache:
-            filter_cache[filters] = residual_ids # set cached value
+            filter_cache[filters] = residual_ids  # set cached value
 
-    atts = sorted(att_to_ids.keys() if seed is None else seed, key = lambda x: len(att_to_ids[x]), reverse=False)
+    atts = sorted(att_to_ids.keys() if seed is None else seed, key=lambda x: len(att_to_ids[x]), reverse=False)
     for att in disallowed:
         if att in atts:
             atts.remove(att)
@@ -363,14 +383,14 @@ def residualAttributeCounts(seed, disallowed, filter_cache, columns, att_to_ids,
         extended_filters = tuple(sorted((*filters, att), key=lambda x: f'{x[0]}:{x[1]}'.lower()))
         num = 0
         if extended_filters in filter_cache.keys():
-            num = len(filter_cache[extended_filters]) # use cached value if possible
+            num = len(filter_cache[extended_filters])  # use cached value if possible
             cache_hits += 1
         else:
             cache_misses += 1
             filtered_ids = residual_ids.intersection(att_to_ids[att])
             num = len(filtered_ids)
             if use_cache:
-                filter_cache[extended_filters] = set(filtered_ids) # set cached value
+                filter_cache[extended_filters] = set(filtered_ids)  # set cached value
         if num >= resolution:
             residual_counts[att] = num
 
@@ -382,7 +402,7 @@ def convertCountsToCumulativeDistribution(att_to_count):
 
     Args:
         att_to_count: a dict of attribute counts.
-    
+
     Returns:
         dist a cumulative probability distribution mapping cumulative probabilities [0,1] to attributes. 
     """
@@ -393,7 +413,7 @@ def convertCountsToCumulativeDistribution(att_to_count):
     cumulative = 0
     for att, count in att_to_count.items():
         if count > 0:
-            p = count/total        
+            p = count/total
             cumulative += p
             dist[cumulative] = att
     return dist
@@ -405,7 +425,7 @@ def normalize(columns, atts):
     Args:
         columns: the columns of the output record.
         atts: the attribute values of the output record.
-    
+
     Returns:
         row: a normalized row ready for dataframe integration.
     """
@@ -421,6 +441,7 @@ def normalize(columns, atts):
             row.append('')
     return row
 
+
 def suppressToTargets(records, columns, att_to_ids, resolution):
     """Returns a new record list in which attributes have been suppressed match the reported (rounded) values.
 
@@ -433,12 +454,16 @@ def suppressToTargets(records, columns, att_to_ids, resolution):
         new_records: the modified records.
     """
     new_records = []
-    legal_atts = [x[0] for x in sorted([(att, len(ids)) for att, ids in att_to_ids.items() if len(ids) >= resolution], reverse=False)]
+    legal_atts = [
+        x[0]
+        for x in sorted(
+            [(att, len(ids)) for att, ids in att_to_ids.items() if len(ids) >= resolution],
+            reverse=False)]
     current_counts = Counter(list(chain(*[util.rowToCombo(r, columns) for r in records])))
 
-    targets =  {att: current_counts[att] - util.protect(len(att_to_ids[att]), resolution) for att in legal_atts}
+    targets = {att: current_counts[att] - util.protect(len(att_to_ids[att]), resolution) for att in legal_atts}
 
-    targets =  {k: v for k, v in targets.items() if v > 0}
+    targets = {k: v for k, v in targets.items() if v > 0}
     empty_record = normalize(columns, ())
     shuffle(records)
     for record in records:
@@ -475,16 +500,20 @@ def divideAndConsolidate(available_atts, columns, att_to_ids, num_rows, resoluti
         records: new records synthesized frmo the available attributes.
     """
     divided_available_atts = []
-    aa = {k : ceil(v/parallel_jobs) for k, v in available_atts.items() if v > 0}
+    aa = {k: ceil(v/parallel_jobs) for k, v in available_atts.items() if v > 0}
     for _ in range(parallel_jobs):
         divided_available_atts.append(aa.copy())
     records = []
-    res = joblib.Parallel(n_jobs=parallel_jobs, backend='loky', verbose=1) (joblib.delayed(consolidate)(available_atts, columns, att_to_ids, num_rows, resolution, memory_limit) for available_atts in divided_available_atts)
+    res = joblib.Parallel(
+        n_jobs=parallel_jobs, backend='loky', verbose=1)(
+        joblib.delayed(consolidate)(available_atts, columns, att_to_ids, num_rows, resolution, memory_limit)
+        for available_atts in divided_available_atts)
     for rs in res:
         records.extend(rs)
     return records
 
-def consolidate(available_atts, columns, att_to_ids, num_rows, resolution, memory_limit):    
+
+def consolidate(available_atts, columns, att_to_ids, num_rows, resolution, memory_limit):
     """Synthesizes new privacy-preserving records from the available attributes.
 
     Args:
@@ -494,11 +523,11 @@ def consolidate(available_atts, columns, att_to_ids, num_rows, resolution, memor
         num_rows: how many rows/records in the sensitive dataset.
         resolution: the minimum count of sensitive attribute combinations for inclusion in synthetic records.
         memory_limit: the percentage memory use not to exceed.
-    
+
     Returns:
         records: new records synthesized frmo the available attributes.
     """
-    filtered_att_to_ids = {k : v for k, v in att_to_ids.items() if k in available_atts.keys()}
+    filtered_att_to_ids = {k: v for k, v in att_to_ids.items() if k in available_atts.keys()}
     filter_cache = {}
     records = []
     while len(available_atts) > 0:
@@ -506,12 +535,14 @@ def consolidate(available_atts, columns, att_to_ids, num_rows, resolution, memor
         aa_count = sum(available_atts.values())
         if aa_count % 10 == 0:
             logging.info(f'{aa_count} values remainging across {aa} attributes')
-        filters = consolidateRecord(available_atts, filter_cache, columns, filtered_att_to_ids, num_rows, resolution, memory_limit)
+        filters = consolidateRecord(available_atts, filter_cache, columns,
+                                    filtered_att_to_ids, num_rows, resolution, memory_limit)
         if len(filters) > 0:
             row = normalize(columns, filters)
             records.append(row)
     return records
-   
+
+
 def consolidateRecord(available_atts, filter_cache, columns, att_to_ids, num_rows, resolution, memory_limit):
     """Synthesizes a new privacy-preserving record from the available attributes.
 
@@ -524,15 +555,17 @@ def consolidateRecord(available_atts, filter_cache, columns, att_to_ids, num_row
         num_rows: how many rows/records in the sensitive dataset.
         resolution: the minimum count of sensitive attribute combinations for inclusion in synthetic records.
         memory_limit: the percentage memory use not to exceed.
-    
+
     Returns:
         filters: attributes of a new record synthesized from the available attributes.
     """
     filters = ()
-    disallowed = set([k for k in att_to_ids.keys() if k not in available_atts.keys() or (k in available_atts.keys() and available_atts[k] <= 0)])
-    
+    disallowed = set([k for k in att_to_ids.keys() if k not in available_atts.keys()
+                     or (k in available_atts.keys() and available_atts[k] <= 0)])
+
     if len(available_atts) > 0:
-        residual_counts, _, _ = residualAttributeCounts(None, disallowed, filter_cache, columns, att_to_ids, num_rows, filters, resolution, memory_limit)
+        residual_counts, _, _ = residualAttributeCounts(
+            None, disallowed, filter_cache, columns, att_to_ids, num_rows, filters, resolution, memory_limit)
         next_att = sampleFromCounts(residual_counts, preferNotNone=True)
         while next_att != None:
             if available_atts[next_att] == 1:
@@ -541,7 +574,8 @@ def consolidateRecord(available_atts, filter_cache, columns, att_to_ids, num_row
             else:
                 available_atts[next_att] -= 1
             filters = tuple(sorted((*filters, next_att), key=lambda x: f'{x[0]}:{x[1]}'.lower()))
-            residual_counts, _, _ = residualAttributeCounts(None, disallowed, filter_cache, columns, att_to_ids, num_rows, filters, resolution, memory_limit)
+            residual_counts, _, _ = residualAttributeCounts(
+                None, disallowed, filter_cache, columns, att_to_ids, num_rows, filters, resolution, memory_limit)
             next_att = sampleFromCounts(residual_counts, preferNotNone=True)
         else:
             return filters
