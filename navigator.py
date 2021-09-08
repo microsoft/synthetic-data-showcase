@@ -18,16 +18,16 @@ class Navigator ():
         self.output_dir = config.get('output_dir', './')
         self.use_columns = config.get('use_columns', [])
         self.event_column = config.get('event_column', None)
-        self.template_original_loc = './template/data_showcase.pbit'
-        self.temporary_zip_loc = '%s/privatize.zip' % (self.output_dir)
-        self.temporary_folder_loc = '%s/privatize' % (self.output_dir)
-        self.data_schema_loc = '%s/DataModelSchema' % (self.temporary_folder_loc)
-        self.data_mashup_loc = '%s/DataMashup' % (self.temporary_folder_loc)
-        self.data_mashup_zip_loc = '%s/zip_archive.zip' % (self.temporary_folder_loc)
-        self.data_mashup_temp_loc = '%s/zip_archive' % (self.temporary_folder_loc)
-        self.m_file_loc = '%s/Formulas/Section1.m' % (self.data_mashup_temp_loc)
-        self.layout_loc = '%s/Report/Layout' % (self.temporary_folder_loc)
-        self.template_final_loc = '%s/%s_data_showcase.pbit' % (self.output_dir, self.prefix)
+        self.template_original_loc = os.path.join('.', 'template', 'data_showcase.pbit')
+        self.temporary_zip_loc = os.path.join(self.output_dir, 'privatize.zip')
+        self.temporary_folder_loc = os.path.join(self.output_dir, 'privatize')
+        self.data_schema_loc = os.path.join(self.temporary_folder_loc, 'DataModelSchema')
+        self.data_mashup_loc = os.path.join(self.temporary_folder_loc, 'DataMashup')
+        self.data_mashup_zip_loc = os.path.join(self.temporary_folder_loc, 'zip_archive.zip')
+        self.data_mashup_temp_loc = os.path.join(self.temporary_folder_loc, 'zip_archive')
+        self.m_file_loc = os.path.join(self.data_mashup_temp_loc, 'Formulas', 'Section1.m')
+        self.layout_loc = os.path.join(self.temporary_folder_loc, 'Report', 'Layout')
+        self.template_final_loc = os.path.join(self.output_dir, f"{self.prefix}_data_showcase.pbit")
         self.max_number_of_visuals = 64
         self.number_of_visuals_per_page = 16
         self.number_of_combo_tables = 10
@@ -44,18 +44,17 @@ class Navigator ():
         all_filters_list = []
         for i, name in enumerate(self.sorted_names):
             if name in combo_tables:
-                #attribute, value = name.split(":", 1)
-                table_and_column = "{0}[attribute:value]".format(combo_tables[name])
-                part1 = '\nVAR attr_{0}_filters = FILTERS({1})'.format(i+1, table_and_column)
+                # attribute, value = name.split(":", 1)
+                table_and_column = f"{combo_tables[name]}[attribute:value]"
+                part1 = f'\nVAR attr_{i+1}_filters = FILTERS({table_and_column})'
             else:
-                table_and_column = 'synthesized_pivoted[{0}]'.format(name)
-                composed = '"{0}:" & [{0}]'.format(name)
-                part1 = '\nVAR attr_{0}_filters = SELECTCOLUMNS(FILTERS({1}), "attribute:value", {2})'.format(
-                    i + 1, table_and_column, composed)
-            part = part1 + '\nVAR is_attr_{0}_filtered = COUNTROWS(attr_{0}_filters) <> COUNTROWS(DISTINCT(ALL({1})))\nVAR filters_{0} = FILTER(attr_{0}_filters, is_attr_{0}_filtered)'.format(
-                i+1, table_and_column)
+                table_and_column = f'synthesized_pivoted[{name}]'
+                composed = f'"{name}:" & [{name}]'
+                part1 = f'\nVAR attr_{i+1}_filters = SELECTCOLUMNS(FILTERS({table_and_column}), "attribute:value", {composed})'
+            part = part1 + \
+                f'\nVAR is_attr_{i+1}_filtered = COUNTROWS(attr_{i+1}_filters) <> COUNTROWS(DISTINCT(ALL({table_and_column})))\nVAR filters_{i+1} = FILTER(attr_{i+1}_filters, is_attr_{i+1}_filtered)'
             whole += part
-            all_filters_list.append('filters_{0}'.format(i+1))
+            all_filters_list.append(f'filters_{i+1}')
         all_filters = all_filters_pre + ', '.join(all_filters_list)
         whole += all_filters + '), [attribute:value] <> BLANK()))\nVAR sorted_filter = CONCATENATEX(all_filters, [attribute:value], ";", [attribute:value], ASC)\nVAR corrected_filter = IF(ISBLANK(sorted_filter), "", sorted_filter)\nVAR actual_count = LOOKUPVALUE(rounded_aggregates[protected_count], rounded_aggregates[selections], corrected_filter, BLANK())\nRETURN actual_count'
         return whole
@@ -63,12 +62,9 @@ class Navigator ():
     def estimated_measure(self):
         '''Creates a measure string for filtered synthesized aggreagetd results'''
         target_attribute = '\nVAR target_attribute = SELECTEDVALUE(\'disconnected_table\'[attribute:value])'
-        filtered_attribute = '\nVAR filtered_attribute = IF(FIND("{0}:", target_attribute, 1,-1) = 1, BLANK(), target_attribute)'.format(
-            self.event_column)
-        id_table = '\nVAR id_table = SELECTCOLUMNS(FILTER(ALL(synthesized_pivoted), [{0}] in SELECTCOLUMNS(synthesized_pivoted, "{0}", synthesized_pivoted[{0}])), "Id", [Id])'.format(
-            self.event_column)
-        estimated_count = '\nVAR estimated_count = COUNTROWS(DISTINCT(SELECTCOLUMNS(ADDCOLUMNS(FILTER(FILTER(ALL(synthesized_attributes), [Id] in id_table), [attribute:value] == filtered_attribute), "EVENT", LOOKUPVALUE(synthesized_pivoted[{0}], synthesized_pivoted[Id], [Id])), "EVENT", [EVENT])))'.format(
-            self.event_column)
+        filtered_attribute = f'\nVAR filtered_attribute = IF(FIND("{self.event_column}:", target_attribute, 1,-1) = 1, BLANK(), target_attribute)'
+        id_table = f'\nVAR id_table = SELECTCOLUMNS(FILTER(ALL(synthesized_pivoted), [{self.event_column}] in SELECTCOLUMNS(synthesized_pivoted, "{self.event_column}", synthesized_pivoted[{self.event_column}])), "Id", [Id])'
+        estimated_count = f'\nVAR estimated_count = COUNTROWS(DISTINCT(SELECTCOLUMNS(ADDCOLUMNS(FILTER(FILTER(ALL(synthesized_attributes), [Id] in id_table), [attribute:value] == filtered_attribute), "EVENT", LOOKUPVALUE(synthesized_pivoted[{self.event_column}], synthesized_pivoted[Id], [Id])), "EVENT", [EVENT])))'
         whole = target_attribute + filtered_attribute + id_table + estimated_count + '\nRETURN estimated_count'
         return whole
 
@@ -79,7 +75,7 @@ class Navigator ():
             filter_expressions.append('[#"attribute:value"] = "' + item + '"')
         all_filters = ' or '.join(filter_expressions)
         filtered = m_expression.split('\nin\n')[
-            0] + ',\n    #"Filtered Rows" = Table.SelectRows(#"Changed Type", each ({0}))\nin\n    #"Filtered Rows"'.format(all_filters)
+            0] + f',\n    #"Filtered Rows" = Table.SelectRows(#"Changed Type", each ({all_filters}))\nin\n    #"Filtered Rows"'
         return filtered
 
     def change_table_schema(self, data, visual_name, table_name):
@@ -98,10 +94,10 @@ class Navigator ():
         for item in filters_list:
             filter_expressions.append('[#"attribute:value"] = "' + item + '"')
         all_filters = ' or '.join(filter_expressions)
-        first_split = mashup.split('shared {0}'.format(table_name), 1)
+        first_split = mashup.split(f'shared {table_name}', 1)
         second_split = first_split[1].split('\nin\n    #"Changed Type"', 1)
-        mashup = first_split[0] + 'shared {0}'.format(
-            table_name) + second_split[0] + ',\n    #"Filtered Rows" = Table.SelectRows(#"Changed Type", each ({0}))\nin\n    #"Filtered Rows"'.format(all_filters) + second_split[1]
+        mashup = first_split[0] + f'shared {table_name}' + second_split[0] + \
+            f',\n    #"Filtered Rows" = Table.SelectRows(#"Changed Type", each ({all_filters}))\nin\n    #"Filtered Rows"' + second_split[1]
         return mashup
 
     def change_visual(self, attr_container, box, name, title, combo_table=None, logs=False):
@@ -119,32 +115,30 @@ class Navigator ():
         visual_config['layouts'][0]['position']['y'] = box[1]
         visual_config['layouts'][0]['position']['width'] = box[2]
         visual_config['layouts'][0]['position']['height'] = box[3]
-        visual_config['singleVisual']['projections']['Values'][0]['queryRef'] = 'CountNonNull({0}.{1})'.format(
-            default_table, event)
-        visual_config['singleVisual']['projections']['Category'][0]['queryRef'] = '{0}.{1}'.format(table, name)
+        visual_config['singleVisual']['projections']['Values'][0]['queryRef'] = f'CountNonNull({default_table}.{event})'
+        visual_config['singleVisual']['projections']['Category'][0]['queryRef'] = f'{table}.{name}'
         visual_config['singleVisual']['prototypeQuery']['From'][0]['Name'] = table[0]
         visual_config['singleVisual']['prototypeQuery']['From'][0]['Entity'] = table
         if combo_table:
             visual_config['singleVisual']['prototypeQuery']['From'].append(
-                {'Name': '{0}'.format(default_table[0]), 'Entity': '{0}'.format(default_table), 'Type': 0})
-        visual_config['singleVisual']['prototypeQuery']['Select'][1]['Name'] = 'CountNonNull({0}.{1})'.format(
-            default_table, event)
+                {'Name': f'{default_table[0]}', 'Entity': f'{default_table}', 'Type': 0})
+        visual_config['singleVisual']['prototypeQuery']['Select'][1]['Name'] = f'CountNonNull({default_table}.{event})'
         visual_config['singleVisual']['prototypeQuery']['Select'][1]['Aggregation']['Expression']['Column']['Property'] = event
         visual_config['singleVisual']['prototypeQuery']['Select'][1]['Aggregation']['Expression']['Column'][
             'Expression']['SourceRef']['Source'] = default_table[0]
         visual_config['singleVisual']['prototypeQuery']['Select'][1]['Aggregation']['Function'] = agg_function
         visual_config['singleVisual']['prototypeQuery']['Select'][0]['Column']['Expression']['SourceRef']['Source'] = table[0]
         visual_config['singleVisual']['prototypeQuery']['Select'][0]['Column']['Property'] = name
-        visual_config['singleVisual']['prototypeQuery']['Select'][0]['Name'] = '{0}.{1}'.format(table, name)
+        visual_config['singleVisual']['prototypeQuery']['Select'][0]['Name'] = f'{table}.{name}'
         visual_config['singleVisual']['prototypeQuery']['OrderBy'][0]['Expression']['Aggregation']['Expression'][
             'Column']['Expression']['SourceRef']['Source'] = default_table[0]
         visual_config['singleVisual']['prototypeQuery']['OrderBy'][0]['Expression']['Aggregation']['Expression'][
             'Column']['Property'] = event
         visual_config['singleVisual']['prototypeQuery']['OrderBy'][0]['Expression']['Aggregation']['Function'] = agg_function
-        visual_config['singleVisual']['vcObjects']['title'][0]['properties']['text']['expr']['Literal']['Value'] = "'{0}'".format(
-            title)
+        visual_config['singleVisual']['vcObjects']['title'][0][
+            'properties']['text']['expr']['Literal']['Value'] = f"'{title}'"
         if self.event_column and name == self.event_column:
-            visual_config['singleVisual']['projections']['Color'] = [{'queryRef': '{0}.{1}'.format(table, name)}]
+            visual_config['singleVisual']['projections']['Color'] = [{'queryRef': f'{table}.{name}'}]
             visual_config['singleVisual']['objects']['dataPoint'] = [
                 {'properties': {'colorMode': {'expr': {'Literal': {'Value': '0D'}}},
                                 'startColor': {'solid': {'color': {'expr': {'ThemeDataColor': {'ColorId': 0, 'Percent': -0.3}}}}},
@@ -167,7 +161,7 @@ class Navigator ():
         '''Inserts resolution from config file into textbox visual on overview pages'''
         visual_config = json.loads(attr_container['config'])
         visual_config['singleVisual']['objects']['general'][0]['properties']['paragraphs'][0]['textRuns'][0][
-            'value'] = 'Privacy resolution (%s)' % self.resolution
+            'value'] = f'Privacy resolution ({self.resolution})'
         new_config = json.dumps(visual_config)
         attr_container['config'] = new_config
         return attr_container
@@ -176,7 +170,7 @@ class Navigator ():
         '''Inserts resolution from config file into textbox visual on "Risk" page'''
         visual_config = json.loads(attr_container['config'])
         visual_config['singleVisual']['objects']['general'][0]['properties']['paragraphs'][1]['textRuns'][0][
-            'value'] = 'Each of the "Rare Attribute Combinations" below matches less than %s records in an example dataset.' % self.resolution
+            'value'] = f'Each of the "Rare Attribute Combinations" below matches less than {self.resolution} records in an example dataset.'
         new_config = json.dumps(visual_config)
         attr_container['config'] = new_config
         return attr_container
@@ -190,7 +184,7 @@ class Navigator ():
                                  'From': [{'Name': 'd', 'Entity': 'disconnected_table', 'Type': 0}],
                                  'Where': [{'Condition': {'Not': {'Expression': {'Comparison': {'ComparisonKind': 0,
                                                                                                 'Left': {'Column': {'Expression': {'SourceRef': {'Source': 'd'}}, 'Property': 'Attribute'}},
-                                                                                                'Right': {'Literal': {'Value': "'{0}'".format(self.event_column)}}}}}}}]},
+                                                                                                'Right': {'Literal': {'Value': f"'{self.event_column}'"}}}}}}}]},
                       'type': 'Advanced',
                       'howCreated': 0,
                       'objects': {'general': [{'properties': {'isInvertedSelectionMode': {'expr': {'Literal': {'Value': 'true'}}}}}]},
@@ -271,7 +265,7 @@ class Navigator ():
         start_time = time.time()
         logging.info('Reformatting files with records...')
         df = util.loadMicrodata(
-            '%s/%s_synthetic_microdata.tsv' % (self.output_dir, self.prefix),
+            os.path.join(self.output_dir, f"{self.prefix}_synthetic_microdata.tsv"),
             '\t', -1, use_columns=self.use_columns)
         if len(df) == 0:
             logging.info("There is no data, Power BI template is not created")
@@ -280,9 +274,9 @@ class Navigator ():
             for i, row in df.iterrows():
                 [new_df.append([i, ind, value]) for ind, value in row.items() if str(value) != '']
             self.test_table = pd.DataFrame(new_df)
-            self.test_table.to_csv('%s/%s_synthesized_attributes.tsv' %
-                                   (self.output_dir, self.prefix), sep="\t", index=False, header=None)
-            logging.info('Done with record files in %s seconds' % (time.time() - start_time))
+            self.test_table.to_csv(os.path.join(self.output_dir, f"{self.prefix}_synthesized_attributes.tsv"),
+                                   sep="\t", index=False, header=None)
+            logging.info(f'Done with record files in {time.time() - start_time} seconds')
 
             self.names = self.test_table[1].unique().tolist()
             # assign combined attributes to tables(max 10)
@@ -294,7 +288,7 @@ class Navigator ():
                         '"report_visuals" parameter is in the wrong format. The dictionary as follows is expected: {"Combined Attribute Name 1": ["attribute1:value", "attribute2:value"]}.')
                 combo_list = list(self.template_combined_attributes.keys())[:min(
                     self.number_of_combo_tables, len(self.template_combined_attributes))] if checked_type else []
-                combo_tables = {each: 'copy_{0}'.format(i+1) for i, each in enumerate(combo_list)}
+                combo_tables = {each: f'copy_{i+1}' for i, each in enumerate(combo_list)}
                 self.names += combo_list
             self.sorted_names = sorted(self.names)
 
@@ -423,4 +417,4 @@ class Navigator ():
             move(self.temporary_zip_loc, self.template_final_loc)
             rmtree(self.temporary_folder_loc)
             logging.info('The template is created')
-            logging.info('Total time is %s seconds' % (time.time() - start_time))
+            logging.info(f'Total time is {time.time() - start_time} seconds')

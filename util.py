@@ -1,18 +1,18 @@
 
+import matplotlib.ticker as ticker
+import matplotlib.pyplot as plt
 import logging
 import numpy as np
 import pandas as pd
-from os import path
 import joblib
-import re
 from itertools import combinations
 from collections import defaultdict
 import seaborn as sns
 from math import ceil, floor
 import matplotlib
-matplotlib.use('Agg') # fixes matplotlib + joblib bug "RuntimeError: main thread is not in main loop Tcl_AsyncDelete: async handler deleted by the wrong thread"
-import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
+# fixes matplotlib + joblib bug "RuntimeError: main thread is not in main loop Tcl_AsyncDelete: async handler deleted by the wrong thread"
+matplotlib.use('Agg')
+
 
 def loadMicrodata(path, delimiter, record_limit, use_columns):
     """Loads delimited microdata with column headers into a pandas dataframe.
@@ -22,11 +22,12 @@ def loadMicrodata(path, delimiter, record_limit, use_columns):
         record_limit: how many rows to load (-1 loads all rows).
         use_columns: which columns to load.
     """
-    df = pd.read_csv(path, delimiter).astype(str) \
-        .replace(to_replace=r'^nan$', value='', regex=True) \
-        .replace(to_replace=r'\.0$', value='', regex=True) \
-        .replace(to_replace=';', value='.,', regex=True) \
-        .replace(to_replace=':', value='..', regex=True)  # fix pandas type coercion for numbers and remove reserved delimiters
+    df = pd.read_csv(
+        path, delimiter=delimiter).astype(str).replace(
+        to_replace=r'^nan$', value='', regex=True).replace(
+        to_replace=r'\.0$', value='', regex=True).replace(
+        to_replace=';', value='.,', regex=True).replace(
+        to_replace=':', value='..', regex=True)  # fix pandas type coercion for numbers and remove reserved delimiters
 
     if use_columns != []:
         df = df[use_columns]
@@ -56,12 +57,13 @@ def genRowList(df, sensitive_zeros):
         row_list.append(row2)
     return row_list
 
+
 def computeAttToIds(row_list):
     """Maps each attribute in the rows of row_list to a set of row ids.
 
     Args:
         row_list: a list of rows with non-senstitive/blank values filtered out.
-    
+
     Returns:
         atts_to_ids: a dict mapping each attribute in the rows of row_list to a set of row ids.
     """
@@ -70,6 +72,7 @@ def computeAttToIds(row_list):
         for val in row:
             att_to_ids[val].add(i)
     return att_to_ids
+
 
 def genColValIdsDict(df, sensitive_zeros):
     """Converts a dataframe to a dict of col->val->ids.
@@ -132,12 +135,13 @@ def countAllCombos(row_list, length_limit, parallel_jobs):
         length_limit = max([len(x) for x in row_list])
     for length in range(1, length_limit+1):
         logging.info(f'counting combos of length {length}')
-        res = joblib.Parallel(n_jobs=parallel_jobs, backend='loky', verbose=1) (joblib.delayed(genAllCombos)(row, length) for row in row_list)
+        res = joblib.Parallel(n_jobs=parallel_jobs, backend='loky', verbose=1)(
+            joblib.delayed(genAllCombos)(row, length) for row in row_list)
         length_to_combo_to_count[length] = defaultdict(int)
         for combos in res:
             for combo in combos:
                 length_to_combo_to_count.get(length, {})[combo] += 1
-    
+
     return length_to_combo_to_count
 
 
@@ -185,7 +189,7 @@ def mapShortestUniqueRareComboLengthToRecords(records, length_to_rare):
             for combo in combinations(record, length):
                 canonical_combo = tuple(sorted(list(combo), key=lambda x: f'{x[0]}:{x[1]}'.lower()))
                 if canonical_combo in length_to_rare.get(length, {}).keys():
-                    if length_to_rare.get(length, {})[canonical_combo] == 1: # unique
+                    if length_to_rare.get(length, {})[canonical_combo] == 1:  # unique
                         unique_to_records[length].add(i)
                         matchedUnique = True
                         length_to_combo_to_rare.get(length, {})[canonical_combo].add(i)
@@ -197,7 +201,7 @@ def mapShortestUniqueRareComboLengthToRecords(records, length_to_rare):
                             rare_to_records[length].add(i)
                         matchedRare = True
                         length_to_combo_to_rare.get(length, {})[canonical_combo].add(i)
-                        
+
             if matchedUnique:
                 break
         if not matchedRare and not matchedUnique:
@@ -246,7 +250,7 @@ def loadSavedAggregates(path):
     with open(path, 'r') as f:
         for i, line in enumerate(f):
             if i == 0:
-                continue # skip header
+                continue  # skip header
             parts = [x.strip() for x in line.split('\t')]
             if len(parts[0]) > 0:
                 length, combo = stringToLengthAndCombo(parts[0])
@@ -268,12 +272,14 @@ def stringToLengthAndCombo(combo_string):
     for col_vals in combo_string.split(';'):
         parts = col_vals.split(':')
         if len(parts) == 2:
-            combo_list.append((parts[0],parts[1]))
+            combo_list.append((parts[0], parts[1]))
     combo_tuple = tuple(combo_list)
     return length, combo_tuple
 
 
-def plotStats(x_axis, x_axis_title, y_bar, y_bar_title, y_line, y_line_title, color, darker_color, stats_tsv, stats_svg, delimiter, style='whitegrid', palette='magma'):
+def plotStats(
+        x_axis, x_axis_title, y_bar, y_bar_title, y_line, y_line_title, color, darker_color, stats_tsv, stats_svg,
+        delimiter, style='whitegrid', palette='magma'):
     """Creates comparison graphics by combination count.
 
     Outputs 'count_stats.svg'.
@@ -287,11 +293,11 @@ def plotStats(x_axis, x_axis_title, y_bar, y_bar_title, y_line, y_line_title, co
         palette: seaborn palette.
     """
     df = pd.read_csv(
-        filepath_or_buffer = stats_tsv,
-        sep = delimiter,
+        filepath_or_buffer=stats_tsv,
+        sep=delimiter,
     )
-    if len(df)>0:
-        fig, ax1 = plt.subplots(figsize=(12,4.5))
+    if len(df) > 0:
+        fig, ax1 = plt.subplots(figsize=(12, 4.5))
         cnt_color = color
         font_size = 12
         ax1 = sns.barplot(x=x_axis, y=y_bar, data=df, color=cnt_color, order=df[x_axis].values)
@@ -324,9 +330,9 @@ def plotStats(x_axis, x_axis_title, y_bar, y_bar_title, y_line, y_line_title, co
         for i in range(len(df)):
             label = f'{y.loc[i]:.2f}'
             ax2.annotate(label, xy=(x[i], y.loc[i]), fontsize=font_size,
-                xytext = (0,0), textcoords="offset points",
-                bbox=dict(pad=0.9, alpha=1, fc=pct_color, color='none'),
-                va='center', ha='center', color='white')
+                         xytext=(0, 0), textcoords="offset points",
+                         bbox=dict(pad=0.9, alpha=1, fc=pct_color, color='none'),
+                         va='center', ha='center', color='white')
         plt.tight_layout()
         fig.savefig(stats_svg)
         plt.figure().clear()
