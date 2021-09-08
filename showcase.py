@@ -78,13 +78,11 @@ def main():
 
         if not path.exists(config['output_dir']):
             mkdir(config['output_dir'])
-    except Exception as e:
-        logging.exception(f"Failed to load config with exception: {e}", exc_info=True)
 
-    try:
         runPipeline(config)
-    except:
-        logging.exception(f"Failed to run pipeline", exc_info=True)
+    except Exception as e:
+        logging.exception(f"Failed to run pipeline with exception: {e}", exc_info=True)
+
 
 
 def runPipeline(config):
