@@ -5,6 +5,7 @@ from urllib import request
 from os import path, mkdir
 from showcase import runPipeline
 
+
 def main():
     logging.basicConfig(format="%(funcName)s: %(message)s", level=logging.INFO)
     output_dir = './german_credit_showcase/'
@@ -12,12 +13,13 @@ def main():
 
     if not path.exists(output_dir):
         mkdir(output_dir)
-    
+
     if not path.exists(sensitive_microdata_path):
         attributes = []
         codes = {}
         logging.info('Retrieving data documentation...')
-        codes_file = request.urlopen('https://archive.ics.uci.edu/ml/machine-learning-databases/statlog/german/german.doc').readlines() 
+        codes_file = request.urlopen(
+            'https://archive.ics.uci.edu/ml/machine-learning-databases/statlog/german/german.doc').readlines()
         logging.info('Retrieved')
         state = 'skip'
         attribute = ''
@@ -43,37 +45,31 @@ def main():
                 else:
                     codes[attribute][code] += ' ' + line.replace(':', '-')
         attributes.append('Credit rating')
-        codes['Credit rating'] = { '1': 'Good', '2': 'Bad'}
+        codes['Credit rating'] = {'1': 'Good', '2': 'Bad'}
 
         logging.info('Retrieving data file...')
-        df = pd.read_csv('https://archive.ics.uci.edu/ml/machine-learning-databases/statlog/german/german.data', 
-            sep=' ', index_col=False, header=None, names=attributes)
+        df = pd.read_csv('https://archive.ics.uci.edu/ml/machine-learning-databases/statlog/german/german.data',
+                         sep=' ', index_col=False, header=None, names=attributes)
 
         logging.info('Retrieved')
         logging.info('Processing dataset...')
         values, labels = binValuesAndLabels(df['Duration in month'].max(), 12)
-        df['Duration in month'] = pd.cut(df['Duration in month'], bins=values, labels=labels)   
+        df['Duration in month'] = pd.cut(df['Duration in month'], bins=values, labels=labels)
         values, labels = binValuesAndLabels(df['Credit amount'].max(), 2500)
         df['Credit amount'] = pd.cut(df['Credit amount'], bins=values, labels=labels)
         values, labels = binValuesAndLabels(df['Age in years'].max(), 20)
         df['Age in years'] = pd.cut(df['Age in years'], bins=values, labels=labels)
-
 
         df = df.astype(str).replace(to_replace=r'^nan$', value='', regex=True)
 
         for att in attributes:
             df[att] = df[att].replace(codes[att])
 
-        
-        del df['foreign worker']
-        del df['Property']
-        del df['Telephone']
-        del df['Other debtors / guarantors']
-        del df['Number of people being liable to provide maintenance for']
-        del df['Other installment plans']
-        del df['Savings account/bonds']
-        del df['Present employment since']
-        del df['Status of existing checking account']
+        df.drop(
+            ['foreign worker', 'Property', 'Telephone', 'Other debtors / guarantors',
+             'Number of people being liable to provide maintenance for', 'Other installment plans',
+             'Savings account/bonds', 'Present employment since', 'Status of existing checking account'],
+            axis=1)
 
         df.to_csv(sensitive_microdata_path, sep='\t', index=False)
         logging.info('Processed')
@@ -87,7 +83,6 @@ def main():
         'reporting_resolution': 2,
         'seeded': True,
         'sensitive_zeros': [],
-        'prefix': 'credit',
         'output_dir': output_dir,
         'sensitive_microdata_path': sensitive_microdata_path,
         'sensitive_microdata_delimiter': '\t',
@@ -103,11 +98,16 @@ def main():
     config['navigate'] = True
     config['evaluate'] = True
 
-    config['reportable_aggregates_path'] = path.join(config['output_dir'], config['prefix'] + '_reportable_aggregates.tsv')
+    config['reportable_aggregates_path'] = path.join(
+        config['output_dir'],
+        config['prefix'] + '_reportable_aggregates.tsv')
     config['synthetic_microdata_path'] = path.join(config['output_dir'], config['prefix'] + '_synthetic_microdata.tsv')
-    config['sensitive_aggregates_path'] = path.join(config['output_dir'], config['prefix'] + '_sensitive_aggregates.tsv')
+    config['sensitive_aggregates_path'] = path.join(
+        config['output_dir'],
+        config['prefix'] + '_sensitive_aggregates.tsv')
 
     runPipeline(config)
+
 
 def binValuesAndLabels(max_value, bin_size):
     values = [0]
@@ -119,5 +119,6 @@ def binValuesAndLabels(max_value, bin_size):
         upper += bin_size
     return values, labels
 
+
 if __name__ == '__main__':
-    main( )
+    main()

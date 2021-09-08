@@ -1,10 +1,6 @@
 import time
 import datetime
 import logging
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
 from os import path
 import util as util
 
@@ -36,18 +32,22 @@ def aggregate(config):
     prefix = config['prefix']
 
     logging.info(f'Aggregate {sensitive_microdata_path}')
-    start_time = time.time()  
+    start_time = time.time()
 
-    df = util.loadMicrodata(path=sensitive_microdata_path, delimiter=sensitive_microdata_delimiter, record_limit=record_limit, use_columns=use_columns)
+    df = util.loadMicrodata(path=sensitive_microdata_path, delimiter=sensitive_microdata_delimiter,
+                            record_limit=record_limit, use_columns=use_columns)
     row_list = util.genRowList(df=df, sensitive_zeros=sensitive_zeros)
     if reporting_length == -1:
         reporting_length = max([len(row) for row in row_list])
     if use_columns != []:
         reporting_length = min(reporting_length, len(use_columns))
-    length_to_combo_to_count = util.countAllCombos(row_list=row_list, length_limit=reporting_length, parallel_jobs=parallel_jobs)
+    length_to_combo_to_count = util.countAllCombos(
+        row_list=row_list, length_limit=reporting_length, parallel_jobs=parallel_jobs)
 
     len_to_combo_count = {length: len(combo_to_count) for length, combo_to_count in length_to_combo_to_count.items()}
-    len_to_rare_count = {length: len([1 for combo, count in combo_to_count.items() if count < reporting_resolution]) for length, combo_to_count in length_to_combo_to_count.items()}
+    len_to_rare_count = {
+        length: len([1 for combo, count in combo_to_count.items() if count < reporting_resolution]) for length,
+        combo_to_count in length_to_combo_to_count.items()}
 
     leakage_tsv = path.join(output_dir, f'{prefix}_sensitive_rare_by_length.tsv')
     leakage_svg = path.join(output_dir, f'{prefix}_sensitive_rare_by_length.svg')
@@ -59,11 +59,11 @@ def aggregate(config):
             f.write('\t'.join([str(length), str(combo_count), str(rare_count), str(rare_prop)])+'\n')
 
     util.plotStats(
-        x_axis='sen_combo_length', 
+        x_axis='sen_combo_length',
         x_axis_title='Length of Sensitive Combination',
-        y_bar='combo_count', 
-        y_bar_title='Count of Combinations', 
-        y_line='rare_proportion', 
+        y_bar='combo_count',
+        y_bar_title='Count of Combinations',
+        y_line='rare_proportion',
         y_line_title=f'Proportion of Rare (<{reporting_resolution}) Combinations',
         color='violet',
         darker_color='darkviolet',
@@ -87,6 +87,5 @@ def aggregate(config):
                     if protected_count > 0:
                         ra.write('\t'.join([str(selections_string), str(protected_count)])+'\n')
 
-
-    logging.info(f'Aggregated {sensitive_microdata_path} into {reportable_aggregates_path}, took {datetime.timedelta(seconds = time.time() - start_time)}s')
-
+    logging.info(
+        f'Aggregated {sensitive_microdata_path} into {reportable_aggregates_path}, took {datetime.timedelta(seconds = time.time() - start_time)}s')
