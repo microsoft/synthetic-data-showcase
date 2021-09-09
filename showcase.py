@@ -28,7 +28,7 @@ def main():
     else:
         logging.basicConfig(format="%(funcName)s: %(message)s", level=logging.WARN)
 
-    logging.info('using config %s' % config_path)
+    logging.info(f'using config {config_path}')
 
     try:
         config = json.load(open(config_path))
@@ -80,9 +80,9 @@ def main():
             mkdir(config['output_dir'])
 
         runPipeline(config)
-
     except Exception as e:
-        logging.exception(e)
+        logging.exception(f"Failed to run pipeline with exception: {e}", exc_info=True)
+
 
 
 def runPipeline(config):

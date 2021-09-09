@@ -8,8 +8,8 @@ from showcase import runPipeline
 
 def main():
     logging.basicConfig(format="%(funcName)s: %(message)s", level=logging.INFO)
-    output_dir = './german_credit_showcase/'
-    sensitive_microdata_path = output_dir + 'german_credit_data.tsv'
+    output_dir = path.join('.', 'german_credit_showcase')
+    sensitive_microdata_path = path.join(output_dir, 'german_credit_data.tsv')
 
     if not path.exists(output_dir):
         mkdir(output_dir)

@@ -73,19 +73,18 @@ def aggregate(config):
         style='whitegrid',
         palette='magma')
 
-    with open(reportable_aggregates_path, 'w') as ra:
-        with open(sensitive_aggregates_path, 'w') as sa:
-            sa.write('\t'.join(['selections', 'count'])+'\n')
-            sa.write('\t'.join(['', str(len(df))])+'\n')
-            ra.write('\t'.join(['selections', 'protected_count'])+'\n')
-            ra.write('\t'.join(['selections', str(util.protect(len(df), reporting_resolution))])+'\n')
-            for _, combo_to_count in length_to_combo_to_count.items():
-                for combo, count in combo_to_count.items():
-                    selections_string = util.comboToString(combo)
-                    protected_count = util.protect(count, reporting_resolution)
-                    sa.write('\t'.join([str(selections_string), str(count)])+'\n')
-                    if protected_count > 0:
-                        ra.write('\t'.join([str(selections_string), str(protected_count)])+'\n')
+    with open(reportable_aggregates_path, 'w') as ra, open(sensitive_aggregates_path, 'w') as sa:
+        sa.write('\t'.join(['selections', 'count'])+'\n')
+        sa.write('\t'.join(['', str(len(df))])+'\n')
+        ra.write('\t'.join(['selections', 'protected_count'])+'\n')
+        ra.write('\t'.join(['selections', str(util.protect(len(df), reporting_resolution))])+'\n')
+        for _, combo_to_count in length_to_combo_to_count.items():
+            for combo, count in combo_to_count.items():
+                selections_string = util.comboToString(combo)
+                protected_count = util.protect(count, reporting_resolution)
+                sa.write('\t'.join([str(selections_string), str(count)])+'\n')
+                if protected_count > 0:
+                    ra.write('\t'.join([str(selections_string), str(protected_count)])+'\n')
 
     logging.info(
         f'Aggregated {sensitive_microdata_path} into {reportable_aggregates_path}, took {datetime.timedelta(seconds = time.time() - start_time)}s')
