@@ -91,6 +91,8 @@ Seeded synthesis proceeds by sampling attributes from a sensitive record until t
 
 Since precise attribute counts create a privacy risk, it is advisable to create some uncertainty over the actual counts by adding noise to the synthetic data. The same `reporting_resolution` used to create aggregate counts is used again here to suppress attributes or synthesize additional records such that synthetic attribute counts are equal to the (already imprecise) reported count.
 
+Synthetic records are sorted by number of non-empty attribute values prior to output in a way that intermixes partly-suppressed and wholly-synthetic records.
+
 ### Data processing and output
 
 The `parallel_jobs` parameter specifies the extent of parallel processing (e.g., based on the number of available processor cores). For local processing, this should be set to the number of available CPU cores. For faster processing of larger and more complex datasets, use of a virtual machine with multiple cores is recommended.
