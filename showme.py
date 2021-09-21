@@ -65,7 +65,7 @@ def main():
         for att in attributes:
             df[att] = df[att].replace(codes[att])
 
-        df.drop(
+        df = df.drop(
             ['foreign worker', 'Property', 'Telephone', 'Other debtors / guarantors',
              'Number of people being liable to provide maintenance for', 'Other installment plans',
              'Savings account/bonds', 'Present employment since', 'Status of existing checking account'],
