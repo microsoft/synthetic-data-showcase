@@ -60,7 +60,7 @@ class Navigator ():
         return whole
 
     def estimated_measure(self):
-        '''Creates a measure string for filtered synthesized aggreagetd results'''
+        '''Creates a measure string for filtered synthesized aggregated results'''
         target_attribute = '\nVAR target_attribute = SELECTEDVALUE(\'disconnected_table\'[attribute:value])'
         filtered_attribute = f'\nVAR filtered_attribute = IF(FIND("{self.event_column}:", target_attribute, 1,-1) = 1, BLANK(), target_attribute)'
         id_table = f'\nVAR id_table = SELECTCOLUMNS(FILTER(ALL(synthesized_pivoted), [{self.event_column}] in SELECTCOLUMNS(synthesized_pivoted, "{self.event_column}", synthesized_pivoted[{self.event_column}])), "Id", [Id])'
