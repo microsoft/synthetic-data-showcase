@@ -1,0 +1,31 @@
+[package]
+name = "sds-wasm"
+version = "1.0.0"
+license = "MIT"
+description = "Web Assembly bindings for the sds-core library"
+repository = "https://github.com/microsoft/synthetic-data-showcase"
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib"]
+
+[features]
+default = ["console_error_panic_hook"]
+
+[dependencies]
+wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
+log = { version = "0.4", features = ["std"] }
+csv = { version = "1.1" }
+web-sys = { version = "0.3", features = [ "console" ]}
+sds-core = { path = "../core" }
+js-sys = { version = "0.3" }
+serde = { version = "1.0", features = [ "derive" ] }
+
+# The `console_error_panic_hook` crate provides better debugging of panics by
+# logging them with `console.error`. This is great for development, but requires
+# all the `std::fmt` and `std::panicking` infrastructure, so isn't great for
+# code size when deploying.
+console_error_panic_hook = { version = "0.1", optional = true }
+
+[dev-dependencies]
+wasm-bindgen-test = { version = "0.3" }

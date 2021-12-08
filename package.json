@@ -1,0 +1,42 @@
+{
+	"name": "@sds/project",
+	"private": true,
+	"license": "MIT",
+	"scripts": {
+		"clean:": "yarn workspaces foreach -pv run clean",
+		"build:": "yarn workspaces foreach -ivt run build",
+		"start:": "yarn workspaces foreach -piv run start",
+		"lint:": "essex lint --fix --strict",
+		"build:lib-wasm": "cd packages/lib-wasm && wasm-pack build --release --target no-modules --out-dir ../../target/wasm",
+		"prettify": "essex prettify",
+		"rebuild-all": "cargo clean && run-s clean: && cargo build --release && run-s build:lib-wasm && yarn install && run-s build:"
+	},
+	"prettier": "@essex/prettier-config",
+	"devDependencies": {
+		"@babel/core": "^7.16.0",
+		"@babel/preset-env": "^7.16.4",
+		"@babel/preset-react": "^7.16.0",
+		"@babel/preset-typescript": "^7.16.0",
+		"@essex/eslint-config": "^18.0.1",
+		"@essex/eslint-plugin": "^18.0.1",
+		"@essex/jest-config": "^18.0.1",
+		"@essex/prettier-config": "^18.0.1",
+		"@essex/scripts": "^18.2.0",
+		"@types/eslint": "^8.2.0",
+		"@types/prettier": "^2.4.2",
+		"@typescript-eslint/eslint-plugin": "^5.4.0",
+		"@typescript-eslint/parser": "^5.4.0",
+		"eslint": "^8.3.0",
+		"eslint-import-resolver-node": "^0.3.6",
+		"husky": "^7.0.4",
+		"jest": "^27.3.1",
+		"lint-staged": "^12.1.2",
+		"npm-run-all": "^4.1.5",
+		"prettier": "^2.4.1",
+		"typescript": "4.4.3"
+	},
+	"workspaces": [
+		"packages/webapp"
+	],
+	"packageManager": "yarn@3.0.2"
+}
