@@ -7,8 +7,9 @@ import ChartDataLabels from 'chartjs-plugin-datalabels'
 import { memo, useCallback } from 'react'
 import { Bar } from 'react-chartjs-2'
 import {
-	useSecondaryBarConfig,
-	useSelectedBarConfig,
+	useActualBarConfig,
+	useDataLabelsConfig,
+	useEstimatedBarConfig,
 } from '~components/Charts/hooks'
 import { IAttributesIntersectionValue } from '~models'
 
@@ -33,10 +34,9 @@ export const AttributeIntersectionValueChart: React.FC<AttributeIntersectionValu
 		const actual = items
 			? items.map(i => i.actualCount).filter(i => i !== undefined)
 			: []
-		const hasActuals = actual.length > 0
-
-		const secondary = useSecondaryBarConfig()
-		const selected = useSelectedBarConfig(labels, selectedValue)
+		const estimatedBarConfig = useEstimatedBarConfig(labels, selectedValue)
+		const actualBarConfig = useActualBarConfig(labels, selectedValue)
+		const dataLabelsConfig = useDataLabelsConfig(labels, selectedValue)
 
 		const handleClick = useCallback(
 			(evt, elements, chart) => {
@@ -59,32 +59,28 @@ export const AttributeIntersectionValueChart: React.FC<AttributeIntersectionValu
 							label: 'Estimated',
 							data: estimated,
 							xAxisID: 'xAxis',
-							...selected,
+							...estimatedBarConfig,
 						},
-						hasActuals
-							? {
-									label: 'Actual',
-									data: actual,
-									xAxisID: 'xAxis',
-									...secondary,
-							  }
-							: // eslint-disable-next-line @typescript-eslint/no-explicit-any
-							  (undefined as any),
-					].filter(d => d),
+						{
+							label: 'Actual',
+							data: actual,
+							xAxisID: 'xAxis',
+							...actualBarConfig,
+						},
+					],
 				}}
 				plugins={[ChartDataLabels as Plugin<'bar'>]}
 				options={{
 					plugins: {
-						datalabels: {
-							anchor: 'start',
-							align: 'end',
-							offset: 5,
+						...dataLabelsConfig,
+						legend: {
+							display: false,
 						},
 					},
 					indexAxis: 'y',
 					scales: {
 						xAxis: {
-							display: true,
+							display: false,
 							max: maxCount,
 						},
 					},

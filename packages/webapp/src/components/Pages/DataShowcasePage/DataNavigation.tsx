@@ -13,6 +13,7 @@ import {
 	Separator,
 } from '@fluentui/react'
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
+import { AttributeIntersectionValueChartLegend } from '~components/AttributeIntersectionValueChartLegend'
 import {
 	ColumnAttributeSelector,
 	HeaderSelector,
@@ -68,7 +69,7 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 		childrenGap: theme.spacing.s1,
 	}
 
-	const viewHeigh = 'calc(100vh - 200px)'
+	const viewHeigh = 'calc(100vh - 225px)'
 
 	const chartHeight = `calc((${viewHeigh} / 2) - 20px)`
 
@@ -146,38 +147,41 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 					{isLoading ? (
 						<Spinner />
 					) : (
-						<Stack
-							wrap
-							tokens={{
-								childrenGap: theme.spacing.m,
-							}}
-							styles={{
-								root: {
-									height: viewHeigh,
-									overflowY: 'hidden',
-									padding: theme.spacing.s1,
-								},
-							}}
-							onWheel={doHorizontalScroll}
-							verticalAlign="space-between"
-						>
-							{headers.map((h, i) => {
-								return (
-									selectedHeaders[i] && (
-										<Stack.Item key={i}>
-											<ColumnAttributeSelector
-												headers={headers}
-												headerName={h}
-												columnIndex={i}
-												height={chartHeight}
-												width={400}
-												chartHeight={40}
-												minHeight={150}
-											/>
-										</Stack.Item>
+						<Stack>
+							<AttributeIntersectionValueChartLegend />
+							<Stack
+								wrap
+								tokens={{
+									childrenGap: theme.spacing.m,
+								}}
+								styles={{
+									root: {
+										height: viewHeigh,
+										overflowY: 'hidden',
+										padding: theme.spacing.s1,
+									},
+								}}
+								onWheel={doHorizontalScroll}
+								verticalAlign="space-between"
+							>
+								{headers.map((h, i) => {
+									return (
+										selectedHeaders[i] && (
+											<Stack.Item key={i}>
+												<ColumnAttributeSelector
+													headers={headers}
+													headerName={h}
+													columnIndex={i}
+													height={chartHeight}
+													width={400}
+													chartHeight={40}
+													minHeight={150}
+												/>
+											</Stack.Item>
+										)
 									)
-								)
-							})}
+								})}
+							</Stack>
 						</Stack>
 					)}
 				</Stack.Item>

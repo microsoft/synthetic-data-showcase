@@ -30,7 +30,7 @@ export interface ColumnAttributeSelectorProps {
 }
 
 // fixed value for rough axis height so charts don't squish if selected down to 1
-const AXIS_HEIGHT = 46
+const AXIS_HEIGHT = 16
 
 export const ColumnAttributeSelector: React.FC<ColumnAttributeSelectorProps> =
 	memo(function ColumnAttributeSelector({
