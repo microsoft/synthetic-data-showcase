@@ -1,0 +1,17 @@
+node_modules/
+storybook-static/
+build/
+dist/
+lib/
+coverage/
+public/
+.yarn/
+.pnp.js
+.pnp.cjs
+.cache/
+node_modules/
+pkg/
+target/
+.eslintrc.js
+babel.config.js
+packages/webapp/src/workers/sds-wasm/worker.js

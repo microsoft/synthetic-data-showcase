@@ -1,7 +1,34 @@
+# VSCode
+.vscode/
+
+# Rust ignores
+target/
+pkg/
+
+# TS/JS ignores
+node_modules/
+build/
+dist/
+out/
+lib/
+coverage/
+deploy.zip
+
+# Yarn v2 Gitignores - https://yarnpkg.com/getting-started/qa/#which-files-should-be-gitignored
+.yarn/*
+!.yarn/cache
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
 # Sample / typical outputs
 german_credit_showcase/
 credit_config.json
 *data*/
+!data_block/
+!dataShowcaseContext/
 *output*/
 
 # Byte-compiled / optimized / DLL files
@@ -109,6 +136,7 @@ celerybeat.pid
 
 # Environments
 .env
+!packages/webapp/.env
 .venv
 env/
 venv/
@@ -133,3 +161,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Platform files
+.DS_Store

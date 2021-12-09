@@ -1,209 +1,49 @@
-
 # Synthetic data showcase
 
 > Generates synthetic data and user interfaces for privacy-preserving data sharing and analysis.
 
-In many cases, the best way to share sensitive datasets is not to share the actual sensitive datasets, but user interfaces to derived datasets that are inherently anonymous. Our name for such an interface is a *data showcase*. In this project, we provide an automated pipeline for generating the three elements of a *synthetic data showcase*:
+# Overview
 
-1. *Synthetic data* representing the overall structure and statistics of the input data, without describing actual identifiable individuals.
-2. *Aggregate data* reporting the number of individuals with different combinations of attributes, without disclosing small or precise counts.
-3. *Data dashboards* enabling exploratory visual analysis of both datasets, without the need for custom data science or interface development.
+In many cases, the best way to share sensitive datasets is not to share the actual sensitive datasets, but user interfaces to derived datasets that are inherently anonymous. Our name for such an interface is a _data showcase_. In this project, we provide an automated set of tools for generating the three elements of a _synthetic data showcase_:
 
-All of these elements preserve privacy by design and may be freely shared or published subject to clear privacy guarantees. The final data showcase is generated as a [Power BI](https://powerbi.microsoft.com/en-us/desktop/) report.
+1. _Synthetic data_ representing the overall structure and statistics of the input data, without describing actual identifiable individuals.
+2. _Aggregate data_ reporting the number of individuals with different combinations of attributes, without disclosing small or precise counts.
+3. _Data dashboards_ enabling exploratory visual analysis of both datasets, without the need for custom data science or interface development.
 
-## Privacy guarantees
+# Privacy guarantees
 
-The main privacy control offered by the pipeline is based on the numbers of individuals described by different combinations of attributes. The `reporting_resolution` specified by the pipeline user determines the minimum group size that will be (a) reported explicitly in the aggregate data and (b) represented implicitly by the records of the synthetic data. This makes it possible to offer privacy guarantees in clearly understandable terms, e.g.:
+The main privacy control offered by the tools is based on the numbers of individuals described by different combinations of attributes. The `resolution` determines the minimum group size that will be (a) reported explicitly in the aggregate data and (b) represented implicitly by the records of the synthetic data. This makes it possible to offer privacy guarantees in clearly understandable terms, e.g.:
 
-"All attribute combinations in this synthetic dataset describe groups of 10 or more individuals in the original sensitive dataset, therefore may never be used to infer the presence of individuals or groups smaller than 10"
+"All attribute combinations in this synthetic dataset describe groups of 10 or more individuals in the original sensitive dataset, therefore may never be used to infer the presence of individuals or groups smaller than 10."
 
-Under such guarantees, it is impossible for attackers to infer the presence of groups whose size is below the `reporting_resolution`. For groups at or above this resolution, the 'safety in numbers' principle applies &ndash; the higher the limit, the harder it becomes to make inferences about the presence of known individuals.
+Under such guarantees, it is impossible for attackers to infer the presence of groups whose size is below the `resolution`. For groups at or above this resolution, the 'safety in numbers' principle applies &ndash; the higher the limit, the harder it becomes to make inferences about the presence of known individuals.
 
 This anonymization method can be viewed as enforcing [k-anonymity](https://en.wikipedia.org/wiki/K-anonymity) across all columns of a sensitive dataset. While typical implementations of k-anonymity divide data columns into quasi-identifiers and sensitive attributes, only enforcing k-anonymity over quasi-identifiers leaves the remaining attributes open to linking attacks based on background knowledge. The data synthesis approach used to create a synthetic data showcase safeguards against such attacks while preserving the structure and statistics of the sensitive dataset.
 
+# Quick setup
 
-## Setup
+The easiest way to start is to [run the web application locally with docker](./packages/webapp/README.md#locally-run-the-web-application-with-docker). You will be able to experiment with your data and see in the result in real time using the UI.
 
-The pipeline is controlled via a json config file containing a variety of parameters, as shown below with illustrative values:
+If you are looking for faster alternatives to process bigger datasets, please refer to our [python pipeline tool](./packages/python-pipeline/README.md) or [CLI application tool](./packages/cli/README.md).
 
-```sh
-{
-    "sensitive_microdata_path": "./secret_vices.csv",
-    "sensitive_microdata_delimiter": ",",
-    "use_columns": [],
-    "record_limit": -1,
-    "sensitive_zeros": [],
+# All available tools
 
-    "reporting_resolution": 10,
-    "reporting_length": 5,
+We provide a set of tools to synthesize, aggregate and evaluate your data, which can be used according to your use case/preference. The available tools are described below:
 
-    "seeded": true,
-    "parallel_jobs": 8,
-    "memory_limit_pct": 95,
-    "output_dir": "./vices_output",
-    "prefix": "vices",
+- **Python pipeline**: if you want to synthesize, aggregate your data and also generate the dashboards for visual analysis with a single command line command in python, please check the [python pipeline tool](./packages/python-pipeline/README.md).
+- **Web application**: if you want to locally run a web application capable of synthesize, aggregate and evaluate your data directly on your browser using Javascript and Web Assembly, this is the tool for you. The data is processed locally and never leaves your machine. Please check the [web application tool](./packages/webapp/README.md).
+- **Raw CLI application**: if you only want a command line interface (CLI) around our [core Rust library](./packages/core/README.md) for data synthesis and aggregation, please check the [CLI application tool](./packages/cli/README.md).
 
-    "report_title": "Secret Vices Dataset",
-    "report_visuals": {
-        "vices": ["chocolate:1", "beer:1", "napping:1", ...],
-        ...
-    },
-    "report_pages": {
-        "By age/gender": ["age", "gender", "vices"],
-        "By city/job": ["city", "job", "vices"],
-        ...
-    }
-}
-```
+# Quick references
 
-Use of each of these parameters is described in the following sections.
+- [python-pipeline](./packages/python-pipeline/README.md)
+- [webapp](./packages/webapp/README.md)
+- [cli](./packages/cli/README.md)
+- [core](./packages/core/README.md)
+- [lib-wasm](./packages/lib-wasm/README.md)
+- [lib-python](./packages/lib-python/README.md)
 
-### Input data format
-
-The data at `sensitive_microdata_path` should be in comma separated values (.csv) or tab separated values (.tsv) format, with the `sensitive_microdata_delimiter` set accordingly (e.g., `","` or `"\t"`).
-
-The pipeline assumes deidentified microdata as input, i.e., a table in which each row contains all data (but no personally-identifiable information, PII) relating to an individual.
-
-Single-valued attributes (e.g., gender) are represented as columns of categorical variables whose values are shared by multiple rows. Any continuous numeric variables (e.g., age) should be quantized in advance (e.g., into age ranges) to ensure there are sufficient instances of each value.
-
-Multi-valued attributes (e.g., interests) are represented as multiple columns of binary variables (integer values of `0` and `1`) indicating the different values of that attribute (e.g., food, sports, politics).
-
-The `use_columns` parameter may be used to specify which data columns at `sensitive_microdata_path` should be included in the output. An empty list `[]` indicates that all columns should be used.
-
-Similarly, `record_limit` may be used to limit data synthesis to the specified number of records, taken from the start of the sensitive data. A value of `-1` indicates that all sensitive records should be modelled and synthesized.
-
-### Negative value interpretation
-
-The pipeline distinguishes 'positive' attribute values that indicate the presence of specific sensitive data from 'negative' attribute values that indicate the absence of such data. By default, the integer zero (`0`) and the empty string (`""`) and not taken into account when creating and counting attribute combinations. Any columns where zero values are of interest (and thus sensitive) should be listed in `sensitive_zeros`. This pipeline treats such `sensitive_zeros` in the same way as positive values.
-
-### Aggregate data generation
-
-To complement the synthetic microdata, the pipeline also precomputes reportable counts of sensitive records containing all short combinations of attributes. The privacy risk with such aggregate data is that small aggregate counts may identify specific groups of individuals, while precise counts may allow the detection of small differences over time. The pipeline thus protects the reported aggregate counts by rounding counts down to the closest multiple of the specified `reporting_resolution`. The `reporting_resolution` therefore acts as both the minimum threshold for reporting and the mininum difference between reported counts.
-
-The `reporting_length` determines the maximum length of attribute combination for which aggregate counts are precomputed and reported. In the user interface, this value determines how many attribute value selections a user may make while retaining the ability to compare estimated (synthetic) vs actual values. The number of selections is always one less than the `reporting_length`. Specifying a `reporting_length` of `-1` indicates that combinations of all lengths should be computed. This is not recommended except for small or sparse datasets as the number of attribute combinations grows rapidly with their length.
-
-
-### Synthetic data generation
-
-The `seeded` parameter indicates whether synthetic records should be seeded with a corresponding sensitive record (`true`) or generated in an unseeded way by randomly sampling joint attribute distributions (`false`). Seeded synthesis is faster and better preserves statistics for visual analytics, but unseeded synthesis creates longer records of more uniform length that may better preserve structure for machine learning.
-
-Seeded synthesis proceeds by sampling attributes from a sensitive record until the addition of further attributes would create a rare combination based on the `reporting_resolution`. These privacy-preserving subsets of sensitive records are collected for output as synthetic records. The unused attributes of each seed are also collected, with further output records synthesized from these (without replacement) until all sensitive attributes are accounted for in a synthetic record.
-
-Since precise attribute counts create a privacy risk, it is advisable to create some uncertainty over the actual counts by adding noise to the synthetic data. The same `reporting_resolution` used to create aggregate counts is used again here to suppress attributes or synthesize additional records such that synthetic attribute counts are equal to the (already imprecise) reported count.
-
-Synthetic records are sorted by number of non-empty attribute values prior to output in a way that intermixes partly-suppressed and wholly-synthetic records.
-
-### Data processing and output
-
-The `parallel_jobs` parameter specifies the extent of parallel processing (e.g., based on the number of available processor cores). For local processing, this should be set to the number of available CPU cores. For faster processing of larger and more complex datasets, use of a virtual machine with multiple cores is recommended.
-
-The `memory_limit_pct` parameter sets the percentage utilization of system memory at which synthetic data generation will stop adding computed counts to a cache.
-
-Output files are saved to the `output_dir` directory and prefixed with the `prefix` string. The json config file used to generate the outputs is also copied to this directory as a record of the parameters used, and should therefore be stored outside `output_dir`.
-
-### Interface configuration
-
-The showcase interface is created as a Power BI report that may be opened, explored, and shared using the free [Power BI Desktop](https://powerbi.microsoft.com/en-us/desktop/) application. The Power BI report displays aggregated views of the sensitive data.
-
-The `report_title` parameter specifies the user-facing title shown within the Power BI report.
-
-Related attributes spanning multiple columns in the sensitive dataset may be grouped together in a single visual by specifying `report_visuals` as a new configuration attribute. This contains a mapping from the name of the visual to a list of `column:value` pairs. The `column:value` pairs are combined into a single visual with the given name. In the example below the visual name is `vices` and it combines the list of `column:value` pairs that follow. Up to 10 such visuals may be created.
-
-
-```sh
-"report_visuals": {
-    "vices": ["chocolate:1", "beer:1", "napping:1", ...],
-    ...
-}
-```
-
-The `report_pages` configuration allows you to specify specific visuals to display and the order to display them. The custom visuals that are created by specifying `report_visuals` can be used in the `report_pages` configuration section. The `report_pages` allows the specification of up to 16 attribute visuals per named page (up to 4 pages) as follows:
-
-
-```sh
-"report_pages": {
-    "By age/gender": ["age", "gender", "vices"],
-    "By city/job": ["city", "job", "vices"],
-    ...
-}
-```
-
-## Usage
-
-```sh
-python showcase.py <config_path> --verbose | --v
-```
-
-Runs the complete pipeline using the specified json config file. To run the pipeline for individual stages, see the sections below. Use either form of the verbose flag for detailed output logs.
-
-Multiple stages may also be specified, with any missing stage inputs resulting in prior stages being executed automatically. The complete pipeline can be executed with all stages specified as follows:
-
-```sh
-python showcase.py <config_path> --v --aggregate --generate --evaluate --navigate
-```
-
-It is recommended to begin with a smaller dataset (in terms of both rows and columns) and reporting length before scaling up based on performance (in terms of privacy, utility, and time).
-
-### Aggregate
-
-```sh
-python showcase.py <config_path> --aggregate | --agg
-```
-
-Generates the `reportable_aggregates` tsv file containing precomputed and protected counts of all sensitive attribute combinations up to `reporting_length` in length, as well as a  `sensitive_aggregates` tsv file storing the actual counts. This file is used in the `--evaluate` pipeline stage to avoid recomputing combinations, and may be used to confirm actual values. Since these are highly sensitive, the file should be protected in the same way as the original microdata.
-
-Additional outputs of this stage are tsv and svg summaries of `sensitive_rare_by_length` &ndash; how many sensitive attribute combinations exist up to `reporting_length` and what proportion of these are rare, i.e., occurring with a frequency below `reporting_resolution`.
-
-### Generate
-
-```sh
-python showcase.py <config_path> --generate | --gen
-```
-
-Generates the `synthetic_microdata` tsv file containing synthetic microdata representing the structure and statistics of data at `sensitive_microdata_path`, without leaking any attribute combinations that are rare in the sensitive data.
-
-### Evaluate
-
-```sh
-python showcase.py <config_path> --evaluate | --eval
-```
-
-Compares the `synthetic_microdata` to the `sensitive_microdata` in terms of the proportion of sensitive combination counts that are preserved by the synthetic data (up to `reporting_length` in length). Reads from the `sensitive_aggregates` tsv file if available.
-
-Outputs of this stage are tsv and svg summaries of:
-
-1. `synthetic_leakage_by_length` &ndash; how many synthetic attribute combinations exist up to `reporting_length` and what proportion of these leak rare combinations from the sensitive data (by virtue of the synthesis process, this is guaranteed to be zero across all combination lengths).
-2. `synthetic_preservation_by_length` &ndash; how many synthetic records are filtered on average for each combination length up to `reporting_length` and what proportion of the corresponding sensitive count is captured by the synthetic count on average (longer combinations are naturally more rare so result in more loss / less preservation).
-3. `synthetic_preservation_by_count` &ndash; how many synthetic attributes are needed on average to give a range of aggregate counts (shown on a log scale with labels representing the upper bound of the bin) and what proportion of the corresponding sensitive count is captured by the synthetic count on average (smaller counts are by definition more rare so result in more loss / less preservation).
-
-### Navigate
-
-```sh
-python showcase.py <config_path> --navigate | --nav
-```
-
-Creates the `data_showcase.pbit` Power BI template file combining both synthetic and aggregate data. Open this file in Power BI Desktop and when prompted enter the data path as the `output_dir` folder specified in the json config file. This will load the output data files into the template, which may then be saved and shared as a `.pbix` report file. The path must be specified as an absolute path.
-
-### Example
-
-```sh
-python showme.py
-```
-
-Runs the complete pipeline on a single core for a small dataset (1000 rows) with many unique combinations (i.e., a very challenging dataset to share while preserving privacy).
-
-Pipeline outputs are saved to the newly-created `./german_credit_data` directory and based on the Statlog (German Credit Data) dataset published by UCI [here](http://archive.ics.uci.edu/ml/datasets/Statlog+%28German+Credit+Data%29) with source credit to:
-
-&nbsp;&nbsp;&nbsp;&nbsp;Professor Dr. Hans Hofmann<br>
-&nbsp;&nbsp;&nbsp;&nbsp;Institut für Statistik und Ökonometrie<br>
-&nbsp;&nbsp;&nbsp;&nbsp;Universität Hamburg<br>
-&nbsp;&nbsp;&nbsp;&nbsp;FB Wirtschaftswissenschaften<br>
-&nbsp;&nbsp;&nbsp;&nbsp;Von-Melle-Park 5<br>
-&nbsp;&nbsp;&nbsp;&nbsp;2000 Hamburg 13<br>
-
-A sample json config file used to create this example is also saved to the current working directory for reference.
-
-## License
+# License
 
 Synthetic data showcase
 
@@ -229,9 +69,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE
 
-## Contributing
+# Contributing
 
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
+This project welcomes contributions and suggestions. Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
 the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
 
@@ -243,10 +83,10 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
 contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
-## Acknowledgements
+# Acknowledgements
 
 This project resulted from a [Tech Against Trafficking (TAT)](https://techagainsttrafficking.org/) accelerator program with the [Counter Trafficking Data Collaborative (CTDC)](https://www.ctdatacollaborative.org/) and the [International Organization for Migration (IOM)](https://www.iom.int/) on how to safely share data on identified victims of human trafficking. Read more in this [TAT blog post](https://techagainsttrafficking.org/accelerating-toward-data-insights-tech-against-trafficking-successfully-concludes-its-pilot-accelerator/).
 
-## Contact
+# Contact
 
 Feedback and suggestions are welcome via email to synthetic-showcase@microsoft.com.

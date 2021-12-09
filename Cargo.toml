@@ -1,0 +1,13 @@
+[workspace]
+members = [
+	"packages/core",
+	"packages/cli",
+	"packages/lib-wasm",
+	"packages/lib-python"
+]
+
+[profile.release]
+opt-level = 3
+
+[profile.test]
+opt-level = 3
