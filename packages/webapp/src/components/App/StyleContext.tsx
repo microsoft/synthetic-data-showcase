@@ -2,13 +2,8 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { ThemeProvider as FluentProvider } from '@fluentui/react'
-import { loadFluentTheme } from '@thematic/fluent'
-import {
-	ApplicationStyles,
-	useThematic,
-	ThematicProvider,
-} from '@thematic/react'
+import { loadFluentTheme, ThematicFluentProvider } from '@thematic/fluent'
+import { ApplicationStyles, useThematic } from '@thematic/react'
 import React, { memo, useMemo } from 'react'
 import {
 	createGlobalStyle,
@@ -17,30 +12,16 @@ import {
 
 export const StyleContext: React.FC = memo(function StyleContext({ children }) {
 	const theme = useThematic()
-
-	const fluentTheme = useMemo(() => {
-		const base = loadFluentTheme(theme).toFluent()
-		// TODO: the fluent theme generator used by thematic
-		// produces low contrast secondary text. this appears to be
-		// a bug in fluent, but needs addressed by thematic
-		const mid = theme.application().midContrast().hex()
-		base.palette.neutralSecondary = mid
-		base.semanticColors.bodySubtext = mid
-		return base
-	}, [theme])
-
+	const fluentTheme = useMemo(() => loadFluentTheme(theme).toFluent(), [theme])
 	return (
 		<>
 			{/* core thematic for charting colors and imperative use */}
-			<ThematicProvider theme={theme}>
-				{/* modified fluent theme that matches thematic for the application controls */}
-				<FluentProvider theme={fluentTheme}>
-					<GlobalStyle />
-					<ApplicationStyles />
-					{/* styled-components theme - now only used for fluent spacing values */}
-					<StyledProvider theme={fluentTheme}>{children}</StyledProvider>
-				</FluentProvider>
-			</ThematicProvider>
+			<ThematicFluentProvider theme={theme}>
+				<GlobalStyle />
+				<ApplicationStyles />
+				{/* styled-components theme - now only used for fluent spacing values */}
+				<StyledProvider theme={fluentTheme}>{children}</StyledProvider>
+			</ThematicFluentProvider>
 		</>
 	)
 })
