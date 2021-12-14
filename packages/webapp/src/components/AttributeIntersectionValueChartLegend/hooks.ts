@@ -5,30 +5,40 @@
 import { useThematic } from '@thematic/react'
 import { useMemo } from 'react'
 
-export function useEstimatedNominalColor(): string {
+export type BarColors = {
+	normal: string
+	selected: string
+	suppressed: string
+}
+
+export function useEstimatedBarChartColors(): BarColors {
 	const thematic = useThematic()
-	return useMemo(() => {
-		return thematic.scales().nominal().toArray()[0]
-	}, [thematic])
+	return useMemo(
+		() => ({
+			normal: thematic.scales().nominal().toArray()[0],
+			selected: thematic.scales().nominalBold().toArray()[0],
+			suppressed: thematic.scales().nominalMuted().toArray()[0],
+		}),
+		[thematic],
+	)
+}
+
+export function useActualBarChartColors(): BarColors {
+	const thematic = useThematic()
+	return useMemo(
+		() => ({
+			normal: thematic.scales().nominal().toArray()[1],
+			selected: thematic.scales().nominalBold().toArray()[1],
+			suppressed: thematic.scales().nominalMuted().toArray()[1],
+		}),
+		[thematic],
+	)
+}
+
+export function useEstimatedNominalColor(): string {
+	return useEstimatedBarChartColors().normal
 }
 
 export function useActualNominalColor(): string {
-	const thematic = useThematic()
-	return useMemo(() => {
-		return thematic.scales().nominal().toArray()[1]
-	}, [thematic])
-}
-
-export function useEstimatedBoldedColor(): string {
-	const thematic = useThematic()
-	return useMemo(() => {
-		return thematic.scales().nominalBold().toArray()[0]
-	}, [thematic])
-}
-
-export function useActualBoldedColor(): string {
-	const thematic = useThematic()
-	return useMemo(() => {
-		return thematic.scales().nominalBold().toArray()[1]
-	}, [thematic])
+	return useActualBarChartColors().normal
 }
