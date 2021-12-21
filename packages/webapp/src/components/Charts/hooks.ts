@@ -7,10 +7,9 @@ import { _DeepPartialObject } from 'chart.js/types/utils'
 import { Options } from 'chartjs-plugin-datalabels/types/options'
 import { BaseSyntheticEvent, useCallback, useMemo, WheelEvent } from 'react'
 import {
-	useActualBoldedColor,
-	useActualNominalColor,
-	useEstimatedBoldedColor,
-	useEstimatedNominalColor,
+	BarColors,
+	useActualBarChartColors,
+	useEstimatedBarChartColors,
 } from '~components/AttributeIntersectionValueChartLegend'
 /*
 	this module contains hooks for chart colors and such that may not be covered in thedefault ChartContext
@@ -29,44 +28,38 @@ export interface DataLabelsConfig {
 }
 
 function useBarConfig(
-	nominalColor: string,
-	boldedColor: string,
+	colors: BarColors,
 	items: string[],
 	selectedValue?: string,
 ): ChartJsDatasetConfig {
 	return useMemo(() => {
-		const backgroundColor = items.map(i =>
-			i === selectedValue ? boldedColor : nominalColor,
-		)
+		const backgroundColor = items.map(i => {
+			if (selectedValue) {
+				return i === selectedValue ? colors.selected : colors.suppressed
+			}
+			return colors.normal
+		})
 		return {
 			type: 'bar',
 			backgroundColor: backgroundColor.length > 0 ? backgroundColor : undefined,
 		}
-	}, [nominalColor, boldedColor, items, selectedValue])
+	}, [colors, items, selectedValue])
 }
 
 export function useActualBarConfig(
 	items: string[],
 	selectedValue?: string,
 ): ChartJsDatasetConfig {
-	return useBarConfig(
-		useActualNominalColor(),
-		useActualBoldedColor(),
-		items,
-		selectedValue,
-	)
+	const colors = useActualBarChartColors()
+	return useBarConfig(colors, items, selectedValue)
 }
 
 export function useEstimatedBarConfig(
 	items: string[],
 	selectedValue?: string,
 ): ChartJsDatasetConfig {
-	return useBarConfig(
-		useEstimatedNominalColor(),
-		useEstimatedBoldedColor(),
-		items,
-		selectedValue,
-	)
+	const colors = useEstimatedBarChartColors()
+	return useBarConfig(colors, items, selectedValue)
 }
 
 export function useDataLabelsConfig(
