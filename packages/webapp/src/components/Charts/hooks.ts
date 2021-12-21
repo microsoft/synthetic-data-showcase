@@ -33,7 +33,6 @@ function useBarConfig(
 	selectedValue?: string,
 ): ChartJsDatasetConfig {
 	return useMemo(() => {
-		console.log(selectedValue)
 		const backgroundColor = items.map(i => {
 			if (selectedValue) {
 				return i === selectedValue ? colors.selected : colors.suppressed
