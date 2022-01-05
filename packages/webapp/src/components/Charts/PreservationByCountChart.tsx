@@ -5,7 +5,7 @@
 
 import { memo } from 'react'
 import { Bar } from 'react-chartjs-2'
-import { IPreservationByCountBuckets } from '~models'
+import { IPreservationByCountBuckets } from 'sds-wasm'
 
 export interface PreservationByCountChartProps {
 	meanLengthLabel: string

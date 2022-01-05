@@ -30,12 +30,12 @@ export interface DataLabelsConfig {
 function useBarConfig(
 	colors: BarColors,
 	items: string[],
-	selectedValue?: string,
+	selectedAttributes: Set<string>,
 ): ChartJsDatasetConfig {
 	return useMemo(() => {
 		const backgroundColor = items.map(i => {
-			if (selectedValue) {
-				return i === selectedValue ? colors.selected : colors.suppressed
+			if (selectedAttributes.size !== 0) {
+				return selectedAttributes.has(i) ? colors.selected : colors.suppressed
 			}
 			return colors.normal
 		})
@@ -43,28 +43,28 @@ function useBarConfig(
 			type: 'bar',
 			backgroundColor: backgroundColor.length > 0 ? backgroundColor : undefined,
 		}
-	}, [colors, items, selectedValue])
+	}, [colors, items, selectedAttributes])
 }
 
 export function useActualBarConfig(
 	items: string[],
-	selectedValue?: string,
+	selectedAttributes: Set<string>,
 ): ChartJsDatasetConfig {
 	const colors = useActualBarChartColors()
-	return useBarConfig(colors, items, selectedValue)
+	return useBarConfig(colors, items, selectedAttributes)
 }
 
 export function useEstimatedBarConfig(
 	items: string[],
-	selectedValue?: string,
+	selectedAttributes: Set<string>,
 ): ChartJsDatasetConfig {
 	const colors = useEstimatedBarChartColors()
-	return useBarConfig(colors, items, selectedValue)
+	return useBarConfig(colors, items, selectedAttributes)
 }
 
 export function useDataLabelsConfig(
 	items: string[],
-	selectedValue?: string,
+	selectedAttributes: Set<string>,
 ): DataLabelsConfig {
 	const thematic = useThematic()
 	return useMemo(() => {
@@ -75,11 +75,11 @@ export function useDataLabelsConfig(
 				align: 'end',
 				offset: 5,
 				color: items.map(item =>
-					item === selectedValue ? greys[0] : greys[80],
+					selectedAttributes.has(item) ? greys[0] : greys[80],
 				),
 			},
 		}
-	}, [thematic, items, selectedValue])
+	}, [thematic, items, selectedAttributes])
 }
 
 export function useHorizontalScrolling(): (e: WheelEvent<HTMLElement>) => void {

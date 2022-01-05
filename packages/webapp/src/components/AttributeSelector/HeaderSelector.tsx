@@ -4,10 +4,10 @@
  */
 import { Stack, useTheme, IStackTokens, Checkbox } from '@fluentui/react'
 import { memo } from 'react'
-import { CsvRecord } from '~models'
+import { HeaderNames } from 'sds-wasm'
 
 export interface HeaderSelectorProps {
-	headers: CsvRecord
+	headers: HeaderNames
 	selectedHeaders: boolean[]
 	onToggle: (columnIndex: number) => void
 }

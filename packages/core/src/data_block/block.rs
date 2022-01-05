@@ -1,12 +1,16 @@
 use super::{
-    record::DataBlockRecord,
     typedefs::{
-        AttributeRows, AttributeRowsMap, CsvRecord, CsvRecordSlice, DataBlockHeaders,
-        DataBlockRecords, DataBlockRecordsSlice,
+        AttributeRows, AttributeRowsByColumnMap, AttributeRowsMap, ColumnIndexByName,
+        DataBlockHeaders, DataBlockRecords,
     },
     value::DataBlockValue,
 };
-use std::collections::HashSet;
+use fnv::FnvHashMap;
+use itertools::Itertools;
+use serde::{Deserialize, Serialize};
+use std::sync::Arc;
+
+use crate::{processing::aggregator::typedefs::RecordsSet, utils::math::uround_down};
 
 #[cfg(feature = "pyo3")]
 use pyo3::prelude::*;
@@ -15,189 +19,162 @@ use pyo3::prelude::*;
 /// The goal of this is to allow data processing to handle with memory references
 /// to the data block instead of copying data around
 #[cfg_attr(feature = "pyo3", pyclass)]
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DataBlock {
-    /// Vector of strings representhing the data headers
+    /// Vector of strings representing the data headers
     pub headers: DataBlockHeaders,
     /// Vector of data records, where each record represents a row (headers not included)
     pub records: DataBlockRecords,
 }
 
 impl DataBlock {
+    /// Returns a new DataBlock with default values
+    pub fn default() -> DataBlock {
+        DataBlock {
+            headers: DataBlockHeaders::default(),
+            records: DataBlockRecords::default(),
+        }
+    }
+
     /// Returns a new DataBlock
     /// # Arguments
-    /// * `headers` - Vector of string representhing the data headers
+    /// * `headers` - Vector of string representing the data headers
     /// * `records` - Vector of data records, where each record represents a row (headers not included)
     #[inline]
     pub fn new(headers: DataBlockHeaders, records: DataBlockRecords) -> DataBlock {
         DataBlock { headers, records }
     }
 
-    /// Calcules the rows where each value on the data records is present
-    /// # Arguments
-    /// * `records`: List of records to analyze
+    /// Returns a map of column name -> column index
     #[inline]
-    pub fn calc_attr_rows(records: &DataBlockRecordsSlice) -> AttributeRowsMap {
+    pub fn calc_column_index_by_name(&self) -> ColumnIndexByName {
+        self.headers
+            .iter()
+            .enumerate()
+            .map(|(column_index, column_name)| ((**column_name).clone(), column_index))
+            .collect()
+    }
+
+    /// Calculates the rows where each value on the data records is present
+    #[inline]
+    pub fn calc_attr_rows(&self) -> AttributeRowsMap {
         let mut attr_rows: AttributeRowsMap = AttributeRowsMap::default();
 
-        for (i, r) in records.iter().enumerate() {
+        for (i, r) in self.records.iter().enumerate() {
             for v in r.values.iter() {
                 attr_rows
-                    .entry(v)
+                    .entry(v.clone())
                     .or_insert_with(AttributeRows::new)
                     .push(i);
             }
         }
         attr_rows
     }
-}
 
-/// Trait that needs to be implement to create a data block.
-/// It already contains the logic to create the data block, so we only
-/// need to worry about mapping the headers and records from InputType
-pub trait DataBlockCreator {
-    /// Creator input type, it can be a File Reader, another data structure...
-    type InputType;
-    /// The error type that can be generated when parsing headers/records
-    type ErrorType;
-
+    // Calculates the rows where each value on the data records is present
+    /// grouped by column index.
     #[inline]
-    fn gen_use_columns_set(headers: &CsvRecordSlice, use_columns: &[String]) -> HashSet<usize> {
-        let use_columns_str_set: HashSet<String> = use_columns
-            .iter()
-            .map(|c| c.trim().to_lowercase())
-            .collect();
-        headers
-            .iter()
-            .enumerate()
-            .filter_map(|(i, h)| {
-                if use_columns_str_set.is_empty()
-                    || use_columns_str_set.contains(&h.trim().to_lowercase())
-                {
-                    Some(i)
-                } else {
-                    None
-                }
+    pub fn calc_attr_rows_with_no_empty_values(&self) -> AttributeRowsByColumnMap {
+        let mut attr_rows_by_column: AttributeRowsByColumnMap = AttributeRowsByColumnMap::default();
+
+        for (i, r) in self.records.iter().enumerate() {
+            for v in r.values.iter() {
+                attr_rows_by_column
+                    .entry(v.column_index)
+                    .or_insert_with(AttributeRowsMap::default)
+                    .entry(v.clone())
+                    .or_insert_with(AttributeRows::new)
+                    .push(i);
+            }
+        }
+        attr_rows_by_column
+    }
+
+    /// Calculates the rows where each value on the data records is present
+    /// grouped by column index. This will also include empty values mapped with
+    /// the `empty_value` string.
+    /// # Arguments
+    /// * `empty_value` - Empty values on the final synthetic data will be represented by this
+    #[inline]
+    pub fn calc_attr_rows_by_column(&self, empty_value: &Arc<String>) -> AttributeRowsByColumnMap {
+        let mut attr_rows_by_column: FnvHashMap<
+            usize,
+            FnvHashMap<Arc<DataBlockValue>, RecordsSet>,
+        > = FnvHashMap::default();
+        let empty_records: RecordsSet = (0..self.records.len()).collect();
+
+        // start with empty values for all columns
+        for column_index in 0..self.headers.len() {
+            attr_rows_by_column
+                .entry(column_index)
+                .or_insert_with(FnvHashMap::default)
+                .entry(Arc::new(DataBlockValue::new(
+                    column_index,
+                    empty_value.clone(),
+                )))
+                .or_insert_with(|| empty_records.clone());
+        }
+
+        // go through each record and map where the values occur on the columns
+        for (i, r) in self.records.iter().enumerate() {
+            for value in r.values.iter() {
+                let current_attr_rows = attr_rows_by_column
+                    .entry(value.column_index)
+                    .or_insert_with(FnvHashMap::default);
+
+                // insert it on the correspondent entry for the data block value
+                current_attr_rows
+                    .entry(value.clone())
+                    .or_insert_with(RecordsSet::default)
+                    .insert(i);
+                // it's now used being used, so we make sure to remove this from the column empty records
+                current_attr_rows
+                    .entry(Arc::new(DataBlockValue::new(
+                        value.column_index,
+                        empty_value.clone(),
+                    )))
+                    .or_insert_with(RecordsSet::default)
+                    .remove(&i);
+            }
+        }
+
+        // sort the records ids, so we can leverage the intersection alg later on
+        attr_rows_by_column
+            .drain()
+            .map(|(column_index, mut attr_rows)| {
+                (
+                    column_index,
+                    attr_rows
+                        .drain()
+                        .map(|(value, mut rows_set)| (value, rows_set.drain().sorted().collect()))
+                        .collect(),
+                )
             })
             .collect()
     }
 
     #[inline]
-    fn gen_sensitive_zeros_set(
-        filtered_headers: &CsvRecordSlice,
-        sensitive_zeros: &[String],
-    ) -> HashSet<usize> {
-        let sensitive_zeros_str_set: HashSet<String> = sensitive_zeros
-            .iter()
-            .map(|c| c.trim().to_lowercase())
-            .collect();
-        filtered_headers
-            .iter()
-            .enumerate()
-            .filter_map(|(i, h)| {
-                if sensitive_zeros_str_set.contains(&h.trim().to_lowercase()) {
-                    Some(i)
-                } else {
-                    None
-                }
-            })
-            .collect()
+    /// Returns the number of records on the data block
+    pub fn number_of_records(&self) -> usize {
+        self.records.len()
     }
 
     #[inline]
-    fn map_headers(
-        headers: &mut CsvRecord,
-        use_columns: &[String],
-        sensitive_zeros: &[String],
-    ) -> (CsvRecord, HashSet<usize>, HashSet<usize>) {
-        let use_columns_set = Self::gen_use_columns_set(headers, use_columns);
-        let filtered_headers: CsvRecord = headers
-            .iter()
-            .enumerate()
-            .filter_map(|(i, h)| {
-                if use_columns_set.contains(&i) {
-                    Some(h.clone())
-                } else {
-                    None
-                }
-            })
-            .collect();
-        let sensitive_zeros_set = Self::gen_sensitive_zeros_set(&filtered_headers, sensitive_zeros);
-
-        (filtered_headers, use_columns_set, sensitive_zeros_set)
+    /// Returns the number of records on the data block protected by `resolution`
+    pub fn protected_number_of_records(&self, resolution: usize) -> usize {
+        uround_down(self.number_of_records() as f64, resolution as f64)
     }
 
     #[inline]
-    fn map_records(
-        records: &[CsvRecord],
-        use_columns_set: &HashSet<usize>,
-        sensitive_zeros_set: &HashSet<usize>,
-        record_limit: usize,
-    ) -> DataBlockRecords {
-        let map_result = |record: &CsvRecord| {
-            let values: CsvRecord = record
-                .iter()
-                .enumerate()
-                .filter_map(|(i, h)| {
-                    if use_columns_set.contains(&i) {
-                        Some(h.trim().to_string())
-                    } else {
-                        None
-                    }
-                })
-                .collect();
-
-            DataBlockRecord::new(
-                values
-                    .iter()
-                    .enumerate()
-                    .filter_map(|(i, r)| {
-                        let record_val = r.trim();
-                        if !record_val.is_empty()
-                            && (sensitive_zeros_set.contains(&i) || record_val != "0")
-                        {
-                            Some(DataBlockValue::new(i, record_val.into()))
-                        } else {
-                            None
-                        }
-                    })
-                    .collect(),
-            )
-        };
-
-        if record_limit > 0 {
-            records.iter().take(record_limit).map(map_result).collect()
+    /// Normalizes the reporting length based on the number of selected headers.
+    /// Returns the normalized value
+    /// # Arguments
+    /// * `reporting_length` - Reporting length to be normalized (0 means use all columns)
+    pub fn normalize_reporting_length(&self, reporting_length: usize) -> usize {
+        if reporting_length == 0 {
+            self.headers.len()
         } else {
-            records.iter().map(map_result).collect()
+            usize::min(reporting_length, self.headers.len())
         }
     }
-
-    #[inline]
-    fn create(
-        input_res: Result<Self::InputType, Self::ErrorType>,
-        use_columns: &[String],
-        sensitive_zeros: &[String],
-        record_limit: usize,
-    ) -> Result<DataBlock, Self::ErrorType> {
-        let mut input = input_res?;
-        let (headers, use_columns_set, sensitive_zeros_set) = Self::map_headers(
-            &mut Self::get_headers(&mut input)?,
-            use_columns,
-            sensitive_zeros,
-        );
-        let records = Self::map_records(
-            &Self::get_records(&mut input)?,
-            &use_columns_set,
-            &sensitive_zeros_set,
-            record_limit,
-        );
-
-        Ok(DataBlock::new(headers, records))
-    }
-
-    /// Should be implemented to return the CsvRecords reprensenting the headers
-    fn get_headers(input: &mut Self::InputType) -> Result<CsvRecord, Self::ErrorType>;
-
-    /// Should be implemented to return the vector of CsvRecords reprensenting rows
-    fn get_records(input: &mut Self::InputType) -> Result<Vec<CsvRecord>, Self::ErrorType>;
 }

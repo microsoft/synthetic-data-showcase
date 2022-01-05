@@ -2,31 +2,24 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { Stack, Spinner, Label } from '@fluentui/react'
-import _ from 'lodash'
+import { Stack, Label, Spinner } from '@fluentui/react'
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
-import { useOnAttributeSelection } from './hooks'
+import { IAttributesIntersection } from 'sds-wasm'
+import { useMaxCount } from './hooks'
 import { AttributeIntersectionValueChart } from '~components/Charts/AttributeIntersectionValueChart'
 import { useStopPropagation } from '~components/Charts/hooks'
-import { CsvRecord, IAttributesIntersectionValue } from '~models'
-import {
-	useEvaluatedResultValue,
-	useNavigateResultValue,
-	useWasmWorkerValue,
-} from '~states'
-import {
-	useSelectedAttributeRows,
-	useSelectedAttributes,
-} from '~states/dataShowcaseContext'
+import { SetSelectedAttributesCallback } from '~components/Pages/DataShowcasePage/DataNavigation'
+import { useWasmWorkerValue } from '~states'
 
 export interface ColumnAttributeSelectorProps {
-	headers: CsvRecord
 	headerName: string
 	columnIndex: number
 	height: string | number
-	width: number | number
-	chartHeight: number
+	width: string | number
+	chartBarHeight: number
 	minHeight?: string | number
+	selectedAttributes: Set<string>
+	onSetSelectedAttributes: SetSelectedAttributesCallback
 }
 
 // fixed value for rough axis height so charts don't squish if selected down to 1
@@ -34,87 +27,49 @@ const AXIS_HEIGHT = 16
 
 export const ColumnAttributeSelector: React.FC<ColumnAttributeSelectorProps> =
 	memo(function ColumnAttributeSelector({
-		headers,
 		headerName,
 		columnIndex,
 		height,
 		width,
-		chartHeight,
+		chartBarHeight,
 		minHeight,
+		selectedAttributes,
+		onSetSelectedAttributes,
 	}: ColumnAttributeSelectorProps) {
-		const [selectedAttributeRows, setSelectedAttributeRows] =
-			useSelectedAttributeRows()
-		const [selectedAttributes, setSelectedAttributes] = useSelectedAttributes()
-		const navigateResult = useNavigateResultValue()
-		const [items, setItems] = useState<IAttributesIntersectionValue[]>([])
+		const [items, setItems] = useState<IAttributesIntersection[]>([])
 		const [isLoading, setIsLoading] = useState(false)
-		const isMounted = useRef(true)
-		const evaluatedResult = useEvaluatedResultValue()
 		const worker = useWasmWorkerValue()
-		const selectedAttribute = selectedAttributes[columnIndex]
-		const maxCount =
-			_.max([
-				_.maxBy(items, item => item.estimatedCount)?.estimatedCount,
-				_.maxBy(items, item => item.actualCount ?? 0)?.actualCount,
-			]) ?? 1
-
-		const onAttributeSelection = useOnAttributeSelection(
-			setIsLoading,
-			selectedAttributes,
-			worker,
-			navigateResult,
-			isMounted,
-			setSelectedAttributes,
-			setSelectedAttributeRows,
-		)
+		const maxCount = useMaxCount(items)
+		const isMounted = useRef(true)
+		const stopPropagation = useStopPropagation()
 
 		const handleSelection = useCallback(
-			(item: IAttributesIntersectionValue | undefined) => {
+			async (item: IAttributesIntersection | undefined) => {
 				const newValue = item?.value
 				// toggle off with re-click
-				if (newValue === selectedAttribute) {
-					onAttributeSelection(columnIndex, undefined)
+				if (newValue === undefined || selectedAttributes.has(newValue)) {
+					await onSetSelectedAttributes(columnIndex, undefined)
 				} else {
-					onAttributeSelection(columnIndex, newValue)
+					await onSetSelectedAttributes(columnIndex, item)
 				}
 			},
-			[selectedAttribute, columnIndex, onAttributeSelection],
+			[selectedAttributes, onSetSelectedAttributes, columnIndex],
 		)
-
-		const stopPropagation = useStopPropagation()
 
 		useEffect(() => {
 			if (worker) {
 				setIsLoading(true)
 				worker
-					.intersectAttributesInColumnsWith(
-						headers,
-						navigateResult.allRows,
-						navigateResult.attrsInColumnsMap[columnIndex] ?? new Set(),
-						selectedAttributeRows,
-						selectedAttributes,
-						navigateResult.attrRowsMap,
-						columnIndex,
-						evaluatedResult.sensitiveAggregatedResult?.aggregatedCombinations,
-					)
-					.then(newItems => {
-						if (isMounted.current) {
-							setItems(newItems ?? [])
-							setIsLoading(false)
+					.attributesIntersectionsByColumn([headerName])
+					.then(intersections => {
+						if (!isMounted.current || !intersections) {
+							return
 						}
+						setItems(intersections[columnIndex] ?? [])
+						setIsLoading(false)
 					})
 			}
-		}, [
-			worker,
-			navigateResult,
-			headers,
-			selectedAttributeRows,
-			selectedAttributes,
-			columnIndex,
-			evaluatedResult,
-			setItems,
-			setIsLoading,
-		])
+		}, [worker, setIsLoading, setItems, headerName, columnIndex])
 
 		useEffect(() => {
 			return () => {
@@ -151,8 +106,8 @@ export const ColumnAttributeSelector: React.FC<ColumnAttributeSelectorProps> =
 							items={items}
 							onClick={handleSelection}
 							maxCount={maxCount}
-							height={chartHeight * Math.max(items.length, 1) + AXIS_HEIGHT}
-							selectedValue={selectedAttribute}
+							height={chartBarHeight * Math.max(items.length, 1) + AXIS_HEIGHT}
+							selectedAttributes={selectedAttributes}
 						/>
 					</Stack.Item>
 				)}

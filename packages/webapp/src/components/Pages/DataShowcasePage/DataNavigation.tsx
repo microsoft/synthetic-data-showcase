@@ -13,43 +13,45 @@ import {
 	Separator,
 } from '@fluentui/react'
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
-import { AttributeIntersectionValueChartLegend } from '~components/AttributeIntersectionValueChartLegend'
+import { IAttributesIntersection, ISelectedAttributesByColumn } from 'sds-wasm'
 import {
-	ColumnAttributeSelector,
+	ColumnAttributeSelectorGrid,
 	HeaderSelector,
 	SelectedAttributes,
 } from '~components/AttributeSelector'
-import { useHorizontalScrolling } from '~components/Charts/hooks'
-import { defaultNavigateResult, PipelineStep } from '~models'
+import { PipelineStep } from '~models'
 import {
-	useNavigateResultSetter,
-	useSyntheticContentValue,
 	useWasmWorkerValue,
-} from '~states'
-import {
-	useSelectedAttributeRowsSetter,
-	useSelectedAttributesSetter,
 	useSelectedPipelineStepSetter,
-} from '~states/dataShowcaseContext'
+	useSyntheticHeaders,
+} from '~states'
 
 const backIcon: IIconProps = { iconName: 'Back' }
 
 const initiallySelectedHeaders = 6
 
+const viewHeight = 'calc(100vh - 225px)'
+
+const chartHeight = `calc((${viewHeight} / 2) - 20px)`
+
+export type SetSelectedAttributesCallback = (
+	headerIndex: number,
+	item: IAttributesIntersection | undefined,
+) => Promise<void>
+
+export type ClearSelectedAttributesCallback = () => Promise<void>
+
 export const DataNavigation: React.FC = memo(function DataNavigation() {
 	const [isLoading, setIsLoading] = useState(true)
-	const setNavigateResult = useNavigateResultSetter()
-	const setSelectedAttributes = useSelectedAttributesSetter()
-	const syntheticContent = useSyntheticContentValue()
+	const [selectedAttributesByColumn, setSelectedAttributesByColumn] =
+		useState<ISelectedAttributesByColumn>({})
 	const worker = useWasmWorkerValue()
-	const setSelectedAttributeRows = useSelectedAttributeRowsSetter()
 	const setSelectedPipelineStep = useSelectedPipelineStepSetter()
 	const isMounted = useRef(true)
-	const headers = syntheticContent.headers.map(h => h.name)
+	const headers = useSyntheticHeaders()
 	const [selectedHeaders, setSelectedHeaders] = useState<boolean[]>(
 		headers.map((_, i) => i < initiallySelectedHeaders),
 	)
-
 	const theme = useTheme()
 
 	const mainStackStyles: IStackStyles = {
@@ -69,44 +71,66 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 		childrenGap: theme.spacing.s1,
 	}
 
-	const viewHeigh = 'calc(100vh - 225px)'
+	const setNewSelectedAttributesByColumn = useCallback(
+		async (newSelectedAttributesByColumn: ISelectedAttributesByColumn) => {
+			if (worker) {
+				setIsLoading(true)
+				const result = await worker.selectAttributes(
+					newSelectedAttributesByColumn,
+				)
 
-	const chartHeight = `calc((${viewHeigh} / 2) - 20px)`
+				if (isMounted.current && result) {
+					setSelectedAttributesByColumn(newSelectedAttributesByColumn)
+					setIsLoading(false)
+				}
+			}
+		},
+		[worker, setIsLoading, isMounted, setSelectedAttributesByColumn],
+	)
+
+	const onSetSelectedAttributes = useCallback(
+		async (headerIndex: number, item: IAttributesIntersection | undefined) => {
+			setNewSelectedAttributesByColumn({
+				...selectedAttributesByColumn,
+				[headerIndex]:
+					item !== undefined
+						? new Set<string>([item.value])
+						: new Set<string>(),
+			})
+		},
+		[setNewSelectedAttributesByColumn, selectedAttributesByColumn],
+	)
+
+	const onClearSelectedAttributes = useCallback(async () => {
+		setNewSelectedAttributesByColumn({})
+	}, [setNewSelectedAttributesByColumn])
 
 	const onGoBack = useCallback(() => {
 		setSelectedPipelineStep(PipelineStep.Evaluate)
 	}, [setSelectedPipelineStep])
 
 	const onToggleSelectedHeader = useCallback(
-		index => {
+		async index => {
 			const newSelectedHeaders = [...selectedHeaders]
 			newSelectedHeaders[index] = !newSelectedHeaders[index]
-			setSelectedHeaders(newSelectedHeaders)
+			await setSelectedHeaders(newSelectedHeaders)
 		},
 		[setSelectedHeaders, selectedHeaders],
 	)
 
-	const doHorizontalScroll = useHorizontalScrolling()
-
 	useEffect(() => {
 		if (worker) {
 			setIsLoading(true)
-			setSelectedAttributeRows([])
-			setSelectedAttributes({})
-			setNavigateResult(defaultNavigateResult)
-			setSelectedAttributeRows([])
-
-			worker.navigate(syntheticContent.items).then(result => {
-				if (isMounted.current) {
-					if (result) {
-						setNavigateResult(result)
-						setSelectedAttributeRows(result.allRows)
-					}
+			worker.navigate().then(result => {
+				if (isMounted.current && result) {
+					setSelectedHeaders(
+						headers.map((_, i) => i < initiallySelectedHeaders),
+					)
 					setIsLoading(false)
 				}
 			})
 		}
-	}, [syntheticContent.items, setIsLoading, setSelectedAttributeRows, setSelectedAttributes, worker, setNavigateResult])
+	}, [setIsLoading, worker, isMounted, setSelectedHeaders, headers])
 
 	useEffect(() => {
 		return () => {
@@ -121,70 +145,55 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 				<h3>Compare sensitive and synthetic results</h3>
 			</Stack>
 
-			<SelectedAttributes headers={headers} />
+			<SelectedAttributes
+				headers={headers}
+				selectedAttributesByColumn={selectedAttributesByColumn}
+				onSetSelectedAttributes={onSetSelectedAttributes}
+				onClearSelectedAttributes={onClearSelectedAttributes}
+			/>
 
 			<Stack horizontal tokens={subStackTokens} horizontalAlign="center">
-				<Stack.Item
-					styles={{
-						root: {
-							overflow: 'auto',
-							paddingRight: '20px',
-							height: viewHeigh,
-							minWidth: '80px',
-						},
-					}}
-				>
-					<HeaderSelector
-						headers={headers}
-						selectedHeaders={selectedHeaders}
-						onToggle={onToggleSelectedHeader}
-					/>
-				</Stack.Item>
+				{isLoading ? (
+					<Spinner />
+				) : (
+					<>
+						<Stack.Item
+							styles={{
+								root: {
+									overflow: 'auto',
+									paddingRight: '20px',
+									height: viewHeight,
+									minWidth: '80px',
+								},
+							}}
+						>
+							<HeaderSelector
+								headers={headers}
+								selectedHeaders={selectedHeaders}
+								onToggle={onToggleSelectedHeader}
+							/>
+						</Stack.Item>
 
-				<Separator vertical={true} styles={{ root: { height: viewHeigh } }} />
+						<Separator
+							vertical={true}
+							styles={{ root: { height: viewHeight } }}
+						/>
 
-				<Stack.Item grow={1}>
-					{isLoading ? (
-						<Spinner />
-					) : (
-						<Stack>
-							<AttributeIntersectionValueChartLegend />
-							<Stack
-								wrap
-								tokens={{
-									childrenGap: theme.spacing.m,
-								}}
-								styles={{
-									root: {
-										height: viewHeigh,
-										overflowY: 'hidden',
-										padding: theme.spacing.s1,
-									},
-								}}
-								onWheel={doHorizontalScroll}
-								verticalAlign="space-between"
-							>
-								{headers.map((h, i) => {
-									return (
-										selectedHeaders[i] && (
-											<Stack.Item key={i}>
-												<ColumnAttributeSelector
-													headers={headers}
-													headerName={h}
-													columnIndex={i}
-													height={chartHeight}
-													width={400}
-													chartHeight={40}
-													minHeight={150}
-												/>
-											</Stack.Item>
-										)
-									)
-								})}
-							</Stack>
-						</Stack>
-					)}
-				</Stack.Item>
+						<Stack.Item grow={1}>
+							<ColumnAttributeSelectorGrid
+								viewHeight={viewHeight}
+								headers={headers}
+								selectedHeaders={selectedHeaders}
+								chartHeight={chartHeight}
+								chartWidth={400}
+								chartBarHeight={40}
+								chartMinHeight={150}
+								selectedAttributesByColumn={selectedAttributesByColumn}
+								onSetSelectedAttributes={onSetSelectedAttributes}
+							/>
+						</Stack.Item>
+					</>
+				)}
 			</Stack>
 		</Stack>
 	)

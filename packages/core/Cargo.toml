@@ -19,3 +19,6 @@ log = { version = "0.4", features = ["std"] }
 csv = { version = "1.1" }
 instant = { version = "0.1", features = [ "stdweb", "wasm-bindgen" ] }
 pyo3 = { version = "0.15", features = ["extension-module"], optional = true }
+rayon = { version = "1.5", optional = true }
+serde = { version = "1.0", features = [ "derive", "rc" ] }
+serde_json = { version = "1.0" }

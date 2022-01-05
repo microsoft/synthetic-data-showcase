@@ -12,17 +12,7 @@ import {
 import { Form, useFormik, FormikProvider } from 'formik'
 import { memo, useCallback, useEffect } from 'react'
 import * as yup from 'yup'
-import {
-	defaultCsvContent,
-	defaultEvaluatedResult,
-	defaultNavigateResult,
-} from '~models'
-import {
-	useEvaluatedResultSetter,
-	useNavigateResultSetter,
-	useSensitiveContent,
-	useSyntheticContentSetter,
-} from '~states'
+import { useClearGenerate, useSensitiveContent } from '~states'
 import { findMinMax, InplaceBinning, stringToNumber } from '~utils'
 
 export interface FixedWidthDataBinningProps {
@@ -38,33 +28,22 @@ const validationSchema = yup.object().shape({
 export const FixedWidthDataBinning: React.FC<FixedWidthDataBinningProps> = memo(
 	function FixedWidthDataBinning({ headerIndex }: FixedWidthDataBinningProps) {
 		const [csvContent, setCsvContent] = useSensitiveContent()
-		const setSyntheticContent = useSyntheticContentSetter()
-		const setEvaluatedResult = useEvaluatedResultSetter()
-		const setNavigateResult = useNavigateResultSetter()
+		const clearGenerate = useClearGenerate()
 		const onRun = useCallback(
-			values => {
+			async values => {
 				const newItems = [...csvContent.items.map(item => [...item])]
 
 				new InplaceBinning()
 					.fixedBinWidth(values.binWidth, values.minValue, values.maxValue)
 					.run(newItems, headerIndex)
 
+				await clearGenerate()
 				setCsvContent({
 					...csvContent,
 					items: newItems,
 				})
-				setSyntheticContent(defaultCsvContent)
-				setEvaluatedResult(defaultEvaluatedResult)
-				setNavigateResult(defaultNavigateResult)
 			},
-			[
-				csvContent,
-				headerIndex,
-				setCsvContent,
-				setSyntheticContent,
-				setEvaluatedResult,
-				setNavigateResult,
-			],
+			[csvContent, headerIndex, clearGenerate, setCsvContent],
 		)
 		const formik = useFormik({
 			validationSchema,

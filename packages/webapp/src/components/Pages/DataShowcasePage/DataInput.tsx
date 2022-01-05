@@ -15,17 +15,14 @@ import {
 } from '@fluentui/react'
 import { parse } from 'papaparse'
 import { memo, useCallback, useRef } from 'react'
-import { defaultCsvContent, ICsvTableHeader } from 'src/models/csv'
 import { CsvTable } from './CsvTable'
 import { DataBinning } from '~components/DataBinning'
-import { defaultEvaluatedResult, defaultNavigateResult } from '~models'
+import { ICsvTableHeader } from '~models'
 import {
-	useEvaluatedResultSetter,
+	useClearSensitiveData,
 	useIsProcessing,
-	useNavigateResultSetter,
 	useRecordLimit,
 	useSensitiveContent,
-	useSyntheticContentSetter,
 	useWasmWorkerValue,
 } from '~states'
 
@@ -35,10 +32,8 @@ export const DataInput: React.FC = memo(function DataInput() {
 	const [recordLimit, setRecordLimit] = useRecordLimit()
 	const [isProcessing, setIsProcessing] = useIsProcessing()
 	const [sensitiveContent, setSensitiveContent] = useSensitiveContent()
-	const setSyntheticContent = useSyntheticContentSetter()
-	const setEvaluatedResult = useEvaluatedResultSetter()
-	const setNavigateResult = useNavigateResultSetter()
 	const worker = useWasmWorkerValue()
+	const clearSensitiveData = useClearSensitiveData()
 
 	const inputFile = useRef<HTMLInputElement>(null)
 
@@ -62,14 +57,13 @@ export const DataInput: React.FC = memo(function DataInput() {
 	}
 
 	const onFileChange = useCallback(
-		(e: React.ChangeEvent<HTMLInputElement>) => {
+		async (e: React.ChangeEvent<HTMLInputElement>) => {
 			const f = e.target.files?.[0]
 
 			if (f) {
 				setIsProcessing(true)
-				setSyntheticContent(defaultCsvContent)
-				setEvaluatedResult(defaultEvaluatedResult)
-				setNavigateResult(defaultNavigateResult)
+				await clearSensitiveData()
+
 				parse<Array<string>>(f, {
 					complete: async results => {
 						const headers =
@@ -91,18 +85,15 @@ export const DataInput: React.FC = memo(function DataInput() {
 							columnsWithZeros: await worker?.findColumnsWithZeros(items),
 							delimiter: results.meta.delimiter,
 						})
+						// allow the same file to be loaded again
+						if (inputFile.current) {
+							inputFile.current.value = ''
+						}
 					},
 				})
 			}
 		},
-		[
-			worker,
-			setIsProcessing,
-			setSyntheticContent,
-			setEvaluatedResult,
-			setNavigateResult,
-			setSensitiveContent,
-		],
+		[worker, setIsProcessing, setSensitiveContent, clearSensitiveData],
 	)
 
 	const sensitiveColumnsWithZeros = sensitiveContent.columnsWithZeros?.filter(

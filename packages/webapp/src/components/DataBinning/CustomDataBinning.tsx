@@ -16,17 +16,7 @@ import {
 	useTheme,
 } from '@fluentui/react'
 import { memo, useCallback, useState } from 'react'
-import {
-	defaultCsvContent,
-	defaultEvaluatedResult,
-	defaultNavigateResult,
-} from '~models'
-import {
-	useEvaluatedResultSetter,
-	useNavigateResultSetter,
-	useSensitiveContent,
-	useSyntheticContentSetter,
-} from '~states'
+import { useClearGenerate, useSensitiveContent } from '~states'
 import {
 	BinOperationJoinCondition,
 	BinOperationType,
@@ -54,9 +44,7 @@ export const CustomDataBinning: React.FC<CustomDataBinningProps> = memo(
 	function CustomDataBinning({ headerIndex }: CustomDataBinningProps) {
 		const [bins, setBins] = useState<ICustomBin[]>([])
 		const [csvContent, setCsvContent] = useSensitiveContent()
-		const setSyntheticContent = useSyntheticContentSetter()
-		const setEvaluatedResult = useEvaluatedResultSetter()
-		const setNavigateResult = useNavigateResultSetter()
+		const clearGenerate = useClearGenerate()
 
 		const theme = useTheme()
 
@@ -140,29 +128,19 @@ export const CustomDataBinning: React.FC<CustomDataBinningProps> = memo(
 			[bins, setBins],
 		)
 
-		const onRun = useCallback(() => {
+		const onRun = useCallback(async () => {
 			if (bins.length > 0) {
 				const newItems = [...csvContent.items.map(item => [...item])]
 
 				new InplaceBinning().customBins(bins).run(newItems, headerIndex)
 
+				await clearGenerate()
 				setCsvContent({
 					...csvContent,
 					items: newItems,
 				})
-				setSyntheticContent(defaultCsvContent)
-				setEvaluatedResult(defaultEvaluatedResult)
-				setNavigateResult(defaultNavigateResult)
 			}
-		}, [
-			bins,
-			csvContent,
-			headerIndex,
-			setCsvContent,
-			setSyntheticContent,
-			setEvaluatedResult,
-			setNavigateResult,
-		])
+		}, [bins, csvContent, headerIndex, clearGenerate, setCsvContent])
 
 		const stackTokens: IStackTokens = {
 			childrenGap: theme.spacing.m,

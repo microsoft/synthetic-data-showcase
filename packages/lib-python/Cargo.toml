@@ -14,4 +14,5 @@ crate-type = ["cdylib"]
 log = { version = "0.4", features = ["std"] }
 csv = { version = "1.1" }
 pyo3 = { version = "0.15", features = ["extension-module"] }
-sds-core = { path = "../core", features = ["pyo3"] }
+sds-core = { path = "../core", features = ["pyo3", "rayon"] }
+env_logger = { version = "0.9" }

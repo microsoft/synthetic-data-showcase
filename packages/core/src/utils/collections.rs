@@ -4,8 +4,8 @@ use std::hash::Hash;
 /// Given two sorted vectors, calculates the intersection between them.
 /// Returns the result intersection as a new vector
 /// # Arguments
-/// - `a`: first sorted vector
-/// - `b`: second sorted vector
+/// * `a` - first sorted vector
+/// * `b` - second sorted vector
 #[inline]
 pub fn ordered_vec_intersection<T>(a: &[T], b: &[T]) -> Vec<T>
 where

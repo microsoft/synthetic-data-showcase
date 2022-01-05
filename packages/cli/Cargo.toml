@@ -7,7 +7,7 @@ repository = "https://github.com/microsoft/synthetic-data-showcase"
 edition = "2018"
 
 [dependencies]
-sds-core = { path = "../core" }
+sds-core = { path = "../core", features = ["rayon"] }
 log = { version = "0.4" }
 env_logger = { version = "0.9" }
 structopt = { version = "0.3" }

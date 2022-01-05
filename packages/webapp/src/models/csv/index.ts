@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-export type CsvRecord = string[]
+import { CsvRecord } from 'sds-wasm'
 
 export interface ICsvTableHeader {
 	name: string

@@ -1,8 +1,8 @@
-version: "3"
+version: '3'
 services:
-    webapp:
-        build:
-            context: .
-            dockerfile: webapp.dockerfile
-        ports:
-            - 3000:80
+  webapp:
+    build:
+      context: .
+      dockerfile: webapp.dockerfile
+    ports:
+      - 3000:80
