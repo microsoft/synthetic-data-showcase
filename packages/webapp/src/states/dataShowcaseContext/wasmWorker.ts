@@ -9,7 +9,7 @@ import {
 	useRecoilValue,
 	useSetRecoilState,
 } from 'recoil'
-import { SdsWasmWorker } from 'src/workers/sds-wasm'
+import { SdsWasmWorker } from '~workers/sds-wasm'
 
 const state = atom<SdsWasmWorker | null>({
 	key: 'wasm-worker',

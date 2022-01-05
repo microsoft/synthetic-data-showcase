@@ -16,13 +16,9 @@ import {
 	useTheme,
 } from '@fluentui/react'
 import { memo, useCallback, useState } from 'react'
+import { useCustomDataBinning } from './hooks'
 import { useClearGenerate, useSensitiveContent } from '~states'
-import {
-	BinOperationJoinCondition,
-	BinOperationType,
-	ICustomBin,
-	InplaceBinning,
-} from '~utils'
+import { BinOperationJoinCondition, BinOperationType, ICustomBin } from '~utils'
 
 const operationTypeOptions: IDropdownOption[] = Object.values(
 	BinOperationType,
@@ -45,6 +41,13 @@ export const CustomDataBinning: React.FC<CustomDataBinningProps> = memo(
 		const [bins, setBins] = useState<ICustomBin[]>([])
 		const [csvContent, setCsvContent] = useSensitiveContent()
 		const clearGenerate = useClearGenerate()
+		const onRun = useCustomDataBinning(
+			bins,
+			csvContent,
+			headerIndex,
+			setCsvContent,
+			clearGenerate,
+		)
 
 		const theme = useTheme()
 
@@ -128,20 +131,6 @@ export const CustomDataBinning: React.FC<CustomDataBinningProps> = memo(
 			[bins, setBins],
 		)
 
-		const onRun = useCallback(async () => {
-			if (bins.length > 0) {
-				const newItems = [...csvContent.items.map(item => [...item])]
-
-				new InplaceBinning().customBins(bins).run(newItems, headerIndex)
-
-				await clearGenerate()
-				setCsvContent({
-					...csvContent,
-					items: newItems,
-				})
-			}
-		}, [bins, csvContent, headerIndex, clearGenerate, setCsvContent])
-
 		const stackTokens: IStackTokens = {
 			childrenGap: theme.spacing.m,
 		}
@@ -158,7 +147,7 @@ export const CustomDataBinning: React.FC<CustomDataBinningProps> = memo(
 						<Stack key={binIndex}>
 							<Stack horizontal tokens={stackTokens} verticalAlign="end">
 								<TextField
-									label="Replace matchs for"
+									label="Replace matches for"
 									value={bin.representation}
 									onChange={(_, newValue) =>
 										onUpdateRepresentation(binIndex, newValue ?? '')

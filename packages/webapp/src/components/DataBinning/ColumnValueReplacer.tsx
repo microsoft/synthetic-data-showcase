@@ -15,13 +15,8 @@ import {
 } from '@fluentui/react'
 import _ from 'lodash'
 import { memo, useCallback, useEffect, useState } from 'react'
+import { useColumnValueReplacer } from './hooks'
 import { useClearGenerate, useSensitiveContent } from '~states'
-import {
-	BinOperationJoinCondition,
-	BinOperationType,
-	ICustomBin,
-	InplaceBinning,
-} from '~utils'
 
 export interface ColumnValueReplacerProps {
 	headerIndex: number
@@ -42,20 +37,6 @@ export const ColumnValueReplacer: React.FC<ColumnValueReplacerProps> = memo(
 
 		const theme = useTheme()
 
-		const onUpdateCurrentValue = useCallback(
-			newValue => {
-				setCurrentValue(newValue)
-			},
-			[setCurrentValue],
-		)
-
-		const onUpdateValueToReplace = useCallback(
-			newValue => {
-				setValueToReplace(newValue)
-			},
-			[setValueToReplace],
-		)
-
 		const onAddSelectedValue = useCallback(() => {
 			if (!selectedValues.includes(currentValue)) {
 				setSelectedValues([...selectedValues, currentValue])
@@ -71,39 +52,16 @@ export const ColumnValueReplacer: React.FC<ColumnValueReplacerProps> = memo(
 			[selectedValues, setSelectedValues],
 		)
 
-		const onRun = useCallback(async () => {
-			if (selectedValues.length > 0 && valueToReplace.length > 0) {
-				const newItems = [...csvContent.items.map(item => [...item])]
-				const bins: ICustomBin[] = [
-					{
-						representation: valueToReplace,
-						joinCondition: BinOperationJoinCondition.Or,
-						operations: selectedValues.map(v => ({
-							type: BinOperationType.Equals,
-							rhsOperand: v,
-						})),
-					},
-				]
-				new InplaceBinning().customBins(bins).run(newItems, headerIndex)
-
-				await clearGenerate()
-				setCsvContent({
-					...csvContent,
-					items: newItems,
-				})
-				onUpdateCurrentValue('')
-				onUpdateValueToReplace('')
-			}
-		}, [
+		const onRun = useColumnValueReplacer(
 			selectedValues,
 			valueToReplace,
 			csvContent,
 			headerIndex,
-			clearGenerate,
 			setCsvContent,
-			onUpdateCurrentValue,
-			onUpdateValueToReplace,
-		])
+			clearGenerate,
+			setCurrentValue,
+			setValueToReplace,
+		)
 
 		const allValueOptions: IComboBoxOption[] = availableValues.map((v, i) => ({
 			key: i,
@@ -136,7 +94,7 @@ export const ColumnValueReplacer: React.FC<ColumnValueReplacerProps> = memo(
 						autoComplete="on"
 						text={currentValue}
 						onChange={(event, option, index, value) =>
-							onUpdateCurrentValue(value ?? option?.text)
+							setCurrentValue(value ?? option?.text ?? '')
 						}
 						options={allValueOptions}
 					/>
@@ -161,7 +119,7 @@ export const ColumnValueReplacer: React.FC<ColumnValueReplacerProps> = memo(
 						options={allValueOptions}
 						text={valueToReplace}
 						onChange={(event, option, index, value) =>
-							onUpdateValueToReplace(value ?? option?.text)
+							setValueToReplace(value ?? option?.text ?? '')
 						}
 					/>
 					<PrimaryButton onClick={onRun}>Run</PrimaryButton>

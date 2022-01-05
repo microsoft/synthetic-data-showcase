@@ -212,21 +212,6 @@ export class SdsWasmWorker {
 		return response.type === SdsWasmMessageType.Navigate
 	}
 
-	public async findColumnsWithZeros(items: CsvData): Promise<number[]> {
-		const zeros = new Set<number>()
-
-		items.forEach(line => {
-			line.forEach((v, i) => {
-				if (!zeros.has(i)) {
-					if (v.trim() === '0') {
-						zeros.add(i)
-					}
-				}
-			})
-		})
-		return Array.from(zeros)
-	}
-
 	public async selectAttributes(
 		attributes: ISelectedAttributesByColumn,
 	): Promise<boolean> {

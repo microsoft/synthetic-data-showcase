@@ -11,7 +11,6 @@ import {
 	Stack,
 } from '@fluentui/react'
 import { memo, useCallback, useEffect } from 'react'
-import { SdsWasmWorker } from 'src/workers/sds-wasm'
 import { DataEvaluation } from './DataEvaluation'
 import { DataInput } from './DataInput'
 import { DataNavigation } from './DataNavigation'
@@ -23,6 +22,7 @@ import {
 	useSelectedPipelineStep,
 	useWasmWorker,
 } from '~states/dataShowcaseContext'
+import { SdsWasmWorker } from '~workers/sds-wasm'
 
 export const DataShowcasePage: React.FC = memo(function DataShowcasePage() {
 	const [worker, setWorker] = useWasmWorker()

@@ -2,8 +2,10 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { RefObject, useCallback } from 'react'
+import ColumnTable from 'arquero/dist/types/table/column-table'
+import { RefObject, useCallback, useMemo } from 'react'
 import { ICsvContent } from '~models'
+import { headers } from '~utils/arquero'
 
 const downloadExtensions = {
 	',': 'csv',
@@ -16,28 +18,16 @@ function getCsvContentDownloadUrl(
 	delimiter: string,
 ): string {
 	const extension = downloadExtensions[delimiter]
+	const selection = headers(content, true)
+	const output = content.table.select(selection).toCSV({
+		delimiter,
+		limit: nItems,
+	})
 
 	return URL.createObjectURL(
-		new Blob(
-			[
-				content.headers
-					.filter(h => h.use)
-					.map(h => h.name)
-					.join(delimiter)
-					.concat(
-						'\n',
-						content.items
-							.slice(0, nItems)
-							.map(item =>
-								item
-									.filter((_, i) => content.headers[i]?.use === true)
-									.join(delimiter),
-							)
-							.join('\n'),
-					),
-			],
-			{ type: extension ? `text/${extension}` : 'text/plain' },
-		),
+		new Blob([output], {
+			type: extension ? `text/${extension}` : 'text/plain',
+		}),
 	)
 }
 
@@ -64,4 +54,12 @@ export function useOnDownloadCsvContent(
 			downloadAnchorRef.current.click()
 		}
 	}, [downloadAnchorRef, content, nItems, downloadAlias])
+}
+
+export function useLimit(table: ColumnTable, takeFirstItems?: number): number {
+	return useMemo(
+		() =>
+			takeFirstItems ? Math.min(table.numRows(), takeFirstItems) : Infinity,
+		[table, takeFirstItems],
+	)
 }

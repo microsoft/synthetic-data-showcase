@@ -7,13 +7,15 @@ import {
 	SetterOrUpdater,
 	useRecoilState,
 	useRecoilValue,
+	useResetRecoilState,
 	useSetRecoilState,
 } from 'recoil'
-import { defaultCsvContent, ICsvContent } from 'src/models/csv'
+import { defaultCsvContent, ICsvContent } from '~models/csv'
 
 const state = atom<ICsvContent>({
 	key: 'synthetic-content',
 	default: defaultCsvContent,
+	dangerouslyAllowMutability: true,
 })
 
 export function useSyntheticContent(): [
@@ -29,4 +31,8 @@ export function useSyntheticContentValue(): ICsvContent {
 
 export function useSyntheticContentSetter(): SetterOrUpdater<ICsvContent> {
 	return useSetRecoilState(state)
+}
+
+export function useResetSyntheticContent(): () => void {
+	return useResetRecoilState(state)
 }

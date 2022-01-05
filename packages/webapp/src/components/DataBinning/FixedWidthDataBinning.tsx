@@ -10,10 +10,11 @@ import {
 	useTheme,
 } from '@fluentui/react'
 import { Form, useFormik, FormikProvider } from 'formik'
-import { memo, useCallback, useEffect } from 'react'
+import { memo, useEffect } from 'react'
 import * as yup from 'yup'
+import { useFixedWidthBinning } from './hooks'
 import { useClearGenerate, useSensitiveContent } from '~states'
-import { findMinMax, InplaceBinning, stringToNumber } from '~utils'
+import { findMinMax, stringToNumber } from '~utils'
 
 export interface FixedWidthDataBinningProps {
 	headerIndex: number
@@ -29,21 +30,11 @@ export const FixedWidthDataBinning: React.FC<FixedWidthDataBinningProps> = memo(
 	function FixedWidthDataBinning({ headerIndex }: FixedWidthDataBinningProps) {
 		const [csvContent, setCsvContent] = useSensitiveContent()
 		const clearGenerate = useClearGenerate()
-		const onRun = useCallback(
-			async values => {
-				const newItems = [...csvContent.items.map(item => [...item])]
-
-				new InplaceBinning()
-					.fixedBinWidth(values.binWidth, values.minValue, values.maxValue)
-					.run(newItems, headerIndex)
-
-				await clearGenerate()
-				setCsvContent({
-					...csvContent,
-					items: newItems,
-				})
-			},
-			[csvContent, headerIndex, clearGenerate, setCsvContent],
+		const onRun = useFixedWidthBinning(
+			csvContent,
+			headerIndex,
+			setCsvContent,
+			clearGenerate,
 		)
 		const formik = useFormik({
 			validationSchema,

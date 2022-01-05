@@ -5,38 +5,34 @@
 import {
 	Checkbox,
 	getTheme,
-	IconButton,
-	IIconProps,
 	IStackStyles,
 	IStackTokens,
 	Label,
 	Stack,
 	TextField,
 } from '@fluentui/react'
-import { parse } from 'papaparse'
-import { memo, useCallback, useRef } from 'react'
+import { memo } from 'react'
 import { CsvTable } from './CsvTable'
+import { useOnFileChange } from './hooks'
 import { DataBinning } from '~components/DataBinning'
-import { ICsvTableHeader } from '~models'
+import { FileInputButton } from '~components/controls'
 import {
 	useClearSensitiveData,
 	useIsProcessing,
 	useRecordLimit,
 	useSensitiveContent,
-	useWasmWorkerValue,
 } from '~states'
-
-const openFileIcon: IIconProps = { iconName: 'FabricOpenFolderHorizontal' }
 
 export const DataInput: React.FC = memo(function DataInput() {
 	const [recordLimit, setRecordLimit] = useRecordLimit()
 	const [isProcessing, setIsProcessing] = useIsProcessing()
 	const [sensitiveContent, setSensitiveContent] = useSensitiveContent()
-	const worker = useWasmWorkerValue()
 	const clearSensitiveData = useClearSensitiveData()
-
-	const inputFile = useRef<HTMLInputElement>(null)
-
+	const onFileChange = useOnFileChange(
+		setIsProcessing,
+		setSensitiveContent,
+		clearSensitiveData,
+	)
 	const theme = getTheme()
 
 	const mainStackStyles: IStackStyles = {
@@ -55,46 +51,6 @@ export const DataInput: React.FC = memo(function DataInput() {
 	const subStackTokens: IStackTokens = {
 		childrenGap: theme.spacing.s1,
 	}
-
-	const onFileChange = useCallback(
-		async (e: React.ChangeEvent<HTMLInputElement>) => {
-			const f = e.target.files?.[0]
-
-			if (f) {
-				setIsProcessing(true)
-				await clearSensitiveData()
-
-				parse<Array<string>>(f, {
-					complete: async results => {
-						const headers =
-							results.data[0]?.map(
-								(h, i) =>
-									({
-										name: h,
-										fieldName: i.toString(),
-										use: true,
-										hasSensitiveZeros: false,
-									} as ICsvTableHeader),
-							) ?? []
-						const items = results.data?.slice(1) ?? []
-
-						setIsProcessing(false)
-						setSensitiveContent({
-							headers,
-							items,
-							columnsWithZeros: await worker?.findColumnsWithZeros(items),
-							delimiter: results.meta.delimiter,
-						})
-						// allow the same file to be loaded again
-						if (inputFile.current) {
-							inputFile.current.value = ''
-						}
-					},
-				})
-			}
-		},
-		[worker, setIsProcessing, setSensitiveContent, clearSensitiveData],
-	)
 
 	const sensitiveColumnsWithZeros = sensitiveContent.columnsWithZeros?.filter(
 		i => sensitiveContent.headers[i].use,
@@ -118,27 +74,12 @@ export const DataInput: React.FC = memo(function DataInput() {
 						/>
 					</Stack.Item>
 					<Stack.Item align="end">
-						<IconButton
-							iconProps={openFileIcon}
-							title="Load file"
-							ariaLabel="Load File"
-							onClick={() => {
-								inputFile.current?.click()
-							}}
-						/>
-						<input
-							type="file"
-							multiple={false}
-							disabled={isProcessing}
-							onChange={onFileChange}
-							ref={inputFile}
-							style={{ display: 'none' }}
-						/>
+						<FileInputButton onChange={onFileChange} disabled={isProcessing} />
 					</Stack.Item>
 				</Stack>
 			</Stack.Item>
 
-			{sensitiveContent.items.length && (
+			{sensitiveContent.table.numCols() > 0 && (
 				<>
 					<Stack.Item>
 						<Label>Use columns</Label>
@@ -208,7 +149,7 @@ export const DataInput: React.FC = memo(function DataInput() {
 				</>
 			)}
 
-			{sensitiveContent.items.length && (
+			{sensitiveContent.table.numCols() > 0 && (
 				<>
 					<Stack.Item>
 						<Label>Data binning</Label>
@@ -222,9 +163,7 @@ export const DataInput: React.FC = memo(function DataInput() {
 			<Stack.Item>
 				<CsvTable
 					content={sensitiveContent}
-					pageSize={10}
 					downloadAlias="sensitive_data"
-					disable={isProcessing}
 					takeFirstItems={recordLimit}
 				/>
 			</Stack.Item>
