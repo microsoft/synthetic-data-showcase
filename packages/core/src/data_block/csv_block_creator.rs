@@ -1,4 +1,4 @@
-use super::{block::DataBlockCreator, typedefs::CsvRecord};
+use super::{data_block_creator::DataBlockCreator, typedefs::CsvRecord};
 use csv::{Error, Reader, StringRecord};
 use std::fs::File;
 

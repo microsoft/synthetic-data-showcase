@@ -14,4 +14,3 @@ pkg/
 target/
 .eslintrc.js
 babel.config.js
-packages/webapp/src/workers/sds-wasm/worker.js

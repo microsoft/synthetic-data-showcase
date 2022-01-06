@@ -24,7 +24,7 @@ WORKDIR /usr/src/sds
 COPY . .
 
 # build the wasm bindings for webapp to use
-RUN cd packages/lib-wasm && wasm-pack build --release --target no-modules --out-dir ../../target/wasm
+RUN cd packages/lib-wasm && wasm-pack build --release --target web --out-dir ../../target/wasm
 
 # --- compile application from typescript ---
 FROM node:14 as app-builder

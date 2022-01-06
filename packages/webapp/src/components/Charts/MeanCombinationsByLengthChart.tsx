@@ -4,12 +4,12 @@
  */
 import { memo } from 'react'
 import { Bar } from 'react-chartjs-2'
-import { IAggregatedCountByLen } from '~models'
+import { IAggregateCountByLen } from 'sds-wasm'
 
 export interface MeanCombinationsByLengthChartProps {
 	meanLabel: string
-	combinationsCountByLen: IAggregatedCountByLen
-	combinationsSumByLen: IAggregatedCountByLen
+	combinationsCountByLen: IAggregateCountByLen
+	combinationsSumByLen: IAggregateCountByLen
 	height: number
 	width: number
 }

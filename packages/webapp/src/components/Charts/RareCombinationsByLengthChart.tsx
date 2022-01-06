@@ -4,13 +4,13 @@
  */
 import { memo } from 'react'
 import { Bar } from 'react-chartjs-2'
-import { IAggregatedCountByLen } from '~models'
+import { IAggregateCountByLen } from 'sds-wasm'
 
 export interface RareCombinationsByLengthChartProps {
 	combinationsLabel: string
 	rareCombinationsLabel: string
-	combinationsCountByLen: IAggregatedCountByLen
-	rareCombinationsCountByLen: IAggregatedCountByLen
+	combinationsCountByLen: IAggregateCountByLen
+	rareCombinationsCountByLen: IAggregateCountByLen
 	height: number
 	width: number
 }

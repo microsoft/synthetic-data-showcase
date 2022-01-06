@@ -20,7 +20,7 @@ Open a command line on the root directory of the cloned repository and run:
 
 ```bash
 > cd packages/lib-wasm
-> wasm-pack build --release --target no-modules --out-dir ../../target/wasm
+> wasm-pack build --release --target web --out-dir ../../target/wasm
 ```
 
 This will build the wasm code and JS glue and put it under `target/wasm`.

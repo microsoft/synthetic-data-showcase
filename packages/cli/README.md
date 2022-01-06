@@ -13,15 +13,15 @@ When you compile the core rust library, the CLI application will also be built, 
 ## Aggregate
 
 ```bash
-sds-cli --sensitive-path <sensitive_path> --resolution 10 aggregate --aggregates-path <aggregates_path> --reporting-length <reporting_length>
+sds-cli --sensitive-path <sensitive_path> --sensitive-delimiter <delimiter> --resolution <reporting_resolution> --n-threads <n> aggregate --aggregates-path <aggregates_path> --reporting-length <reporting_length>
 ```
 
-Generates the `aggregates_path` tsv file containing precomputed and protected counts of all sensitive attribute combinations up to `reporting_length` in length. Since these are highly sensitive, the file should be protected in the same way as the original microdata.
+Generates the `aggregates_path` tsv file containing precomputed and protected counts of all sensitive attribute combinations up to `reporting_length` in length. Since these are highly sensitive if the counts are not protected, the file should be protected in the same way as the original microdata.
 
 ## Generate
 
 ```bash
-sds-cli --sensitive-path <sensitive_path> --sensitive-delimiter , --resolution 10 generate --synthetic-path <synthetic_path>
+sds-cli --sensitive-path <sensitive_path> --sensitive-delimiter <delimiter> --resolution <reporting_resolution> --n-threads <n> generate --synthetic-path <synthetic_path> --mode <seeded|unseeded>
 ```
 
 Generates the `sensitive_path` csv file containing synthetic microdata representing the structure and statistics of data at `sensitive_path`, without leaking any attribute combinations that are rare in the sensitive data.
@@ -47,7 +47,7 @@ a3,b2,c2,0,0,d2
 a2,b2,c2,0,0,d3
 ```
 
-Running `sds-cli --sensitive-path example.csv --sensitive-delimiter , --resolution 2 aggregate --aggregates-path aggregates.tsv --reporting-length 3`, would produce a similar output to:
+Running `sds-cli --sensitive-path example.csv --sensitive-delimiter , --resolution 2 --n-threads 1 aggregate --aggregates-path aggregates.tsv --reporting-length 3`, would produce a similar output to:
 
 _aggregates.tsv_
 
@@ -91,7 +91,7 @@ C:c2	6
 B:b2;F:1	2
 ```
 
-On the other hand, running `sds-cli --sensitive-path example.csv --sensitive-delimiter , --resolution 2 generate --synthetic-path synthetic.tsv` would produce a similar output to:
+On the other hand, running `sds-cli --sensitive-path example.csv --sensitive-delimiter , --resolution 2 --n-threads 1 generate --synthetic-path synthetic.tsv --mode seeded` would produce a similar output to:
 
 ```tsv
 A	B	C	F	G	D

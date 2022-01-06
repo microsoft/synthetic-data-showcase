@@ -15,17 +15,7 @@ import {
 } from '@fluentui/react'
 import _ from 'lodash'
 import { memo, useCallback, useEffect, useState } from 'react'
-import {
-	defaultCsvContent,
-	defaultEvaluatedResult,
-	defaultNavigateResult,
-} from '~models'
-import {
-	useEvaluatedResultSetter,
-	useNavigateResultSetter,
-	useSensitiveContent,
-	useSyntheticContentSetter,
-} from '~states'
+import { useClearGenerate, useSensitiveContent } from '~states'
 import {
 	BinOperationJoinCondition,
 	BinOperationType,
@@ -48,9 +38,7 @@ export const ColumnValueReplacer: React.FC<ColumnValueReplacerProps> = memo(
 		const [currentValue, setCurrentValue] = useState('')
 		const [valueToReplace, setValueToReplace] = useState('')
 		const [csvContent, setCsvContent] = useSensitiveContent()
-		const setSyntheticContent = useSyntheticContentSetter()
-		const setEvaluatedResult = useEvaluatedResultSetter()
-		const setNavigateResult = useNavigateResultSetter()
+		const clearGenerate = useClearGenerate()
 
 		const theme = useTheme()
 
@@ -83,7 +71,7 @@ export const ColumnValueReplacer: React.FC<ColumnValueReplacerProps> = memo(
 			[selectedValues, setSelectedValues],
 		)
 
-		const onRun = useCallback(() => {
+		const onRun = useCallback(async () => {
 			if (selectedValues.length > 0 && valueToReplace.length > 0) {
 				const newItems = [...csvContent.items.map(item => [...item])]
 				const bins: ICustomBin[] = [
@@ -98,13 +86,11 @@ export const ColumnValueReplacer: React.FC<ColumnValueReplacerProps> = memo(
 				]
 				new InplaceBinning().customBins(bins).run(newItems, headerIndex)
 
+				await clearGenerate()
 				setCsvContent({
 					...csvContent,
 					items: newItems,
 				})
-				setSyntheticContent(defaultCsvContent)
-				setEvaluatedResult(defaultEvaluatedResult)
-				setNavigateResult(defaultNavigateResult)
 				onUpdateCurrentValue('')
 				onUpdateValueToReplace('')
 			}
@@ -113,10 +99,8 @@ export const ColumnValueReplacer: React.FC<ColumnValueReplacerProps> = memo(
 			valueToReplace,
 			csvContent,
 			headerIndex,
+			clearGenerate,
 			setCsvContent,
-			setSyntheticContent,
-			setEvaluatedResult,
-			setNavigateResult,
 			onUpdateCurrentValue,
 			onUpdateValueToReplace,
 		])

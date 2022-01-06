@@ -11,35 +11,30 @@ import {
 	TextField,
 } from '@fluentui/react'
 import { memo, useCallback } from 'react'
-import { defaultCsvContent, ICsvTableHeader } from 'src/models/csv'
+import { ICsvTableHeader } from 'src/models/csv'
 import { CsvTable } from './CsvTable'
-import { defaultEvaluatedResult, defaultNavigateResult } from '~models'
 import {
 	useCacheSize,
+	useClearGenerate,
 	useIsProcessing,
+	useProcessingProgressSetter,
 	useRecordLimitValue,
 	useResolution,
 	useSensitiveContentValue,
 	useSyntheticContent,
-} from '~states'
-import {
-	useEvaluatedResultSetter,
-	useNavigateResultSetter,
-	useProcessingProgressSetter,
 	useWasmWorkerValue,
-} from '~states/dataShowcaseContext'
+} from '~states'
 
 export const DataSynthesis: React.FC = memo(function DataSynthesis() {
-	const worker = useWasmWorkerValue()
-	const recordLimit = useRecordLimitValue()
 	const [resolution, setResolution] = useResolution()
 	const [cacheSize, setCacheSize] = useCacheSize()
 	const [isProcessing, setIsProcessing] = useIsProcessing()
-	const sensitiveContent = useSensitiveContentValue()
 	const [syntheticContent, setSyntheticContent] = useSyntheticContent()
-	const setEvaluatedResult = useEvaluatedResultSetter()
-	const setNavigateResult = useNavigateResultSetter()
+	const worker = useWasmWorkerValue()
+	const recordLimit = useRecordLimitValue()
+	const sensitiveContent = useSensitiveContentValue()
 	const setProcessingProgress = useProcessingProgressSetter()
+	const clearGenerate = useClearGenerate()
 
 	const theme = getTheme()
 
@@ -62,9 +57,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 
 	const onRunGenerate = useCallback(async () => {
 		setIsProcessing(true)
-		setSyntheticContent(defaultCsvContent)
-		setEvaluatedResult(defaultEvaluatedResult)
-		setNavigateResult(defaultNavigateResult)
+		await clearGenerate()
 		setProcessingProgress(0.0)
 
 		const response = await worker?.generate(
@@ -100,8 +93,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 		worker,
 		setIsProcessing,
 		setSyntheticContent,
-		setEvaluatedResult,
-		setNavigateResult,
+		clearGenerate,
 		sensitiveContent,
 		recordLimit,
 		resolution,

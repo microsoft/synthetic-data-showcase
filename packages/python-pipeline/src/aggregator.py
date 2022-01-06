@@ -30,11 +30,13 @@ def aggregate(config):
     sensitive_zeros = config['sensitive_zeros']
     output_dir = config['output_dir']
     prefix = config['prefix']
+    sensitive_aggregated_data_json = path.join(
+        output_dir, f'{prefix}_sensitive_aggregated_data.json')
 
     logging.info(f'Aggregate {sensitive_microdata_path}')
     start_time = time.time()
 
-    data_block = sds.create_data_block_from_file(
+    sds_processor = sds.SDSProcessor(
         sensitive_microdata_path,
         sensitive_microdata_delimiter,
         use_columns,
@@ -42,13 +44,32 @@ def aggregate(config):
         max(record_limit, 0)
     )
 
-    len_to_combo_count, len_to_rare_count = sds.aggregate_and_write(
-        data_block,
+    aggregated_data = sds_processor.aggregate(
+        reporting_length,
+        0
+    )
+    len_to_combo_count = aggregated_data.calc_combinations_count_by_len()
+    len_to_rare_count = aggregated_data.calc_rare_combinations_count_by_len(
+        reporting_resolution)
+
+    aggregated_data.write_aggregates_count(
         sensitive_aggregates_path,
+        '\t',
+        ';',
+        reporting_resolution,
+        False
+    )
+
+    aggregated_data.write_to_json(sensitive_aggregated_data_json)
+
+    aggregated_data.protect_aggregates_count(reporting_resolution)
+
+    aggregated_data.write_aggregates_count(
         reportable_aggregates_path,
         '\t',
-        reporting_length,
-        reporting_resolution
+        ';',
+        reporting_resolution,
+        True
     )
 
     leakage_tsv = path.join(

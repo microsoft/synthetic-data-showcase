@@ -54,6 +54,6 @@ pub fn calc_n_combinations_range(n: usize, range: &[usize]) -> u64 {
 
 /// Calculates the percentage of processed elements up to a total
 #[inline]
-pub fn calc_percentage(n_processed: usize, total: f64) -> f64 {
-    (n_processed as f64) * 100.0 / total
+pub fn calc_percentage(n_processed: f64, total: f64) -> f64 {
+    n_processed * 100.0 / total
 }

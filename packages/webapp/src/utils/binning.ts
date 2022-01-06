@@ -2,9 +2,9 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import { CsvRecord } from 'sds-wasm'
 import { calcPrecision, countDecimals } from './math'
 import { stringToNumber } from './strings'
-import { CsvRecord } from '~models'
 
 interface IBin {
 	match: (value: string) => boolean

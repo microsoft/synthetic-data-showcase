@@ -6,19 +6,19 @@ import type { Plugin } from 'chart.js'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
 import { memo, useCallback } from 'react'
 import { Bar } from 'react-chartjs-2'
+import { IAttributesIntersection } from 'sds-wasm'
 import {
 	useActualBarConfig,
 	useDataLabelsConfig,
 	useEstimatedBarConfig,
-} from '~components/Charts/hooks'
-import { IAttributesIntersectionValue } from '~models'
+} from './hooks'
 
 export interface AttributeIntersectionValueChartProps {
-	items: IAttributesIntersectionValue[]
+	items: IAttributesIntersection[]
 	maxCount: number
 	height: number
-	onClick?: (item: IAttributesIntersectionValue | undefined) => void
-	selectedValue?: string
+	onClick?: (item: IAttributesIntersection | undefined) => void
+	selectedAttributes: Set<string>
 }
 
 export const AttributeIntersectionValueChart: React.FC<AttributeIntersectionValueChartProps> =
@@ -27,16 +27,20 @@ export const AttributeIntersectionValueChart: React.FC<AttributeIntersectionValu
 		maxCount,
 		height,
 		onClick,
-		selectedValue,
+		selectedAttributes,
 	}: AttributeIntersectionValueChartProps) {
 		const labels = items ? items.map(i => i.value) : []
-		const estimated = items ? items.map(i => i.estimatedCount) : []
+		const estimated = items ? items.map(i => Number(i.estimatedCount)) : []
 		const actual = items
-			? items.map(i => i.actualCount).filter(i => i !== undefined)
+			? items
+					.map(i =>
+						i.actualCount !== undefined ? Number(i.actualCount) : undefined,
+					)
+					.filter(i => i !== undefined)
 			: []
-		const estimatedBarConfig = useEstimatedBarConfig(labels, selectedValue)
-		const actualBarConfig = useActualBarConfig(labels, selectedValue)
-		const dataLabelsConfig = useDataLabelsConfig(labels, selectedValue)
+		const estimatedBarConfig = useEstimatedBarConfig(labels, selectedAttributes)
+		const actualBarConfig = useActualBarConfig(labels, selectedAttributes)
+		const dataLabelsConfig = useDataLabelsConfig(labels, selectedAttributes)
 
 		const handleClick = useCallback(
 			(evt, elements, chart) => {
@@ -69,7 +73,21 @@ export const AttributeIntersectionValueChart: React.FC<AttributeIntersectionValu
 						},
 					],
 				}}
-				plugins={[ChartDataLabels as Plugin<'bar'>]}
+				plugins={[
+					ChartDataLabels as Plugin<'bar'>,
+					{
+						id: 'event-catcher',
+						beforeEvent(chart, args, _pluginOptions) {
+							// on hover at options will not handle well the case
+							// where the mouse leaves the bar
+							if (args.event.type === 'mousemove') {
+								const elements = chart.getActiveElements()
+								chart.canvas.style.cursor =
+									elements && elements[0] ? 'pointer' : 'default'
+							}
+						},
+					},
+				]}
 				options={{
 					plugins: {
 						...dataLabelsConfig,

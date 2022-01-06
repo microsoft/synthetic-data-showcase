@@ -3,42 +3,43 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import {
-	AttributeRows,
-	AttributesInColumn,
-	CsvRecord,
-	IAggregatedCombinations,
-	IAttributeRowsMap,
-	IAttributesIntersectionValue,
-	IEvaluatedResult,
-	INavigateResult,
-	ISelectedAttributes,
-} from 'src/models'
+	CsvData,
+	HeaderNames,
+	IAttributesIntersectionByColumn,
+	IEvaluateResult,
+	ISelectedAttributesByColumn,
+	ReportProgressCallback,
+} from 'sds-wasm'
 import { v4 } from 'uuid'
 import {
+	SdsWasmAttributesIntersectionsByColumnMessage,
+	SdsWasmAttributesIntersectionsByColumnResponse,
+	SdsWasmClearEvaluateMessage,
+	SdsWasmClearGenerateMessage,
+	SdsWasmClearNavigateMessage,
+	SdsWasmClearSensitiveDataMessage,
+	SdsWasmErrorResponse,
+	SdsWasmEvaluateMessage,
+	SdsWasmEvaluateResponse,
 	SdsWasmGenerateMessage,
 	SdsWasmGenerateResponse,
 	SdsWasmInitMessage,
 	SdsWasmMessage,
 	SdsWasmMessageType,
-	SdsWasmResponse,
-	SdsWasmEvaluateMessage,
 	SdsWasmNavigateMessage,
-	SdsWasmIntersectSelectedAttributesMessage,
-	SdsWasmIntersectSelectedAttributesResponse,
-	ReportProgressCallback,
-} from './types'
-import {
-	SdsWasmEvaluateResponse,
-	SdsWasmIntersectAttributesInColumnsMessage,
-	SdsWasmIntersectAttributesInColumnsResponse,
-	SdsWasmNavigateResponse,
 	SdsWasmReportProgressResponse,
-} from '.'
+	SdsWasmResponse,
+	SdsWasmSelectAttributesMessage,
+} from './types'
+import Worker from './worker?worker'
 
 type SdsWasmResponseCallback = ((value: SdsWasmResponse) => void) | undefined
 
+type SdsWasmErrorCallback = ((reason?: string) => void) | undefined
+
 interface ICallbackMapValue {
 	resolver: SdsWasmResponseCallback
+	rejector: SdsWasmErrorCallback
 	reportProgress?: ReportProgressCallback
 }
 
@@ -60,6 +61,9 @@ export class SdsWasmWorker {
 					callback.reportProgress?.(
 						(response as SdsWasmReportProgressResponse).progress,
 					)
+				} else if (response.type === SdsWasmMessageType.Error) {
+					callback.rejector?.((response as SdsWasmErrorResponse).errorMessage)
+					this._callback_map.delete(response.id)
 				} else {
 					callback.resolver?.(response)
 					this._callback_map.delete(response.id)
@@ -73,12 +77,16 @@ export class SdsWasmWorker {
 		reportProgress?: ReportProgressCallback,
 	): Promise<SdsWasmResponse> {
 		let resolver: SdsWasmResponseCallback = undefined
-		const receivePromise = new Promise<SdsWasmResponse>(resolve => {
+		let rejector: SdsWasmErrorCallback = undefined
+
+		const receivePromise = new Promise<SdsWasmResponse>((resolve, reject) => {
 			resolver = resolve
+			rejector = reject
 		})
 
 		this._callback_map.set(message.id, {
 			resolver,
+			rejector,
 			reportProgress,
 		})
 		this._worker?.postMessage(message)
@@ -87,7 +95,7 @@ export class SdsWasmWorker {
 	}
 
 	public async init(logLevel: string): Promise<boolean> {
-		this._worker = new Worker((await import('./worker?url')).default)
+		this._worker = new Worker()
 		this._worker.onmessage = this.responseReceived.bind(this)
 
 		const response = await this.execute({
@@ -101,82 +109,110 @@ export class SdsWasmWorker {
 		return response.type === SdsWasmMessageType.Init
 	}
 
+	public async clearSensitiveData(): Promise<boolean> {
+		const response = await this.execute({
+			id: v4(),
+			type: SdsWasmMessageType.ClearSensitiveData,
+		} as SdsWasmClearSensitiveDataMessage)
+
+		return response.type === SdsWasmMessageType.ClearSensitiveData
+	}
+
+	public async clearGenerate(): Promise<boolean> {
+		const response = await this.execute({
+			id: v4(),
+			type: SdsWasmMessageType.ClearGenerate,
+		} as SdsWasmClearGenerateMessage)
+
+		return response.type === SdsWasmMessageType.ClearGenerate
+	}
+
+	public async clearEvaluate(): Promise<boolean> {
+		const response = await this.execute({
+			id: v4(),
+			type: SdsWasmMessageType.ClearEvaluate,
+		} as SdsWasmClearEvaluateMessage)
+
+		return response.type === SdsWasmMessageType.ClearEvaluate
+	}
+
+	public async clearNavigate(): Promise<boolean> {
+		const response = await this.execute({
+			id: v4(),
+			type: SdsWasmMessageType.ClearNavigate,
+		} as SdsWasmClearNavigateMessage)
+
+		return response.type === SdsWasmMessageType.ClearNavigate
+	}
+
 	public async generate(
-		csvContent: CsvRecord[],
+		sensitiveCsvData: CsvData,
 		useColumns: string[],
 		sensitiveZeros: string[],
 		recordLimit: number,
 		resolution: number,
 		cacheSize: number,
 		reportProgress?: ReportProgressCallback,
-	): Promise<CsvRecord[] | undefined> {
+		emptyValue = '',
+		seeded = true,
+	): Promise<CsvData | undefined> {
 		const response = await this.execute(
 			{
 				id: v4(),
 				type: SdsWasmMessageType.Generate,
-				csvContent,
+				sensitiveCsvData,
 				useColumns,
 				sensitiveZeros,
 				recordLimit,
 				resolution,
+				emptyValue,
 				cacheSize,
+				seeded,
 			} as SdsWasmGenerateMessage,
 			reportProgress,
 		)
 
 		if (response.type === SdsWasmMessageType.Generate) {
-			return (response as SdsWasmGenerateResponse).records
+			return (response as SdsWasmGenerateResponse).syntheticCsvData
 		}
 		return undefined
 	}
 
 	public async evaluate(
-		sensitiveCsvContent: CsvRecord[],
-		syntheticCsvContent: CsvRecord[],
-		useColumns: string[],
-		sensitiveZeros: string[],
-		recordLimit: number,
 		reportingLength: number,
-		resolution: number,
+		sensitivityThreshold = 0,
+		combinationDelimiter = ';',
+		includeAggregatesCount = false,
 		reportProgress?: ReportProgressCallback,
-	): Promise<IEvaluatedResult | undefined> {
+	): Promise<IEvaluateResult | undefined> {
 		const response = await this.execute(
 			{
 				id: v4(),
 				type: SdsWasmMessageType.Evaluate,
-				sensitiveCsvContent,
-				syntheticCsvContent,
-				useColumns,
-				sensitiveZeros,
-				recordLimit,
 				reportingLength,
-				resolution,
+				sensitivityThreshold,
+				combinationDelimiter,
+				includeAggregatesCount,
 			} as SdsWasmEvaluateMessage,
 			reportProgress,
 		)
 
 		if (response.type === SdsWasmMessageType.Evaluate) {
-			return (response as SdsWasmEvaluateResponse).evaluatedResult
+			return (response as SdsWasmEvaluateResponse).evaluateResult
 		}
 		return undefined
 	}
 
-	public async navigate(
-		syntheticCsvContent: CsvRecord[],
-	): Promise<INavigateResult | undefined> {
+	public async navigate(): Promise<boolean> {
 		const response = await this.execute({
 			id: v4(),
 			type: SdsWasmMessageType.Navigate,
-			syntheticCsvContent,
 		} as SdsWasmNavigateMessage)
 
-		if (response.type === SdsWasmMessageType.Navigate) {
-			return (response as SdsWasmNavigateResponse).navigateResult
-		}
-		return undefined
+		return response.type === SdsWasmMessageType.Navigate
 	}
 
-	public async findColumnsWithZeros(items: CsvRecord[]): Promise<number[]> {
+	public async findColumnsWithZeros(items: CsvData): Promise<number[]> {
 		const zeros = new Set<number>()
 
 		items.forEach(line => {
@@ -191,52 +227,30 @@ export class SdsWasmWorker {
 		return Array.from(zeros)
 	}
 
-	public async intersectSelectedAttributesWith(
-		selectedAttributes: ISelectedAttributes,
-		initialRows: AttributeRows,
-		attrRowsMap: IAttributeRowsMap,
-	): Promise<AttributeRows | undefined> {
+	public async selectAttributes(
+		attributes: ISelectedAttributesByColumn,
+	): Promise<boolean> {
 		const response = await this.execute({
 			id: v4(),
-			type: SdsWasmMessageType.IntersectSelectedAttributes,
-			selectedAttributes,
-			initialRows,
-			attrRowsMap,
-		} as SdsWasmIntersectSelectedAttributesMessage)
+			type: SdsWasmMessageType.SelectAttributes,
+			attributes,
+		} as SdsWasmSelectAttributesMessage)
 
-		if (response.type === SdsWasmMessageType.IntersectSelectedAttributes) {
-			return (response as SdsWasmIntersectSelectedAttributesResponse)
-				.intersectionResult
-		}
-		return undefined
+		return response.type === SdsWasmMessageType.SelectAttributes
 	}
 
-	public async intersectAttributesInColumnsWith(
-		headers: CsvRecord,
-		initialRows: AttributeRows,
-		attrsInColumn: AttributesInColumn,
-		selectedAttributeRows: AttributeRows,
-		selectedAttributes: ISelectedAttributes,
-		attrRowsMap: IAttributeRowsMap,
-		columnIndex: number,
-		sensitiveAggregatedCombinations?: IAggregatedCombinations,
-	): Promise<IAttributesIntersectionValue[] | undefined> {
+	public async attributesIntersectionsByColumn(
+		columns: HeaderNames,
+	): Promise<IAttributesIntersectionByColumn | undefined> {
 		const response = await this.execute({
 			id: v4(),
-			type: SdsWasmMessageType.IntersectAttributesInColumns,
-			headers,
-			initialRows,
-			attrsInColumn,
-			selectedAttributeRows,
-			selectedAttributes,
-			attrRowsMap,
-			columnIndex,
-			sensitiveAggregatedCombinations,
-		} as SdsWasmIntersectAttributesInColumnsMessage)
+			type: SdsWasmMessageType.AttributesIntersectionsByColumn,
+			columns,
+		} as SdsWasmAttributesIntersectionsByColumnMessage)
 
-		if (response.type === SdsWasmMessageType.IntersectAttributesInColumns) {
-			return (response as SdsWasmIntersectAttributesInColumnsResponse)
-				.intersectionResult
+		if (response.type === SdsWasmMessageType.AttributesIntersectionsByColumn) {
+			return (response as SdsWasmAttributesIntersectionsByColumnResponse)
+				.attributesIntersectionByColumn
 		}
 		return undefined
 	}

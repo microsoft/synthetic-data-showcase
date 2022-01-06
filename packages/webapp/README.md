@@ -18,7 +18,7 @@ To run the application locally with docker, please follow these steps:
 
 1. Make sure you have docker up and running on your machine (more details on how to install it based on your operating system can be found in [here](https://docs.docker.com/engine/install/)).
 2. Make also sure you have docker compose installed, this will allow us to run the application with a single command (more details on to install it can be found in [here](https://docs.docker.com/compose/install/))
-3. After docker is installed and running, as well as docker compose, browse to the root directory of the cloned repository and run: `docker-compose up` (press CTRL + C to stop it)
+3. After docker is installed and running, as well as docker compose, browse to the root directory of the cloned repository and run: `docker-compose up --build` (press CTRL + C to stop it)
 
 ## Advanced setup
 
@@ -40,6 +40,8 @@ Browse to the root of the cloned repository and run:
 ```
 
 This will start the web application that should be accessible on [http://localhost:3000](http://localhost:3000).
+
+> The website will start in development mode, which relies on browser native features currently supported only in Edge and Chrome. However, the docker imagine above is targeted for production and should support other browsers.
 
 # Usage
 

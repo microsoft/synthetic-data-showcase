@@ -10,7 +10,7 @@ import {
 	SelectionMode,
 } from '@fluentui/react'
 import { memo } from 'react'
-import { IPrivacyRiskSummary } from '~models'
+import { IPrivacyRiskSummary } from 'sds-wasm'
 
 export interface EvaluationSummaryProps {
 	privacyRiskLabel: string

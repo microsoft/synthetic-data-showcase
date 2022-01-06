@@ -2,31 +2,37 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { CsvRecord } from 'src/models/csv'
 import {
-	AttributeRows,
-	AttributesInColumn,
-	IAggregatedCombinations,
-	IAttributeRowsMap,
-	IAttributesIntersectionValue,
-	IEvaluatedResult,
-	INavigateResult,
-	ISelectedAttributes,
-} from '~models'
+	CsvData,
+	HeaderNames,
+	IAttributesIntersectionByColumn,
+	IEvaluateResult,
+	ISelectedAttributesByColumn,
+} from 'sds-wasm'
 
 export enum SdsWasmMessageType {
 	Init = 'Init',
+	Error = 'Error',
+	ClearSensitiveData = 'ClearSensitiveData',
+	ClearGenerate = 'ClearGenerate',
+	ClearEvaluate = 'ClearEvaluate',
+	ClearNavigate = 'ClearNavigate',
 	ReportProgress = 'ReportProgress',
 	Generate = 'Generate',
 	Evaluate = 'Evaluate',
 	Navigate = 'Navigate',
-	IntersectSelectedAttributes = 'IntersectSelectedAttributes',
-	IntersectAttributesInColumns = 'IntersectAttributesInColumns',
+	SelectAttributes = 'SelectAttributes',
+	AttributesIntersectionsByColumn = 'AttributesIntersectionsByColumn',
 }
 
 export interface SdsWasmMessage {
 	id: string
 	type: SdsWasmMessageType
+}
+
+export interface SdsWasmResponse {
+	type: SdsWasmMessageType
+	id: string
 }
 
 export interface SdsWasmInitMessage extends SdsWasmMessage {
@@ -36,60 +42,45 @@ export interface SdsWasmInitMessage extends SdsWasmMessage {
 	wasmPath: string
 }
 
-export interface SdsWasmGenerateMessage extends SdsWasmMessage {
-	type: SdsWasmMessageType.Generate
-	csvContent: CsvRecord[]
-	useColumns: string[]
-	sensitiveZeros: string[]
-	recordLimit: number
-	resolution: number
-	cacheSize: number
-}
-
-export interface SdsWasmEvaluateMessage extends SdsWasmMessage {
-	type: SdsWasmMessageType.Evaluate
-	sensitiveCsvContent: CsvRecord[]
-	syntheticCsvContent: CsvRecord[]
-	useColumns: string[]
-	sensitiveZeros: string[]
-	recordLimit: number
-	reportingLength: number
-	resolution: number
-}
-
-export interface SdsWasmNavigateMessage extends SdsWasmMessage {
-	type: SdsWasmMessageType.Navigate
-	syntheticCsvContent: CsvRecord[]
-}
-
-export interface SdsWasmIntersectSelectedAttributesMessage
-	extends SdsWasmMessage {
-	type: SdsWasmMessageType.IntersectSelectedAttributes
-	selectedAttributes: ISelectedAttributes
-	initialRows: AttributeRows
-	attrRowsMap: IAttributeRowsMap
-}
-
-export interface SdsWasmIntersectAttributesInColumnsMessage
-	extends SdsWasmMessage {
-	type: SdsWasmMessageType.IntersectAttributesInColumns
-	headers: CsvRecord
-	initialRows: AttributeRows
-	attrsInColumn: AttributesInColumn
-	selectedAttributeRows: AttributeRows
-	selectedAttributes: ISelectedAttributes
-	attrRowsMap: IAttributeRowsMap
-	columnIndex: number
-	sensitiveAggregatedCombinations?: IAggregatedCombinations
-}
-
-export interface SdsWasmResponse {
-	type: SdsWasmMessageType
-	id: string
-}
-
 export interface SdsWasmInitResponse extends SdsWasmResponse {
 	type: SdsWasmMessageType.Init
+}
+
+export interface SdsWasmErrorResponse extends SdsWasmResponse {
+	type: SdsWasmMessageType.Error
+	errorMessage: string
+}
+
+export interface SdsWasmClearSensitiveDataMessage extends SdsWasmMessage {
+	type: SdsWasmMessageType.ClearSensitiveData
+}
+
+export interface SdsWasmClearSensitiveDataResponse extends SdsWasmResponse {
+	type: SdsWasmMessageType.ClearSensitiveData
+}
+
+export interface SdsWasmClearGenerateMessage extends SdsWasmMessage {
+	type: SdsWasmMessageType.ClearGenerate
+}
+
+export interface SdsWasmClearGenerateResponse extends SdsWasmResponse {
+	type: SdsWasmMessageType.ClearGenerate
+}
+
+export interface SdsWasmClearEvaluateMessage extends SdsWasmMessage {
+	type: SdsWasmMessageType.ClearEvaluate
+}
+
+export interface SdsWasmClearEvaluateResponse extends SdsWasmResponse {
+	type: SdsWasmMessageType.ClearEvaluate
+}
+
+export interface SdsWasmClearNavigateMessage extends SdsWasmMessage {
+	type: SdsWasmMessageType.ClearNavigate
+}
+
+export interface SdsWasmClearNavigateResponse extends SdsWasmResponse {
+	type: SdsWasmMessageType.ClearNavigate
 }
 
 export interface SdsWasmReportProgressResponse extends SdsWasmResponse {
@@ -97,31 +88,61 @@ export interface SdsWasmReportProgressResponse extends SdsWasmResponse {
 	progress: number
 }
 
+export interface SdsWasmGenerateMessage extends SdsWasmMessage {
+	type: SdsWasmMessageType.Generate
+	sensitiveCsvData: CsvData
+	useColumns: HeaderNames
+	sensitiveZeros: HeaderNames
+	recordLimit: number
+	resolution: number
+	emptyValue: string
+	cacheSize: number
+	seeded: boolean
+}
+
 export interface SdsWasmGenerateResponse extends SdsWasmResponse {
 	type: SdsWasmMessageType.Generate
-	records?: CsvRecord[]
+	syntheticCsvData: CsvData
+}
+
+export interface SdsWasmEvaluateMessage extends SdsWasmMessage {
+	type: SdsWasmMessageType.Evaluate
+	reportingLength: number
+	sensitivityThreshold: number
+	combinationDelimiter: string
+	includeAggregatesCount: boolean
 }
 
 export interface SdsWasmEvaluateResponse extends SdsWasmResponse {
 	type: SdsWasmMessageType.Evaluate
-	evaluatedResult?: IEvaluatedResult
+	evaluateResult: IEvaluateResult
+}
+
+export interface SdsWasmNavigateMessage extends SdsWasmMessage {
+	type: SdsWasmMessageType.Navigate
 }
 
 export interface SdsWasmNavigateResponse extends SdsWasmResponse {
 	type: SdsWasmMessageType.Navigate
-	navigateResult?: INavigateResult
 }
 
-export interface SdsWasmIntersectSelectedAttributesResponse
+export interface SdsWasmSelectAttributesMessage extends SdsWasmMessage {
+	type: SdsWasmMessageType.SelectAttributes
+	attributes: ISelectedAttributesByColumn
+}
+
+export interface SdsWasmSelectAttributesResponse extends SdsWasmResponse {
+	type: SdsWasmMessageType.SelectAttributes
+}
+
+export interface SdsWasmAttributesIntersectionsByColumnMessage
+	extends SdsWasmMessage {
+	type: SdsWasmMessageType.AttributesIntersectionsByColumn
+	columns: HeaderNames
+}
+
+export interface SdsWasmAttributesIntersectionsByColumnResponse
 	extends SdsWasmResponse {
-	type: SdsWasmMessageType.IntersectSelectedAttributes
-	intersectionResult?: AttributeRows
+	type: SdsWasmMessageType.AttributesIntersectionsByColumn
+	attributesIntersectionByColumn: IAttributesIntersectionByColumn
 }
-
-export interface SdsWasmIntersectAttributesInColumnsResponse
-	extends SdsWasmResponse {
-	type: SdsWasmMessageType.IntersectAttributesInColumns
-	intersectionResult?: IAttributesIntersectionValue[]
-}
-
-export type ReportProgressCallback = (progress: number) => void

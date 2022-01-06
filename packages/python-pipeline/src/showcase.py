@@ -1,6 +1,7 @@
 import json
 import logging
 import argparse
+import sds
 from os import path, mkdir
 import aggregator as aggregator
 import generator as generator
@@ -49,7 +50,7 @@ def main():
             config['evaluate'] = True
             config['navigate'] = True
 
-         # set based on the number of cores/memory available
+        # set based on the number of cores/memory available
         config['parallel_jobs'] = config.get('parallel_jobs', 1)
         config['memory_limit_pct'] = config.get('memory_limit_pct', 80)
         config['cache_max_size'] = config.get('cache_max_size', 100000)
@@ -101,6 +102,9 @@ def runPipeline(config):
     Args:
         config: options from the json config file, else default values.
     """
+
+    # set number of threads to be used for processing
+    sds.set_number_of_threads(config['parallel_jobs'])
 
     if config['aggregate']:
         aggregator.aggregate(config)

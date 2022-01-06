@@ -1,5 +1,5 @@
 use fnv::FnvHashMap;
-use itertools::Itertools;
+use std::sync::Arc;
 
 use crate::{
     data_block::{typedefs::AttributeRowsMap, value::DataBlockValue},
@@ -13,19 +13,19 @@ use crate::{
 /// Sensitivity in this context means the number of combinations that
 /// can be generated based on the number of non-empty values on the record.
 /// So attributes will suppressed from the record until record sensitivity <= `sensitivity_threshold`
-pub struct RecordAttrsSelector<'length_range, 'data_block> {
+pub struct RecordAttrsSelector<'length_range> {
+    /// Range to compute the number of combinations [1...reporting_length]
+    pub length_range: &'length_range [usize],
     /// Cache for how many values should be suppressed based of the number
     /// of non-empty attributes on the record
     cache: FnvHashMap<usize, usize>,
-    /// Range to compute the number of combinations [1...reporting_length]
-    length_range: &'length_range [usize],
     /// Maximum sensitivity allowed for each record
     sensitivity_threshold: usize,
     /// Map with a data block value as key and all the attribute row indexes where it occurs as value
-    attr_rows_map: AttributeRowsMap<'data_block>,
+    attr_rows_map: Arc<AttributeRowsMap>,
 }
 
-impl<'length_range, 'data_block> RecordAttrsSelector<'length_range, 'data_block> {
+impl<'length_range> RecordAttrsSelector<'length_range> {
     /// Returns a new RecordAttrsSelector
     /// # Arguments
     /// * `length_range` - Range to compute the number of combinations [1...reporting_length]
@@ -36,8 +36,8 @@ impl<'length_range, 'data_block> RecordAttrsSelector<'length_range, 'data_block>
     pub fn new(
         length_range: &'length_range [usize],
         sensitivity_threshold: usize,
-        attr_rows_map: AttributeRowsMap<'data_block>,
-    ) -> RecordAttrsSelector<'length_range, 'data_block> {
+        attr_rows_map: Arc<AttributeRowsMap>,
+    ) -> RecordAttrsSelector<'length_range> {
         RecordAttrsSelector {
             cache: FnvHashMap::default(),
             length_range,
@@ -53,30 +53,30 @@ impl<'length_range, 'data_block> RecordAttrsSelector<'length_range, 'data_block>
     /// all records, higher the chance for it **not** to be suppressed
     ///
     /// # Arguments
-    /// * `record`: record to select attributes from
+    /// * `record` - record to select attributes from
     pub fn select_from_record(
         &mut self,
-        record: &'data_block [DataBlockValue],
-    ) -> Vec<&'data_block DataBlockValue> {
+        record: &[Arc<DataBlockValue>],
+    ) -> Vec<Arc<DataBlockValue>> {
         let n_attributes = record.len();
         let selected_attrs_count = n_attributes - self.get_suppressed_count(n_attributes);
 
         if selected_attrs_count < n_attributes {
             let mut attr_count_map: AttributeCountMap = record
                 .iter()
-                .map(|r| (r, self.attr_rows_map.get(r).unwrap().len()))
+                .map(|r| (r.clone(), self.attr_rows_map.get(r).unwrap().len()))
                 .collect();
-            let mut res: Vec<&DataBlockValue> = Vec::default();
+            let mut res: Vec<Arc<DataBlockValue>> = Vec::default();
 
             for _ in 0..selected_attrs_count {
                 if let Some(sample) = SynthesizerContext::sample_from_attr_counts(&attr_count_map) {
+                    attr_count_map.remove(&sample);
                     res.push(sample);
-                    attr_count_map.remove(sample);
                 }
             }
             res
         } else {
-            record.iter().collect_vec()
+            record.to_vec()
         }
     }
 

@@ -1,8 +1,11 @@
 use log::{error, info, log_enabled, trace, Level::Debug};
 use sds_core::{
-    data_block::{block::DataBlockCreator, csv_block_creator::CsvDataBlockCreator},
-    processing::{aggregator::Aggregator, generator::Generator},
-    utils::reporting::LoggerProgressReporter,
+    data_block::{csv_block_creator::CsvDataBlockCreator, data_block_creator::DataBlockCreator},
+    processing::{
+        aggregator::Aggregator,
+        generator::{Generator, SynthesisMode},
+    },
+    utils::{reporting::LoggerProgressReporter, threading::set_number_of_threads},
 };
 use std::process;
 use structopt::StructOpt;
@@ -26,6 +29,14 @@ enum Command {
             default_value = "100000"
         )]
         cache_max_size: usize,
+        #[structopt(
+            long = "mode",
+            help = "synthesis mode",
+            possible_values = &["seeded", "unseeded"],
+            case_insensitive = true,
+            default_value = "seeded"
+        )]
+        mode: SynthesisMode,
     },
     Aggregate {
         #[structopt(long = "aggregates-path", help = "generated aggregates file path")]
@@ -104,6 +115,12 @@ struct Cli {
         help = "columns where zeros should not be ignored (can be set multiple times)"
     )]
     sensitive_zeros: Vec<String>,
+
+    #[structopt(
+        long = "n-threads",
+        help = "number of threads used to process the data in parallel (default is the number of cores)"
+    )]
+    n_threads: Option<usize>,
 }
 
 fn main() {
@@ -118,6 +135,10 @@ fn main() {
 
     trace!("execution parameters: {:#?}", cli);
 
+    if let Some(n_threads) = cli.n_threads {
+        set_number_of_threads(n_threads);
+    }
+
     match CsvDataBlockCreator::create(
         csv::ReaderBuilder::new()
             .delimiter(cli.sensitive_delimiter.chars().next().unwrap() as u8)
@@ -131,15 +152,20 @@ fn main() {
                 synthetic_path,
                 synthetic_delimiter,
                 cache_max_size,
+                mode,
             } => {
-                let mut generator = Generator::new(&data_block);
-                let generated_data =
-                    generator.generate(cli.resolution, cache_max_size, "", &mut progress_reporter);
+                let mut generator = Generator::new(data_block);
+                let generated_data = generator.generate(
+                    cli.resolution,
+                    cache_max_size,
+                    String::from(""),
+                    mode,
+                    &mut progress_reporter,
+                );
 
-                if let Err(err) = generator.write_records(
-                    &generated_data.synthetic_data,
+                if let Err(err) = generated_data.write_synthetic_data(
                     &synthetic_path,
-                    synthetic_delimiter.chars().next().unwrap() as u8,
+                    synthetic_delimiter.chars().next().unwrap(),
                 ) {
                     error!("error writing output file: {}", err);
                     process::exit(1);
@@ -153,28 +179,24 @@ fn main() {
                 sensitivity_threshold,
                 records_sensitivity_path,
             } => {
-                let mut aggregator = Aggregator::new(&data_block);
+                let mut aggregator = Aggregator::new(data_block);
                 let mut aggregated_data = aggregator.aggregate(
                     reporting_length,
                     sensitivity_threshold,
                     &mut progress_reporter,
                 );
-                let privacy_risk =
-                    aggregator.calc_privacy_risk(&aggregated_data.aggregates_count, cli.resolution);
+                let privacy_risk = aggregated_data.calc_privacy_risk(cli.resolution);
 
                 if !not_protect {
-                    Aggregator::protect_aggregates_count(
-                        &mut aggregated_data.aggregates_count,
-                        cli.resolution,
-                    );
+                    aggregated_data.protect_aggregates_count(cli.resolution);
                 }
 
                 info!("Calculated privacy risk is: {:#?}", privacy_risk);
 
-                if let Err(err) = aggregator.write_aggregates_count(
-                    &aggregated_data.aggregates_count,
+                if let Err(err) = aggregated_data.write_aggregates_count(
                     &aggregates_path,
                     aggregates_delimiter.chars().next().unwrap(),
+                    ";",
                     cli.resolution,
                     !not_protect,
                 ) {
@@ -183,9 +205,7 @@ fn main() {
                 }
 
                 if let Some(path) = records_sensitivity_path {
-                    if let Err(err) = aggregator
-                        .write_records_sensitivity(&aggregated_data.records_sensitivity, &path)
-                    {
+                    if let Err(err) = aggregated_data.write_records_sensitivity(&path, '\t') {
                         error!("error writing output file: {}", err);
                         process::exit(1);
                     }

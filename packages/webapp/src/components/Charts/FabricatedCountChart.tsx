@@ -4,13 +4,13 @@
  */
 import { memo, useMemo } from 'react'
 import { Bar } from 'react-chartjs-2'
-import { IAggregatedCountByLen } from '~models'
+import { IAggregateCountByLen } from 'sds-wasm'
 
 export interface FabricatedCountChartProps {
 	combinationsLabel: string
 	fabricatedLabel: string
-	combinationsCountByLen: IAggregatedCountByLen
-	fabricatedCountByLen: IAggregatedCountByLen
+	combinationsCountByLen: IAggregateCountByLen
+	fabricatedCountByLen: IAggregateCountByLen
 	height: number
 	width: number
 }

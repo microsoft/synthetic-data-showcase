@@ -4,14 +4,14 @@
  */
 import { memo } from 'react'
 import { Bar } from 'react-chartjs-2'
-import { IAggregatedCountByLen } from '~models'
+import { IAggregateCountByLen } from 'sds-wasm'
 
 export interface PreservationPercentageByLengthProps {
 	combinationsLabel: string
 	preservationLabel: string
-	combinationsCountByLen: IAggregatedCountByLen
-	sensitiveCombinationsCountByLen: IAggregatedCountByLen
-	syntheticCombinationsCountByLen: IAggregatedCountByLen
+	combinationsCountByLen: IAggregateCountByLen
+	sensitiveCombinationsCountByLen: IAggregateCountByLen
+	syntheticCombinationsCountByLen: IAggregateCountByLen
 	height: number
 	width: number
 }

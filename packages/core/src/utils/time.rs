@@ -16,7 +16,7 @@ pub struct ElapsedDuration<'lifetime> {
 impl<'lifetime> ElapsedDuration<'lifetime> {
     /// Returns a new ElapsedDuration
     /// # Arguments
-    /// - `result`: Duration where to sum the elapsed duration when the `ElapsedDuration`
+    /// * `result` - Duration where to sum the elapsed duration when the `ElapsedDuration`
     /// instance goes out of scope
     pub fn new(result: &mut Duration) -> ElapsedDuration {
         ElapsedDuration {
@@ -41,10 +41,10 @@ pub struct ElapsedDurationLogger {
 }
 
 impl ElapsedDurationLogger {
-    pub fn new(message: String) -> ElapsedDurationLogger {
+    pub fn new<S: Into<String>>(message: S) -> ElapsedDurationLogger {
         ElapsedDurationLogger {
             _start: Instant::now(),
-            _message: message,
+            _message: message.into(),
         }
     }
 }
