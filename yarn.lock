@@ -10469,8 +10469,8 @@ resolve@^2.0.0-next.3:
 
 "sds-wasm@file:../../target/wasm::locator=webapp%40workspace%3Apackages%2Fwebapp":
   version: 1.0.0
-  resolution: "sds-wasm@file:../../target/wasm#../../target/wasm::hash=3f33a3&locator=webapp%40workspace%3Apackages%2Fwebapp"
-  checksum: dd8b934db19b301312cd3919ad007765652b8524dedbcd4dc742736d4567e02425db5ba5a5a40123be67492ff4117539f05445109d059b9e7452e65cfc51688b
+  resolution: "sds-wasm@file:../../target/wasm#../../target/wasm::hash=61d725&locator=webapp%40workspace%3Apackages%2Fwebapp"
+  checksum: 7b511000ff579185aa175bb06bc634b410e180bdd5e0ec2b72ed11a22018bc669aaa4c17f542a5e8b71f4527e380d3be9febe2f7032c3528adcfc88536e11f74
   languageName: node
   linkType: hard
 

@@ -89,9 +89,9 @@ Synthetic records are sorted by number of non-empty attribute values prior to ou
 
 ## Data processing and output
 
-For unseeded generation, the `parallel_jobs` parameter specifies the extent of parallel processing (e.g., based on the number of available processor cores). For local processing, this should be set to the number of available CPU cores. For faster processing of larger and more complex datasets, use of a virtual machine with multiple cores is recommended.
+The `parallel_jobs` parameter specifies the extent of parallel processing (e.g., based on the number of available processor cores). For local processing, this should be set to the number of available CPU cores. For faster processing of larger and more complex datasets, use of a virtual machine with multiple cores is recommended.
 
-Also for unseeded generation, the `memory_limit_pct` parameter sets the percentage utilization of system memory at which synthetic data generation will stop adding computed counts to a cache. On the other hand, for seeded generation the `cache-max-size` parameter sets the size of the cache used to store attribute combination counts during the synthesis process. The higher the value, the more memory will be used. The default value is `100000` which is generally a good balance between performance and memory usage.
+Also for unseeded generation, the `memory_limit_pct` parameter sets the percentage utilization of system memory at which synthetic data generation will stop adding computed counts to a cache. On the other hand, for seeded generation the `cache-max-size` parameter sets the size of the cache used to store attribute combination counts during the synthesis process. The higher the value, the more memory will be used. The default value is `100000` which is generally a good balance between performance and memory usage, but this can be tuned depending on the input dataset.
 
 Output files are saved to the `output_dir` directory and prefixed with the `prefix` string. The json config file used to generate the outputs is also copied to this directory as a record of the parameters used, and should therefore be stored outside `output_dir`.
 
@@ -142,7 +142,7 @@ It is recommended to begin with a smaller dataset (in terms of both rows and col
 python showcase.py <config_path> --aggregate | --agg
 ```
 
-Generates the `reportable_aggregates` tsv file containing precomputed and protected counts of all sensitive attribute combinations up to `reporting_length` in length, as well as a `sensitive_aggregates` tsv file storing the actual counts. This file is used in the `--evaluate` pipeline stage to avoid recomputing combinations, and may be used to confirm actual values. Since these are highly sensitive, the file should be protected in the same way as the original microdata.
+Generates the `reportable_aggregates` tsv file containing precomputed and protected counts of all sensitive attribute combinations up to `reporting_length` in length, as well as a `sensitive_aggregates` tsv file storing the actual counts and a `sensitive_aggregated_data` json file containing serialized information about the sensitive aggregates. These files are used in the `--evaluate` pipeline stage to avoid recomputing combinations, and may be used to confirm actual values. Since these are highly sensitive, the file should be protected in the same way as the original microdata.
 
 Additional outputs of this stage are tsv and svg summaries of `sensitive_rare_by_length` &ndash; how many sensitive attribute combinations exist up to `reporting_length` and what proportion of these are rare, i.e., occurring with a frequency below `reporting_resolution`.
 
