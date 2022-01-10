@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import { introspect } from '@data-wrangling-components/core'
 import {
 	getTheme,
 	IStackStyles,
@@ -82,6 +83,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 			items: rows(table),
 			delimiter: sensitiveContent.delimiter,
 			table,
+			metadata: introspect(table, true),
 		})
 	}, [
 		worker,

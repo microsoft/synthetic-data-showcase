@@ -11,9 +11,9 @@ import {
 	Stack,
 	TextField,
 } from '@fluentui/react'
-import { memo, useCallback } from 'react'
+import { memo } from 'react'
 import { CsvTable } from './CsvTable'
-import { useOnFileChange } from './hooks'
+import { useOnFileChange, useOnTableChange } from './hooks'
 import { DataTransform } from '~components/DataTransform'
 import { FileInputButton } from '~components/controls'
 import {
@@ -33,6 +33,8 @@ export const DataInput: React.FC = memo(function DataInput() {
 		setSensitiveContent,
 		clearSensitiveData,
 	)
+	const updateTable = useOnTableChange(setSensitiveContent)
+
 	const theme = getTheme()
 
 	const mainStackStyles: IStackStyles = {
@@ -56,15 +58,6 @@ export const DataInput: React.FC = memo(function DataInput() {
 		i => sensitiveContent.headers[i].use,
 	)
 
-	const updateTable = useCallback(
-		table => {
-			setSensitiveContent(prev => ({
-				...prev,
-				table,
-			}))
-		},
-		[setSensitiveContent],
-	)
 	return (
 		<Stack styles={mainStackStyles} tokens={mainStackTokens}>
 			<Stack.Item>
