@@ -17,7 +17,6 @@ export const FileInputButton: FC<FileInputButtonProps> = ({
 	disabled,
 }) => {
 	const inputFile = useRef<HTMLInputElement>(null)
-
 	return (
 		<>
 			<IconButton

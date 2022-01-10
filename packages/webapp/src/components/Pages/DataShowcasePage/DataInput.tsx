@@ -11,10 +11,10 @@ import {
 	Stack,
 	TextField,
 } from '@fluentui/react'
-import { memo } from 'react'
+import { memo, useCallback } from 'react'
 import { CsvTable } from './CsvTable'
 import { useOnFileChange } from './hooks'
-import { DataBinning } from '~components/DataBinning'
+import { DataTransform } from '~components/DataTransform'
 import { FileInputButton } from '~components/controls'
 import {
 	useClearSensitiveData,
@@ -56,6 +56,15 @@ export const DataInput: React.FC = memo(function DataInput() {
 		i => sensitiveContent.headers[i].use,
 	)
 
+	const updateTable = useCallback(
+		table => {
+			setSensitiveContent(prev => ({
+				...prev,
+				table,
+			}))
+		},
+		[setSensitiveContent],
+	)
 	return (
 		<Stack styles={mainStackStyles} tokens={mainStackTokens}>
 			<Stack.Item>
@@ -74,7 +83,7 @@ export const DataInput: React.FC = memo(function DataInput() {
 						/>
 					</Stack.Item>
 					<Stack.Item align="end">
-						<FileInputButton onChange={onFileChange} disabled={isProcessing} />
+						<FileInputButton onChange={onFileChange} disabled={false} />
 					</Stack.Item>
 				</Stack>
 			</Stack.Item>
@@ -152,10 +161,14 @@ export const DataInput: React.FC = memo(function DataInput() {
 			{sensitiveContent.table.numCols() > 0 && (
 				<>
 					<Stack.Item>
-						<Label>Data binning</Label>
+						<Label>Data transform</Label>
 					</Stack.Item>
 					<Stack.Item>
-						<DataBinning />
+						<DataTransform
+							table={sensitiveContent.table}
+							onChange={updateTable}
+						/>
+						{/* <DataBinning /> */}
 					</Stack.Item>
 				</>
 			)}

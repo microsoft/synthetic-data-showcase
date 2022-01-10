@@ -15,8 +15,9 @@
 		"start:webapp": "yarn start"
 	},
 	"dependencies": {
-		"@data-wrangling-components/core": "^0.2.0",
-		"@data-wrangling-components/react": "^0.3.1",
+		"@data-wrangling-components/core": "^0.4.3",
+		"@data-wrangling-components/react": "^0.7.2",
+		"@data-wrangling-components/utilities": "^0.2.1",
 		"@fluentui/font-icons-mdl2": "^8.1.17",
 		"@fluentui/react": "8.42.5",
 		"@fluentui/react-hooks": "8.3.6",

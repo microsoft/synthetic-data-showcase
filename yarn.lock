@@ -1520,9 +1520,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@data-wrangling-components/core@npm:^0.2.0":
-  version: 0.2.0
-  resolution: "@data-wrangling-components/core@npm:0.2.0"
+"@data-wrangling-components/core@npm:^0.4.3":
+  version: 0.4.3
+  resolution: "@data-wrangling-components/core@npm:0.4.3"
   dependencies:
     core-js: ^3.12.1
     lodash: ^4.17.21
@@ -1532,13 +1532,13 @@ __metadata:
   peerDependenciesMeta:
     "@types/node":
       optional: true
-  checksum: 04464a8c0562804eb679b51cbf8ce8fdac129596533c4ffc34ca67b10d1cc7dc210cc24fb9b70470baea8a1a44aa28ed8c9227439fab722db0ef8bb7b3a8a2c9
+  checksum: 0cf393bdf794389a2a84e782fa9c0bad6a9d1e78b54691157e5477a9917b263f2a57233b866082d0ceb291c0a769eb57b7c30d1b92237a3a144d3d07183d562a
   languageName: node
   linkType: hard
 
-"@data-wrangling-components/react@npm:^0.3.1":
-  version: 0.3.1
-  resolution: "@data-wrangling-components/react@npm:0.3.1"
+"@data-wrangling-components/react@npm:^0.7.2":
+  version: 0.7.2
+  resolution: "@data-wrangling-components/react@npm:0.7.2"
   dependencies:
     core-js: ^3.12.1
     d3-format: ^3.1.0
@@ -1546,9 +1546,11 @@ __metadata:
     d3-selection: ^3.0.0
     d3-shape: ^3.0.1
     lodash: ^4.17.21
+    react-dropzone: ^11.4.2
     react-if: ^4.1.1
   peerDependencies:
     "@data-wrangling-components/core": "*"
+    "@data-wrangling-components/utilities": "*"
     "@essex-js-toolkit/themed-components": ^1.3.0
     "@fluentui/font-icons-mdl2": ^8.1.6
     "@fluentui/react": ^8.24.0
@@ -1564,7 +1566,19 @@ __metadata:
     react: ^17.0.2
     react-dom: ^17.0.2
     styled-components: ^5.3.0
-  checksum: b2f3e9a6fc42c9c624c42cc7a28afb4db71b2bfd5b8c107ea9e41baa6a30cf5de31378fb2c6dd53710eb7cf01f5a1f7b06bc03a57ae3e9d2688d821f3a62e2a6
+  checksum: 426566c7ee8cbfeac1e76a48ccca21155522a995db3cc11999559bb6512ac2245ca1816e01fced17706d94dca9d96fc10451e10c9ac9f5cacd011fa8032b2d09
+  languageName: node
+  linkType: hard
+
+"@data-wrangling-components/utilities@npm:^0.2.1":
+  version: 0.2.1
+  resolution: "@data-wrangling-components/utilities@npm:0.2.1"
+  dependencies:
+    "@zip.js/zip.js": ^2.3.19
+    core-js: ^3.12.1
+  peerDependencies:
+    arquero: ^4.8.7
+  checksum: 6072d525a6c376cca2a5a7571a930ed56f8e3a800da1b27ab5b780ae67760dda3d71562568293f7f5d05a022e292157a2e9fd4137e7b6a59e962e8bce14ae00e
   languageName: node
   linkType: hard
 
@@ -3342,6 +3356,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@zip.js/zip.js@npm:^2.3.19":
+  version: 2.3.23
+  resolution: "@zip.js/zip.js@npm:2.3.23"
+  checksum: 07659e3aeabd50811f250eca32ff5dbfa92926e64a8980ce765fc99f9413afd7fd17a0a67cc35121156be4ddefe3a141646d67dbb9d5f2ee64723043804107dc
+  languageName: node
+  linkType: hard
+
 "abab@npm:^2.0.3, abab@npm:^2.0.5":
   version: 2.0.5
   resolution: "abab@npm:2.0.5"
@@ -3936,6 +3957,13 @@ __metadata:
   bin:
     atob: bin/atob.js
   checksum: dfeeeb70090c5ebea7be4b9f787f866686c645d9f39a0d184c817252d0cf08455ed25267d79c03254d3be1f03ac399992a792edcd5ffb9c91e097ab5ef42833a
+  languageName: node
+  linkType: hard
+
+"attr-accept@npm:^2.2.1":
+  version: 2.2.2
+  resolution: "attr-accept@npm:2.2.2"
+  checksum: 496f7249354ab53e522510c1dc8f67a1887382187adde4dc205507d2f014836a247073b05e9d9ea51e2e9c7f71b0d2aa21730af80efa9af2d68303e5f0565c4d
   languageName: node
   linkType: hard
 
@@ -6335,6 +6363,15 @@ __metadata:
   dependencies:
     flat-cache: ^3.0.4
   checksum: f49701feaa6314c8127c3c2f6173cfefff17612f5ed2daaafc6da13b5c91fd43e3b2a58fd0d63f9f94478a501b167615931e7200e31485e320f74a33885a9c74
+  languageName: node
+  linkType: hard
+
+"file-selector@npm:^0.2.2":
+  version: 0.2.4
+  resolution: "file-selector@npm:0.2.4"
+  dependencies:
+    tslib: ^2.0.3
+  checksum: 83341e7416352c7de0caf433b33c8d007d3c298c17d6ba0e70168af82bb045d905ddd6f4bc3ca764a2035c6f18eae7f52223dc6a784056f61b8391c351f88323
   languageName: node
   linkType: hard
 
@@ -10213,6 +10250,19 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
+"react-dropzone@npm:^11.4.2":
+  version: 11.4.2
+  resolution: "react-dropzone@npm:11.4.2"
+  dependencies:
+    attr-accept: ^2.2.1
+    file-selector: ^0.2.2
+    prop-types: ^15.7.2
+  peerDependencies:
+    react: ">= 16.8"
+  checksum: f8dc6af69193133efe30ed11dd8c2212a180abd3833e91d03dab4bdc9546d47dcad311d7f72b4968b7d016871884555b9e16f7a490913b78dbfec8ce8f569193
+  languageName: node
+  linkType: hard
+
 "react-fast-compare@npm:^2.0.1":
   version: 2.0.4
   resolution: "react-fast-compare@npm:2.0.4"
@@ -10821,9 +10871,9 @@ resolve@^2.0.0-next.3:
   linkType: hard
 
 "sds-wasm@file:../../target/wasm::locator=webapp%40workspace%3Apackages%2Fwebapp":
-  version: 1.0.0
-  resolution: "sds-wasm@file:../../target/wasm#../../target/wasm::hash=3f33a3&locator=webapp%40workspace%3Apackages%2Fwebapp"
-  checksum: dd8b934db19b301312cd3919ad007765652b8524dedbcd4dc742736d4567e02425db5ba5a5a40123be67492ff4117539f05445109d059b9e7452e65cfc51688b
+  version: 1.1.0
+  resolution: "sds-wasm@file:../../target/wasm#../../target/wasm::hash=d571f9&locator=webapp%40workspace%3Apackages%2Fwebapp"
+  checksum: 0cda09c3d8ae33d4b586fbf50468e55534adfec90cd9b94c898b60dfc5f5662d76987683fbf775c273cdd3a5c7bb1d5fcf7f5cd0749a72d6d8232672308dcc30
   languageName: node
   linkType: hard
 
@@ -11847,7 +11897,7 @@ resolve@^2.0.0-next.3:
   languageName: node
   linkType: hard
 
-"tslib@npm:^2.0.0, tslib@npm:^2.1.0, tslib@npm:^2.2.0":
+"tslib@npm:^2.0.0, tslib@npm:^2.0.3, tslib@npm:^2.1.0, tslib@npm:^2.2.0":
   version: 2.3.1
   resolution: "tslib@npm:2.3.1"
   checksum: de17a98d4614481f7fcb5cd53ffc1aaf8654313be0291e1bfaee4b4bb31a20494b7d218ff2e15017883e8ea9626599b3b0e0229c18383ba9dce89da2adf15cb9
@@ -12391,8 +12441,9 @@ typescript@^4.5.2:
   version: 0.0.0-use.local
   resolution: "webapp@workspace:packages/webapp"
   dependencies:
-    "@data-wrangling-components/core": ^0.2.0
-    "@data-wrangling-components/react": ^0.3.1
+    "@data-wrangling-components/core": ^0.4.3
+    "@data-wrangling-components/react": ^0.7.2
+    "@data-wrangling-components/utilities": ^0.2.1
     "@essex/scripts": ^18.2.0
     "@essex/vite-config": ^18.0.1
     "@fluentui/font-icons-mdl2": ^8.1.17

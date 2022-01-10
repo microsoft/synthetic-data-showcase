@@ -4,11 +4,11 @@
  */
 import { ArqueroDetailsList } from '@data-wrangling-components/react'
 import { IconButton, IIconProps, Stack, useTheme } from '@fluentui/react'
+import { useThematic } from '@thematic/react'
 import { memo, useRef } from 'react'
-import styled from 'styled-components'
+import styled, { ThemeProvider } from 'styled-components'
 import { useLimit, useOnDownloadCsvContent } from './hooks'
 import { ICsvContent } from '~models/csv'
-
 const downloadIcon: IIconProps = { iconName: 'Download' }
 
 export interface ICsvTableProps {
@@ -25,7 +25,7 @@ export const CsvTable: React.FC<ICsvTableProps> = memo(function CsvTable({
 	const downloadAnchorRef = useRef<HTMLAnchorElement>(null)
 
 	const theme = useTheme()
-
+	const thematic = useThematic()
 	const nItems = useLimit(content.table, takeFirstItems)
 
 	const onDownload = useOnDownloadCsvContent(
@@ -53,15 +53,19 @@ export const CsvTable: React.FC<ICsvTableProps> = memo(function CsvTable({
 					</Stack>
 				</Stack.Item>
 			</Stack>
-			<ArqueroDetailsList
-				table={content.table}
-				features={{
-					histogramColumnHeaders: true,
-					statsColumnHeaders: true,
-				}}
-				isSortable
-				showColumnBorders
-			/>
+			{/* this is a bit of a kludge to make sure a thematic theme object is available in our components
+			we need to differentiate the themes in styled-components better (preferably by making a better fluent + thematic union) */}
+			<ThemeProvider theme={thematic}>
+				<ArqueroDetailsList
+					table={content.table}
+					features={{
+						histogramColumnHeaders: true,
+						statsColumnHeaders: true,
+					}}
+					isSortable
+					showColumnBorders
+				/>
+			</ThemeProvider>
 		</Stack>
 	)
 })
