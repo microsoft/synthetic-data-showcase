@@ -47,11 +47,6 @@ export const CsvTable: React.FC<ICsvTableProps> = memo(function CsvTable({
 						}}
 						isSortable
 						showColumnBorders
-						styles={{
-							root: {
-								width: '100%',
-							},
-						}}
 					/>
 				</ThemeProvider>
 			</Stack.Item>
