@@ -143,7 +143,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 						<Stack.Item>
 							<CsvTable
 								content={syntheticContent}
-								downloadAlias="synthetic_data"
+								downloadAlias="synthetic_data.csv"
 							/>
 						</Stack.Item>
 					</Stack>

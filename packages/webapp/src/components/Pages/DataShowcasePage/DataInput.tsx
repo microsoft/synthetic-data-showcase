@@ -168,7 +168,6 @@ export const DataInput: React.FC = memo(function DataInput() {
 							table={sensitiveContent.table}
 							onChange={updateTable}
 						/>
-						{/* <DataBinning /> */}
 					</Stack.Item>
 				</>
 			)}
@@ -176,8 +175,7 @@ export const DataInput: React.FC = memo(function DataInput() {
 			<Stack.Item>
 				<CsvTable
 					content={sensitiveContent}
-					downloadAlias="sensitive_data"
-					takeFirstItems={recordLimit}
+					downloadAlias="sensitive_data.csv"
 				/>
 			</Stack.Item>
 		</Stack>
