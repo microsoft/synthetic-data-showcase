@@ -2,5 +2,8 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+export * from './useColumnsWithZeros'
+export * from './useOnUseColumnCheckToggle'
 export * from './useOnFileChange'
 export * from './useOnTableChange'
+export * from './useOnSensitiveZeroCheckChange'

@@ -46,7 +46,13 @@ export const CsvTable: React.FC<ICsvTableProps> = memo(function CsvTable({
 							statsColumnHeaders: true,
 						}}
 						isSortable
+						isHeadersFixed
 						showColumnBorders
+						styles={{
+							root: {
+								overflowX: 'scroll',
+							}
+						}}
 					/>
 				</ThemeProvider>
 			</Stack.Item>

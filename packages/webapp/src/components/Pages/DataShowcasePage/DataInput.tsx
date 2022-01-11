@@ -13,7 +13,7 @@ import {
 } from '@fluentui/react'
 import { memo } from 'react'
 import { CsvTable } from './CsvTable'
-import { useOnFileChange, useOnTableChange } from './hooks'
+import { useColumnsWithZeros, useOnUseColumnCheckToggle, useOnFileChange, useOnTableChange, useOnSensitiveZeroCheckToggle } from './hooks'
 import { DataTransform } from '~components/DataTransform'
 import { FileInputButton } from '~components/controls'
 import {
@@ -54,9 +54,9 @@ export const DataInput: React.FC = memo(function DataInput() {
 		childrenGap: theme.spacing.s1,
 	}
 
-	const sensitiveColumnsWithZeros = sensitiveContent.columnsWithZeros?.filter(
-		i => sensitiveContent.headers[i].use,
-	)
+	const sensitiveColumnsWithZeros = useColumnsWithZeros(sensitiveContent)
+	const handleUseCheckChange = useOnUseColumnCheckToggle(setSensitiveContent)
+	const handleSensitiveCheckChange = useOnSensitiveZeroCheckToggle(setSensitiveContent)
 
 	return (
 		<Stack styles={mainStackStyles} tokens={mainStackTokens}>
@@ -94,19 +94,7 @@ export const DataInput: React.FC = memo(function DataInput() {
 									label={h.name}
 									checked={h.use}
 									disabled={isProcessing}
-									onChange={() => {
-										setSensitiveContent({
-											...sensitiveContent,
-											headers: [
-												...sensitiveContent.headers.slice(0, i),
-												{
-													...sensitiveContent.headers[i],
-													use: !sensitiveContent.headers[i].use,
-												},
-												...sensitiveContent.headers.slice(i + 1),
-											],
-										})
-									}}
+									onChange={() => handleUseCheckChange(i)}
 								/>
 							))}
 						</Stack>
@@ -129,20 +117,7 @@ export const DataInput: React.FC = memo(function DataInput() {
 										label={h.name}
 										checked={h.hasSensitiveZeros}
 										disabled={isProcessing}
-										onChange={() => {
-											setSensitiveContent({
-												...sensitiveContent,
-												headers: [
-													...sensitiveContent.headers.slice(0, i),
-													{
-														...sensitiveContent.headers[i],
-														hasSensitiveZeros:
-															!sensitiveContent.headers[i].hasSensitiveZeros,
-													},
-													...sensitiveContent.headers.slice(i + 1),
-												],
-											})
-										}}
+										onChange={() => handleSensitiveCheckChange(i)}
 									/>
 								)
 							})}
