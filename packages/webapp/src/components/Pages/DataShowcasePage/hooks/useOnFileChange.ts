@@ -38,7 +38,6 @@ export function useOnFileChange(
 						setIsProcessing(false)
 						setSensitiveContent({
 							headers: tableHeaders(table),
-							items: rows(table),
 							columnsWithZeros: columnIndexesWithZeros(table),
 							delimiter: results.meta.delimiter,
 							table,

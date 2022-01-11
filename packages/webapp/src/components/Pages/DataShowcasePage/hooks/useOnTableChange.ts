@@ -4,7 +4,7 @@
  */
 import { introspect } from '@data-wrangling-components/core'
 import ColumnTable from 'arquero/dist/types/table/column-table'
-import { useCallback, ChangeEvent } from 'react'
+import { useCallback } from 'react'
 import { SetterOrUpdater } from 'recoil'
 import { ICsvContent } from '~models'
 /**
@@ -14,7 +14,7 @@ import { ICsvContent } from '~models'
  */
 export function useOnTableChange(
 	setter: SetterOrUpdater<ICsvContent>,
-): (e: ChangeEvent<HTMLInputElement>) => Promise<void> {
+): (table: ColumnTable) => void {
 	return useCallback(
 		(table: ColumnTable) => {
 			// TODO: we may want to recompute the sensitive zeros in case the new column has them?

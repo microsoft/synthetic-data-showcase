@@ -35,8 +35,8 @@ export const CsvTable: React.FC<ICsvTableProps> = memo(function CsvTable({
 				<ThemeProvider theme={thematic}>
 					<ArqueroTableHeader
 						table={content.table}
+						downloadFilename={downloadAlias}
 						allowDownload
-						downloadName={downloadAlias}
 					/>
 					<ArqueroDetailsList
 						table={content.table}

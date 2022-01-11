@@ -80,7 +80,6 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 		setIsProcessing(false)
 		setSyntheticContent({
 			headers: tableHeaders(table),
-			items: rows(table),
 			delimiter: sensitiveContent.delimiter,
 			table,
 			metadata: introspect(table, true),
