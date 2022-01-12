@@ -9,7 +9,7 @@ import { useCallback, ChangeEvent } from 'react'
 import { SetterOrUpdater } from 'recoil'
 import { ICsvContent } from '~models'
 import { DataClearer } from '~states'
-import { columnIndexesWithZeros, rows, tableHeaders } from '~utils/arquero'
+import { columnIndexesWithZeros, tableHeaders } from '~utils/arquero'
 /**
  * When a file is opened, reset the data state and instantiate a new table to work with.
  * @param setIsProcessing
