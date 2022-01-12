@@ -7,9 +7,13 @@ import { ICsvContent } from '~models'
 
 export function useColumnsWithZeros(
 	content: ICsvContent,
-): number[] | undefined {
+): string[] | undefined {
 	return useMemo(
-		() => content.columnsWithZeros?.filter(i => content.headers[i].use),
+		() =>
+			content.columnsWithZeros
+				?.map(i => content.headers[i])
+				.filter(h => h.use)
+				.map(h => h.name),
 		[content],
 	)
 }

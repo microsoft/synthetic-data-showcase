@@ -15,11 +15,13 @@ import { ICsvContent } from '~models/csv'
 export interface ICsvTableProps {
 	content: ICsvContent
 	commands?: ICommandBarItemProps[]
+	visibleColumns?: string[]
 }
 
 export const CsvTable: React.FC<ICsvTableProps> = memo(function CsvTable({
 	content,
 	commands = [],
+	visibleColumns,
 }: ICsvTableProps) {
 	const thematic = useThematic()
 
@@ -44,6 +46,7 @@ export const CsvTable: React.FC<ICsvTableProps> = memo(function CsvTable({
 						isSortable
 						isHeadersFixed
 						showColumnBorders
+						visibleColumns={visibleColumns}
 						styles={{
 							root: {
 								overflowX: 'scroll',

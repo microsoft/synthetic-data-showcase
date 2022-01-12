@@ -3,7 +3,6 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import {
-	Checkbox,
 	getTheme,
 	IStackStyles,
 	IStackTokens,
@@ -14,12 +13,10 @@ import {
 import { memo } from 'react'
 import { CsvTable } from './CsvTable'
 import {
-	useColumnsWithZeros,
-	useOnUseColumnCheckToggle,
 	useOnFileChange,
 	useOnTableChange,
-	useOnSensitiveZeroCheckToggle,
 	useSensitiveTableCommands,
+	useVisibleColumnNames,
 } from './hooks'
 import { DataTransform } from '~components/DataTransform'
 import { FileInputButton } from '~components/controls'
@@ -61,11 +58,13 @@ export const DataInput: React.FC = memo(function DataInput() {
 		childrenGap: theme.spacing.s1,
 	}
 
-	const sensitiveColumnsWithZeros = useColumnsWithZeros(sensitiveContent)
-	const handleUseCheckChange = useOnUseColumnCheckToggle(setSensitiveContent)
-	const handleSensitiveCheckChange =
-		useOnSensitiveZeroCheckToggle(setSensitiveContent)
-	const tableCommands = useSensitiveTableCommands(sensitiveContent.table)
+	const visibleColumns = useVisibleColumnNames(sensitiveContent)
+
+	const tableCommands = useSensitiveTableCommands(
+		sensitiveContent,
+		setSensitiveContent,
+	)
+
 	return (
 		<Stack styles={mainStackStyles} tokens={mainStackTokens}>
 			<Stack.Item>
@@ -88,52 +87,6 @@ export const DataInput: React.FC = memo(function DataInput() {
 					</Stack.Item>
 				</Stack>
 			</Stack.Item>
-
-			{sensitiveContent.table.numCols() > 0 && (
-				<>
-					<Stack.Item>
-						<Label>Use columns</Label>
-					</Stack.Item>
-					<Stack.Item>
-						<Stack wrap horizontal tokens={{ childrenGap: theme.spacing.s1 }}>
-							{sensitiveContent.headers.map((h, i) => (
-								<Checkbox
-									key={`${h.name}-${h.use}`}
-									label={h.name}
-									checked={h.use}
-									disabled={isProcessing}
-									onChange={() => handleUseCheckChange(i)}
-								/>
-							))}
-						</Stack>
-					</Stack.Item>
-				</>
-			)}
-
-			{sensitiveColumnsWithZeros?.length && (
-				<>
-					<Stack.Item>
-						<Label>Sensitive zeros</Label>
-					</Stack.Item>
-					<Stack.Item>
-						<Stack wrap horizontal tokens={{ childrenGap: theme.spacing.s1 }}>
-							{sensitiveColumnsWithZeros.map(i => {
-								const h = sensitiveContent.headers[i]
-								return (
-									<Checkbox
-										key={`${h.name}-${h.use}`}
-										label={h.name}
-										checked={h.hasSensitiveZeros}
-										disabled={isProcessing}
-										onChange={() => handleSensitiveCheckChange(i)}
-									/>
-								)
-							})}
-						</Stack>
-					</Stack.Item>
-				</>
-			)}
-
 			{sensitiveContent.table.numCols() > 0 && (
 				<>
 					<Stack.Item>
@@ -149,7 +102,11 @@ export const DataInput: React.FC = memo(function DataInput() {
 			)}
 
 			<Stack.Item>
-				<CsvTable content={sensitiveContent} commands={tableCommands} />
+				<CsvTable
+					content={sensitiveContent}
+					commands={tableCommands}
+					visibleColumns={visibleColumns}
+				/>
 			</Stack.Item>
 		</Stack>
 	)

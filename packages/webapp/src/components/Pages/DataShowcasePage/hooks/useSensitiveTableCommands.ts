@@ -2,13 +2,22 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { downloadCommand } from '@data-wrangling-components/react'
 import { ICommandBarItemProps } from '@fluentui/react'
-import ColumnTable from 'arquero/dist/types/table/column-table'
 import { useMemo } from 'react'
+import { SetterOrUpdater } from 'recoil'
+import {
+	useDownloadCommand,
+	useSensitiveZerosCommand,
+	useVisibleColumnsCommand,
+} from './commands'
+import { ICsvContent } from '~models'
 
 export function useSensitiveTableCommands(
-	table: ColumnTable,
+	content: ICsvContent,
+	setSensitiveContent: SetterOrUpdater<ICsvContent>,
 ): ICommandBarItemProps[] {
-	return useMemo(() => [downloadCommand(table, 'sensitive_data.csv')], [table])
+	const dlcmd = useDownloadCommand(content, 'sensitive_data.csv')
+	const vccmd = useVisibleColumnsCommand(content, setSensitiveContent)
+	const cicmd = useSensitiveZerosCommand(content, setSensitiveContent)
+	return useMemo(() => [dlcmd, vccmd, cicmd], [dlcmd, vccmd, cicmd])
 }
