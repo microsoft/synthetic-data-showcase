@@ -6,7 +6,7 @@ import {
 	ArqueroTableHeader,
 	ArqueroDetailsList,
 } from '@data-wrangling-components/react'
-import { Stack } from '@fluentui/react'
+import { ICommandBarItemProps, Stack } from '@fluentui/react'
 import { useThematic } from '@thematic/react'
 import { memo } from 'react'
 import { ThemeProvider } from 'styled-components'
@@ -14,12 +14,12 @@ import { ICsvContent } from '~models/csv'
 
 export interface ICsvTableProps {
 	content: ICsvContent
-	downloadAlias?: string
+	commands?: ICommandBarItemProps[]
 }
 
 export const CsvTable: React.FC<ICsvTableProps> = memo(function CsvTable({
 	content,
-	downloadAlias = 'download.csv',
+	commands = [],
 }: ICsvTableProps) {
 	const thematic = useThematic()
 
@@ -33,11 +33,7 @@ export const CsvTable: React.FC<ICsvTableProps> = memo(function CsvTable({
 		<Stack>
 			<Stack.Item>
 				<ThemeProvider theme={thematic}>
-					<ArqueroTableHeader
-						table={content.table}
-						downloadFilename={downloadAlias}
-						allowDownload
-					/>
+					<ArqueroTableHeader table={content.table} commands={commands} />
 					<ArqueroDetailsList
 						table={content.table}
 						metadata={content.metadata}
@@ -51,8 +47,8 @@ export const CsvTable: React.FC<ICsvTableProps> = memo(function CsvTable({
 						styles={{
 							root: {
 								overflowX: 'scroll',
-								border: `1px solid ${thematic.application().faint().hex()}`
-							}
+								border: `1px solid ${thematic.application().faint().hex()}`,
+							},
 						}}
 					/>
 				</ThemeProvider>

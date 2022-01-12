@@ -13,7 +13,14 @@ import {
 } from '@fluentui/react'
 import { memo } from 'react'
 import { CsvTable } from './CsvTable'
-import { useColumnsWithZeros, useOnUseColumnCheckToggle, useOnFileChange, useOnTableChange, useOnSensitiveZeroCheckToggle } from './hooks'
+import {
+	useColumnsWithZeros,
+	useOnUseColumnCheckToggle,
+	useOnFileChange,
+	useOnTableChange,
+	useOnSensitiveZeroCheckToggle,
+	useSensitiveTableCommands,
+} from './hooks'
 import { DataTransform } from '~components/DataTransform'
 import { FileInputButton } from '~components/controls'
 import {
@@ -56,8 +63,9 @@ export const DataInput: React.FC = memo(function DataInput() {
 
 	const sensitiveColumnsWithZeros = useColumnsWithZeros(sensitiveContent)
 	const handleUseCheckChange = useOnUseColumnCheckToggle(setSensitiveContent)
-	const handleSensitiveCheckChange = useOnSensitiveZeroCheckToggle(setSensitiveContent)
-
+	const handleSensitiveCheckChange =
+		useOnSensitiveZeroCheckToggle(setSensitiveContent)
+	const tableCommands = useSensitiveTableCommands(sensitiveContent.table)
 	return (
 		<Stack styles={mainStackStyles} tokens={mainStackTokens}>
 			<Stack.Item>
@@ -141,10 +149,7 @@ export const DataInput: React.FC = memo(function DataInput() {
 			)}
 
 			<Stack.Item>
-				<CsvTable
-					content={sensitiveContent}
-					downloadAlias="sensitive_data.csv"
-				/>
+				<CsvTable content={sensitiveContent} commands={tableCommands} />
 			</Stack.Item>
 		</Stack>
 	)

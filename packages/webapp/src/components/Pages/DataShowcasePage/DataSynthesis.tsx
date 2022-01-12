@@ -13,6 +13,7 @@ import {
 } from '@fluentui/react'
 import { memo, useCallback } from 'react'
 import { CsvTable } from './CsvTable'
+import { useSyntheticTableCommands } from './hooks'
 import {
 	useCacheSize,
 	useClearGenerate,
@@ -96,6 +97,8 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 		setProcessingProgress,
 	])
 
+	const tableCommands = useSyntheticTableCommands(syntheticContent.table)
+
 	return (
 		<Stack styles={mainStackStyles} tokens={mainStackTokens}>
 			<Stack.Item>
@@ -142,10 +145,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 					</Stack.Item>
 					<Stack tokens={subStackTokens}>
 						<Stack.Item>
-							<CsvTable
-								content={syntheticContent}
-								downloadAlias="synthetic_data.csv"
-							/>
+							<CsvTable content={syntheticContent} commands={tableCommands} />
 						</Stack.Item>
 					</Stack>
 				</>
