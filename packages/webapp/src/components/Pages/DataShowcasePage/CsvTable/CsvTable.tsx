@@ -51,6 +51,7 @@ export const CsvTable: React.FC<ICsvTableProps> = memo(function CsvTable({
 						styles={{
 							root: {
 								overflowX: 'scroll',
+								border: `1px solid ${thematic.application().faint().hex()}`
 							}
 						}}
 					/>
