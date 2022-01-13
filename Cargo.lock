@@ -775,6 +775,7 @@ dependencies = [
  "env_logger",
  "log",
  "sds-core",
+ "statrs",
  "structopt",
 ]
 
