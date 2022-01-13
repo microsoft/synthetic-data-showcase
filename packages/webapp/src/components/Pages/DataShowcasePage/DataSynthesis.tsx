@@ -97,7 +97,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 		setProcessingProgress,
 	])
 
-	const tableCommands = useSyntheticTableCommands(syntheticContent.table)
+	const tableCommands = useSyntheticTableCommands(syntheticContent)
 
 	return (
 		<Stack styles={mainStackStyles} tokens={mainStackTokens}>
