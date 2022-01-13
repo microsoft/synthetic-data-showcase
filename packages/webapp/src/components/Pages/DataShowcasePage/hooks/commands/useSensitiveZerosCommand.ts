@@ -31,13 +31,17 @@ export function useSensitiveZerosCommand(
 		},
 		[content.table, handleSensitiveCheckChange],
 	)
-
 	return useMemo(
 		() =>
 			checkedItemsCommand(
 				columnsWithZeros || [],
 				selectedZeros,
 				handleZeroCheckChangeByName,
+				{
+					key: 'sensitive-zeros',
+					text: 'Sensitive zeros',
+					disabled: columnsWithZeros?.length === 0
+				}
 			),
 		[columnsWithZeros, selectedZeros, handleZeroCheckChangeByName],
 	)

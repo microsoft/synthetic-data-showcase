@@ -33,6 +33,10 @@ export function useVisibleColumnsCommand(
 				content.table,
 				visibleColumns,
 				handleCheckChangeByName,
+				{
+					key: 'use-columns',
+					text: 'Use columns'
+				}
 			),
 		[content, visibleColumns, handleCheckChangeByName],
 	)

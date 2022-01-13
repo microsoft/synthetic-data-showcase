@@ -39,12 +39,17 @@ export function columnIndexesWithZeros(table: ColumnTable): number[] {
 /**
  * Creates a default set of header config based on the table
  * @param table
+ * @param existing - optional existing headers to check for completion
  * @returns
  */
-export function tableHeaders(table: ColumnTable): ICsvTableHeader[] {
+export function tableHeaders(table: ColumnTable, existing?: ICsvTableHeader[]): ICsvTableHeader[] {
+	const hash = (existing || []).reduce((acc, cur) => {
+		acc[cur.name] = cur
+		return acc
+	}, {} as Record<string, ICsvTableHeader>)
 	return table.columnNames().map(
 		(h, i) =>
-			({
+			(hash[h] ? hash[h] : {
 				name: h,
 				fieldName: i.toString(),
 				use: true,
