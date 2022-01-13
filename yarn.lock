@@ -1520,11 +1520,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@data-wrangling-components/core@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "@data-wrangling-components/core@npm:1.0.0"
+"@data-wrangling-components/core@npm:1.0.1":
+  version: 1.0.1
+  resolution: "@data-wrangling-components/core@npm:1.0.1"
   dependencies:
-    core-js: ^3.12.1
+    core-js: ^3.20.2
     lodash: ^4.17.21
   peerDependencies:
     "@types/node": "*"
@@ -1532,13 +1532,13 @@ __metadata:
   peerDependenciesMeta:
     "@types/node":
       optional: true
-  checksum: 5492e01d59c8d60e194fb6e34c0b335248611b78624bc7cb9b649c1fb3bc2648d821e6ec62ea4f52bfa81d26ffb14e989aa5b8ec4c234bfb7c819606067c47e2
+  checksum: decf77970a2f477aef9fd671c206926f5f9f3f3d97b0f56ff0146048d355a8413d8b7b7ec406d3af3da88c684bafc02b82d570ae123985dc87fac8923e396e19
   languageName: node
   linkType: hard
 
-"@data-wrangling-components/react@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "@data-wrangling-components/react@npm:1.0.1"
+"@data-wrangling-components/react@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "@data-wrangling-components/react@npm:1.1.0"
   dependencies:
     core-js: ^3.20.2
     d3-format: ^3.1.0
@@ -1566,19 +1566,19 @@ __metadata:
     react: ^17.0.2
     react-dom: ^17.0.2
     styled-components: ^5.3.0
-  checksum: 8e8298b878ba3fa01113e8f9f7a54b97e796bfa01398623ae9d9ce1e8e4db94066af43962d500f866c0234cb911d8ef240a714a0c913e2c18278e6215f1c5b2a
+  checksum: 75e19f1f5ec3b70d1cff0e59f533d89340dd0a0dd23bed95a317e1dcaac683f7c0b5ee9036124b6264867c61fecc72627e1fa070424613fb9760b7b8e7a87328
   languageName: node
   linkType: hard
 
-"@data-wrangling-components/utilities@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "@data-wrangling-components/utilities@npm:1.1.0"
+"@data-wrangling-components/utilities@npm:^1.1.1":
+  version: 1.1.1
+  resolution: "@data-wrangling-components/utilities@npm:1.1.1"
   dependencies:
     "@zip.js/zip.js": ^2.3.19
     core-js: ^3.12.1
   peerDependencies:
     arquero: ^4.8.7
-  checksum: 5161730faa6f1288de1e67cae34a405c1ed726eb224d89aa3cd004b3e7f66b03cf462f65aeee9d32bc89a61164eebc942a06dfbbca8654fa03b7be11064c4ef7
+  checksum: bddbcfaa9dfcb86d959fafe3db3a311c78341544357f22921c2d148485150a926b6186968acd0c8b7b71a312888c0bc648ef03adc02e851ab7b242bcec703742
   languageName: node
   linkType: hard
 
@@ -12448,9 +12448,9 @@ typescript@^4.5.2:
   version: 0.0.0-use.local
   resolution: "webapp@workspace:packages/webapp"
   dependencies:
-    "@data-wrangling-components/core": ^1.0.0
-    "@data-wrangling-components/react": ^1.0.1
-    "@data-wrangling-components/utilities": ^1.1.0
+    "@data-wrangling-components/core": 1.0.1
+    "@data-wrangling-components/react": ^1.1.0
+    "@data-wrangling-components/utilities": ^1.1.1
     "@essex/scripts": ^18.2.0
     "@essex/vite-config": ^18.0.1
     "@fluentui/font-icons-mdl2": ^8.1.17
