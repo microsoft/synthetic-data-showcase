@@ -23,8 +23,8 @@ use crate::{
 };
 
 pub struct RowsAggregatorResult {
-    pub all_combs_count: u64,
-    pub selected_combs_count: u64,
+    pub all_combs_count: f64,
+    pub selected_combs_count: f64,
     pub aggregates_count: AggregatesCountMap,
     pub records_sensitivity: RecordsSensitivity,
 }
@@ -36,8 +36,8 @@ impl RowsAggregatorResult {
 
         records_sensitivity.resize(total_n_records, 0);
         RowsAggregatorResult {
-            all_combs_count: 0,
-            selected_combs_count: 0,
+            all_combs_count: 0.0,
+            selected_combs_count: 0.0,
             aggregates_count: AggregatesCountMap::default(),
             records_sensitivity,
         }
@@ -185,7 +185,7 @@ impl<'length_range> RowsAggregator<'length_range> {
                     current_count.count += 1;
                     current_count.contained_in_records.insert(*record_index);
                     result.records_sensitivity[*record_index] += 1;
-                    result.selected_combs_count += 1;
+                    result.selected_combs_count += 1.0;
                 }
             }
             SendableProgressReporter::update_progress(progress_reporter, 1.0);

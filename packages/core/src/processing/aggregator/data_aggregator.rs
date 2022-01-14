@@ -103,7 +103,7 @@ impl Aggregator {
         );
         info!(
             "suppression ratio of aggregates is {:.2}%",
-            (1.0 - (result.selected_combs_count as f64 / result.all_combs_count as f64)) * 100.0
+            (1.0 - (result.selected_combs_count / result.all_combs_count)) * 100.0
         );
 
         AggregatedData::new(

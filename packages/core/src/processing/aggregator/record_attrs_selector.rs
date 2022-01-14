@@ -86,7 +86,7 @@ impl<'length_range> RecordAttrsSelector<'length_range> {
             0
         } else {
             let length_range = self.length_range;
-            let sensitivity_threshold = self.sensitivity_threshold as u64;
+            let sensitivity_threshold = self.sensitivity_threshold as f64;
 
             *self.cache.entry(n_attributes).or_insert_with(|| {
                 let mut suppressed_count = 0_usize;
