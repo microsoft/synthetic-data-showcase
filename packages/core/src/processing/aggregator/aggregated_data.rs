@@ -3,7 +3,7 @@ use super::{
     records_analysis_data::RecordsAnalysisData,
     typedefs::{
         AggregatedCountByLenMap, AggregatesCountMap, AggregatesCountStringMap, RecordsByLenMap,
-        RecordsSensitivity,
+        RecordsSensitivityByLen, ALL_SENSITIVITIES_INDEX,
     },
 };
 use itertools::Itertools;
@@ -32,7 +32,8 @@ pub struct AggregatedData {
     /// Maps a value combination to its aggregated count
     pub aggregates_count: AggregatesCountMap,
     /// A vector of sensitivities for each record (the vector index is the record index)
-    pub records_sensitivity: RecordsSensitivity,
+    /// grouped by combination length
+    pub records_sensitivity_by_len: RecordsSensitivityByLen,
     /// Maximum length used to compute attribute combinations
     pub reporting_length: usize,
 }
@@ -44,7 +45,7 @@ impl AggregatedData {
         AggregatedData {
             data_block: Arc::new(DataBlock::default()),
             aggregates_count: AggregatesCountMap::default(),
-            records_sensitivity: RecordsSensitivity::default(),
+            records_sensitivity_by_len: RecordsSensitivityByLen::default(),
             reporting_length: 0,
         }
     }
@@ -59,13 +60,13 @@ impl AggregatedData {
     pub fn new(
         data_block: Arc<DataBlock>,
         aggregates_count: AggregatesCountMap,
-        records_sensitivity: RecordsSensitivity,
+        records_sensitivity_by_len: RecordsSensitivityByLen,
         reporting_length: usize,
     ) -> AggregatedData {
         AggregatedData {
             data_block,
             aggregates_count,
-            records_sensitivity,
+            records_sensitivity_by_len,
             reporting_length,
         }
     }
@@ -113,7 +114,7 @@ impl AggregatedData {
     }
 
     #[inline]
-    pub fn _write_aggregates_count<T: Write>(
+    fn _write_aggregates_count<T: Write>(
         &self,
         writer: &mut T,
         aggregates_delimiter: char,
@@ -155,6 +156,46 @@ impl AggregatedData {
         }
         Ok(())
     }
+
+    #[inline]
+    fn gen_records_sensitivity_headers(&self, records_sensitivity_delimiter: char) -> String {
+        let mut headers = format!(
+            "record_index{}record_sensitivity_all_lengths",
+            records_sensitivity_delimiter
+        );
+
+        for l in 1..=self.reporting_length {
+            headers.push_str(&format!(
+                "{}record_sensitivity_length_{}",
+                records_sensitivity_delimiter, l
+            ));
+        }
+        headers.push('\n');
+        headers
+    }
+
+    #[inline]
+    fn gen_records_sensitivity_line(
+        &self,
+        record_index: usize,
+        records_sensitivity_delimiter: char,
+    ) -> String {
+        let mut line = format!(
+            "{}{}{}",
+            record_index,
+            records_sensitivity_delimiter,
+            self.records_sensitivity_by_len[ALL_SENSITIVITIES_INDEX][record_index]
+        );
+
+        for l in 1..=self.reporting_length {
+            line.push_str(&format!(
+                "{}{}",
+                records_sensitivity_delimiter, self.records_sensitivity_by_len[l][record_index]
+            ));
+        }
+        line.push('\n');
+        line
+    }
 }
 
 #[cfg_attr(feature = "pyo3", pymethods)]
@@ -181,10 +222,11 @@ impl AggregatedData {
 
     #[cfg(feature = "pyo3")]
     /// A vector of sensitivities for each record (the vector index is the record index)
+    /// grouped by combination length
     /// This method will clone the data, so its recommended to have its result stored
     /// in a local variable to avoid it being called multiple times
-    pub fn get_records_sensitivity(&self) -> RecordsSensitivity {
-        self.records_sensitivity.clone()
+    pub fn get_records_sensitivity_by_len(&self) -> RecordsSensitivityByLen {
+        self.records_sensitivity_by_len.clone()
     }
 
     /// Round the aggregated counts down to the nearest multiple of resolution
@@ -440,15 +482,14 @@ impl AggregatedData {
         let mut file = std::io::BufWriter::new(std::fs::File::create(records_sensitivity_path)?);
 
         file.write_all(
-            format!(
-                "record_index{}record_sensitivity\n",
-                records_sensitivity_delimiter
-            )
-            .as_bytes(),
+            self.gen_records_sensitivity_headers(records_sensitivity_delimiter)
+                .as_bytes(),
         )?;
-        for (i, sensitivity) in self.records_sensitivity.iter().enumerate() {
+
+        for record_index in 0..self.data_block.records.len() {
             file.write_all(
-                format!("{}{}{}\n", i, records_sensitivity_delimiter, sensitivity).as_bytes(),
+                self.gen_records_sensitivity_line(record_index, records_sensitivity_delimiter)
+                    .as_bytes(),
             )?
         }
         Ok(())

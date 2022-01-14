@@ -25,6 +25,13 @@ pub type RecordsByLenMap = FnvHashMap<usize, RecordsSet>;
 /// A vector of sensitivities for each record (the vector index is the record index)
 pub type RecordsSensitivity = Vec<usize>;
 
+/// The record sensitivity calculated grouped by combination length
+/// Index ALL_SENSITIVITIES_INDEX means the sum for all lengths
+pub type RecordsSensitivityByLen = Vec<RecordsSensitivity>;
+
+/// First index meaning the sum for all lengths in RecordsSensitivityByLen
+pub const ALL_SENSITIVITIES_INDEX: usize = 0;
+
 /// Slice of RecordsSensitivity
 pub type RecordsSensitivitySlice = [usize];
 
