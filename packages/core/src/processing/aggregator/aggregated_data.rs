@@ -6,9 +6,12 @@ use super::{
         RecordsSensitivityByLen, ALL_SENSITIVITIES_INDEX,
     },
 };
+use fnv::FnvHashMap;
 use itertools::Itertools;
 use log::info;
+use rand::{prelude::Distribution as rand_dist, thread_rng};
 use serde::{Deserialize, Serialize};
+use statrs::{distribution::Normal, statistics::Distribution};
 use std::{
     io::{BufReader, BufWriter, Error, Write},
     sync::Arc,
@@ -21,6 +24,8 @@ use crate::{
     data_block::block::DataBlock,
     dp::{
         aggregated_data_sensitivity_filter::AggregatedDataSensitivityFilter,
+        analytic_gaussian::{DpAnalyticGaussianContinuousCDFScale, DEFAULT_TOLERANCE},
+        stats_error::StatsError,
         typedefs::AllowedSensitivityByLen,
     },
     processing::aggregator::typedefs::RecordsSet,
@@ -262,6 +267,57 @@ impl AggregatedData {
 
         AggregatedDataSensitivityFilter::new(self)
             .filter_sensitivities(percentile_percentage, epsilon)
+    }
+
+    /// Add gaussian noise to the aggregate counts based on the `allowed_sensitivity_by_len`
+    /// grouped by length.
+    /// # Arguments:
+    /// * `epsilon` - privacy budget used to generate noise per length
+    /// * `delta` - allowed proportion to leak
+    /// * `allowed_sensitivity_by_len` - allowed sensitivities computed by combination length
+    pub fn add_gaussian_noise(
+        &mut self,
+        epsilon: f64,
+        delta: f64,
+        allowed_sensitivity_by_len: AllowedSensitivityByLen,
+    ) -> Result<(), StatsError> {
+        info!(
+            "applying gaussian noise to aggregates using epsilon = {} and delta = {}",
+            epsilon, delta
+        );
+        let _duration_logger = ElapsedDurationLogger::new("add gaussian noise");
+        let mut noise: FnvHashMap<usize, Normal> = FnvHashMap::default();
+
+        // generate the noise normal distribution by length
+        for (length, l1_sensitivity) in allowed_sensitivity_by_len.iter().sorted() {
+            let n = Normal::new_analytic_gaussian(
+                f64::sqrt(*l1_sensitivity as f64),
+                epsilon,
+                delta,
+                DEFAULT_TOLERANCE,
+            )?;
+
+            info!(
+                "for length = {} the calculated sigma for the noise is {:.2}",
+                length,
+                n.std_dev().unwrap()
+            );
+            noise.insert(*length, n);
+        }
+
+        for (comb, count) in self.aggregates_count.iter_mut() {
+            if let Some(n) = noise.get(&comb.len()) {
+                // if it becomes negative, drop the count
+                count.count = f64::max(
+                    0.0,
+                    ((count.count as f64) + n.sample(&mut thread_rng())).ceil(),
+                ) as usize;
+            }
+        }
+
+        self.remove_zero_counts();
+
+        Ok(())
     }
 
     /// Round the aggregated counts down to the nearest multiple of resolution

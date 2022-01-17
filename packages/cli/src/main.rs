@@ -92,6 +92,27 @@ enum Command {
             requires = "filter-sensitivities"
         )]
         sensitivities_epsilon: Option<f64>,
+
+        #[structopt(
+            long = "add-noise",
+            help = "add gaussian noise to the aggregates",
+            requires_all = &["filter-sensitivities", "noise-epsilon"]
+        )]
+        add_noise: bool,
+
+        #[structopt(
+            long = "noise-epsilon",
+            help = "epsilon used to generate noise that will be added to the aggregate counts",
+            requires = "add-noise"
+        )]
+        noise_epsilon: Option<f64>,
+
+        #[structopt(
+            long = "noise-delta",
+            help = "delta used to generate noise that will be added to the aggregate counts [default: 1/(2 * number of records)]",
+            requires = "add-noise"
+        )]
+        noise_delta: Option<f64>,
     },
 }
 
@@ -202,8 +223,11 @@ fn main() {
                 filter_sensitivities,
                 sensitivities_percentile,
                 sensitivities_epsilon,
+                add_noise,
+                noise_delta,
+                noise_epsilon,
             } => {
-                let mut aggregator = Aggregator::new(data_block);
+                let mut aggregator = Aggregator::new(data_block.clone());
                 let mut aggregated_data = aggregator.aggregate(
                     reporting_length,
                     sensitivity_threshold,
@@ -212,10 +236,24 @@ fn main() {
                 let privacy_risk = aggregated_data.calc_privacy_risk(cli.resolution);
 
                 if filter_sensitivities {
-                    aggregated_data.filter_sensitivities(
+                    let allowed_sensitivity_by_len = aggregated_data.filter_sensitivities(
                         sensitivities_percentile.unwrap(),
                         sensitivities_epsilon.unwrap(),
                     );
+
+                    if add_noise {
+                        let delta = noise_delta
+                            .unwrap_or(1.0 / (2.0 * (data_block.number_of_records() as f64)));
+
+                        if let Err(err) = aggregated_data.add_gaussian_noise(
+                            noise_epsilon.unwrap(),
+                            delta,
+                            allowed_sensitivity_by_len,
+                        ) {
+                            error!("error applying gaussian noise: {}", err);
+                            process::exit(1);
+                        }
+                    }
                 }
 
                 if !not_protect {
