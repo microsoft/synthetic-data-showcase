@@ -34,8 +34,9 @@ impl<'aggregated_data> AggregatedDataSensitivityFilter<'aggregated_data> {
         }
     }
 
-    /// Filters aggregates counts for records to ensure that the final sensitivity
+    /// Filters aggregates counts for each record to ensure that the final sensitivity
     /// for each record will be `<= percentile_percentage`.
+    /// Returns the maximum allowed sensitivity by combination length.
     /// # Arguments
     /// * `percentile_percentage` - percentage used to calculate the percentile that filters sensitivity
     /// * `epsilon` - epsilon used to generate noise when selecting the `percentile_percentage`-th percentile
@@ -61,11 +62,11 @@ impl<'aggregated_data> AggregatedDataSensitivityFilter<'aggregated_data> {
             .all(|(length, sensitivity)| filtered_max_sensitivities[*length] <= *sensitivity));
 
         debug!(
-            "sensitivities after percentile filtering: {:?}",
+            "sensitivities before percentile filtering: {:?}",
             max_sensitivities
         );
         debug!(
-            "sensitivities before percentile filtering: {:?}",
+            "sensitivities after percentile filtering: {:?}",
             filtered_max_sensitivities
         );
 
@@ -210,8 +211,8 @@ impl<'aggregated_data> AggregatedDataSensitivityFilter<'aggregated_data> {
                 .unwrap_or(0);
 
             info!(
-                "finding combinations of length {} to be removed across all records",
-                length
+                "finding combinations of length {} to be removed across all records for allowed sensitivity of {}",
+                length, allowed_sensitivity
             );
             let combs_to_remove_by_record =
                 self.find_combinations_to_remove(length, allowed_sensitivity);

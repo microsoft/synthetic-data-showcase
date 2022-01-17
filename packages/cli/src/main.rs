@@ -71,6 +71,27 @@ enum Command {
 
         #[structopt(long = "records-sensitivity-path", help = "records sensitivity path")]
         records_sensitivity_path: Option<String>,
+
+        #[structopt(
+            long = "filter-sensitivities",
+            help = "suppress combination contributions to meet a certain sensitivity criteria",
+            requires_all = &["sensitivities-percentile", "sensitivities-epsilon"]
+        )]
+        filter_sensitivities: bool,
+
+        #[structopt(
+            long = "sensitivities-percentile",
+            help = "percentile used as record sensitivity filter",
+            requires = "filter-sensitivities"
+        )]
+        sensitivities_percentile: Option<usize>,
+
+        #[structopt(
+            long = "sensitivities-epsilon",
+            help = "epsilon used to generate noise used for the sensitivity filter selection",
+            requires = "filter-sensitivities"
+        )]
+        sensitivities_epsilon: Option<f64>,
     },
 }
 
@@ -178,6 +199,9 @@ fn main() {
                 not_protect,
                 sensitivity_threshold,
                 records_sensitivity_path,
+                filter_sensitivities,
+                sensitivities_percentile,
+                sensitivities_epsilon,
             } => {
                 let mut aggregator = Aggregator::new(data_block);
                 let mut aggregated_data = aggregator.aggregate(
@@ -186,6 +210,13 @@ fn main() {
                     &mut progress_reporter,
                 );
                 let privacy_risk = aggregated_data.calc_privacy_risk(cli.resolution);
+
+                if filter_sensitivities {
+                    aggregated_data.filter_sensitivities(
+                        sensitivities_percentile.unwrap(),
+                        sensitivities_epsilon.unwrap(),
+                    );
+                }
 
                 if !not_protect {
                     aggregated_data.protect_aggregates_count(cli.resolution);

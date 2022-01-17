@@ -19,6 +19,10 @@ use pyo3::prelude::*;
 
 use crate::{
     data_block::block::DataBlock,
+    dp::{
+        aggregated_data_sensitivity_filter::AggregatedDataSensitivityFilter,
+        typedefs::AllowedSensitivityByLen,
+    },
     processing::aggregator::typedefs::RecordsSet,
     utils::{math::uround_down, time::ElapsedDurationLogger},
 };
@@ -231,10 +235,33 @@ impl AggregatedData {
 
     /// Removed aggregate counts equals to zero (`0`) from the final result
     pub fn remove_zero_counts(&mut self) {
+        info!("removing zero counts from aggregates");
         let _duration_logger = ElapsedDurationLogger::new("remove zero counts");
 
         // remove 0 counts from response
         self.aggregates_count.retain(|_, count| count.count > 0);
+    }
+
+    /// Filters aggregates counts for each record to ensure that the final sensitivity
+    /// for each record will be `<= percentile_percentage`.
+    /// Returns the maximum allowed sensitivity by combination length.
+    /// # Arguments
+    /// * `percentile_percentage` - percentage used to calculate the percentile that filters sensitivity
+    /// * `epsilon` - epsilon used to generate noise when selecting the `percentile_percentage`-th percentile
+    /// for sensitivity
+    pub fn filter_sensitivities(
+        &mut self,
+        percentile_percentage: usize,
+        epsilon: f64,
+    ) -> AllowedSensitivityByLen {
+        info!(
+            "filtering aggregate counts by record sensitivity with percentile = {} and epsilon = {}",
+            percentile_percentage, epsilon
+        );
+        let _duration_logger = ElapsedDurationLogger::new("filter sensitivities");
+
+        AggregatedDataSensitivityFilter::new(self)
+            .filter_sensitivities(percentile_percentage, epsilon)
     }
 
     /// Round the aggregated counts down to the nearest multiple of resolution
