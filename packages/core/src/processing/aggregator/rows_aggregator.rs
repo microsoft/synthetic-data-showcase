@@ -212,9 +212,9 @@ impl<'length_range> RowsAggregator<'length_range> {
                     let comb_len = c.len();
                     let current_count = result
                         .aggregates_count
-                        .entry(ValueCombination::new(
+                        .entry(Arc::new(ValueCombination::new(
                             c.drain(..).map(|k| (*k).clone()).collect(),
-                        ))
+                        )))
                         .or_insert_with(AggregatedCount::default);
                     current_count.count += 1;
                     current_count.contained_in_records.insert(*record_index);

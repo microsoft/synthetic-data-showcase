@@ -2,6 +2,7 @@ use super::preservation_by_count::{PreservationByCountBucketBins, PreservationBy
 use super::rare_combinations_comparison_data::RareCombinationsComparisonData;
 use fnv::FnvHashSet;
 use log::info;
+use std::sync::Arc;
 
 #[cfg(feature = "pyo3")]
 use pyo3::prelude::*;
@@ -126,7 +127,7 @@ impl Evaluator {
             .unwrap_or(&0);
         let bins: PreservationByCountBucketBins = PreservationByCountBucketBins::new(max_syn_count);
         let mut buckets: PreservationByCountBuckets = PreservationByCountBuckets::default();
-        let mut processed_combs: FnvHashSet<&ValueCombination> = FnvHashSet::default();
+        let mut processed_combs: FnvHashSet<&Arc<ValueCombination>> = FnvHashSet::default();
 
         for (comb, count) in sensitive_aggregated_data.aggregates_count.iter() {
             // exclude sensitive rare combinations
@@ -183,7 +184,7 @@ impl Evaluator {
         );
 
         let mut buckets: PreservationByLengthBuckets = PreservationByLengthBuckets::default();
-        let mut processed_combs: FnvHashSet<&ValueCombination> = FnvHashSet::default();
+        let mut processed_combs: FnvHashSet<&Arc<ValueCombination>> = FnvHashSet::default();
 
         for (comb, count) in sensitive_aggregated_data.aggregates_count.iter() {
             // exclude sensitive rare combinations

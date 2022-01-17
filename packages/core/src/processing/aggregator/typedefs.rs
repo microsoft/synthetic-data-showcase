@@ -5,13 +5,13 @@ use super::{
 use fnv::{FnvHashMap, FnvHashSet};
 use std::sync::Arc;
 
-use crate::data_block::record::DataBlockRecord;
+use crate::data_block::{record::DataBlockRecord, value::DataBlockValue};
 
 /// Set of records where the key is the record index starting in 0
 pub type RecordsSet = FnvHashSet<usize>;
 
 /// Maps a value combination to its aggregated count
-pub type AggregatesCountMap = FnvHashMap<ValueCombination, AggregatedCount>;
+pub type AggregatesCountMap = FnvHashMap<Arc<ValueCombination>, AggregatedCount>;
 
 /// Maps a value combination represented as a string to its aggregated count
 pub type AggregatesCountStringMap = FnvHashMap<String, AggregatedCount>;
@@ -41,3 +41,5 @@ pub type EnumeratedDataBlockRecords = Vec<(usize, Arc<DataBlockRecord>)>;
 
 /// Map of records analysis grouped by combination len
 pub type RecordsAnalysisByLenMap = FnvHashMap<usize, RecordsAnalysis>;
+
+pub type ValueCombinationRefSet<'value> = FnvHashSet<&'value Arc<DataBlockValue>>;
