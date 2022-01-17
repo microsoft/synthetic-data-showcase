@@ -1,6 +1,6 @@
-/// Defines a wrapper to aggregated data to make the
-/// aggregate counts differential private
-pub mod aggregated_data_transformer;
+/// Defines a wrapper to filter aggregate counts by sensitivity
+/// using differential privacy
+pub mod aggregated_data_sensitivity_filter;
 
 /// Defines functions and structures to create
 /// normal distributions using the Analytic Gaussian Mechanism

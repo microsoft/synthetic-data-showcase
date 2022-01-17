@@ -13,25 +13,24 @@ use crate::processing::aggregator::{
 };
 
 /// Structure that takes a reference to the aggregated data
-/// and provide ways to make the aggregate counts differential private
-pub struct AggregatedDataTransformer<'aggregated_data> {
+/// and provide ways to make filter aggregate counts by sensitivity
+/// using differential privacy
+pub struct AggregatedDataSensitivityFilter<'aggregated_data> {
     combs_by_record: CombinationsByRecord,
     aggregated_data: &'aggregated_data mut AggregatedData,
-    allowed_sensitivity_by_len: AllowedSensitivityByLen,
 }
 
-impl<'aggregated_data> AggregatedDataTransformer<'aggregated_data> {
-    /// Creates a new AggregatedDataTransformer for the given aggregated data
+impl<'aggregated_data> AggregatedDataSensitivityFilter<'aggregated_data> {
+    /// Creates a new AggregatedDataSensitivityFilter for the given aggregated data
     #[inline]
     pub fn new(
         aggregated_data: &'aggregated_data mut AggregatedData,
-    ) -> AggregatedDataTransformer<'aggregated_data> {
-        AggregatedDataTransformer {
-            combs_by_record: AggregatedDataTransformer::make_combinations_by_record(
+    ) -> AggregatedDataSensitivityFilter<'aggregated_data> {
+        AggregatedDataSensitivityFilter {
+            combs_by_record: AggregatedDataSensitivityFilter::make_combinations_by_record(
                 aggregated_data,
             ),
             aggregated_data,
-            allowed_sensitivity_by_len: AllowedSensitivityByLen::default(),
         }
     }
 
@@ -41,21 +40,23 @@ impl<'aggregated_data> AggregatedDataTransformer<'aggregated_data> {
     /// * `percentile_percentage` - percentage used to calculate the percentile that filters sensitivity
     /// * `epsilon` - epsilon used to generate noise when selecting the `percentile_percentage`-th percentile
     /// for sensitivity
-    pub fn filter_sensitivities(&mut self, percentile_percentage: usize, epsilon: f64) {
+    pub fn filter_sensitivities(
+        &mut self,
+        percentile_percentage: usize,
+        epsilon: f64,
+    ) -> AllowedSensitivityByLen {
         info!(
             "filtering sensitivities with percentile = {} and epsilon = {}",
             percentile_percentage, epsilon
         );
 
         let max_sensitivities: Vec<usize> = self.get_max_sensitivities_by_len();
-
-        self.filter_allowed_sensitivity_by_len(percentile_percentage, epsilon);
-
+        let allowed_sensitivity_by_len: AllowedSensitivityByLen =
+            self.filter_allowed_sensitivity_by_len(percentile_percentage, epsilon);
         let filtered_max_sensitivities: Vec<usize> = self.get_max_sensitivities_by_len();
 
         // validate the filtering
-        assert!(self
-            .allowed_sensitivity_by_len
+        assert!(allowed_sensitivity_by_len
             .iter()
             .all(|(length, sensitivity)| filtered_max_sensitivities[*length] <= *sensitivity));
 
@@ -69,7 +70,9 @@ impl<'aggregated_data> AggregatedDataTransformer<'aggregated_data> {
         );
 
         // remove 0 counts from final result
-        self.aggregated_data.remove_zero_counts()
+        self.aggregated_data.remove_zero_counts();
+
+        allowed_sensitivity_by_len
     }
 
     #[inline]
@@ -178,15 +181,19 @@ impl<'aggregated_data> AggregatedDataTransformer<'aggregated_data> {
         combs_to_remove_by_record
     }
 
-    fn filter_allowed_sensitivity_by_len(&mut self, percentile_percentage: usize, epsilon: f64) {
-        self.allowed_sensitivity_by_len = AllowedSensitivityByLen::default();
+    fn filter_allowed_sensitivity_by_len(
+        &mut self,
+        percentile_percentage: usize,
+        epsilon: f64,
+    ) -> AllowedSensitivityByLen {
+        let mut allowed_sensitivity_by_len = AllowedSensitivityByLen::default();
 
         if self.aggregated_data.reporting_length < 2 {
-            return;
+            return allowed_sensitivity_by_len;
         }
 
         // for the length = 1 do not filter sensitivity
-        self.allowed_sensitivity_by_len.insert(
+        allowed_sensitivity_by_len.insert(
             1,
             *self.aggregated_data.records_sensitivity_by_len[1]
                 .iter()
@@ -217,8 +224,8 @@ impl<'aggregated_data> AggregatedDataTransformer<'aggregated_data> {
                 );
                 self.remove_combs_contributions_for_records(&combs_to_remove_by_record);
             }
-            self.allowed_sensitivity_by_len
-                .insert(length, allowed_sensitivity);
+            allowed_sensitivity_by_len.insert(length, allowed_sensitivity);
         }
+        allowed_sensitivity_by_len
     }
 }
