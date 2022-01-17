@@ -67,6 +67,9 @@ impl<'aggregated_data> AggregatedDataTransformer<'aggregated_data> {
             "sensitivities before percentile filtering: {:?}",
             filtered_max_sensitivities
         );
+
+        // remove 0 counts from final result
+        self.aggregated_data.remove_zero_counts()
     }
 
     #[inline]

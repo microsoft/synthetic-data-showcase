@@ -229,6 +229,14 @@ impl AggregatedData {
         self.records_sensitivity_by_len.clone()
     }
 
+    /// Removed aggregate counts equals to zero (`0`) from the final result
+    pub fn remove_zero_counts(&mut self) {
+        let _duration_logger = ElapsedDurationLogger::new("remove zero counts");
+
+        // remove 0 counts from response
+        self.aggregates_count.retain(|_, count| count.count > 0);
+    }
+
     /// Round the aggregated counts down to the nearest multiple of resolution
     /// # Arguments:
     /// * `resolution` - Reporting resolution used for data synthesis
@@ -243,8 +251,7 @@ impl AggregatedData {
         for count in self.aggregates_count.values_mut() {
             count.count = uround_down(count.count as f64, resolution as f64);
         }
-        // remove 0 counts from response
-        self.aggregates_count.retain(|_, count| count.count > 0);
+        self.remove_zero_counts()
     }
 
     /// Calculates the records that contain rare combinations grouped by length.
