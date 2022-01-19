@@ -16,8 +16,8 @@ export function useSensitiveTableCommands(
 	content: ICsvContent,
 	setSensitiveContent: SetterOrUpdater<ICsvContent>,
 ): ICommandBarItemProps[] {
-	const dlcmd = useDownloadCommand(content, 'sensitive_data.csv')
 	const vccmd = useVisibleColumnsCommand(content, setSensitiveContent)
 	const cicmd = useSensitiveZerosCommand(content, setSensitiveContent)
-	return useMemo(() => [dlcmd, vccmd, cicmd], [dlcmd, vccmd, cicmd])
+	const dlcmd = useDownloadCommand(content, 'sensitive_data.csv')
+	return useMemo(() => [vccmd, cicmd, dlcmd], [dlcmd, vccmd, cicmd])
 }
