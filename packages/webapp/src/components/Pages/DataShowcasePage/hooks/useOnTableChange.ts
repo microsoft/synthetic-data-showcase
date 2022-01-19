@@ -6,7 +6,7 @@ import { introspect } from '@data-wrangling-components/core'
 import ColumnTable from 'arquero/dist/types/table/column-table'
 import { useCallback } from 'react'
 import { SetterOrUpdater } from 'recoil'
-import { ICsvContent, ICsvTableHeader } from '~models'
+import { ICsvContent } from '~models'
 import { tableHeaders } from '~utils/arquero'
 /**
  * When a table is updated, recompute it's metadata and place in state
