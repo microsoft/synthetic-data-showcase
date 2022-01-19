@@ -193,6 +193,8 @@ impl<'aggregated_data> AggregatedDataSensitivityFilter<'aggregated_data> {
             return allowed_sensitivity_by_len;
         }
 
+        let epsilon_by_length = epsilon / ((self.aggregated_data.reporting_length - 1) as f64);
+
         // for the length = 1 do not filter sensitivity
         allowed_sensitivity_by_len.insert(
             1,
@@ -207,12 +209,12 @@ impl<'aggregated_data> AggregatedDataSensitivityFilter<'aggregated_data> {
                 DpPercentile::new(self.aggregated_data.records_sensitivity_by_len[length].clone());
             let allowed_sensitivity = percentile_selector
                 .kth_percentile_quality_scores_iter(percentile_percentage)
-                .get_noisy_max(epsilon)
+                .get_noisy_max(epsilon_by_length)
                 .unwrap_or(0);
 
             info!(
-                "finding combinations of length {} to be removed across all records for allowed sensitivity of {}",
-                length, allowed_sensitivity
+                "finding combinations of length {} to be removed across all records for allowed sensitivity of {} [used privacy budget is {}]",
+                length, allowed_sensitivity, epsilon_by_length
             );
             let combs_to_remove_by_record =
                 self.find_combinations_to_remove(length, allowed_sensitivity);

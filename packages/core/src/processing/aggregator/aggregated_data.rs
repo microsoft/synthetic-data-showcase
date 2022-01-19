@@ -272,7 +272,7 @@ impl AggregatedData {
     /// Add gaussian noise to the aggregate counts based on the `allowed_sensitivity_by_len`
     /// grouped by length.
     /// # Arguments:
-    /// * `epsilon` - privacy budget used to generate noise per length
+    /// * `epsilon` - privacy budget used to generate noise (split for all lengths)
     /// * `delta` - allowed proportion to leak
     /// * `allowed_sensitivity_by_len` - allowed sensitivities computed by combination length
     pub fn add_gaussian_noise(
@@ -287,20 +287,22 @@ impl AggregatedData {
         );
         let _duration_logger = ElapsedDurationLogger::new("add gaussian noise");
         let mut noise: FnvHashMap<usize, Normal> = FnvHashMap::default();
+        let epsilon_by_length = epsilon / (allowed_sensitivity_by_len.len() as f64);
 
         // generate the noise normal distribution by length
         for (length, l1_sensitivity) in allowed_sensitivity_by_len.iter().sorted() {
             let n = Normal::new_analytic_gaussian(
                 f64::sqrt(*l1_sensitivity as f64),
-                epsilon,
+                epsilon_by_length,
                 delta,
                 DEFAULT_TOLERANCE,
             )?;
 
             info!(
-                "for length = {} the calculated sigma for the noise is {:.2}",
+                "for length = {} the calculated sigma for the noise is {:.2} [used privacy budget is {}]",
                 length,
-                n.std_dev().unwrap()
+                n.std_dev().unwrap(),
+                epsilon_by_length
             );
             noise.insert(*length, n);
         }
