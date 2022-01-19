@@ -310,7 +310,7 @@ impl AggregatedData {
                 // if it becomes negative, drop the count
                 count.count = f64::max(
                     0.0,
-                    ((count.count as f64) + n.sample(&mut thread_rng())).ceil(),
+                    ((count.count as f64) + n.sample(&mut thread_rng())).round(),
                 ) as usize;
             }
         }
