@@ -2,7 +2,9 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { CsvRecord } from 'sds-wasm'
+import { TableMetadata } from '@data-wrangling-components/core'
+import { table } from 'arquero'
+import ColumnTable from 'arquero/dist/types/table/column-table'
 
 export interface ICsvTableHeader {
 	name: string
@@ -13,14 +15,15 @@ export interface ICsvTableHeader {
 
 export interface ICsvContent {
 	headers: ICsvTableHeader[]
-	items: CsvRecord[]
 	columnsWithZeros?: number[]
 	delimiter: string
+	table: ColumnTable
+	metadata?: TableMetadata
 }
 
 export const defaultCsvContent: ICsvContent = {
 	headers: [],
-	items: [],
 	columnsWithZeros: undefined,
 	delimiter: ',',
+	table: table({}),
 }

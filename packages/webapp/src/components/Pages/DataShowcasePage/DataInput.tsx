@@ -2,40 +2,27 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import {
-	Checkbox,
-	getTheme,
-	IconButton,
-	IIconProps,
-	IStackStyles,
-	IStackTokens,
-	Label,
-	Stack,
-	TextField,
-} from '@fluentui/react'
-import { parse } from 'papaparse'
-import { memo, useCallback, useRef } from 'react'
+import { ColumnTransformModal } from '@data-wrangling-components/react'
+import { getTheme, IStackStyles, IStackTokens, Stack } from '@fluentui/react'
+import { useBoolean } from '@fluentui/react-hooks'
+import { useThematic } from '@thematic/react'
+import { memo } from 'react'
+import { ThemeProvider } from 'styled-components'
 import { CsvTable } from './CsvTable'
-import { DataBinning } from '~components/DataBinning'
-import { ICsvTableHeader } from '~models'
 import {
-	useClearSensitiveData,
-	useIsProcessing,
-	useRecordLimit,
-	useSensitiveContent,
-	useWasmWorkerValue,
-} from '~states'
-
-const openFileIcon: IIconProps = { iconName: 'FabricOpenFolderHorizontal' }
+	useOnFileChange,
+	useOnTableChange,
+	useOnTransformColumn,
+	useSensitiveTableCommands,
+	useVisibleColumnNames,
+} from './hooks'
+import { FileInputButton } from '~components/controls'
+import { useSensitiveContent } from '~states'
 
 export const DataInput: React.FC = memo(function DataInput() {
-	const [recordLimit, setRecordLimit] = useRecordLimit()
-	const [isProcessing, setIsProcessing] = useIsProcessing()
 	const [sensitiveContent, setSensitiveContent] = useSensitiveContent()
-	const worker = useWasmWorkerValue()
-	const clearSensitiveData = useClearSensitiveData()
-
-	const inputFile = useRef<HTMLInputElement>(null)
+	const onFileChange = useOnFileChange(setSensitiveContent)
+	const updateTable = useOnTableChange(setSensitiveContent)
 
 	const theme = getTheme()
 
@@ -56,176 +43,49 @@ export const DataInput: React.FC = memo(function DataInput() {
 		childrenGap: theme.spacing.s1,
 	}
 
-	const onFileChange = useCallback(
-		async (e: React.ChangeEvent<HTMLInputElement>) => {
-			const f = e.target.files?.[0]
+	const visibleColumns = useVisibleColumnNames(sensitiveContent)
 
-			if (f) {
-				setIsProcessing(true)
-				await clearSensitiveData()
+	const [isModalOpen, { setTrue: showModal, setFalse: hideModal }] =
+		useBoolean(false)
 
-				parse<Array<string>>(f, {
-					complete: async results => {
-						const headers =
-							results.data[0]?.map(
-								(h, i) =>
-									({
-										name: h,
-										fieldName: i.toString(),
-										use: true,
-										hasSensitiveZeros: false,
-									} as ICsvTableHeader),
-							) ?? []
-						const items = results.data?.slice(1) ?? []
-
-						setIsProcessing(false)
-						setSensitiveContent({
-							headers,
-							items,
-							columnsWithZeros: await worker?.findColumnsWithZeros(items),
-							delimiter: results.meta.delimiter,
-						})
-						// allow the same file to be loaded again
-						if (inputFile.current) {
-							inputFile.current.value = ''
-						}
-					},
-				})
-			}
-		},
-		[worker, setIsProcessing, setSensitiveContent, clearSensitiveData],
+	const tableCommands = useSensitiveTableCommands(
+		sensitiveContent,
+		setSensitiveContent,
+		showModal,
 	)
 
-	const sensitiveColumnsWithZeros = sensitiveContent.columnsWithZeros?.filter(
-		i => sensitiveContent.headers[i].use,
+	const handleTransformRequested = useOnTransformColumn(
+		sensitiveContent,
+		updateTable,
 	)
 
+	const thematic = useThematic()
 	return (
 		<Stack styles={mainStackStyles} tokens={mainStackTokens}>
-			<Stack.Item>
-				<h3>Input file with sensitive records</h3>
-			</Stack.Item>
+			<ThemeProvider theme={thematic}>
+				<ColumnTransformModal
+					headerText={'Transform column'}
+					table={sensitiveContent.table}
+					isOpen={isModalOpen}
+					onDismiss={hideModal}
+					onTransformRequested={handleTransformRequested}
+					hideOutputColumn
+				/>
+			</ThemeProvider>
 			<Stack.Item>
 				<Stack tokens={subStackTokens} horizontal>
-					<Stack.Item>
-						<TextField
-							label="Record Limit"
-							type="number"
-							value={recordLimit.toString()}
-							disabled={isProcessing}
-							required
-							onChange={(_, newValue) => setRecordLimit(+(newValue ?? 0))}
-						/>
-					</Stack.Item>
 					<Stack.Item align="end">
-						<IconButton
-							iconProps={openFileIcon}
-							title="Load file"
-							ariaLabel="Load File"
-							onClick={() => {
-								inputFile.current?.click()
-							}}
-						/>
-						<input
-							type="file"
-							multiple={false}
-							disabled={isProcessing}
-							onChange={onFileChange}
-							ref={inputFile}
-							style={{ display: 'none' }}
-						/>
+						<FileInputButton onChange={onFileChange} disabled={false}>
+							Open sensitive data file
+						</FileInputButton>
 					</Stack.Item>
 				</Stack>
 			</Stack.Item>
-
-			{sensitiveContent.items.length && (
-				<>
-					<Stack.Item>
-						<Label>Use columns</Label>
-					</Stack.Item>
-					<Stack.Item>
-						<Stack wrap horizontal tokens={{ childrenGap: theme.spacing.s1 }}>
-							{sensitiveContent.headers.map((h, i) => (
-								<Checkbox
-									key={`${h.name}-${h.use}`}
-									label={h.name}
-									checked={h.use}
-									disabled={isProcessing}
-									onChange={() => {
-										setSensitiveContent({
-											...sensitiveContent,
-											headers: [
-												...sensitiveContent.headers.slice(0, i),
-												{
-													...sensitiveContent.headers[i],
-													use: !sensitiveContent.headers[i].use,
-												},
-												...sensitiveContent.headers.slice(i + 1),
-											],
-										})
-									}}
-								/>
-							))}
-						</Stack>
-					</Stack.Item>
-				</>
-			)}
-
-			{sensitiveColumnsWithZeros?.length && (
-				<>
-					<Stack.Item>
-						<Label>Sensitive zeros</Label>
-					</Stack.Item>
-					<Stack.Item>
-						<Stack wrap horizontal tokens={{ childrenGap: theme.spacing.s1 }}>
-							{sensitiveColumnsWithZeros.map(i => {
-								const h = sensitiveContent.headers[i]
-								return (
-									<Checkbox
-										key={`${h.name}-${h.use}`}
-										label={h.name}
-										checked={h.hasSensitiveZeros}
-										disabled={isProcessing}
-										onChange={() => {
-											setSensitiveContent({
-												...sensitiveContent,
-												headers: [
-													...sensitiveContent.headers.slice(0, i),
-													{
-														...sensitiveContent.headers[i],
-														hasSensitiveZeros:
-															!sensitiveContent.headers[i].hasSensitiveZeros,
-													},
-													...sensitiveContent.headers.slice(i + 1),
-												],
-											})
-										}}
-									/>
-								)
-							})}
-						</Stack>
-					</Stack.Item>
-				</>
-			)}
-
-			{sensitiveContent.items.length && (
-				<>
-					<Stack.Item>
-						<Label>Data binning</Label>
-					</Stack.Item>
-					<Stack.Item>
-						<DataBinning />
-					</Stack.Item>
-				</>
-			)}
-
 			<Stack.Item>
 				<CsvTable
 					content={sensitiveContent}
-					pageSize={10}
-					downloadAlias="sensitive_data"
-					disable={isProcessing}
-					takeFirstItems={recordLimit}
+					commands={tableCommands}
+					visibleColumns={visibleColumns}
 				/>
 			</Stack.Item>
 		</Stack>

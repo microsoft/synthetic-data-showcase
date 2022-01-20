@@ -6,35 +6,34 @@ import {
 	getTheme,
 	IStackStyles,
 	IStackTokens,
+	Position,
 	PrimaryButton,
+	SpinButton,
 	Stack,
-	TextField,
 } from '@fluentui/react'
-import { memo, useCallback } from 'react'
-import { ICsvTableHeader } from 'src/models/csv'
+import { memo } from 'react'
 import { CsvTable } from './CsvTable'
 import {
+	useOnRunGenerate,
+	useSpinButtonOnChange,
+	useSyntheticTableCommands,
+} from './hooks'
+import {
 	useCacheSize,
-	useClearGenerate,
-	useIsProcessing,
-	useProcessingProgressSetter,
-	useRecordLimitValue,
+	useIsProcessingValue,
+	useRecordLimit,
 	useResolution,
 	useSensitiveContentValue,
 	useSyntheticContent,
-	useWasmWorkerValue,
 } from '~states'
 
 export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 	const [resolution, setResolution] = useResolution()
+	const [recordLimit, setRecordLimit] = useRecordLimit()
 	const [cacheSize, setCacheSize] = useCacheSize()
-	const [isProcessing, setIsProcessing] = useIsProcessing()
-	const [syntheticContent, setSyntheticContent] = useSyntheticContent()
-	const worker = useWasmWorkerValue()
-	const recordLimit = useRecordLimitValue()
+	const isProcessing = useIsProcessingValue()
 	const sensitiveContent = useSensitiveContentValue()
-	const setProcessingProgress = useProcessingProgressSetter()
-	const clearGenerate = useClearGenerate()
+	const [syntheticContent, setSyntheticContent] = useSyntheticContent()
 
 	const theme = getTheme()
 
@@ -55,77 +54,55 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 		childrenGap: theme.spacing.s1,
 	}
 
-	const onRunGenerate = useCallback(async () => {
-		setIsProcessing(true)
-		await clearGenerate()
-		setProcessingProgress(0.0)
-
-		const response = await worker?.generate(
-			[sensitiveContent.headers.map(h => h.name), ...sensitiveContent.items],
-			sensitiveContent.headers.filter(h => h.use).map(h => h.name),
-			sensitiveContent.headers
-				.filter(h => h.hasSensitiveZeros)
-				.map(h => h.name),
-			recordLimit,
-			resolution,
-			cacheSize,
-			p => {
-				setProcessingProgress(p)
-			},
-		)
-
-		setIsProcessing(false)
-		setSyntheticContent({
-			headers:
-				response?.[0]?.map(
-					(h, i) =>
-						({
-							name: h,
-							fieldName: i.toString(),
-							use: true,
-							hasSensitiveZeros: false,
-						} as ICsvTableHeader),
-				) ?? [],
-			items: response?.slice(1) ?? [],
-			delimiter: sensitiveContent.delimiter,
-		})
-	}, [
-		worker,
-		setIsProcessing,
+	const onRunGenerate = useOnRunGenerate(
 		setSyntheticContent,
-		clearGenerate,
-		sensitiveContent,
-		recordLimit,
 		resolution,
+		recordLimit,
 		cacheSize,
-		setProcessingProgress,
-	])
+	)
+
+	const tableCommands = useSyntheticTableCommands(syntheticContent)
+
+	const handleResolutionChange = useSpinButtonOnChange(setResolution)
+	const handleRecordLimitChange = useSpinButtonOnChange(setRecordLimit)
+	const handleCacheSizeChange = useSpinButtonOnChange(setCacheSize)
 
 	return (
 		<Stack styles={mainStackStyles} tokens={mainStackTokens}>
 			<Stack.Item>
-				<h3>Data synthesis parameters</h3>
-			</Stack.Item>
-			<Stack.Item>
 				<Stack tokens={subStackTokens} horizontal>
 					<Stack.Item>
-						<TextField
+						<SpinButton
 							label="Resolution"
-							type="number"
+							labelPosition={Position.top}
+							min={1}
+							step={1}
 							value={resolution.toString()}
 							disabled={isProcessing}
-							required
-							onChange={(_, newValue) => setResolution(+(newValue ?? 0))}
+							onChange={handleResolutionChange}
 						/>
 					</Stack.Item>
 					<Stack.Item>
-						<TextField
+						<SpinButton
+							label="Record Limit"
+							labelPosition={Position.top}
+							min={1}
+							max={sensitiveContent.table.numRows()}
+							step={10}
+							value={recordLimit.toString()}
+							disabled={isProcessing}
+							onChange={handleRecordLimitChange}
+						/>
+					</Stack.Item>
+					<Stack.Item>
+						<SpinButton
 							label="Cache size"
-							type="number"
+							labelPosition={Position.top}
+							min={1}
+							step={1000}
 							value={cacheSize.toString()}
 							disabled={isProcessing}
-							required
-							onChange={(_, newValue) => setCacheSize(+(newValue ?? 0))}
+							onChange={handleCacheSizeChange}
 						/>
 					</Stack.Item>
 					<Stack.Item align="end">
@@ -140,18 +117,14 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 				</Stack>
 			</Stack.Item>
 
-			{syntheticContent.items.length && (
+			{syntheticContent.table.numCols() > 0 && (
 				<>
 					<Stack.Item>
 						<h3>Synthetic data</h3>
 					</Stack.Item>
 					<Stack tokens={subStackTokens}>
 						<Stack.Item>
-							<CsvTable
-								content={syntheticContent}
-								pageSize={10}
-								downloadAlias="synthetic_data"
-							/>
+							<CsvTable content={syntheticContent} commands={tableCommands} />
 						</Stack.Item>
 					</Stack>
 				</>

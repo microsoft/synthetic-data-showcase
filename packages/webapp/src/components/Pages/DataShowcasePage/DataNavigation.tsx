@@ -12,8 +12,17 @@ import {
 	IconButton,
 	Separator,
 } from '@fluentui/react'
-import { memo, useCallback, useEffect, useRef, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import { IAttributesIntersection, ISelectedAttributesByColumn } from 'sds-wasm'
+import {
+	useInitiallySelectedHeaders,
+	useOnClearSelectedAttributes,
+	useOnGoBack,
+	useOnNewSelectedAttributesByColumn,
+	useOnRunNavigate,
+	useOnSetSelectedAttributes,
+	useOnToggleSelectedHeader,
+} from './hooks/navigation'
 import {
 	ColumnAttributeSelectorGrid,
 	HeaderSelector,
@@ -27,8 +36,6 @@ import {
 } from '~states'
 
 const backIcon: IIconProps = { iconName: 'Back' }
-
-const initiallySelectedHeaders = 6
 
 const viewHeight = 'calc(100vh - 225px)'
 
@@ -49,8 +56,34 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 	const setSelectedPipelineStep = useSelectedPipelineStepSetter()
 	const isMounted = useRef(true)
 	const headers = useSyntheticHeaders()
+	const initiallySelectedHeaders = useInitiallySelectedHeaders(headers)
 	const [selectedHeaders, setSelectedHeaders] = useState<boolean[]>(
-		headers.map((_, i) => i < initiallySelectedHeaders),
+		initiallySelectedHeaders,
+	)
+	const setNewSelectedAttributesByColumn = useOnNewSelectedAttributesByColumn(
+		setIsLoading,
+		isMounted,
+		setSelectedAttributesByColumn,
+		worker,
+	)
+	const onSetSelectedAttributes = useOnSetSelectedAttributes(
+		setNewSelectedAttributesByColumn,
+		selectedAttributesByColumn,
+	)
+	const onClearSelectedAttributes = useOnClearSelectedAttributes(
+		setNewSelectedAttributesByColumn,
+	)
+	const onGoBack = useOnGoBack(setSelectedPipelineStep, PipelineStep.Evaluate)
+	const onToggleSelectedHeader = useOnToggleSelectedHeader(
+		selectedHeaders,
+		setSelectedHeaders,
+	)
+	const onRunNavigate = useOnRunNavigate(
+		setIsLoading,
+		isMounted,
+		setSelectedHeaders,
+		initiallySelectedHeaders,
+		worker,
 	)
 	const theme = useTheme()
 
@@ -71,66 +104,9 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 		childrenGap: theme.spacing.s1,
 	}
 
-	const setNewSelectedAttributesByColumn = useCallback(
-		async (newSelectedAttributesByColumn: ISelectedAttributesByColumn) => {
-			if (worker) {
-				setIsLoading(true)
-				const result = await worker.selectAttributes(
-					newSelectedAttributesByColumn,
-				)
-
-				if (isMounted.current && result) {
-					setSelectedAttributesByColumn(newSelectedAttributesByColumn)
-					setIsLoading(false)
-				}
-			}
-		},
-		[worker, setIsLoading, isMounted, setSelectedAttributesByColumn],
-	)
-
-	const onSetSelectedAttributes = useCallback(
-		async (headerIndex: number, item: IAttributesIntersection | undefined) => {
-			setNewSelectedAttributesByColumn({
-				...selectedAttributesByColumn,
-				[headerIndex]:
-					item !== undefined
-						? new Set<string>([item.value])
-						: new Set<string>(),
-			})
-		},
-		[setNewSelectedAttributesByColumn, selectedAttributesByColumn],
-	)
-
-	const onClearSelectedAttributes = useCallback(async () => {
-		setNewSelectedAttributesByColumn({})
-	}, [setNewSelectedAttributesByColumn])
-
-	const onGoBack = useCallback(() => {
-		setSelectedPipelineStep(PipelineStep.Evaluate)
-	}, [setSelectedPipelineStep])
-
-	const onToggleSelectedHeader = useCallback(
-		async index => {
-			const newSelectedHeaders = [...selectedHeaders]
-			newSelectedHeaders[index] = !newSelectedHeaders[index]
-			await setSelectedHeaders(newSelectedHeaders)
-		},
-		[setSelectedHeaders, selectedHeaders],
-	)
-
 	useEffect(() => {
-		if (worker) {
-			setIsLoading(true)
-			worker.navigate().then(result => {
-				if (isMounted.current && result) {
-					setSelectedHeaders(
-						headers.map((_, i) => i < initiallySelectedHeaders),
-					)
-					setIsLoading(false)
-				}
-			})
-		}
-	}, [setIsLoading, worker, isMounted, setSelectedHeaders, headers])
+		onRunNavigate()
+	}, [onRunNavigate])
 
 	useEffect(() => {
 		return () => {

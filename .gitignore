@@ -27,6 +27,9 @@ deploy.zip
 german_credit_showcase/
 credit_config.json
 *data*/
+!DataTransform/
+!DataShowcasePage/
+!DataBinning/
 !data_block/
 !dataShowcaseContext/
 *output*/

@@ -7,6 +7,7 @@ import {
 	SetterOrUpdater,
 	useRecoilState,
 	useRecoilValue,
+	useResetRecoilState,
 	useSetRecoilState,
 } from 'recoil'
 import { IEvaluateResult } from 'sds-wasm'
@@ -29,4 +30,8 @@ export function useEvaluateResultValue(): IEvaluateResult | null {
 
 export function useEvaluateResultSetter(): SetterOrUpdater<IEvaluateResult | null> {
 	return useSetRecoilState(state)
+}
+
+export function useResetEvaluateResult(): () => void {
+	return useResetRecoilState(state)
 }

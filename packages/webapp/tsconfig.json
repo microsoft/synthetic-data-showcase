@@ -11,7 +11,8 @@
 			"~models": ["src/models/index.ts"],
 			"~models/*": ["src/models/*"],
 			"~states": ["src/states/index.ts"],
-			"~states/*": ["src/states/*"]
+			"~states/*": ["src/states/*"],
+			"~workers/*": ["./src/workers/*"]
 		},
 		"allowJs": true,
 		"lib": ["ESNext", "DOM"],
