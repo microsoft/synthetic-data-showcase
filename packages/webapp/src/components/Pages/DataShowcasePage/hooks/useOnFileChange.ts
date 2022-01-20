@@ -8,8 +8,13 @@ import { parse } from 'papaparse'
 import { useCallback, ChangeEvent } from 'react'
 import { SetterOrUpdater } from 'recoil'
 import { ICsvContent } from '~models'
-import { useClearSensitiveData, useIsProcessingSetter } from '~states'
+import {
+	useClearSensitiveData,
+	useIsProcessingSetter,
+	useRecordLimitSetter,
+} from '~states'
 import { columnIndexesWithZeros, tableHeaders } from '~utils/arquero'
+
 /**
  * When a file is opened, reset the data state and instantiate a new table to work with.
  * @param setIsProcessing
@@ -22,6 +27,8 @@ export function useOnFileChange(
 ): (e: ChangeEvent<HTMLInputElement>) => Promise<void> {
 	const setIsProcessing = useIsProcessingSetter()
 	const clearSensitiveData = useClearSensitiveData()
+	const setRecordLimit = useRecordLimitSetter()
+
 	return useCallback(
 		async (e: ChangeEvent<HTMLInputElement>) => {
 			const f = e.target.files?.[0]
@@ -34,6 +41,7 @@ export function useOnFileChange(
 					header: true,
 					complete: async results => {
 						const table = from(results.data)
+
 						setIsProcessing(false)
 						setSensitiveContent({
 							headers: tableHeaders(table),
@@ -42,12 +50,13 @@ export function useOnFileChange(
 							table,
 							metadata: introspect(table, true),
 						})
+						setRecordLimit(table.numRows())
 						// allow the same file to be loaded again
 						e.target.value = ''
 					},
 				})
 			}
 		},
-		[setIsProcessing, clearSensitiveData, setSensitiveContent],
+		[setIsProcessing, clearSensitiveData, setSensitiveContent, setRecordLimit],
 	)
 }

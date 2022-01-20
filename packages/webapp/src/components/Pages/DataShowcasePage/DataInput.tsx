@@ -2,7 +2,6 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-
 import { ColumnTransformModal } from '@data-wrangling-components/react'
 import { getTheme, IStackStyles, IStackTokens, Stack } from '@fluentui/react'
 import { useBoolean } from '@fluentui/react-hooks'

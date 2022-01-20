@@ -15,7 +15,8 @@ import { ICsvContent, ICsvTableHeader } from '~models'
  */
 export function fromRows(rows?: CsvData, delimiter = ','): ColumnTable {
 	// TEMP: we're re-creating the raw text so arquero can auto-detect types
-	if (rows) {
+	// we should have at least the header + rows
+	if (rows && rows.length > 1) {
 		const csv = rows.map(d => d.join(delimiter)).join('\n')
 		return fromCSV(csv, { delimiter })
 	}
@@ -42,19 +43,23 @@ export function columnIndexesWithZeros(table: ColumnTable): number[] {
  * @param existing - optional existing headers to check for completion
  * @returns
  */
-export function tableHeaders(table: ColumnTable, existing?: ICsvTableHeader[]): ICsvTableHeader[] {
+export function tableHeaders(
+	table: ColumnTable,
+	existing?: ICsvTableHeader[],
+): ICsvTableHeader[] {
 	const hash = (existing || []).reduce((acc, cur) => {
 		acc[cur.name] = cur
 		return acc
 	}, {} as Record<string, ICsvTableHeader>)
-	return table.columnNames().map(
-		(h, i) =>
-			(hash[h] ? hash[h] : {
-				name: h,
-				fieldName: i.toString(),
-				use: true,
-				hasSensitiveZeros: false,
-			} as ICsvTableHeader),
+	return table.columnNames().map((h, i) =>
+		hash[h]
+			? hash[h]
+			: ({
+					name: h,
+					fieldName: i.toString(),
+					use: true,
+					hasSensitiveZeros: false,
+			  } as ICsvTableHeader),
 	)
 }
 

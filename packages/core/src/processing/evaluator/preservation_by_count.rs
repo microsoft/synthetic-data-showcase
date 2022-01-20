@@ -82,7 +82,13 @@ impl PreservationByCountBuckets {
 
         self.buckets_map
             .values()
-            .map(|b| 1.0 - (b.preservation_sum / (b.size as f64)))
+            .map(|b| {
+                if b.size > 0 {
+                    1.0 - (b.preservation_sum / (b.size as f64))
+                } else {
+                    0.0
+                }
+            })
             .sum::<f64>()
             / (self.buckets_map.len() as f64)
     }

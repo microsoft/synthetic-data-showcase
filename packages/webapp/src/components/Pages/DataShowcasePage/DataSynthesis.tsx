@@ -23,6 +23,7 @@ import {
 	useIsProcessingValue,
 	useRecordLimit,
 	useResolution,
+	useSensitiveContentValue,
 	useSyntheticContent,
 } from '~states'
 
@@ -31,6 +32,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 	const [recordLimit, setRecordLimit] = useRecordLimit()
 	const [cacheSize, setCacheSize] = useCacheSize()
 	const isProcessing = useIsProcessingValue()
+	const sensitiveContent = useSensitiveContentValue()
 	const [syntheticContent, setSyntheticContent] = useSyntheticContent()
 
 	const theme = getTheme()
@@ -85,6 +87,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 							label="Record Limit"
 							labelPosition={Position.top}
 							min={1}
+							max={sensitiveContent.table.numRows()}
 							step={10}
 							value={recordLimit.toString()}
 							disabled={isProcessing}

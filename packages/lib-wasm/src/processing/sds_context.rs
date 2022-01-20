@@ -116,7 +116,7 @@ impl SDSContext {
             self.generate_result.synthetic_data_to_js()?,
             self.use_columns.clone().unchecked_into(),
             self.sensitive_zeros.clone().unchecked_into(),
-            self.record_limit,
+            0, // always process all the synthetic data
         )?;
         self.clear_evaluate();
         Ok(())

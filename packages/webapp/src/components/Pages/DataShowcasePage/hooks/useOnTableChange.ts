@@ -8,6 +8,7 @@ import { useCallback } from 'react'
 import { SetterOrUpdater } from 'recoil'
 import { ICsvContent } from '~models'
 import { tableHeaders } from '~utils/arquero'
+
 /**
  * When a table is updated, recompute it's metadata and place in state
  * @param setSyntheticContent
@@ -20,16 +21,16 @@ export function useOnTableChange(
 		(table: ColumnTable) => {
 			setter(prev => {
 				const { headers } = prev
-				// make we we capture any new headers if table columns were added
+				// make sure we capture any new headers if table columns were added
 				const newHeaders = tableHeaders(table, headers)
 				return {
-				...prev,
-				table,
-				headers: newHeaders,
-				metadata: introspect(table, true),
-			}})
+					...prev,
+					table,
+					headers: newHeaders,
+					metadata: introspect(table, true),
+				}
+			})
 		},
 		[setter],
 	)
 }
-
