@@ -2,34 +2,30 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import {
-	getTheme,
-	IStackStyles,
-	IStackTokens,
-	Label,
-	Stack,
-	TextField,
-} from '@fluentui/react'
+
+import { ColumnTransformModal } from '@data-wrangling-components/react'
+import { getTheme, IStackStyles, IStackTokens, Stack } from '@fluentui/react'
+import { useBoolean } from '@fluentui/react-hooks'
+import { useThematic } from '@thematic/react'
 import { memo } from 'react'
+import { ThemeProvider } from 'styled-components'
 import { CsvTable } from './CsvTable'
 import {
 	useOnFileChange,
 	useOnTableChange,
+	useOnTransformColumn,
 	useSensitiveTableCommands,
 	useVisibleColumnNames,
 } from './hooks'
-import { DataTransform } from '~components/DataTransform'
 import { FileInputButton } from '~components/controls'
 import {
 	useClearSensitiveData,
 	useIsProcessing,
-	useRecordLimit,
 	useSensitiveContent,
 } from '~states'
 
 export const DataInput: React.FC = memo(function DataInput() {
-	const [recordLimit, setRecordLimit] = useRecordLimit()
-	const [isProcessing, setIsProcessing] = useIsProcessing()
+	const [, setIsProcessing] = useIsProcessing()
 	const [sensitiveContent, setSensitiveContent] = useSensitiveContent()
 	const clearSensitiveData = useClearSensitiveData()
 	const onFileChange = useOnFileChange(
@@ -60,47 +56,43 @@ export const DataInput: React.FC = memo(function DataInput() {
 
 	const visibleColumns = useVisibleColumnNames(sensitiveContent)
 
+	const [isModalOpen, { setTrue: showModal, setFalse: hideModal }] =
+		useBoolean(false)
+
 	const tableCommands = useSensitiveTableCommands(
 		sensitiveContent,
 		setSensitiveContent,
+		showModal,
 	)
 
+	const handleTransformRequested = useOnTransformColumn(
+		sensitiveContent,
+		updateTable,
+	)
+
+	const thematic = useThematic()
 	return (
 		<Stack styles={mainStackStyles} tokens={mainStackTokens}>
+			<ThemeProvider theme={thematic}>
+				<ColumnTransformModal
+					headerText={'Transform column'}
+					table={sensitiveContent.table}
+					isOpen={isModalOpen}
+					onDismiss={hideModal}
+					onTransformRequested={handleTransformRequested}
+					hideOutputColumn
+				/>
+			</ThemeProvider>
 			<Stack.Item>
 				<h3>Input file with sensitive records</h3>
 			</Stack.Item>
 			<Stack.Item>
 				<Stack tokens={subStackTokens} horizontal>
-					<Stack.Item>
-						<TextField
-							label="Record Limit"
-							type="number"
-							value={recordLimit.toString()}
-							disabled={isProcessing}
-							required
-							onChange={(_, newValue) => setRecordLimit(+(newValue ?? 0))}
-						/>
-					</Stack.Item>
 					<Stack.Item align="end">
 						<FileInputButton onChange={onFileChange} disabled={false} />
 					</Stack.Item>
 				</Stack>
 			</Stack.Item>
-			{sensitiveContent.table.numCols() > 0 && (
-				<>
-					<Stack.Item>
-						<Label>Data transform</Label>
-					</Stack.Item>
-					<Stack.Item>
-						<DataTransform
-							table={sensitiveContent.table}
-							onChange={updateTable}
-						/>
-					</Stack.Item>
-				</>
-			)}
-
 			<Stack.Item>
 				<CsvTable
 					content={sensitiveContent}

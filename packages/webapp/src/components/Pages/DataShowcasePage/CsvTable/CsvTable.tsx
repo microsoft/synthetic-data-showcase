@@ -35,7 +35,11 @@ export const CsvTable: React.FC<ICsvTableProps> = memo(function CsvTable({
 		<Stack>
 			<Stack.Item>
 				<ThemeProvider theme={thematic}>
-					<ArqueroTableHeader table={content.table} commands={commands} visibleColumns={visibleColumns}/>
+					<ArqueroTableHeader
+						table={content.table}
+						commands={commands}
+						visibleColumns={visibleColumns}
+					/>
 					<ArqueroDetailsList
 						table={content.table}
 						metadata={content.metadata}
@@ -49,7 +53,7 @@ export const CsvTable: React.FC<ICsvTableProps> = memo(function CsvTable({
 						visibleColumns={visibleColumns}
 						styles={{
 							root: {
-								overflowX: 'scroll',
+								height: 800,
 								border: `1px solid ${thematic.application().faint().hex()}`,
 							},
 						}}

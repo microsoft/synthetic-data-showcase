@@ -19,7 +19,7 @@ import {
 	useClearGenerate,
 	useIsProcessing,
 	useProcessingProgressSetter,
-	useRecordLimitValue,
+	useRecordLimit,
 	useResolution,
 	useSensitiveContentValue,
 	useSyntheticContent,
@@ -33,7 +33,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 	const [isProcessing, setIsProcessing] = useIsProcessing()
 	const [syntheticContent, setSyntheticContent] = useSyntheticContent()
 	const worker = useWasmWorkerValue()
-	const recordLimit = useRecordLimitValue()
+	const [recordLimit, setRecordLimit] = useRecordLimit()
 	const sensitiveContent = useSensitiveContentValue()
 	const setProcessingProgress = useProcessingProgressSetter()
 	const clearGenerate = useClearGenerate()
@@ -106,6 +106,16 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 			</Stack.Item>
 			<Stack.Item>
 				<Stack tokens={subStackTokens} horizontal>
+					<Stack.Item>
+						<TextField
+							label="Record Limit"
+							type="number"
+							value={recordLimit.toString()}
+							disabled={isProcessing}
+							required
+							onChange={(_, newValue) => setRecordLimit(+(newValue ?? 0))}
+						/>
+					</Stack.Item>
 					<Stack.Item>
 						<TextField
 							label="Resolution"

@@ -2785,17 +2785,17 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]
       ]],
       ["@data-wrangling-components/core", [
-        ["npm:1.2.0", {
-          "packageLocation": "./.yarn/cache/@data-wrangling-components-core-npm-1.2.0-7151f66797-f57109bb7d.zip/node_modules/@data-wrangling-components/core/",
+        ["npm:1.3.0", {
+          "packageLocation": "./.yarn/cache/@data-wrangling-components-core-npm-1.3.0-4a3fd05339-bf9eb529b1.zip/node_modules/@data-wrangling-components/core/",
           "packageDependencies": [
-            ["@data-wrangling-components/core", "npm:1.2.0"]
+            ["@data-wrangling-components/core", "npm:1.3.0"]
           ],
           "linkType": "SOFT",
         }],
-        ["virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:1.2.0", {
-          "packageLocation": "./.yarn/__virtual__/@data-wrangling-components-core-virtual-834cba2803/0/cache/@data-wrangling-components-core-npm-1.2.0-7151f66797-f57109bb7d.zip/node_modules/@data-wrangling-components/core/",
+        ["virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:1.3.0", {
+          "packageLocation": "./.yarn/__virtual__/@data-wrangling-components-core-virtual-87d52c7a65/0/cache/@data-wrangling-components-core-npm-1.3.0-4a3fd05339-bf9eb529b1.zip/node_modules/@data-wrangling-components/core/",
           "packageDependencies": [
-            ["@data-wrangling-components/core", "virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:1.2.0"],
+            ["@data-wrangling-components/core", "virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:1.3.0"],
             ["@types/arquero", null],
             ["@types/node", "npm:14.17.34"],
             ["arquero", "npm:4.8.7"],
@@ -2811,19 +2811,19 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]
       ]],
       ["@data-wrangling-components/react", [
-        ["npm:1.4.0", {
-          "packageLocation": "./.yarn/cache/@data-wrangling-components-react-npm-1.4.0-e806968de3-0a076bc4c8.zip/node_modules/@data-wrangling-components/react/",
+        ["npm:1.5.0", {
+          "packageLocation": "./.yarn/cache/@data-wrangling-components-react-npm-1.5.0-a618b37b5b-3ab6e8c420.zip/node_modules/@data-wrangling-components/react/",
           "packageDependencies": [
-            ["@data-wrangling-components/react", "npm:1.4.0"]
+            ["@data-wrangling-components/react", "npm:1.5.0"]
           ],
           "linkType": "SOFT",
         }],
-        ["virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:1.4.0", {
-          "packageLocation": "./.yarn/__virtual__/@data-wrangling-components-react-virtual-a9e8cedcac/0/cache/@data-wrangling-components-react-npm-1.4.0-e806968de3-0a076bc4c8.zip/node_modules/@data-wrangling-components/react/",
+        ["virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:1.5.0", {
+          "packageLocation": "./.yarn/__virtual__/@data-wrangling-components-react-virtual-8ffc3f5166/0/cache/@data-wrangling-components-react-npm-1.5.0-a618b37b5b-3ab6e8c420.zip/node_modules/@data-wrangling-components/react/",
           "packageDependencies": [
-            ["@data-wrangling-components/react", "virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:1.4.0"],
-            ["@data-wrangling-components/core", "virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:1.2.0"],
-            ["@data-wrangling-components/utilities", "virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:1.2.1"],
+            ["@data-wrangling-components/react", "virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:1.5.0"],
+            ["@data-wrangling-components/core", "virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:1.3.0"],
+            ["@data-wrangling-components/utilities", "virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:1.3.0"],
             ["@essex-js-toolkit/themed-components", null],
             ["@fluentui/font-icons-mdl2", "virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:8.1.18"],
             ["@fluentui/react", "virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:8.42.5"],
@@ -2861,8 +2861,8 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["office-ui-fabric-react", null],
             ["react", "npm:17.0.2"],
             ["react-dom", "virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:17.0.2"],
-            ["react-dropzone", "virtual:a9e8cedcac5ca9daaed4c7e4fd41fc322667f2f71a0a719c40273408f7fc8ece93b02bf30720fc6a287ec25d415ced83b7c84195ac6756f5336e1d34e8585317#npm:11.4.2"],
-            ["react-if", "virtual:a9e8cedcac5ca9daaed4c7e4fd41fc322667f2f71a0a719c40273408f7fc8ece93b02bf30720fc6a287ec25d415ced83b7c84195ac6756f5336e1d34e8585317#npm:4.1.1"],
+            ["react-dropzone", "virtual:8ffc3f5166c42d9ffbdaa155688defe3e5ba55c97e67a44b6fa2c49e696b8554668ceba0404be074e97a7a45a8832a66ce7e4098f2e5c3baa01f8b6f47ce198a#npm:11.4.2"],
+            ["react-if", "virtual:8ffc3f5166c42d9ffbdaa155688defe3e5ba55c97e67a44b6fa2c49e696b8554668ceba0404be074e97a7a45a8832a66ce7e4098f2e5c3baa01f8b6f47ce198a#npm:4.1.1"],
             ["styled-components", "virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:5.3.3"]
           ],
           "packagePeers": [
@@ -2905,17 +2905,17 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]
       ]],
       ["@data-wrangling-components/utilities", [
-        ["npm:1.2.1", {
-          "packageLocation": "./.yarn/cache/@data-wrangling-components-utilities-npm-1.2.1-0ec8fbed11-c79c82c7e7.zip/node_modules/@data-wrangling-components/utilities/",
+        ["npm:1.3.0", {
+          "packageLocation": "./.yarn/cache/@data-wrangling-components-utilities-npm-1.3.0-51a0188976-f8bb3b7625.zip/node_modules/@data-wrangling-components/utilities/",
           "packageDependencies": [
-            ["@data-wrangling-components/utilities", "npm:1.2.1"]
+            ["@data-wrangling-components/utilities", "npm:1.3.0"]
           ],
           "linkType": "SOFT",
         }],
-        ["virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:1.2.1", {
-          "packageLocation": "./.yarn/__virtual__/@data-wrangling-components-utilities-virtual-2912975792/0/cache/@data-wrangling-components-utilities-npm-1.2.1-0ec8fbed11-c79c82c7e7.zip/node_modules/@data-wrangling-components/utilities/",
+        ["virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:1.3.0", {
+          "packageLocation": "./.yarn/__virtual__/@data-wrangling-components-utilities-virtual-61b51785bb/0/cache/@data-wrangling-components-utilities-npm-1.3.0-51a0188976-f8bb3b7625.zip/node_modules/@data-wrangling-components/utilities/",
           "packageDependencies": [
-            ["@data-wrangling-components/utilities", "virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:1.2.1"],
+            ["@data-wrangling-components/utilities", "virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:1.3.0"],
             ["@types/arquero", null],
             ["@zip.js/zip.js", "npm:2.3.23"],
             ["arquero", "npm:4.8.7"],
@@ -13517,10 +13517,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           ],
           "linkType": "SOFT",
         }],
-        ["virtual:a9e8cedcac5ca9daaed4c7e4fd41fc322667f2f71a0a719c40273408f7fc8ece93b02bf30720fc6a287ec25d415ced83b7c84195ac6756f5336e1d34e8585317#npm:11.4.2", {
-          "packageLocation": "./.yarn/__virtual__/react-dropzone-virtual-2ded40ce5c/0/cache/react-dropzone-npm-11.4.2-28cc148b27-f8dc6af691.zip/node_modules/react-dropzone/",
+        ["virtual:8ffc3f5166c42d9ffbdaa155688defe3e5ba55c97e67a44b6fa2c49e696b8554668ceba0404be074e97a7a45a8832a66ce7e4098f2e5c3baa01f8b6f47ce198a#npm:11.4.2", {
+          "packageLocation": "./.yarn/__virtual__/react-dropzone-virtual-5111183678/0/cache/react-dropzone-npm-11.4.2-28cc148b27-f8dc6af691.zip/node_modules/react-dropzone/",
           "packageDependencies": [
-            ["react-dropzone", "virtual:a9e8cedcac5ca9daaed4c7e4fd41fc322667f2f71a0a719c40273408f7fc8ece93b02bf30720fc6a287ec25d415ced83b7c84195ac6756f5336e1d34e8585317#npm:11.4.2"],
+            ["react-dropzone", "virtual:8ffc3f5166c42d9ffbdaa155688defe3e5ba55c97e67a44b6fa2c49e696b8554668ceba0404be074e97a7a45a8832a66ce7e4098f2e5c3baa01f8b6f47ce198a#npm:11.4.2"],
             ["@types/react", "npm:17.0.37"],
             ["attr-accept", "npm:2.2.2"],
             ["file-selector", "npm:0.2.4"],
@@ -13551,10 +13551,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           ],
           "linkType": "SOFT",
         }],
-        ["virtual:a9e8cedcac5ca9daaed4c7e4fd41fc322667f2f71a0a719c40273408f7fc8ece93b02bf30720fc6a287ec25d415ced83b7c84195ac6756f5336e1d34e8585317#npm:4.1.1", {
-          "packageLocation": "./.yarn/__virtual__/react-if-virtual-5c634062d8/0/cache/react-if-npm-4.1.1-b36afcee94-ea7c343eca.zip/node_modules/react-if/",
+        ["virtual:8ffc3f5166c42d9ffbdaa155688defe3e5ba55c97e67a44b6fa2c49e696b8554668ceba0404be074e97a7a45a8832a66ce7e4098f2e5c3baa01f8b6f47ce198a#npm:4.1.1", {
+          "packageLocation": "./.yarn/__virtual__/react-if-virtual-d54dcf0364/0/cache/react-if-npm-4.1.1-b36afcee94-ea7c343eca.zip/node_modules/react-if/",
           "packageDependencies": [
-            ["react-if", "virtual:a9e8cedcac5ca9daaed4c7e4fd41fc322667f2f71a0a719c40273408f7fc8ece93b02bf30720fc6a287ec25d415ced83b7c84195ac6756f5336e1d34e8585317#npm:4.1.1"],
+            ["react-if", "virtual:8ffc3f5166c42d9ffbdaa155688defe3e5ba55c97e67a44b6fa2c49e696b8554668ceba0404be074e97a7a45a8832a66ce7e4098f2e5c3baa01f8b6f47ce198a#npm:4.1.1"],
             ["@types/react", "npm:17.0.37"],
             ["react", "npm:17.0.2"]
           ],
@@ -16041,9 +16041,9 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./packages/webapp/",
           "packageDependencies": [
             ["webapp", "workspace:packages/webapp"],
-            ["@data-wrangling-components/core", "virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:1.2.0"],
-            ["@data-wrangling-components/react", "virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:1.4.0"],
-            ["@data-wrangling-components/utilities", "virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:1.2.1"],
+            ["@data-wrangling-components/core", "virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:1.3.0"],
+            ["@data-wrangling-components/react", "virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:1.5.0"],
+            ["@data-wrangling-components/utilities", "virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:1.3.0"],
             ["@essex/scripts", "virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:18.2.1"],
             ["@essex/vite-config", "virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:18.0.2"],
             ["@fluentui/font-icons-mdl2", "virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:8.1.18"],
