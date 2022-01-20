@@ -10,7 +10,8 @@ import {
 	Stack,
 	TextField,
 } from '@fluentui/react'
-import { memo, useCallback } from 'react'
+import { memo } from 'react'
+import { useOnRunEvaluate } from './hooks'
 import {
 	FabricatedCountChart,
 	LeakageCountChart,
@@ -24,17 +25,14 @@ import {
 	useClearEvaluate,
 	useEvaluateResult,
 	useIsProcessing,
-	useProcessingProgressSetter,
 	useReportingLength,
-	useWasmWorkerValue,
 } from '~states'
 
 export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 	const [reportingLength, setReportingLength] = useReportingLength()
-	const [isProcessing, setIsProcessing] = useIsProcessing()
+	const [isProcessing] = useIsProcessing()
 	const [evaluateResult, setEvaluateResult] = useEvaluateResult()
-	const worker = useWasmWorkerValue()
-	const setProcessingProgress = useProcessingProgressSetter()
+
 	const clearEvaluate = useClearEvaluate()
 
 	const theme = getTheme()
@@ -78,33 +76,11 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 	const chartHeight = 400
 	const chartWidth = 550
 
-	const onRunEvaluate = useCallback(async () => {
-		setIsProcessing(true)
-		await clearEvaluate()
-		setProcessingProgress(0.0)
-
-		const response = await worker?.evaluate(
-			reportingLength,
-			0,
-			';',
-			false,
-			p => {
-				setProcessingProgress(p)
-			},
-		)
-
-		setIsProcessing(false)
-		if (response) {
-			setEvaluateResult(response)
-		}
-	}, [
-		worker,
-		setIsProcessing,
-		reportingLength,
+	const onRunEvaluate = useOnRunEvaluate(
 		clearEvaluate,
 		setEvaluateResult,
-		setProcessingProgress,
-	])
+		reportingLength,
+	)
 
 	return (
 		<Stack styles={mainStackStyles} tokens={mainStackTokens}>

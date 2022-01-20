@@ -18,21 +18,12 @@ import {
 	useVisibleColumnNames,
 } from './hooks'
 import { FileInputButton } from '~components/controls'
-import {
-	useClearSensitiveData,
-	useIsProcessing,
-	useSensitiveContent,
-} from '~states'
+import { useClearSensitiveData, useSensitiveContent } from '~states'
 
 export const DataInput: React.FC = memo(function DataInput() {
-	const [, setIsProcessing] = useIsProcessing()
 	const [sensitiveContent, setSensitiveContent] = useSensitiveContent()
 	const clearSensitiveData = useClearSensitiveData()
-	const onFileChange = useOnFileChange(
-		setIsProcessing,
-		setSensitiveContent,
-		clearSensitiveData,
-	)
+	const onFileChange = useOnFileChange(setSensitiveContent, clearSensitiveData)
 	const updateTable = useOnTableChange(setSensitiveContent)
 
 	const theme = getTheme()

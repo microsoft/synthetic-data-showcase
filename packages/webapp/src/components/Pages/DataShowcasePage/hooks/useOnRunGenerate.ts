@@ -3,11 +3,12 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { introspect } from '@data-wrangling-components/core'
-import { ChangeEvent, useCallback } from 'react'
+import { useCallback } from 'react'
 import { SetterOrUpdater } from 'recoil'
 import { ICsvContent } from '~models'
 import {
 	DataClearer,
+	useIsProcessingSetter,
 	useProcessingProgressSetter,
 	useSensitiveContentValue,
 	useWasmWorkerValue,
@@ -15,13 +16,13 @@ import {
 import { fromRows, rows, tableHeaders } from '~utils/arquero'
 
 export function useOnRunGenerate(
-	setIsProcessing: SetterOrUpdater<boolean>,
 	setSyntheticContent: SetterOrUpdater<ICsvContent>,
 	clearGenerate: DataClearer,
 	resolution: number,
 	recordLimit: number,
 	cacheSize: number,
 ): () => Promise<void> {
+	const setIsProcessing = useIsProcessingSetter()
 	const worker = useWasmWorkerValue()
 	const setProcessingProgress = useProcessingProgressSetter()
 	const sensitiveContent = useSensitiveContentValue()

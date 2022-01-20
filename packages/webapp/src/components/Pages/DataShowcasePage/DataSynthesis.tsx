@@ -21,7 +21,7 @@ import {
 import {
 	useCacheSize,
 	useClearGenerate,
-	useIsProcessing,
+	useIsProcessingValue,
 	useRecordLimit,
 	useResolution,
 	useSyntheticContent,
@@ -31,7 +31,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 	const [resolution, setResolution] = useResolution()
 	const [recordLimit, setRecordLimit] = useRecordLimit()
 	const [cacheSize, setCacheSize] = useCacheSize()
-	const [isProcessing, setIsProcessing] = useIsProcessing()
+	const isProcessing = useIsProcessingValue()
 	const [syntheticContent, setSyntheticContent] = useSyntheticContent()
 	const clearGenerate = useClearGenerate()
 
@@ -55,7 +55,6 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 	}
 
 	const onRunGenerate = useOnRunGenerate(
-		setIsProcessing,
 		setSyntheticContent,
 		clearGenerate,
 		resolution,
