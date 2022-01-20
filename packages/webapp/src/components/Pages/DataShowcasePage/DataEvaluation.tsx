@@ -109,9 +109,6 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 	return (
 		<Stack styles={mainStackStyles} tokens={mainStackTokens}>
 			<Stack.Item>
-				<h3>Evaluation parameters</h3>
-			</Stack.Item>
-			<Stack.Item>
 				<Stack tokens={subStackTokens} horizontal>
 					<Stack.Item>
 						<TextField

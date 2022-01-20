@@ -7,13 +7,14 @@ import {
 	getTheme,
 	IStackStyles,
 	IStackTokens,
+	Position,
 	PrimaryButton,
+	SpinButton,
 	Stack,
-	TextField,
 } from '@fluentui/react'
 import { memo, useCallback } from 'react'
 import { CsvTable } from './CsvTable'
-import { useSyntheticTableCommands } from './hooks'
+import { useSpinButtonOnChange, useSyntheticTableCommands } from './hooks'
 import {
 	useCacheSize,
 	useClearGenerate,
@@ -29,11 +30,12 @@ import { fromRows, rows, tableHeaders } from '~utils/arquero'
 
 export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 	const [resolution, setResolution] = useResolution()
+	const [recordLimit, setRecordLimit] = useRecordLimit()
 	const [cacheSize, setCacheSize] = useCacheSize()
 	const [isProcessing, setIsProcessing] = useIsProcessing()
 	const [syntheticContent, setSyntheticContent] = useSyntheticContent()
 	const worker = useWasmWorkerValue()
-	const [recordLimit, setRecordLimit] = useRecordLimit()
+
 	const sensitiveContent = useSensitiveContentValue()
 	const setProcessingProgress = useProcessingProgressSetter()
 	const clearGenerate = useClearGenerate()
@@ -99,41 +101,45 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 
 	const tableCommands = useSyntheticTableCommands(syntheticContent)
 
+	const handleResolutionChange = useSpinButtonOnChange(setResolution)
+	const handleRecordLimitChange = useSpinButtonOnChange(setRecordLimit)
+	const handleCacheSizeChange = useSpinButtonOnChange(setCacheSize)
+
 	return (
 		<Stack styles={mainStackStyles} tokens={mainStackTokens}>
 			<Stack.Item>
-				<h3>Data synthesis parameters</h3>
-			</Stack.Item>
-			<Stack.Item>
 				<Stack tokens={subStackTokens} horizontal>
 					<Stack.Item>
-						<TextField
-							label="Record Limit"
-							type="number"
-							value={recordLimit.toString()}
-							disabled={isProcessing}
-							required
-							onChange={(_, newValue) => setRecordLimit(+(newValue ?? 0))}
-						/>
-					</Stack.Item>
-					<Stack.Item>
-						<TextField
+						<SpinButton
 							label="Resolution"
-							type="number"
+							labelPosition={Position.top}
+							min={1}
+							step={1}
 							value={resolution.toString()}
 							disabled={isProcessing}
-							required
-							onChange={(_, newValue) => setResolution(+(newValue ?? 0))}
+							onChange={handleResolutionChange}
 						/>
 					</Stack.Item>
 					<Stack.Item>
-						<TextField
+						<SpinButton
+							label="Record Limit"
+							labelPosition={Position.top}
+							min={1}
+							step={10}
+							value={recordLimit.toString()}
+							disabled={isProcessing}
+							onChange={handleRecordLimitChange}
+						/>
+					</Stack.Item>
+					<Stack.Item>
+						<SpinButton
 							label="Cache size"
-							type="number"
+							labelPosition={Position.top}
+							min={1}
+							step={1000}
 							value={cacheSize.toString()}
 							disabled={isProcessing}
-							required
-							onChange={(_, newValue) => setCacheSize(+(newValue ?? 0))}
+							onChange={handleCacheSizeChange}
 						/>
 					</Stack.Item>
 					<Stack.Item align="end">

@@ -84,12 +84,11 @@ export const DataInput: React.FC = memo(function DataInput() {
 				/>
 			</ThemeProvider>
 			<Stack.Item>
-				<h3>Input file with sensitive records</h3>
-			</Stack.Item>
-			<Stack.Item>
 				<Stack tokens={subStackTokens} horizontal>
 					<Stack.Item align="end">
-						<FileInputButton onChange={onFileChange} disabled={false} />
+						<FileInputButton onChange={onFileChange} disabled={false}>
+							Open sensitive data file
+						</FileInputButton>
 					</Stack.Item>
 				</Stack>
 			</Stack.Item>
