@@ -25,7 +25,6 @@ export function useOnFileChange(
 	return useCallback(
 		async (e: ChangeEvent<HTMLInputElement>) => {
 			const f = e.target.files?.[0]
-
 			if (f) {
 				setIsProcessing(true)
 				await clearSensitiveData()
