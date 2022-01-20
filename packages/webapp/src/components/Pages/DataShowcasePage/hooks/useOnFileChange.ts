@@ -8,7 +8,7 @@ import { parse } from 'papaparse'
 import { useCallback, ChangeEvent } from 'react'
 import { SetterOrUpdater } from 'recoil'
 import { ICsvContent } from '~models'
-import { DataClearer, useIsProcessingSetter } from '~states'
+import { useClearSensitiveData, useIsProcessingSetter } from '~states'
 import { columnIndexesWithZeros, tableHeaders } from '~utils/arquero'
 /**
  * When a file is opened, reset the data state and instantiate a new table to work with.
@@ -19,9 +19,9 @@ import { columnIndexesWithZeros, tableHeaders } from '~utils/arquero'
  */
 export function useOnFileChange(
 	setSensitiveContent: SetterOrUpdater<ICsvContent>,
-	clearSensitiveData: DataClearer,
 ): (e: ChangeEvent<HTMLInputElement>) => Promise<void> {
 	const setIsProcessing = useIsProcessingSetter()
+	const clearSensitiveData = useClearSensitiveData()
 	return useCallback(
 		async (e: ChangeEvent<HTMLInputElement>) => {
 			const f = e.target.files?.[0]

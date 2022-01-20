@@ -7,7 +7,7 @@ import { useCallback } from 'react'
 import { SetterOrUpdater } from 'recoil'
 import { ICsvContent } from '~models'
 import {
-	DataClearer,
+	useClearGenerate,
 	useIsProcessingSetter,
 	useProcessingProgressSetter,
 	useSensitiveContentValue,
@@ -17,7 +17,6 @@ import { fromRows, rows, tableHeaders } from '~utils/arquero'
 
 export function useOnRunGenerate(
 	setSyntheticContent: SetterOrUpdater<ICsvContent>,
-	clearGenerate: DataClearer,
 	resolution: number,
 	recordLimit: number,
 	cacheSize: number,
@@ -26,6 +25,7 @@ export function useOnRunGenerate(
 	const worker = useWasmWorkerValue()
 	const setProcessingProgress = useProcessingProgressSetter()
 	const sensitiveContent = useSensitiveContentValue()
+	const clearGenerate = useClearGenerate()
 
 	return useCallback(async () => {
 		setIsProcessing(true)

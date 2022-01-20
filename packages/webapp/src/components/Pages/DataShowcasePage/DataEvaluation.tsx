@@ -21,19 +21,12 @@ import {
 	RareCombinationsByLengthChart,
 } from '~components/Charts'
 import { EvaluationSummary } from '~components/EvaluationSummary'
-import {
-	useClearEvaluate,
-	useEvaluateResult,
-	useIsProcessing,
-	useReportingLength,
-} from '~states'
+import { useEvaluateResult, useIsProcessing, useReportingLength } from '~states'
 
 export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 	const [reportingLength, setReportingLength] = useReportingLength()
 	const [isProcessing] = useIsProcessing()
 	const [evaluateResult, setEvaluateResult] = useEvaluateResult()
-
-	const clearEvaluate = useClearEvaluate()
 
 	const theme = getTheme()
 
@@ -76,11 +69,7 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 	const chartHeight = 400
 	const chartWidth = 550
 
-	const onRunEvaluate = useOnRunEvaluate(
-		clearEvaluate,
-		setEvaluateResult,
-		reportingLength,
-	)
+	const onRunEvaluate = useOnRunEvaluate(setEvaluateResult, reportingLength)
 
 	return (
 		<Stack styles={mainStackStyles} tokens={mainStackTokens}>

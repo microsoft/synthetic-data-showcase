@@ -17,11 +17,11 @@ import {} from './commands/useEditColumnCommand'
 export function useSensitiveTableCommands(
 	content: ICsvContent,
 	setSensitiveContent: SetterOrUpdater<ICsvContent>,
-	showModal: () => void,
+	showColumnTransform: () => void,
 ): ICommandBarItemProps[] {
 	const vccmd = useVisibleColumnsCommand(content, setSensitiveContent)
 	const cicmd = useSensitiveZerosCommand(content, setSensitiveContent)
-	const edcmd = useEditColumnCommand(showModal)
+	const edcmd = useEditColumnCommand(showColumnTransform)
 	const dlcmd = useDownloadCommand(content, 'sensitive_data.csv')
 	return useMemo(
 		() => [vccmd, cicmd, edcmd, dlcmd],

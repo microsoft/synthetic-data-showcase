@@ -6,19 +6,19 @@ import { useCallback } from 'react'
 import { SetterOrUpdater } from 'recoil'
 import { IEvaluateResult } from 'sds-wasm'
 import {
-	DataClearer,
+	useClearEvaluate,
 	useIsProcessingSetter,
 	useProcessingProgressSetter,
 	useWasmWorkerValue,
 } from '~states'
 
 export function useOnRunEvaluate(
-	clearEvaluate: DataClearer,
 	setEvaluateResult: SetterOrUpdater<IEvaluateResult | null>,
 	reportingLength: number,
 ): () => Promise<void> {
 	const setIsProcessing = useIsProcessingSetter()
 	const setProcessingProgress = useProcessingProgressSetter()
+	const clearEvaluate = useClearEvaluate()
 	const worker = useWasmWorkerValue()
 
 	return useCallback(async () => {

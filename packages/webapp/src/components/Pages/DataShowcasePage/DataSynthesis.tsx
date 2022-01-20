@@ -20,7 +20,6 @@ import {
 } from './hooks'
 import {
 	useCacheSize,
-	useClearGenerate,
 	useIsProcessingValue,
 	useRecordLimit,
 	useResolution,
@@ -33,7 +32,6 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 	const [cacheSize, setCacheSize] = useCacheSize()
 	const isProcessing = useIsProcessingValue()
 	const [syntheticContent, setSyntheticContent] = useSyntheticContent()
-	const clearGenerate = useClearGenerate()
 
 	const theme = getTheme()
 
@@ -56,7 +54,6 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 
 	const onRunGenerate = useOnRunGenerate(
 		setSyntheticContent,
-		clearGenerate,
 		resolution,
 		recordLimit,
 		cacheSize,
