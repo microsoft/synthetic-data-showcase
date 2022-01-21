@@ -13,12 +13,19 @@ import { ICsvContent, ICsvTableHeader } from '~models'
  * @param rows
  * @returns
  */
-export function fromRows(rows?: CsvData, delimiter = ','): ColumnTable {
+export function fromRows(
+	rows?: CsvData,
+	delimiter = ',',
+	typeInferenceProportion = 0.2,
+): ColumnTable {
 	// TEMP: we're re-creating the raw text so arquero can auto-detect types
 	// we should have at least the header + rows
 	if (rows && rows.length > 1) {
 		const csv = rows.map(d => d.join(delimiter)).join('\n')
-		return fromCSV(csv, { delimiter })
+		return fromCSV(csv, {
+			delimiter,
+			autoMax: Math.ceil(rows.length * typeInferenceProportion),
+		})
 	}
 	return table({})
 }
