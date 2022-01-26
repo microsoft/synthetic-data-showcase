@@ -3,7 +3,6 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import {
-	CsvData,
 	HeaderNames,
 	IAttributesIntersectionByColumn,
 	IEvaluateResult,
@@ -90,7 +89,8 @@ export interface SdsWasmReportProgressResponse extends SdsWasmResponse {
 
 export interface SdsWasmGenerateMessage extends SdsWasmMessage {
 	type: SdsWasmMessageType.Generate
-	sensitiveCsvData: CsvData
+	sensitiveCsvData: string
+	delimiter: string
 	useColumns: HeaderNames
 	sensitiveZeros: HeaderNames
 	recordLimit: number
@@ -102,7 +102,7 @@ export interface SdsWasmGenerateMessage extends SdsWasmMessage {
 
 export interface SdsWasmGenerateResponse extends SdsWasmResponse {
 	type: SdsWasmMessageType.Generate
-	syntheticCsvData: CsvData
+	syntheticCsvData: string
 }
 
 export interface SdsWasmEvaluateMessage extends SdsWasmMessage {

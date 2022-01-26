@@ -6,12 +6,13 @@ use log::debug;
 use wasm_bindgen::{prelude::*, JsCast};
 
 use crate::utils::js::ts_definitions::{
-    JsAttributesIntersectionByColumn, JsCsvData, JsEvaluateResult, JsGenerateResult, JsHeaderNames,
+    JsAttributesIntersectionByColumn, JsEvaluateResult, JsGenerateResult, JsHeaderNames,
     JsReportProgressCallback, JsResult, JsSelectedAttributesByColumn,
 };
 
 #[wasm_bindgen]
 pub struct SDSContext {
+    delimiter: char,
     use_columns: JsHeaderNames,
     sensitive_zeros: JsHeaderNames,
     record_limit: usize,
@@ -28,6 +29,7 @@ impl SDSContext {
     #[wasm_bindgen(constructor)]
     pub fn default() -> SDSContext {
         SDSContext {
+            delimiter: ',',
             use_columns: JsHeaderNames::default(),
             sensitive_zeros: JsHeaderNames::default(),
             record_limit: 0,
@@ -42,6 +44,7 @@ impl SDSContext {
 
     #[wasm_bindgen(js_name = "clearSensitiveData")]
     pub fn clear_sensitive_data(&mut self) {
+        self.delimiter = ',';
         self.use_columns = JsHeaderNames::default();
         self.sensitive_zeros = JsHeaderNames::default();
         self.record_limit = 0;
@@ -71,18 +74,21 @@ impl SDSContext {
     #[wasm_bindgen(js_name = "setSensitiveData")]
     pub fn set_sensitive_data(
         &mut self,
-        csv_data: JsCsvData,
+        csv_data: &str,
+        delimiter: char,
         use_columns: JsHeaderNames,
         sensitive_zeros: JsHeaderNames,
         record_limit: usize,
     ) -> JsResult<()> {
         debug!("setting sensitive data...");
 
+        self.delimiter = delimiter;
         self.use_columns = use_columns;
         self.sensitive_zeros = sensitive_zeros;
         self.record_limit = record_limit;
         self.sensitive_processor = SDSProcessor::new(
             csv_data,
+            self.delimiter,
             self.use_columns.clone().unchecked_into(),
             self.sensitive_zeros.clone().unchecked_into(),
             self.record_limit,
@@ -113,7 +119,8 @@ impl SDSContext {
         debug!("creating synthetic data processor...");
 
         self.synthetic_processor = SDSProcessor::new(
-            self.generate_result.synthetic_data_to_js()?,
+            &self.generate_result.synthetic_data_to_js(self.delimiter)?,
+            self.delimiter,
             self.use_columns.clone().unchecked_into(),
             self.sensitive_zeros.clone().unchecked_into(),
             0, // always process all the synthetic data
@@ -191,7 +198,7 @@ impl SDSContext {
 
     #[wasm_bindgen(js_name = "generateResultToJs")]
     pub fn generate_result_to_js(&self) -> JsResult<JsGenerateResult> {
-        self.generate_result.to_js()
+        self.generate_result.to_js(self.delimiter)
     }
 
     #[wasm_bindgen(js_name = "evaluateResultToJs")]

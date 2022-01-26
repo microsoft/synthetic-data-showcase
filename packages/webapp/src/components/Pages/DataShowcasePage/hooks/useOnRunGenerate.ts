@@ -13,7 +13,7 @@ import {
 	useSensitiveContentValue,
 	useWasmWorkerValue,
 } from '~states'
-import { fromRows, rows, tableHeaders } from '~utils/arquero'
+import { fromCsvData, tableHeaders } from '~utils/arquero'
 
 export function useOnRunGenerate(
 	setSyntheticContent: SetterOrUpdater<ICsvContent>,
@@ -33,7 +33,8 @@ export function useOnRunGenerate(
 		setProcessingProgress(0.0)
 
 		const response = await worker?.generate(
-			rows(sensitiveContent.table, true),
+			sensitiveContent.table.toCSV({ delimiter: sensitiveContent.delimiter }),
+			sensitiveContent.delimiter,
 			sensitiveContent.headers.filter(h => h.use).map(h => h.name),
 			sensitiveContent.headers
 				.filter(h => h.hasSensitiveZeros)
@@ -46,7 +47,7 @@ export function useOnRunGenerate(
 			},
 		)
 
-		const table = fromRows(response, sensitiveContent.delimiter)
+		const table = fromCsvData(response, sensitiveContent.delimiter)
 
 		setIsProcessing(false)
 

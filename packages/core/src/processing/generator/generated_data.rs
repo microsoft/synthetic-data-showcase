@@ -90,4 +90,24 @@ impl GeneratedData {
         }
         Ok(())
     }
+
+    /// Generates a CSV string from the synthetic data
+    /// # Arguments
+    /// * `delimiter` - CSV delimiter to use
+    pub fn synthetic_data_to_csv(&self, delimiter: char) -> String {
+        let mut csv_data = String::default();
+
+        for (row_index, row) in self.synthetic_data.iter().enumerate() {
+            for (column_index, value) in row.iter().enumerate() {
+                csv_data.push_str(value);
+                if column_index != (row.len() - 1) {
+                    csv_data.push(delimiter);
+                }
+            }
+            if row_index != (self.synthetic_data.len() - 1) {
+                csv_data.push('\n');
+            }
+        }
+        csv_data
+    }
 }

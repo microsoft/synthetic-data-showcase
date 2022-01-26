@@ -18,7 +18,7 @@ use pyo3::prelude::*;
 
 /// Result of data aggregation for each combination
 #[cfg_attr(feature = "pyo3", pyclass)]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AggregatedCount {
     /// How many times the combination appears on the records
     pub count: usize,
@@ -40,15 +40,6 @@ impl AggregatedCount {
     /// in a local variable to avoid it being called multiple times
     fn get_contained_in_records(&self) -> RecordsSet {
         self.contained_in_records.clone()
-    }
-}
-
-impl Default for AggregatedCount {
-    fn default() -> AggregatedCount {
-        AggregatedCount {
-            count: 0,
-            contained_in_records: RecordsSet::default(),
-        }
     }
 }
 

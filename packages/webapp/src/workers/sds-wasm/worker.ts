@@ -122,6 +122,7 @@ async function handleGenerate(
 ): Promise<SdsWasmGenerateResponse> {
 	CONTEXT.setSensitiveData(
 		message.sensitiveCsvData,
+		message.delimiter,
 		message.useColumns,
 		message.sensitiveZeros,
 		message.recordLimit,

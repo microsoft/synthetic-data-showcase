@@ -5,7 +5,7 @@ use sds_core::{
 use std::ops::{Deref, DerefMut};
 use wasm_bindgen::{prelude::*, JsCast};
 
-use crate::utils::js::ts_definitions::{JsCsvData, JsGenerateResult, JsResult};
+use crate::utils::js::ts_definitions::{JsGenerateResult, JsResult};
 
 #[wasm_bindgen]
 pub struct WasmGenerateResult {
@@ -35,14 +35,12 @@ impl WasmGenerateResult {
     }
 
     #[wasm_bindgen(js_name = "syntheticDataToJs")]
-    pub fn synthetic_data_to_js(&self) -> JsResult<JsCsvData> {
-        Ok(JsValue::from_serde(&self.generated_data.synthetic_data)
-            .map_err(|err| JsValue::from(err.to_string()))?
-            .unchecked_into::<JsCsvData>())
+    pub fn synthetic_data_to_js(&self, delimiter: char) -> JsResult<String> {
+        Ok(self.generated_data.synthetic_data_to_csv(delimiter))
     }
 
     #[wasm_bindgen(js_name = "toJs")]
-    pub fn to_js(&self) -> JsResult<JsGenerateResult> {
+    pub fn to_js(&self, delimiter: char) -> JsResult<JsGenerateResult> {
         let _duration_logger =
             ElapsedDurationLogger::new(String::from("generate result serialization"));
         let result = Object::new();
@@ -55,7 +53,7 @@ impl WasmGenerateResult {
         set(
             &result,
             &"syntheticData".into(),
-            &self.synthetic_data_to_js()?.into(),
+            &self.synthetic_data_to_js(delimiter)?.into(),
         )?;
 
         Ok(JsValue::from(result).unchecked_into::<JsGenerateResult>())

@@ -3,7 +3,6 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import {
-	CsvData,
 	HeaderNames,
 	IAttributesIntersectionByColumn,
 	IEvaluateResult,
@@ -146,7 +145,8 @@ export class SdsWasmWorker {
 	}
 
 	public async generate(
-		sensitiveCsvData: CsvData,
+		sensitiveCsvData: string,
+		delimiter: string,
 		useColumns: string[],
 		sensitiveZeros: string[],
 		recordLimit: number,
@@ -155,12 +155,13 @@ export class SdsWasmWorker {
 		reportProgress?: ReportProgressCallback,
 		emptyValue = '',
 		seeded = true,
-	): Promise<CsvData | undefined> {
+	): Promise<string | undefined> {
 		const response = await this.execute(
 			{
 				id: v4(),
 				type: SdsWasmMessageType.Generate,
 				sensitiveCsvData,
+				delimiter,
 				useColumns,
 				sensitiveZeros,
 				recordLimit,
