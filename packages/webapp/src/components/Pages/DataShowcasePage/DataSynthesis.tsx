@@ -3,6 +3,7 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import {
+	Dropdown,
 	getTheme,
 	IStackStyles,
 	IStackTokens,
@@ -16,6 +17,8 @@ import { CsvTable } from './CsvTable'
 import {
 	useOnRunGenerate,
 	useSpinButtonOnChange,
+	useSynthesisModeOnChange,
+	useSynthesisModeOptions,
 	useSyntheticTableCommands,
 } from './hooks'
 import {
@@ -24,6 +27,7 @@ import {
 	useRecordLimit,
 	useResolution,
 	useSensitiveContentValue,
+	useSynthesisMode,
 	useSyntheticContent,
 } from '~states'
 
@@ -34,6 +38,8 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 	const isProcessing = useIsProcessingValue()
 	const sensitiveContent = useSensitiveContentValue()
 	const [syntheticContent, setSyntheticContent] = useSyntheticContent()
+	const [synthesisMode, setSynthesisMode] = useSynthesisMode()
+	const synthesisModeOptions = useSynthesisModeOptions()
 
 	const theme = getTheme()
 
@@ -54,11 +60,18 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 		childrenGap: theme.spacing.s1,
 	}
 
+	const synthesisModeStyles = {
+		root: {
+			width: 100,
+		},
+	}
+
 	const onRunGenerate = useOnRunGenerate(
 		setSyntheticContent,
 		resolution,
 		recordLimit,
 		cacheSize,
+		synthesisMode,
 	)
 
 	const tableCommands = useSyntheticTableCommands(syntheticContent)
@@ -66,6 +79,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 	const handleResolutionChange = useSpinButtonOnChange(setResolution)
 	const handleRecordLimitChange = useSpinButtonOnChange(setRecordLimit)
 	const handleCacheSizeChange = useSpinButtonOnChange(setCacheSize)
+	const handleSynthesisModeChange = useSynthesisModeOnChange(setSynthesisMode)
 
 	return (
 		<Stack styles={mainStackStyles} tokens={mainStackTokens}>
@@ -103,6 +117,17 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 							value={cacheSize.toString()}
 							disabled={isProcessing}
 							onChange={handleCacheSizeChange}
+						/>
+					</Stack.Item>
+					<Stack.Item>
+						<Dropdown
+							label="Mode"
+							selectedKey={synthesisMode}
+							onChange={handleSynthesisModeChange}
+							placeholder="Select synthesis mode"
+							options={synthesisModeOptions}
+							styles={synthesisModeStyles}
+							disabled={isProcessing}
 						/>
 					</Stack.Item>
 					<Stack.Item align="end">

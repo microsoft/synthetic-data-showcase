@@ -31,6 +31,7 @@ import {
 	SdsWasmSelectAttributesMessage,
 } from './types'
 import Worker from './worker?worker'
+import { SynthesisMode } from '~models'
 
 type SdsWasmResponseCallback = ((value: SdsWasmResponse) => void) | undefined
 
@@ -154,7 +155,7 @@ export class SdsWasmWorker {
 		cacheSize: number,
 		reportProgress?: ReportProgressCallback,
 		emptyValue = '',
-		seeded = true,
+		synthesisMode = SynthesisMode.Seeded,
 	): Promise<string | undefined> {
 		const response = await this.execute(
 			{
@@ -168,7 +169,7 @@ export class SdsWasmWorker {
 				resolution,
 				emptyValue,
 				cacheSize,
-				seeded,
+				seeded: synthesisMode === SynthesisMode.Seeded,
 			} as SdsWasmGenerateMessage,
 			reportProgress,
 		)

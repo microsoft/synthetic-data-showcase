@@ -5,7 +5,7 @@
 import { introspect } from '@data-wrangling-components/core'
 import { useCallback } from 'react'
 import { SetterOrUpdater } from 'recoil'
-import { ICsvContent } from '~models'
+import { ICsvContent, SynthesisMode } from '~models'
 import {
 	useClearGenerate,
 	useIsProcessingSetter,
@@ -20,6 +20,7 @@ export function useOnRunGenerate(
 	resolution: number,
 	recordLimit: number,
 	cacheSize: number,
+	synthesisMode: SynthesisMode,
 ): () => Promise<void> {
 	const setIsProcessing = useIsProcessingSetter()
 	const worker = useWasmWorkerValue()
@@ -45,6 +46,8 @@ export function useOnRunGenerate(
 			p => {
 				setProcessingProgress(p)
 			},
+			'',
+			synthesisMode,
 		)
 
 		const table = fromCsvData(response, sensitiveContent.delimiter)
@@ -67,5 +70,6 @@ export function useOnRunGenerate(
 		resolution,
 		cacheSize,
 		setProcessingProgress,
+		synthesisMode,
 	])
 }

@@ -218,7 +218,9 @@ onmessage = async event => {
 				postMessage(await response)
 			}
 		} catch (err) {
-			postError(message.type, `wasm error: ${err}`)
+			const msg = `wasm worker: ${err}`
+			console.error(msg)
+			postError(message.type, msg)
 		}
 	}
 }
