@@ -32,6 +32,7 @@ credit_config.json
 !DataBinning/
 !data_block/
 !dataShowcaseContext/
+!dataSynthesis/
 *output*/
 
 # Byte-compiled / optimized / DLL files
