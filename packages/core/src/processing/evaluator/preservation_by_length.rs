@@ -75,7 +75,7 @@ impl PreservationByLengthBuckets {
         preservation_by_length_path: &str,
         preservation_by_length_delimiter: char,
     ) -> Result<(), Error> {
-        let mut file = std::fs::File::create(preservation_by_length_path)?;
+        let mut file = std::io::BufWriter::new(std::fs::File::create(preservation_by_length_path)?);
 
         file.write_all(
             format!(

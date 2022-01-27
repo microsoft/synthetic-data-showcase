@@ -28,6 +28,8 @@ import {
 	SdsWasmReportProgressResponse,
 	SdsWasmSelectAttributesMessage,
 	SdsWasmSelectAttributesResponse,
+	SdsWasmGetSensitiveAggregateResultMessage,
+	SdsWasmGetSensitiveAggregateResultResponse,
 } from './types'
 
 let CONTEXT: SDSContext
@@ -44,6 +46,8 @@ const HANDLERS = {
 	[SdsWasmMessageType.SelectAttributes]: handleSelectAttributes,
 	[SdsWasmMessageType.AttributesIntersectionsByColumn]:
 		handleAttributesIntersectionsByColumn,
+	[SdsWasmMessageType.GetSensitiveAggregateResult]:
+		handleGetSensitiveAggregateResult,
 }
 
 function postProgress(id: string, progress: number) {
@@ -160,8 +164,9 @@ async function handleEvaluate(
 	)
 
 	const evaluateResult = CONTEXT.evaluateResultToJs(
+		message.aggregatesDelimiter,
 		message.combinationDelimiter,
-		message.includeAggregatesCount,
+		message.includeAggregatesData,
 	)
 
 	CONTEXT.protectSensitiveAggregatesCount()
@@ -204,6 +209,22 @@ async function handleAttributesIntersectionsByColumn(
 		attributesIntersectionByColumn: CONTEXT.attributesIntersectionsByColumn(
 			message.columns,
 		),
+	}
+}
+
+async function handleGetSensitiveAggregateResult(
+	message: SdsWasmGetSensitiveAggregateResultMessage,
+): Promise<SdsWasmGetSensitiveAggregateResultResponse> {
+	const aggregateResult = CONTEXT.sensitiveAggregateResultToJs(
+		message.aggregatesDelimiter,
+		message.combinationDelimiter,
+		message.includeAggregatesData,
+	)
+
+	return {
+		id: message.id,
+		type: message.type,
+		aggregateResult,
 	}
 }
 

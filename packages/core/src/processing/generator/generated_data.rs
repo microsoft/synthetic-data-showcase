@@ -1,5 +1,6 @@
 use csv::WriterBuilder;
 use log::info;
+use std::io::Write;
 
 #[cfg(feature = "pyo3")]
 use pyo3::prelude::*;
@@ -42,6 +43,26 @@ impl GeneratedData {
             expansion_ratio,
         }
     }
+
+    #[inline]
+    pub fn _write_synthetic_data<T: Write>(
+        &self,
+        writer: &mut T,
+        delimiter: char,
+    ) -> Result<(), CsvIOError> {
+        let mut wtr = WriterBuilder::new()
+            .delimiter(delimiter as u8)
+            .from_writer(writer);
+
+        // write header and records
+        for r in self.synthetic_data.iter() {
+            match wtr.write_record(r.iter().map(|v| v.as_str())) {
+                Ok(_) => {}
+                Err(err) => return Err(CsvIOError::new(err)),
+            };
+        }
+        Ok(())
+    }
 }
 
 #[cfg_attr(feature = "pyo3", pymethods)]
@@ -71,43 +92,23 @@ impl GeneratedData {
     pub fn write_synthetic_data(&self, path: &str, delimiter: char) -> Result<(), CsvIOError> {
         let _duration_logger = ElapsedDurationLogger::new("write synthetic data");
 
+        let mut file = std::io::BufWriter::new(
+            std::fs::File::create(path).map_err(|err| CsvIOError::new(csv::Error::from(err)))?,
+        );
+
         info!("writing file {}", path);
 
-        let mut wtr = match WriterBuilder::new()
-            .delimiter(delimiter as u8)
-            .from_path(&path)
-        {
-            Ok(writer) => writer,
-            Err(err) => return Err(CsvIOError::new(err)),
-        };
-
-        // write header and records
-        for r in self.synthetic_data.iter() {
-            match wtr.write_record(r.iter().map(|v| v.as_str())) {
-                Ok(_) => {}
-                Err(err) => return Err(CsvIOError::new(err)),
-            };
-        }
-        Ok(())
+        self._write_synthetic_data(&mut file, delimiter)
     }
 
     /// Generates a CSV string from the synthetic data
     /// # Arguments
     /// * `delimiter` - CSV delimiter to use
-    pub fn synthetic_data_to_csv(&self, delimiter: char) -> String {
-        let mut csv_data = String::default();
+    pub fn synthetic_data_to_string(&self, delimiter: char) -> Result<String, CsvIOError> {
+        let mut csv_data = Vec::default();
 
-        for (row_index, row) in self.synthetic_data.iter().enumerate() {
-            for (column_index, value) in row.iter().enumerate() {
-                csv_data.push_str(value);
-                if column_index != (row.len() - 1) {
-                    csv_data.push(delimiter);
-                }
-            }
-            if row_index != (self.synthetic_data.len() - 1) {
-                csv_data.push('\n');
-            }
-        }
-        csv_data
+        self._write_synthetic_data(&mut csv_data, delimiter)?;
+
+        Ok(String::from_utf8_lossy(&csv_data).to_string())
     }
 }

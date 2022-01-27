@@ -4,6 +4,7 @@
  */
 import {
 	HeaderNames,
+	IAggregateResult,
 	IAttributesIntersectionByColumn,
 	IEvaluateResult,
 	ISelectedAttributesByColumn,
@@ -22,6 +23,8 @@ import {
 	SdsWasmEvaluateResponse,
 	SdsWasmGenerateMessage,
 	SdsWasmGenerateResponse,
+	SdsWasmGetSensitiveAggregateResultMessage,
+	SdsWasmGetSensitiveAggregateResultResponse,
 	SdsWasmInitMessage,
 	SdsWasmMessage,
 	SdsWasmMessageType,
@@ -183,8 +186,9 @@ export class SdsWasmWorker {
 	public async evaluate(
 		reportingLength: number,
 		sensitivityThreshold = 0,
+		aggregatesDelimiter = ',',
 		combinationDelimiter = ';',
-		includeAggregatesCount = false,
+		includeAggregatesData = false,
 		reportProgress?: ReportProgressCallback,
 	): Promise<IEvaluateResult | undefined> {
 		const response = await this.execute(
@@ -193,8 +197,9 @@ export class SdsWasmWorker {
 				type: SdsWasmMessageType.Evaluate,
 				reportingLength,
 				sensitivityThreshold,
+				aggregatesDelimiter,
 				combinationDelimiter,
-				includeAggregatesCount,
+				includeAggregatesData,
 			} as SdsWasmEvaluateMessage,
 			reportProgress,
 		)
@@ -238,6 +243,26 @@ export class SdsWasmWorker {
 		if (response.type === SdsWasmMessageType.AttributesIntersectionsByColumn) {
 			return (response as SdsWasmAttributesIntersectionsByColumnResponse)
 				.attributesIntersectionByColumn
+		}
+		return undefined
+	}
+
+	public async getSensitiveAggregateResult(
+		aggregatesDelimiter = ',',
+		combinationDelimiter = ';',
+		includeAggregatesData = true,
+	): Promise<IAggregateResult | undefined> {
+		const response = await this.execute({
+			id: v4(),
+			type: SdsWasmMessageType.GetSensitiveAggregateResult,
+			aggregatesDelimiter,
+			combinationDelimiter,
+			includeAggregatesData,
+		} as SdsWasmGetSensitiveAggregateResultMessage)
+
+		if (response.type === SdsWasmMessageType.GetSensitiveAggregateResult) {
+			return (response as SdsWasmGetSensitiveAggregateResultResponse)
+				.aggregateResult
 		}
 		return undefined
 	}

@@ -12,6 +12,7 @@ import {
 } from '@fluentui/react'
 import { memo } from 'react'
 import { useOnRunEvaluate } from './hooks'
+import { useOnGetAggregatesDownloadInfo } from './hooks/evaluation'
 import {
 	FabricatedCountChart,
 	LeakageCountChart,
@@ -21,6 +22,7 @@ import {
 	RareCombinationsByLengthChart,
 } from '~components/Charts'
 import { EvaluationSummary } from '~components/EvaluationSummary'
+import { DownloadButton } from '~components/controls/DownloadButton'
 import { useEvaluateResult, useIsProcessing, useReportingLength } from '~states'
 
 export const DataEvaluation: React.FC = memo(function DataEvaluation() {
@@ -71,6 +73,8 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 
 	const onRunEvaluate = useOnRunEvaluate(setEvaluateResult, reportingLength)
 
+	const onGetAggregatesDownloadInfo = useOnGetAggregatesDownloadInfo()
+
 	return (
 		<Stack styles={mainStackStyles} tokens={mainStackTokens}>
 			<Stack.Item>
@@ -94,6 +98,15 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 							Run
 						</PrimaryButton>
 					</Stack.Item>
+					{evaluateResult && (
+						<Stack.Item align="end">
+							<DownloadButton
+								title="Download sensitive aggregates csv"
+								label="Sensitive aggregates"
+								onGetDownloadInfo={onGetAggregatesDownloadInfo}
+							/>
+						</Stack.Item>
+					)}
 				</Stack>
 			</Stack.Item>
 

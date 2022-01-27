@@ -6,8 +6,8 @@ use log::debug;
 use wasm_bindgen::{prelude::*, JsCast};
 
 use crate::utils::js::ts_definitions::{
-    JsAttributesIntersectionByColumn, JsEvaluateResult, JsGenerateResult, JsHeaderNames,
-    JsReportProgressCallback, JsResult, JsSelectedAttributesByColumn,
+    JsAggregateResult, JsAttributesIntersectionByColumn, JsEvaluateResult, JsGenerateResult,
+    JsHeaderNames, JsReportProgressCallback, JsResult, JsSelectedAttributesByColumn,
 };
 
 #[wasm_bindgen]
@@ -169,8 +169,7 @@ impl SDSContext {
         debug!("protecting sensitive aggregates count...");
 
         self.evaluate_result
-            .sensitive_aggregate_result
-            .protect_aggregates_count(self.resolution);
+            .protect_sensitive_aggregates_count(self.resolution);
     }
 
     pub fn navigate(&mut self) {
@@ -204,13 +203,45 @@ impl SDSContext {
     #[wasm_bindgen(js_name = "evaluateResultToJs")]
     pub fn evaluate_result_to_js(
         &self,
+        aggregates_delimiter: char,
         combination_delimiter: &str,
-        include_aggregates_count: bool,
+        include_aggregates_data: bool,
     ) -> JsResult<JsEvaluateResult> {
         self.evaluate_result.to_js(
+            aggregates_delimiter,
             combination_delimiter,
             self.resolution,
-            include_aggregates_count,
+            include_aggregates_data,
+        )
+    }
+
+    #[wasm_bindgen(js_name = "sensitiveAggregateResultToJs")]
+    pub fn sensitive_aggregate_result_to_js(
+        &self,
+        aggregates_delimiter: char,
+        combination_delimiter: &str,
+        include_aggregates_data: bool,
+    ) -> JsResult<JsAggregateResult> {
+        self.evaluate_result.sensitive_aggregate_result_to_js(
+            aggregates_delimiter,
+            combination_delimiter,
+            self.resolution,
+            include_aggregates_data,
+        )
+    }
+
+    #[wasm_bindgen(js_name = "syntheticAggregateResultToJs")]
+    pub fn synthetic_aggregate_result_to_js(
+        &self,
+        aggregates_delimiter: char,
+        combination_delimiter: &str,
+        include_aggregates_data: bool,
+    ) -> JsResult<JsAggregateResult> {
+        self.evaluate_result.synthetic_aggregate_result_to_js(
+            aggregates_delimiter,
+            combination_delimiter,
+            self.resolution,
+            include_aggregates_data,
         )
     }
 }

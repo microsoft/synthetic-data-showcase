@@ -111,6 +111,50 @@ impl AggregatedData {
             std::fs::File::open(file_path)?,
         ))?)
     }
+
+    #[inline]
+    pub fn _write_aggregates_count<T: Write>(
+        &self,
+        writer: &mut T,
+        aggregates_delimiter: char,
+        combination_delimiter: &str,
+        resolution: usize,
+        protected: bool,
+    ) -> Result<(), Error> {
+        writer.write_all(
+            format!(
+                "selections{}{}\n",
+                aggregates_delimiter,
+                if protected {
+                    "protected_count"
+                } else {
+                    "count"
+                }
+            )
+            .as_bytes(),
+        )?;
+        writer.write_all(
+            format!(
+                "selections{}{}\n",
+                aggregates_delimiter,
+                uround_down(self.data_block.records.len() as f64, resolution as f64)
+            )
+            .as_bytes(),
+        )?;
+        for aggregate in self.aggregates_count.keys() {
+            writer.write_all(
+                format!(
+                    "{}{}{}\n",
+                    aggregate
+                        .format_str_using_headers(&self.data_block.headers, combination_delimiter),
+                    aggregates_delimiter,
+                    self.aggregates_count[aggregate].count
+                )
+                .as_bytes(),
+            )?
+        }
+        Ok(())
+    }
 }
 
 #[cfg_attr(feature = "pyo3", pymethods)]
@@ -344,41 +388,40 @@ impl AggregatedData {
 
         info!("writing file {}", aggregates_path);
 
-        let mut file = std::fs::File::create(aggregates_path)?;
+        self._write_aggregates_count(
+            &mut std::io::BufWriter::new(std::fs::File::create(aggregates_path)?),
+            aggregates_delimiter,
+            combination_delimiter,
+            resolution,
+            protected,
+        )
+    }
 
-        file.write_all(
-            format!(
-                "selections{}{}\n",
-                aggregates_delimiter,
-                if protected {
-                    "protected_count"
-                } else {
-                    "count"
-                }
-            )
-            .as_bytes(),
+    /// Writes the aggregates counts to a string in a csv/tsv like format
+    /// # Arguments:
+    /// * `aggregates_delimiter` - Delimiter to used for the CSV file
+    /// * `combination_delimiter` - Delimiter used to join combinations and format then
+    /// as strings
+    /// * `resolution` - Reporting resolution used for data synthesis
+    /// * `protected` - Whether or not the counts were protected before calling this
+    pub fn write_aggregates_to_string(
+        &self,
+        aggregates_delimiter: char,
+        combination_delimiter: &str,
+        resolution: usize,
+        protected: bool,
+    ) -> Result<String, Error> {
+        let mut csv_aggregates = Vec::default();
+
+        self._write_aggregates_count(
+            &mut csv_aggregates,
+            aggregates_delimiter,
+            combination_delimiter,
+            resolution,
+            protected,
         )?;
-        file.write_all(
-            format!(
-                "selections{}{}\n",
-                aggregates_delimiter,
-                uround_down(self.data_block.records.len() as f64, resolution as f64)
-            )
-            .as_bytes(),
-        )?;
-        for aggregate in self.aggregates_count.keys() {
-            file.write_all(
-                format!(
-                    "{}{}{}\n",
-                    aggregate
-                        .format_str_using_headers(&self.data_block.headers, combination_delimiter),
-                    aggregates_delimiter,
-                    self.aggregates_count[aggregate].count
-                )
-                .as_bytes(),
-            )?
-        }
-        Ok(())
+
+        Ok(String::from_utf8_lossy(&csv_aggregates).to_string())
     }
 
     /// Writes the records sensitivity to the file system in a csv/tsv like format
@@ -394,7 +437,7 @@ impl AggregatedData {
 
         info!("writing file {}", records_sensitivity_path);
 
-        let mut file = std::fs::File::create(records_sensitivity_path)?;
+        let mut file = std::io::BufWriter::new(std::fs::File::create(records_sensitivity_path)?);
 
         file.write_all(
             format!(

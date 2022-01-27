@@ -163,7 +163,7 @@ impl RareCombinationsComparisonData {
         rare_combinations_path: &str,
         rare_combinations_delimiter: char,
     ) -> Result<(), Error> {
-        let mut file = std::fs::File::create(rare_combinations_path)?;
+        let mut file = std::io::BufWriter::new(std::fs::File::create(rare_combinations_path)?);
 
         file.write_all(
             format!(

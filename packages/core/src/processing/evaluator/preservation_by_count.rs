@@ -102,7 +102,7 @@ impl PreservationByCountBuckets {
         preservation_by_count_path: &str,
         preservation_by_count_delimiter: char,
     ) -> Result<(), Error> {
-        let mut file = std::fs::File::create(preservation_by_count_path)?;
+        let mut file = std::io::BufWriter::new(std::fs::File::create(preservation_by_count_path)?);
 
         file.write_all(
             format!(

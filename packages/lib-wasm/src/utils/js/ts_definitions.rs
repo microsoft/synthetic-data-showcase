@@ -28,18 +28,9 @@ export interface IAggregateCountByLen {
   [length: number]: number
 }
 
-export interface IAggregateCountAndLength {
-  count: number;
-  length: number;
-}
-
-export interface IAggregatesCount {
-  [name: string]: IAggregateCountAndLength;
-}
-
 export interface IAggregateResult {
   reportingLength: number;
-  aggregatesCount?: IAggregatesCount;
+  aggregatesData?: string;
   rareCombinationsCountByLen: IAggregateCountByLen;
   combinationsCountByLen: IAggregateCountByLen;
   combinationsSumByLen: IAggregateCountByLen;
@@ -101,12 +92,6 @@ extern "C" {
 
     #[wasm_bindgen(typescript_type = "IAggregateCountByLen")]
     pub type JsAggregateCountByLen;
-
-    #[wasm_bindgen(typescript_type = "IAggregateCountAndLength")]
-    pub type JsAggregateCountAndLength;
-
-    #[wasm_bindgen(typescript_type = "IAggregatesCount")]
-    pub type JsAggregatesCount;
 
     #[wasm_bindgen(typescript_type = "IAggregateResult")]
     pub type JsAggregateResult;

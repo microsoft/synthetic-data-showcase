@@ -4,6 +4,7 @@
  */
 import {
 	HeaderNames,
+	IAggregateResult,
 	IAttributesIntersectionByColumn,
 	IEvaluateResult,
 	ISelectedAttributesByColumn,
@@ -22,6 +23,7 @@ export enum SdsWasmMessageType {
 	Navigate = 'Navigate',
 	SelectAttributes = 'SelectAttributes',
 	AttributesIntersectionsByColumn = 'AttributesIntersectionsByColumn',
+	GetSensitiveAggregateResult = 'GetSensitiveAggregateResult',
 }
 
 export interface SdsWasmMessage {
@@ -109,8 +111,9 @@ export interface SdsWasmEvaluateMessage extends SdsWasmMessage {
 	type: SdsWasmMessageType.Evaluate
 	reportingLength: number
 	sensitivityThreshold: number
+	aggregatesDelimiter: string
 	combinationDelimiter: string
-	includeAggregatesCount: boolean
+	includeAggregatesData: boolean
 }
 
 export interface SdsWasmEvaluateResponse extends SdsWasmResponse {
@@ -145,4 +148,18 @@ export interface SdsWasmAttributesIntersectionsByColumnResponse
 	extends SdsWasmResponse {
 	type: SdsWasmMessageType.AttributesIntersectionsByColumn
 	attributesIntersectionByColumn: IAttributesIntersectionByColumn
+}
+
+export interface SdsWasmGetSensitiveAggregateResultMessage
+	extends SdsWasmMessage {
+	type: SdsWasmMessageType.GetSensitiveAggregateResult
+	aggregatesDelimiter: string
+	combinationDelimiter: string
+	includeAggregatesData: boolean
+}
+
+export interface SdsWasmGetSensitiveAggregateResultResponse
+	extends SdsWasmResponse {
+	type: SdsWasmMessageType.GetSensitiveAggregateResult
+	aggregateResult: IAggregateResult
 }

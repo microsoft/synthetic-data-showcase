@@ -205,7 +205,7 @@ impl RecordsAnalysisData {
         records_analysis_path: &str,
         records_analysis_delimiter: char,
     ) -> Result<(), Error> {
-        let mut file = std::fs::File::create(records_analysis_path)?;
+        let mut file = std::io::BufWriter::new(std::fs::File::create(records_analysis_path)?);
 
         file.write_all(
             format!(

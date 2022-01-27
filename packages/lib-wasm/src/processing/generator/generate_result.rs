@@ -36,7 +36,9 @@ impl WasmGenerateResult {
 
     #[wasm_bindgen(js_name = "syntheticDataToJs")]
     pub fn synthetic_data_to_js(&self, delimiter: char) -> JsResult<String> {
-        Ok(self.generated_data.synthetic_data_to_csv(delimiter))
+        self.generated_data
+            .synthetic_data_to_string(delimiter)
+            .map_err(|err| JsValue::from(err.to_string()))
     }
 
     #[wasm_bindgen(js_name = "toJs")]

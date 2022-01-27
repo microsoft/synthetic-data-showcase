@@ -15,6 +15,7 @@ pub struct WasmEvaluateResult {
     pub(crate) sensitive_aggregate_result: WasmAggregateResult,
     pub(crate) synthetic_aggregate_result: WasmAggregateResult,
     evaluator: Evaluator,
+    protected_sensitive_aggregates: bool,
 }
 
 impl WasmEvaluateResult {
@@ -24,6 +25,7 @@ impl WasmEvaluateResult {
             sensitive_aggregate_result: WasmAggregateResult::default(),
             synthetic_aggregate_result: WasmAggregateResult::default(),
             evaluator: Evaluator::default(),
+            protected_sensitive_aggregates: false,
         }
     }
 
@@ -36,6 +38,7 @@ impl WasmEvaluateResult {
             sensitive_aggregate_result,
             synthetic_aggregate_result,
             evaluator: Evaluator::default(),
+            protected_sensitive_aggregates: false,
         }
     }
 }
@@ -50,31 +53,44 @@ impl WasmEvaluateResult {
         WasmEvaluateResult::new(sensitive_aggregate_result, synthetic_aggregate_result)
     }
 
+    #[wasm_bindgen(js_name = "protectSensitiveAggregatesCount")]
+    pub fn protect_sensitive_aggregates_count(&mut self, resolution: usize) {
+        self.sensitive_aggregate_result
+            .protect_aggregates_count(resolution);
+        self.protected_sensitive_aggregates = true;
+    }
+
     #[wasm_bindgen(js_name = "sensitiveAggregateResultToJs")]
     pub fn sensitive_aggregate_result_to_js(
         &self,
+        aggregates_delimiter: char,
         combination_delimiter: &str,
         resolution: usize,
-        include_aggregates_count: bool,
+        include_aggregates_data: bool,
     ) -> JsResult<JsAggregateResult> {
         self.sensitive_aggregate_result.to_js(
+            aggregates_delimiter,
             combination_delimiter,
             resolution,
-            include_aggregates_count,
+            self.protected_sensitive_aggregates,
+            include_aggregates_data,
         )
     }
 
     #[wasm_bindgen(js_name = "syntheticAggregateResultToJs")]
     pub fn synthetic_aggregate_result_to_js(
         &self,
+        aggregates_delimiter: char,
         combination_delimiter: &str,
         resolution: usize,
-        include_aggregates_count: bool,
+        include_aggregates_data: bool,
     ) -> JsResult<JsAggregateResult> {
         self.synthetic_aggregate_result.to_js(
+            aggregates_delimiter,
             combination_delimiter,
             resolution,
-            include_aggregates_count,
+            false,
+            include_aggregates_data,
         )
     }
 
@@ -127,9 +143,10 @@ impl WasmEvaluateResult {
     #[wasm_bindgen(js_name = "toJs")]
     pub fn to_js(
         &self,
+        aggregates_delimiter: char,
         combination_delimiter: &str,
         resolution: usize,
-        include_aggregates_count: bool,
+        include_aggregates_data: bool,
     ) -> JsResult<JsEvaluateResult> {
         let _duration_logger =
             ElapsedDurationLogger::new(String::from("evaluate result serialization"));
@@ -140,9 +157,10 @@ impl WasmEvaluateResult {
             &"sensitiveAggregateResult".into(),
             &self
                 .sensitive_aggregate_result_to_js(
+                    aggregates_delimiter,
                     combination_delimiter,
                     resolution,
-                    include_aggregates_count,
+                    include_aggregates_data,
                 )?
                 .into(),
         )?;
@@ -151,9 +169,10 @@ impl WasmEvaluateResult {
             &"syntheticAggregateResult".into(),
             &self
                 .synthetic_aggregate_result_to_js(
+                    aggregates_delimiter,
                     combination_delimiter,
                     resolution,
-                    include_aggregates_count,
+                    include_aggregates_data,
                 )?
                 .into(),
         )?;
