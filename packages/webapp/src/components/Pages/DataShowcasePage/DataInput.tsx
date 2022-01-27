@@ -5,9 +5,7 @@
 import { ColumnTransformModal } from '@data-wrangling-components/react'
 import { getTheme, IStackStyles, IStackTokens, Stack } from '@fluentui/react'
 import { useBoolean } from '@fluentui/react-hooks'
-import { useThematic } from '@thematic/react'
 import { memo } from 'react'
-import { ThemeProvider } from 'styled-components'
 import { CsvTable } from './CsvTable'
 import {
 	useOnFileChange,
@@ -59,19 +57,16 @@ export const DataInput: React.FC = memo(function DataInput() {
 		updateTable,
 	)
 
-	const thematic = useThematic()
 	return (
 		<Stack styles={mainStackStyles} tokens={mainStackTokens}>
-			<ThemeProvider theme={thematic}>
-				<ColumnTransformModal
-					headerText={'Transform column'}
-					table={sensitiveContent.table}
-					isOpen={isModalOpen}
-					onDismiss={hideModal}
-					onTransformRequested={handleTransformRequested}
-					hideOutputColumn
-				/>
-			</ThemeProvider>
+			<ColumnTransformModal
+				headerText={'Transform column'}
+				table={sensitiveContent.table}
+				isOpen={isModalOpen}
+				onDismiss={hideModal}
+				onTransformRequested={handleTransformRequested}
+				hideOutputColumn
+			/>
 			<Stack.Item>
 				<Stack tokens={subStackTokens} horizontal>
 					<Stack.Item align="end">

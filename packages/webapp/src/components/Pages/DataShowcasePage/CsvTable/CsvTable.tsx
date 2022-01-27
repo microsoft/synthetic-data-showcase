@@ -9,7 +9,6 @@ import {
 import { ICommandBarItemProps, Stack } from '@fluentui/react'
 import { useThematic } from '@thematic/react'
 import { memo } from 'react'
-import { ThemeProvider } from 'styled-components'
 import { ICsvContent } from '~models/csv'
 
 export interface ICsvTableProps {
@@ -29,36 +28,32 @@ export const CsvTable: React.FC<ICsvTableProps> = memo(function CsvTable({
 		return <></>
 	}
 
-	// this ThemeProvider is a bit of a kludge to make sure a thematic theme object is available in our components
-	// we need to differentiate the themes in styled-components better (preferably by making a better fluent + thematic union)
 	return (
 		<Stack>
 			<Stack.Item>
-				<ThemeProvider theme={thematic}>
-					<ArqueroTableHeader
-						table={content.table}
-						commands={commands}
-						visibleColumns={visibleColumns}
-					/>
-					<ArqueroDetailsList
-						table={content.table}
-						metadata={content.metadata}
-						features={{
-							histogramColumnHeaders: true,
-							statsColumnHeaders: true,
-						}}
-						isSortable
-						isHeadersFixed
-						showColumnBorders
-						visibleColumns={visibleColumns}
-						styles={{
-							root: {
-								height: 800,
-								border: `1px solid ${thematic.application().faint().hex()}`,
-							},
-						}}
-					/>
-				</ThemeProvider>
+				<ArqueroTableHeader
+					table={content.table}
+					commands={commands}
+					visibleColumns={visibleColumns}
+				/>
+				<ArqueroDetailsList
+					table={content.table}
+					metadata={content.metadata}
+					features={{
+						histogramColumnHeaders: true,
+						statsColumnHeaders: true,
+					}}
+					isSortable
+					isHeadersFixed
+					showColumnBorders
+					visibleColumns={visibleColumns}
+					styles={{
+						root: {
+							height: 800,
+							border: `1px solid ${thematic.application().faint().hex()}`,
+						},
+					}}
+				/>
 			</Stack.Item>
 		</Stack>
 	)
