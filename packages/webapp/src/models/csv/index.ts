@@ -19,6 +19,7 @@ export interface ICsvContent {
 	delimiter: string
 	table: ColumnTable
 	metadata?: TableMetadata
+	microdataId?: string
 }
 
 export const defaultCsvContent: ICsvContent = {

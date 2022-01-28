@@ -3,11 +3,19 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { ColumnTransformModal } from '@data-wrangling-components/react'
-import { getTheme, IStackStyles, IStackTokens, Stack } from '@fluentui/react'
+import {
+	getTheme,
+	IStackStyles,
+	IStackTokens,
+	MessageBar,
+	MessageBarType,
+	Stack,
+} from '@fluentui/react'
 import { useBoolean } from '@fluentui/react-hooks'
 import { memo } from 'react'
 import { CsvTable } from './CsvTable'
 import {
+	useIsMicrodataIdValid,
 	useOnFileChange,
 	useOnTableChange,
 	useOnTransformColumn,
@@ -57,6 +65,8 @@ export const DataInput: React.FC = memo(function DataInput() {
 		updateTable,
 	)
 
+	const isMicrodataIdValid = useIsMicrodataIdValid(sensitiveContent)
+
 	return (
 		<Stack styles={mainStackStyles} tokens={mainStackTokens}>
 			<ColumnTransformModal
@@ -76,6 +86,13 @@ export const DataInput: React.FC = memo(function DataInput() {
 					</Stack.Item>
 				</Stack>
 			</Stack.Item>
+			{!isMicrodataIdValid && (
+				<Stack.Item>
+					<MessageBar
+						messageBarType={MessageBarType.warning}
+					>{`Your microdata ID "${sensitiveContent.microdataId}" has duplicated values.`}</MessageBar>
+				</Stack.Item>
+			)}
 			<Stack.Item>
 				<CsvTable
 					content={sensitiveContent}

@@ -4,5 +4,6 @@
  */
 export * from './useDownloadCommand'
 export * from './useEditColumnCommand'
+export * from './useMicrodataIdCommand'
 export * from './useSensitiveZerosCommand'
 export * from './useVisibleColumnsCommand'

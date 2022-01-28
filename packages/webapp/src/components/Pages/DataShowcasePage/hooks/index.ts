@@ -3,6 +3,7 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 export * from './useColumnsWithZeros'
+export * from './useIsMicrodataIdValid'
 export * from './useOnFileChange'
 export * from './useOnRunEvaluate'
 export * from './useOnRunGenerate'
