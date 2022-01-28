@@ -13,6 +13,7 @@ import {
 } from '@fluentui/react'
 import { memo } from 'react'
 import { IPrivacyRiskSummary } from 'sds-wasm'
+import { useEvaluationSummaryItems, useOnGetSummaryDownloadInfo } from './hooks'
 import { DownloadButton } from '~components/controls/DownloadButton'
 
 export interface EvaluationSummaryProps {
@@ -33,7 +34,6 @@ export const EvaluationSummary: React.FC<EvaluationSummaryProps> = memo(
 		combinationLoss,
 		chartStackTokens,
 	}: EvaluationSummaryProps) {
-		const precision = 2
 		const columns: IColumn[] = [
 			{
 				key: 'metric',
@@ -68,45 +68,16 @@ export const EvaluationSummary: React.FC<EvaluationSummaryProps> = memo(
 				level: 0,
 			},
 		]
-		const items = [
-			{
-				metric: 'Records containing unique attribute combinations',
-				value:
-					(privacyRisk.recordsWithUniqueCombinationsProportion * 100)
-						.toFixed(precision)
-						.toString() + ' %',
-			},
-			{
-				metric: 'Records containing rare attribute combinations',
-				value:
-					(privacyRisk.recordsWithRareCombinationsProportion * 100)
-						.toFixed(precision)
-						.toString() + ' %',
-			},
-			{
-				metric: 'Unique attribute combinations',
-				value:
-					(privacyRisk.uniqueCombinationsProportion * 100)
-						.toFixed(precision)
-						.toString() + ' %',
-			},
-			{
-				metric: 'Rare attribute combinations',
-				value:
-					(privacyRisk.rareCombinationsProportion * 100)
-						.toFixed(precision)
-						.toString() + ' %',
-			},
-			{
-				metric: 'Record expansion',
-				value:
-					((recordExpansion - 1) * 100).toFixed(precision).toString() + ' %',
-			},
-			{
-				metric: 'Combination loss',
-				value: (combinationLoss * 100).toFixed(precision).toString() + ' %',
-			},
-		]
+		const items = useEvaluationSummaryItems(
+			privacyRisk,
+			recordExpansion,
+			combinationLoss,
+		)
+		const onGetSummaryDownloadInfo = useOnGetSummaryDownloadInfo(
+			privacyRisk,
+			recordExpansion,
+			combinationLoss,
+		)
 
 		return (
 			<>
@@ -115,7 +86,7 @@ export const EvaluationSummary: React.FC<EvaluationSummaryProps> = memo(
 					<Stack.Item align="center">
 						<DownloadButton
 							title="Download evaluation summary CSV"
-							onGetDownloadInfo={async () => undefined}
+							onGetDownloadInfo={onGetSummaryDownloadInfo}
 						/>
 					</Stack.Item>
 				</Stack>

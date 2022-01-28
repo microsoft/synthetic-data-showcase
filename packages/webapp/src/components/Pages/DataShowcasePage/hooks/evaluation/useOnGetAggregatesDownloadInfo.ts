@@ -9,6 +9,8 @@ import { useWasmWorkerValue } from '~states'
 export function useOnGetAggregatesDownloadInfo(
 	aggregatesDelimiter = ',',
 	combinationDelimiter = ';',
+	type = 'text/csv',
+	alias = 'sensitive_aggregates.csv',
 ): () => Promise<DownloadInfo | undefined> {
 	const worker = useWasmWorkerValue()
 
@@ -22,12 +24,12 @@ export function useOnGetAggregatesDownloadInfo(
 			return {
 				url: URL.createObjectURL(
 					new Blob([result.aggregatesData], {
-						type: 'text/csv',
+						type,
 					}),
 				),
-				alias: 'sensitive_aggregates.csv',
+				alias,
 			}
 		}
 		return undefined
-	}, [worker, aggregatesDelimiter, combinationDelimiter])
+	}, [worker, aggregatesDelimiter, combinationDelimiter, type, alias])
 }

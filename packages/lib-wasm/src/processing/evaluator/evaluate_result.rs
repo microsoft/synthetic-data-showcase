@@ -130,14 +130,20 @@ impl WasmEvaluateResult {
 
     #[wasm_bindgen(js_name = "recordExpansion")]
     pub fn record_expansion(&self) -> f64 {
+        let sensitive_len = self
+            .sensitive_aggregate_result
+            .data_block
+            .number_of_records();
+
         (self
             .synthetic_aggregate_result
             .data_block
             .number_of_records() as f64)
-            / (self
-                .sensitive_aggregate_result
-                .data_block
-                .number_of_records() as f64)
+            / if sensitive_len != 0 {
+                sensitive_len as f64
+            } else {
+                1.0
+            }
     }
 
     #[wasm_bindgen(js_name = "toJs")]

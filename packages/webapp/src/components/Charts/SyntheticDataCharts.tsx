@@ -9,6 +9,8 @@ import {
 	useEvaluationMetrics,
 	useMetricsByCountLabels,
 	useMetricsByLenLabels,
+	useOnGetCountPreservationDownloadInfo,
+	useOnGetSyntheticAnalysisDownloadInfo,
 } from './hooks'
 import { MetricsChart } from '~components/Charts'
 import { DownloadButton } from '~components/controls/DownloadButton'
@@ -38,6 +40,10 @@ export const SyntheticDataCharts: React.FC<SyntheticDataChartsProps> = memo(
 			countLabels,
 			evaluateResult,
 		)
+		const onGetSyntheticAnalysisDownloadInfo =
+			useOnGetSyntheticAnalysisDownloadInfo(lenLabels, evaluationMetrics)
+		const onGetCountPreservationDownloadInfo =
+			useOnGetCountPreservationDownloadInfo(countLabels, evaluationMetrics)
 
 		return (
 			<>
@@ -47,14 +53,14 @@ export const SyntheticDataCharts: React.FC<SyntheticDataChartsProps> = memo(
 						<DownloadButton
 							title="Download synthetic analysis by length CSV"
 							label="Analysis by length"
-							onGetDownloadInfo={async () => undefined}
+							onGetDownloadInfo={onGetSyntheticAnalysisDownloadInfo}
 						/>
 					</Stack.Item>
 					<Stack.Item align="center">
 						<DownloadButton
 							title="Download count preservation CSV"
 							label="Count preservation"
-							onGetDownloadInfo={async () => undefined}
+							onGetDownloadInfo={onGetCountPreservationDownloadInfo}
 						/>
 					</Stack.Item>
 				</Stack>
@@ -88,7 +94,7 @@ export const SyntheticDataCharts: React.FC<SyntheticDataChartsProps> = memo(
 								drawYAxisOnChartArea: false,
 							}}
 							rightChart={{
-								label: 'Unique combinations by length',
+								label: 'Distinct combinations by length',
 								metrics:
 									evaluationMetrics.numberOfDistinctSyntheticCombinationsByLen,
 								type: 'bar',
@@ -108,7 +114,7 @@ export const SyntheticDataCharts: React.FC<SyntheticDataChartsProps> = memo(
 								drawYAxisOnChartArea: false,
 							}}
 							rightChart={{
-								label: 'Unique combinations by length',
+								label: 'Distinct combinations by length',
 								metrics:
 									evaluationMetrics.numberOfDistinctSyntheticCombinationsByLen,
 								type: 'bar',
@@ -128,7 +134,7 @@ export const SyntheticDataCharts: React.FC<SyntheticDataChartsProps> = memo(
 								drawYAxisOnChartArea: false,
 							}}
 							rightChart={{
-								label: 'Unique combinations by length',
+								label: 'Distinct combinations by length',
 								metrics:
 									evaluationMetrics.numberOfDistinctSyntheticCombinationsByLen,
 								type: 'bar',
@@ -148,7 +154,7 @@ export const SyntheticDataCharts: React.FC<SyntheticDataChartsProps> = memo(
 								drawYAxisOnChartArea: false,
 							}}
 							rightChart={{
-								label: 'Sensitive unique combinations by length',
+								label: 'Sensitive distinct combinations by length',
 								metrics:
 									evaluationMetrics.numberOfDistinctSensitiveCombinationsByLen,
 								type: 'bar',

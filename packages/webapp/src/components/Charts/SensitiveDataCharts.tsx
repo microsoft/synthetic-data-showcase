@@ -9,6 +9,7 @@ import {
 	useEvaluationMetrics,
 	useMetricsByCountLabels,
 	useMetricsByLenLabels,
+	useOnGetSensitiveAnalysisDownloadInfo,
 } from './hooks'
 import { MetricsChart } from '~components/Charts'
 import { DownloadButton } from '~components/controls/DownloadButton'
@@ -38,6 +39,8 @@ export const SensitiveDataCharts: React.FC<SensitiveDataChartsProps> = memo(
 			countLabels,
 			evaluateResult,
 		)
+		const onGetSensitiveAnalysisDownloadInfo =
+			useOnGetSensitiveAnalysisDownloadInfo(lenLabels, evaluationMetrics)
 
 		return (
 			<>
@@ -47,7 +50,7 @@ export const SensitiveDataCharts: React.FC<SensitiveDataChartsProps> = memo(
 						<DownloadButton
 							title="Download sensitive analysis by length CSV"
 							label="Analysis by length"
-							onGetDownloadInfo={async () => undefined}
+							onGetDownloadInfo={onGetSensitiveAnalysisDownloadInfo}
 						/>
 					</Stack.Item>
 				</Stack>
@@ -81,7 +84,7 @@ export const SensitiveDataCharts: React.FC<SensitiveDataChartsProps> = memo(
 								drawYAxisOnChartArea: false,
 							}}
 							rightChart={{
-								label: 'Unique combinations by length',
+								label: 'Distinct combinations by length',
 								metrics:
 									evaluationMetrics.numberOfDistinctSensitiveCombinationsByLen,
 								type: 'bar',
