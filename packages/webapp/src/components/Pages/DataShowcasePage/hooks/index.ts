@@ -2,8 +2,9 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+export * from './useCanRun'
 export * from './useColumnsWithZeros'
-export * from './useIsMicrodataIdValid'
+export * from './useIsSubjectIdValid'
 export * from './useOnFileChange'
 export * from './useOnRunEvaluate'
 export * from './useOnRunGenerate'

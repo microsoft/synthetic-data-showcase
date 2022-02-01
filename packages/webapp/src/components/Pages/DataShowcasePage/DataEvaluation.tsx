@@ -12,7 +12,7 @@ import {
 	Stack,
 } from '@fluentui/react'
 import { memo } from 'react'
-import { useOnRunEvaluate, useSpinButtonOnChange } from './hooks'
+import { useCanRun, useOnRunEvaluate, useSpinButtonOnChange } from './hooks'
 import { useOnGetAggregatesDownloadInfo } from './hooks/evaluation'
 import { SensitiveDataCharts, SyntheticDataCharts } from '~components/Charts'
 import { EvaluationSummary } from '~components/EvaluationSummary'
@@ -26,6 +26,7 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 	const [reportingLength, setReportingLength] = useReportingLength()
 	const [isProcessing] = useIsProcessing()
 	const [evaluateResult, setEvaluateResult] = useEvaluateResult()
+	const canRun = useCanRun()
 	const onRunEvaluate = useOnRunEvaluate(setEvaluateResult, reportingLength)
 	const onGetAggregatesDownloadInfo = useOnGetAggregatesDownloadInfo()
 	const handleReportingLengthChange = useSpinButtonOnChange(setReportingLength)
@@ -95,7 +96,7 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 						<PrimaryButton
 							type="submit"
 							onClick={onRunEvaluate}
-							disabled={isProcessing}
+							disabled={!canRun}
 						>
 							Run
 						</PrimaryButton>

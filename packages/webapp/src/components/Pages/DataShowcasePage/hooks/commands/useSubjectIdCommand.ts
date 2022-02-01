@@ -8,18 +8,18 @@ import { useCallback, useMemo } from 'react'
 import { SetterOrUpdater } from 'recoil'
 import { ICsvContent } from '~models'
 
-export function useMicrodataIdCommand(
+export function useSubjectIdCommand(
 	content: ICsvContent,
 	setter: SetterOrUpdater<ICsvContent>,
 ): ICommandBarItemProps {
-	const selectedId = content.microdataId
+	const selectedId = content.subjectId
 	const columns = useMemo(() => content.table.columnNames(), [content.table])
 
 	const handleSelectedIdChange = useCallback(
 		(name: string) => {
 			setter(previous => ({
 				...previous,
-				microdataId: previous.microdataId === name ? undefined : name,
+				subjectId: previous.subjectId === name ? undefined : name,
 			}))
 		},
 		[setter],
@@ -32,8 +32,8 @@ export function useMicrodataIdCommand(
 				selectedId ? [selectedId] : [],
 				handleSelectedIdChange,
 				{
-					key: 'microdata-id',
-					text: 'Microdata ID',
+					key: 'subject-id',
+					text: 'Subject ID',
 				},
 			),
 		[columns, selectedId, handleSelectedIdChange],

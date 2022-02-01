@@ -36,7 +36,9 @@ export function useOnRunGenerate(
 		const response = await worker?.generate(
 			sensitiveContent.table.toCSV({ delimiter: sensitiveContent.delimiter }),
 			sensitiveContent.delimiter,
-			sensitiveContent.headers.filter(h => h.use).map(h => h.name),
+			sensitiveContent.headers
+				.filter(h => h.use && h.name !== sensitiveContent.subjectId)
+				.map(h => h.name),
 			sensitiveContent.headers
 				.filter(h => h.hasSensitiveZeros)
 				.map(h => h.name),

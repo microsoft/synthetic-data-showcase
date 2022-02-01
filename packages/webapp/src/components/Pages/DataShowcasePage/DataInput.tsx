@@ -15,11 +15,11 @@ import { useBoolean } from '@fluentui/react-hooks'
 import { memo } from 'react'
 import { CsvTable } from './CsvTable'
 import {
-	useIsMicrodataIdValid,
 	useOnFileChange,
 	useOnTableChange,
 	useOnTransformColumn,
 	useSensitiveTableCommands,
+	useSubjectIdErrorMessage,
 	useVisibleColumnNames,
 } from './hooks'
 import { InfoTooltip } from '~components/InfoTooltip'
@@ -67,7 +67,7 @@ export const DataInput: React.FC = memo(function DataInput() {
 		updateTable,
 	)
 
-	const isMicrodataIdValid = useIsMicrodataIdValid(sensitiveContent)
+	const subjectIdErrorMessage = useSubjectIdErrorMessage(sensitiveContent)
 
 	return (
 		<Stack styles={mainStackStyles} tokens={mainStackTokens}>
@@ -91,11 +91,11 @@ export const DataInput: React.FC = memo(function DataInput() {
 					</Stack.Item>
 				</Stack>
 			</Stack.Item>
-			{!isMicrodataIdValid && (
+			{subjectIdErrorMessage && (
 				<Stack.Item>
-					<MessageBar
-						messageBarType={MessageBarType.warning}
-					>{`Your microdata ID "${sensitiveContent.microdataId}" has duplicated values.`}</MessageBar>
+					<MessageBar messageBarType={MessageBarType.error}>
+						{subjectIdErrorMessage}
+					</MessageBar>
 				</Stack.Item>
 			)}
 			<Stack.Item>

@@ -15,6 +15,7 @@ import {
 import { memo } from 'react'
 import { CsvTable } from './CsvTable'
 import {
+	useCanRun,
 	useOnRunGenerate,
 	useSpinButtonOnChange,
 	useSynthesisModeOnChange,
@@ -40,6 +41,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 	const [cacheSize, setCacheSize] = useCacheSize()
 	const isProcessing = useIsProcessingValue()
 	const sensitiveContent = useSensitiveContentValue()
+	const canRun = useCanRun()
 	const [syntheticContent, setSyntheticContent] = useSyntheticContent()
 	const [synthesisMode, setSynthesisMode] = useSynthesisMode()
 	const synthesisModeOptions = useSynthesisModeOptions()
@@ -141,7 +143,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 						<PrimaryButton
 							type="submit"
 							onClick={onRunGenerate}
-							disabled={isProcessing}
+							disabled={!canRun}
 						>
 							Run
 						</PrimaryButton>

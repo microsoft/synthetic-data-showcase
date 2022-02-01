@@ -8,7 +8,7 @@ import { SetterOrUpdater } from 'recoil'
 import {
 	useDownloadCommand,
 	useEditColumnCommand,
-	useMicrodataIdCommand,
+	useSubjectIdCommand,
 	useSensitiveZerosCommand,
 	useVisibleColumnsCommand,
 } from './commands'
@@ -20,13 +20,13 @@ export function useSensitiveTableCommands(
 	setSensitiveContent: SetterOrUpdater<ICsvContent>,
 	showColumnTransform: () => void,
 ): ICommandBarItemProps[] {
-	const mdcmd = useMicrodataIdCommand(content, setSensitiveContent)
+	const sidcmd = useSubjectIdCommand(content, setSensitiveContent)
 	const vccmd = useVisibleColumnsCommand(content, setSensitiveContent)
 	const cicmd = useSensitiveZerosCommand(content, setSensitiveContent)
 	const edcmd = useEditColumnCommand(showColumnTransform)
 	const dlcmd = useDownloadCommand(content, 'sensitive_data.csv')
 	return useMemo(
-		() => [mdcmd, vccmd, cicmd, edcmd, dlcmd],
-		[mdcmd, dlcmd, vccmd, edcmd, cicmd],
+		() => [sidcmd, vccmd, cicmd, edcmd, dlcmd],
+		[sidcmd, dlcmd, vccmd, edcmd, cicmd],
 	)
 }

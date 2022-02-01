@@ -3,11 +3,12 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { introspect } from '@data-wrangling-components/core'
-import { from } from 'arquero'
+import { from, table } from 'arquero'
+import _ from 'lodash'
 import { parse } from 'papaparse'
 import { useCallback, ChangeEvent } from 'react'
 import { SetterOrUpdater } from 'recoil'
-import { ICsvContent } from '~models'
+import { defaultSubjectID, ICsvContent } from '~models'
 import {
 	useClearSensitiveData,
 	useIsProcessingSetter,
@@ -40,17 +41,23 @@ export function useOnFileChange(
 					skipEmptyLines: true,
 					header: true,
 					complete: async results => {
-						const table = from(results.data)
+						let t = from(results.data)
+
+						/// assign RowID to the table if not in there
+						if (!t.column(defaultSubjectID)) {
+							t = table({ RowID: _.range(1, t.totalRows() + 1) }).assign(t)
+						}
 
 						setIsProcessing(false)
 						setSensitiveContent({
-							headers: tableHeaders(table),
-							columnsWithZeros: columnIndexesWithZeros(table),
+							headers: tableHeaders(t),
+							columnsWithZeros: columnIndexesWithZeros(t),
 							delimiter: results.meta.delimiter,
-							table,
-							metadata: introspect(table, true),
+							table: t,
+							metadata: introspect(t, true),
+							subjectId: defaultSubjectID,
 						})
-						setRecordLimit(table.numRows())
+						setRecordLimit(t.numRows())
 						// allow the same file to be loaded again
 						e.target.value = ''
 					},

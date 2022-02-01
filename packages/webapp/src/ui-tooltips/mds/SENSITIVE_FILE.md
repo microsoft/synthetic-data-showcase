@@ -13,3 +13,7 @@ In the loaded table, the **`Use columns`** dropdown may be used to specify which
 ### Negative value interpretation
 
 The pipeline distinguishes 'positive' attribute values that indicate the presence of specific sensitive data from 'negative' attribute values that indicate the absence of such data. By default, the integer zero (`0`) and the empty string (`""`) and not taken into account when creating and counting attribute combinations. Any columns where zero values are of interest (and thus sensitive) should be selected under the **`Sensitive zeros`** dropdown in the loaded table, the tool will then treat such 'sensitive zeros' in the same way as positive values.
+
+### Subject ID
+
+Each row is expected to identify a single subject, by default a column named `RowID` will be added to the table to meet this criteria. However, under the **`Subject ID`** dropdown, other columns might be set as ID.
