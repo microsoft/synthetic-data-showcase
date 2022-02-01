@@ -4712,6 +4712,16 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD",
         }]
       ]],
+      ["@types/dompurify", [
+        ["npm:2.3.3", {
+          "packageLocation": "./.yarn/cache/@types-dompurify-npm-2.3.3-502805169c-427e2dc60d.zip/node_modules/@types/dompurify/",
+          "packageDependencies": [
+            ["@types/dompurify", "npm:2.3.3"],
+            ["@types/trusted-types", "npm:2.0.2"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
       ["@types/eslint", [
         ["npm:8.2.0", {
           "packageLocation": "./.yarn/cache/@types-eslint-npm-8.2.0-971aa21b00-18f37790af.zip/node_modules/@types/eslint/",
@@ -4877,6 +4887,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/@types-lodash-npm-4.14.177-a28410b30a-00f9eb300e.zip/node_modules/@types/lodash/",
           "packageDependencies": [
             ["@types/lodash", "npm:4.14.177"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
+      ["@types/marked", [
+        ["npm:4.0.2", {
+          "packageLocation": "./.yarn/cache/@types-marked-npm-4.0.2-2f29ece852-61d7f47b2b.zip/node_modules/@types/marked/",
+          "packageDependencies": [
+            ["@types/marked", "npm:4.0.2"]
           ],
           "linkType": "HARD",
         }]
@@ -5080,6 +5099,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["@types/through2", "npm:2.0.36"],
             ["@types/node", "npm:16.11.11"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
+      ["@types/trusted-types", [
+        ["npm:2.0.2", {
+          "packageLocation": "./.yarn/cache/@types-trusted-types-npm-2.0.2-035cb17c5e-3371eef5f1.zip/node_modules/@types/trusted-types/",
+          "packageDependencies": [
+            ["@types/trusted-types", "npm:2.0.2"]
           ],
           "linkType": "HARD",
         }]
@@ -7985,6 +8013,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["domexception", "npm:2.0.1"],
             ["webidl-conversions", "npm:5.0.0"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
+      ["dompurify", [
+        ["npm:2.3.5", {
+          "packageLocation": "./.yarn/cache/dompurify-npm-2.3.5-21d6008c6a-06a7883b5e.zip/node_modules/dompurify/",
+          "packageDependencies": [
+            ["dompurify", "npm:2.3.5"]
           ],
           "linkType": "HARD",
         }]
@@ -12033,6 +12070,13 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["marked", "npm:3.0.8"]
           ],
           "linkType": "HARD",
+        }],
+        ["npm:4.0.12", {
+          "packageLocation": "./.yarn/cache/marked-npm-4.0.12-1fc6e0ed31-7575117f85.zip/node_modules/marked/",
+          "packageDependencies": [
+            ["marked", "npm:4.0.12"]
+          ],
+          "linkType": "HARD",
         }]
       ]],
       ["matchdep", [
@@ -16054,7 +16098,9 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@thematic/d3", "virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:1.3.2"],
             ["@thematic/fluent", "virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:2.0.1"],
             ["@thematic/react", "virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:1.3.2"],
+            ["@types/dompurify", "npm:2.3.3"],
             ["@types/lodash", "npm:4.14.177"],
+            ["@types/marked", "npm:4.0.2"],
             ["@types/node", "npm:14.17.34"],
             ["@types/papaparse", "npm:5.3.1"],
             ["@types/react", "npm:17.0.37"],
@@ -16069,8 +16115,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["arquero", "npm:4.8.7"],
             ["chart.js", "npm:3.6.1"],
             ["chartjs-plugin-datalabels", "virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:2.0.0"],
+            ["dompurify", "npm:2.3.5"],
             ["formik", "virtual:d293af44cc1e0d0fc09cc0c8c4a3d9e5fccdf4ddebae06b8fad52a312360d8122c830d53ecc46b13c13aaad8c6ae7dbd798566bd5cba581433425b2ff3f7540b#npm:2.2.9"],
             ["lodash", "npm:4.17.21"],
+            ["marked", "npm:4.0.12"],
             ["npm-run-all", "npm:4.1.5"],
             ["papaparse", "npm:5.3.1"],
             ["react", "npm:17.0.2"],

@@ -28,12 +28,14 @@ import {
 	HeaderSelector,
 	SelectedAttributes,
 } from '~components/AttributeSelector'
+import { InfoTooltip } from '~components/InfoTooltip'
 import { PipelineStep } from '~models'
 import {
 	useWasmWorkerValue,
 	useSelectedPipelineStepSetter,
 	useSyntheticHeaders,
 } from '~states'
+import { tooltips } from '~ui-tooltips'
 
 const backIcon: IIconProps = { iconName: 'Back' }
 
@@ -119,6 +121,7 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 			<Stack horizontal verticalAlign="center" tokens={subStackTokens}>
 				<IconButton iconProps={backIcon} onClick={onGoBack} />
 				<h3>Compare sensitive and synthetic results</h3>
+				<InfoTooltip>{tooltips.navigate}</InfoTooltip>
 			</Stack>
 
 			<SelectedAttributes

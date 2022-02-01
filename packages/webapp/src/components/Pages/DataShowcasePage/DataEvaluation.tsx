@@ -16,8 +16,11 @@ import { useOnRunEvaluate, useSpinButtonOnChange } from './hooks'
 import { useOnGetAggregatesDownloadInfo } from './hooks/evaluation'
 import { SensitiveDataCharts, SyntheticDataCharts } from '~components/Charts'
 import { EvaluationSummary } from '~components/EvaluationSummary'
+import { InfoTooltip } from '~components/InfoTooltip'
+import { TooltipWrapper } from '~components/TooltipWrapper'
 import { DownloadButton } from '~components/controls/DownloadButton'
 import { useEvaluateResult, useIsProcessing, useReportingLength } from '~states'
+import { tooltips } from '~ui-tooltips'
 
 export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 	const [reportingLength, setReportingLength] = useReportingLength()
@@ -74,15 +77,19 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 			<Stack.Item>
 				<Stack tokens={subStackTokens} horizontal>
 					<Stack.Item>
-						<SpinButton
+						<TooltipWrapper
+							tooltip={tooltips.analysisLength}
 							label="Analysis length"
-							labelPosition={Position.top}
-							min={1}
-							step={1}
-							value={reportingLength.toString()}
-							disabled={isProcessing}
-							onChange={handleReportingLengthChange}
-						/>
+						>
+							<SpinButton
+								labelPosition={Position.top}
+								min={1}
+								step={1}
+								value={reportingLength.toString()}
+								disabled={isProcessing}
+								onChange={handleReportingLengthChange}
+							/>
+						</TooltipWrapper>
 					</Stack.Item>
 					<Stack.Item align="end">
 						<PrimaryButton
@@ -92,6 +99,9 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 						>
 							Run
 						</PrimaryButton>
+					</Stack.Item>
+					<Stack.Item align="end">
+						<InfoTooltip>{tooltips.evaluate}</InfoTooltip>
 					</Stack.Item>
 					{evaluateResult && (
 						<Stack.Item align="end">

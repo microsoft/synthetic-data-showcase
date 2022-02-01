@@ -22,8 +22,10 @@ import {
 	useSensitiveTableCommands,
 	useVisibleColumnNames,
 } from './hooks'
+import { InfoTooltip } from '~components/InfoTooltip'
 import { FileInputButton } from '~components/controls'
 import { useSensitiveContent } from '~states'
+import { tooltips } from '~ui-tooltips'
 
 export const DataInput: React.FC = memo(function DataInput() {
 	const [sensitiveContent, setSensitiveContent] = useSensitiveContent()
@@ -83,6 +85,9 @@ export const DataInput: React.FC = memo(function DataInput() {
 						<FileInputButton onChange={onFileChange} disabled={false}>
 							Open sensitive data file
 						</FileInputButton>
+					</Stack.Item>
+					<Stack.Item align="center">
+						<InfoTooltip>{tooltips.sensitiveFile}</InfoTooltip>
 					</Stack.Item>
 				</Stack>
 			</Stack.Item>

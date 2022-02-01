@@ -21,6 +21,8 @@ import {
 	useSynthesisModeOptions,
 	useSyntheticTableCommands,
 } from './hooks'
+import { InfoTooltip } from '~components/InfoTooltip'
+import { TooltipWrapper } from '~components/TooltipWrapper'
 import {
 	useCacheSize,
 	useIsProcessingValue,
@@ -30,6 +32,7 @@ import {
 	useSynthesisMode,
 	useSyntheticContent,
 } from '~states'
+import { tooltips } from '~ui-tooltips'
 
 export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 	const [resolution, setResolution] = useResolution()
@@ -86,49 +89,53 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 			<Stack.Item>
 				<Stack tokens={subStackTokens} horizontal>
 					<Stack.Item>
-						<SpinButton
-							label="Resolution"
-							labelPosition={Position.top}
-							min={1}
-							step={1}
-							value={resolution.toString()}
-							disabled={isProcessing}
-							onChange={handleResolutionChange}
-						/>
+						<TooltipWrapper tooltip={tooltips.resolution} label="Resolution">
+							<SpinButton
+								labelPosition={Position.top}
+								min={1}
+								step={1}
+								value={resolution.toString()}
+								disabled={isProcessing}
+								onChange={handleResolutionChange}
+							/>
+						</TooltipWrapper>
 					</Stack.Item>
 					<Stack.Item>
-						<SpinButton
-							label="Record Limit"
-							labelPosition={Position.top}
-							min={1}
-							max={sensitiveContent.table.numRows()}
-							step={10}
-							value={recordLimit.toString()}
-							disabled={isProcessing}
-							onChange={handleRecordLimitChange}
-						/>
+						<TooltipWrapper tooltip={tooltips.recordLimit} label="Record Limit">
+							<SpinButton
+								labelPosition={Position.top}
+								min={1}
+								max={sensitiveContent.table.numRows()}
+								step={10}
+								value={recordLimit.toString()}
+								disabled={isProcessing}
+								onChange={handleRecordLimitChange}
+							/>
+						</TooltipWrapper>
 					</Stack.Item>
 					<Stack.Item>
-						<SpinButton
-							label="Cache size"
-							labelPosition={Position.top}
-							min={1}
-							step={1000}
-							value={cacheSize.toString()}
-							disabled={isProcessing}
-							onChange={handleCacheSizeChange}
-						/>
+						<TooltipWrapper tooltip={tooltips.cacheSize} label="Cache size">
+							<SpinButton
+								labelPosition={Position.top}
+								min={1}
+								step={1000}
+								value={cacheSize.toString()}
+								disabled={isProcessing}
+								onChange={handleCacheSizeChange}
+							/>
+						</TooltipWrapper>
 					</Stack.Item>
 					<Stack.Item>
-						<Dropdown
-							label="Mode"
-							selectedKey={synthesisMode}
-							onChange={handleSynthesisModeChange}
-							placeholder="Select synthesis mode"
-							options={synthesisModeOptions}
-							styles={synthesisModeStyles}
-							disabled={isProcessing}
-						/>
+						<TooltipWrapper tooltip={tooltips.synthesisMode} label="Mode">
+							<Dropdown
+								selectedKey={synthesisMode}
+								onChange={handleSynthesisModeChange}
+								placeholder="Select synthesis mode"
+								options={synthesisModeOptions}
+								styles={synthesisModeStyles}
+								disabled={isProcessing}
+							/>
+						</TooltipWrapper>
 					</Stack.Item>
 					<Stack.Item align="end">
 						<PrimaryButton
@@ -138,6 +145,9 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 						>
 							Run
 						</PrimaryButton>
+					</Stack.Item>
+					<Stack.Item align="end">
+						<InfoTooltip>{tooltips.synthesize}</InfoTooltip>
 					</Stack.Item>
 				</Stack>
 			</Stack.Item>

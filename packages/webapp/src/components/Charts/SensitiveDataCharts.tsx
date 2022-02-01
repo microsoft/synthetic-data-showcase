@@ -12,7 +12,9 @@ import {
 	useOnGetSensitiveAnalysisDownloadInfo,
 } from './hooks'
 import { MetricsChart } from '~components/Charts'
+import { InfoTooltip } from '~components/InfoTooltip'
 import { DownloadButton } from '~components/controls/DownloadButton'
+import { tooltips } from '~ui-tooltips'
 
 export interface SensitiveDataChartsProps {
 	evaluateResult: IEvaluateResult
@@ -46,6 +48,9 @@ export const SensitiveDataCharts: React.FC<SensitiveDataChartsProps> = memo(
 			<>
 				<Stack horizontal tokens={chartStackTokens}>
 					<h3>Sensitive data charts</h3>
+					<Stack.Item align="center">
+						<InfoTooltip>{tooltips.sensitiveDataCharts}</InfoTooltip>
+					</Stack.Item>
 					<Stack.Item align="center">
 						<DownloadButton
 							title="Download sensitive analysis by length CSV"

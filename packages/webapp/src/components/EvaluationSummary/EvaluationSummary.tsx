@@ -14,6 +14,7 @@ import {
 import { memo } from 'react'
 import { IPrivacyRiskSummary } from 'sds-wasm'
 import { useEvaluationSummaryItems, useOnGetSummaryDownloadInfo } from './hooks'
+import { InfoTooltip } from '~components/InfoTooltip'
 import { DownloadButton } from '~components/controls/DownloadButton'
 
 export interface EvaluationSummaryProps {
@@ -42,6 +43,14 @@ export const EvaluationSummary: React.FC<EvaluationSummaryProps> = memo(
 				isResizable: true,
 				minWidth: 200,
 				maxWidth: 400,
+				onRender: item => (
+					<Stack horizontal>
+						<Stack.Item align="center">{item.metric}</Stack.Item>
+						<Stack.Item align="center">
+							<InfoTooltip>{item.tooltip}</InfoTooltip>
+						</Stack.Item>
+					</Stack>
+				),
 			},
 			{
 				key: 'value',

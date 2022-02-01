@@ -13,7 +13,9 @@ import {
 	useOnGetSyntheticAnalysisDownloadInfo,
 } from './hooks'
 import { MetricsChart } from '~components/Charts'
+import { InfoTooltip } from '~components/InfoTooltip'
 import { DownloadButton } from '~components/controls/DownloadButton'
+import { tooltips } from '~ui-tooltips'
 
 export interface SyntheticDataChartsProps {
 	evaluateResult: IEvaluateResult
@@ -49,6 +51,9 @@ export const SyntheticDataCharts: React.FC<SyntheticDataChartsProps> = memo(
 			<>
 				<Stack horizontal tokens={chartStackTokens}>
 					<h3>Synthetic data charts</h3>
+					<Stack.Item align="center">
+						<InfoTooltip>{tooltips.syntheticDataCharts}</InfoTooltip>
+					</Stack.Item>
 					<Stack.Item align="center">
 						<DownloadButton
 							title="Download synthetic analysis by length CSV"
