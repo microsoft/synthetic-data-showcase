@@ -1,1 +1,1 @@
-## Records with rare combs
+Percentage of records containing attribute combinations that happen less times than the specified **`resolution`** at the synthesize step. This includes combinations generated up the to the **`analysis length`**.

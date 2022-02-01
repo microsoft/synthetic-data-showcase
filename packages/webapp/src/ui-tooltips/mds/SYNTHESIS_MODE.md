@@ -1,1 +1,5 @@
-## Synthesis mode
+The mode parameter indicates whether synthetic records should be seeded with a corresponding sensitive record (**`Seeded`**) or generated in an unseeded way by randomly sampling joint attribute distributions (**`Unseeded`**). Seeded synthesis is faster and better preserves statistics for visual analytics, but unseeded synthesis creates longer records of more uniform length that may better preserve structure for machine learning.
+
+Seeded synthesis proceeds by sampling attributes from a sensitive record until the addition of further attributes would create a rare combination (with its corresponding count smaller than the required **`resolution`**). These privacy-preserving subsets of sensitive records are collected for output as synthetic records. The unused attributes of each seed are also collected, with further output records synthesized from these (without replacement) until all sensitive attributes are accounted for in a synthetic record.
+
+Since precise attribute counts create a privacy risk, it is advisable to create some uncertainty over the actual counts by adding noise to the synthetic data. The same **`resolution`** is used again here to suppress attributes or synthesize additional records such that synthetic attribute counts are equal to the (already imprecise) reported count.
