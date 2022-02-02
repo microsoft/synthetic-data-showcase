@@ -12,6 +12,6 @@ export function useCanRun(): boolean {
 	const isValid = useIsSubjectIdValid(content)
 
 	return useMemo(() => {
-		return !isProcessing && isValid === true
-	}, [isProcessing, isValid])
+		return content.table.totalRows() > 0 && !isProcessing && isValid === true
+	}, [content, isProcessing, isValid])
 }

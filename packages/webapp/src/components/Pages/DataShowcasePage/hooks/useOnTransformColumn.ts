@@ -14,6 +14,7 @@ import { ICsvContent } from '~models'
 
 // TODO: this would be convenient as a dwc export
 interface ColumnTransformArgs extends InputColumnArgs, OutputColumnArgs {}
+
 /**
  * Handles a request to execute a column transform step against the table.
  * This step can be created anywhere, but is managed by the ColumnTransformModal.

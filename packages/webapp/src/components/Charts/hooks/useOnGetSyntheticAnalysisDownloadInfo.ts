@@ -3,6 +3,7 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { useCallback } from 'react'
+import { useOnGetSyntheticAnalysisCsv } from '.'
 import { DownloadInfo } from '~components/controls/DownloadButton'
 import { EvaluationMetrics } from '~models'
 
@@ -13,12 +14,14 @@ export function useOnGetSyntheticAnalysisDownloadInfo(
 	type = 'text/csv',
 	alias = 'synthetic_analysis_by_length.csv',
 ): () => Promise<DownloadInfo | undefined> {
-	return useCallback(async () => {
-		let data = `Length${delimiter}Mean synthetic count${delimiter}Rare synthetic combinations percentage${delimiter}Distinct synthetic combinations${delimiter}Leakage count${delimiter}Fabricated count${delimiter}Preservation percentage\n`
+	const getSyntheticAnalysisCsv = useOnGetSyntheticAnalysisCsv(
+		lenLabels,
+		evaluationMetrics,
+		delimiter,
+	)
 
-		lenLabels.forEach(l => {
-			data += `${l}${delimiter}${evaluationMetrics.meanSyntheticCombinationCountByLen[l]}${delimiter}${evaluationMetrics.rareSyntheticCombinationsPercentageByLen[l]}${delimiter}${evaluationMetrics.numberOfDistinctSyntheticCombinationsByLen[l]}${delimiter}${evaluationMetrics.leakageCountByLen[l]}${delimiter}${evaluationMetrics.fabricatedCountByLen[l]}${delimiter}${evaluationMetrics.preservationPercentageByLen[l]}\n`
-		})
+	return useCallback(async () => {
+		const data = getSyntheticAnalysisCsv()
 
 		return {
 			url: URL.createObjectURL(
@@ -28,5 +31,5 @@ export function useOnGetSyntheticAnalysisDownloadInfo(
 			),
 			alias,
 		}
-	}, [lenLabels, evaluationMetrics, delimiter, type, alias])
+	}, [getSyntheticAnalysisCsv, type, alias])
 }

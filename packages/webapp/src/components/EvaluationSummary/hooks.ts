@@ -63,6 +63,40 @@ export function useEvaluationSummaryItems(
 	)
 }
 
+export function useOnGetSummaryCsv(
+	privacyRisk?: IPrivacyRiskSummary,
+	recordExpansion?: number,
+	combinationLoss?: number,
+	delimiter = ',',
+): () => string {
+	return useCallback(() => {
+		let data = `Metric${delimiter}Value\n`
+
+		if (privacyRisk !== undefined) {
+			data += `Percentage of sensitive records containing unique attribute combinations${delimiter}${
+				privacyRisk.recordsWithUniqueCombinationsProportion * 100
+			}\n`
+			data += `Percentage of sensitive records containing rare attribute combinations${delimiter}${
+				privacyRisk.recordsWithRareCombinationsProportion * 100
+			}\n`
+			data += `Percentage of sensitive unique attribute combinations${delimiter}${
+				privacyRisk.uniqueCombinationsProportion * 100
+			}\n`
+			data += `Percentage of sensitive rare attribute combinations${delimiter}${
+				privacyRisk.rareCombinationsProportion * 100
+			}\n`
+		}
+		if (recordExpansion !== undefined) {
+			data += `Record expansion${delimiter}${(recordExpansion - 1) * 100}\n`
+		}
+		if (combinationLoss !== undefined) {
+			data += `Combination loss${delimiter}${combinationLoss * 100}\n`
+		}
+
+		return data
+	}, [privacyRisk, recordExpansion, combinationLoss, delimiter])
+}
+
 export function useOnGetSummaryDownloadInfo(
 	privacyRisk: IPrivacyRiskSummary,
 	recordExpansion: number,
@@ -71,23 +105,15 @@ export function useOnGetSummaryDownloadInfo(
 	type = 'text/csv',
 	alias = 'evaluation_summary.csv',
 ): () => Promise<DownloadInfo | undefined> {
-	return useCallback(async () => {
-		let data = `Metric${delimiter}Value\n`
+	const getSummaryCsv = useOnGetSummaryCsv(
+		privacyRisk,
+		recordExpansion,
+		combinationLoss,
+		delimiter,
+	)
 
-		data += `Percentage of sensitive records containing unique attribute combinations${delimiter}${
-			privacyRisk.recordsWithUniqueCombinationsProportion * 100
-		}\n`
-		data += `Percentage of sensitive records containing rare attribute combinations${delimiter}${
-			privacyRisk.recordsWithRareCombinationsProportion * 100
-		}\n`
-		data += `Percentage of sensitive unique attribute combinations${delimiter}${
-			privacyRisk.uniqueCombinationsProportion * 100
-		}\n`
-		data += `Percentage of sensitive rare attribute combinations${delimiter}${
-			privacyRisk.rareCombinationsProportion * 100
-		}\n`
-		data += `Record expansion${delimiter}${(recordExpansion - 1) * 100}\n`
-		data += `Combination loss${delimiter}${combinationLoss * 100}\n`
+	return useCallback(async () => {
+		const data = getSummaryCsv()
 
 		return {
 			url: URL.createObjectURL(
@@ -97,5 +123,5 @@ export function useOnGetSummaryDownloadInfo(
 			),
 			alias,
 		}
-	}, [privacyRisk, recordExpansion, combinationLoss, delimiter, type, alias])
+	}, [getSummaryCsv, type, alias])
 }

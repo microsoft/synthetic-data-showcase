@@ -15,7 +15,9 @@ import { DataEvaluation } from './DataEvaluation'
 import { DataInput } from './DataInput'
 import { DataNavigation } from './DataNavigation'
 import { DataSynthesis } from './DataSynthesis'
+import { useCanRun, useOnGetAllAssetsDownloadInfo } from './hooks'
 import { ProcessingProgress } from '~components/ProcessingProgress'
+import { DownloadButton } from '~components/controls/DownloadButton'
 import { PipelineStep } from '~models'
 import {
 	useIsProcessingSetter,
@@ -29,6 +31,7 @@ export const DataShowcasePage: React.FC = memo(function DataShowcasePage() {
 	const [selectedPipelineStep, setSelectedPipelineStep] =
 		useSelectedPipelineStep()
 	const setIsProcessing = useIsProcessingSetter()
+	const canRun = useCanRun()
 
 	const theme = getTheme()
 
@@ -51,6 +54,8 @@ export const DataShowcasePage: React.FC = memo(function DataShowcasePage() {
 		},
 		[setSelectedPipelineStep],
 	)
+
+	const onGetAllAssetsDownloadInfo = useOnGetAllAssetsDownloadInfo()
 
 	let currentTab
 
@@ -113,6 +118,12 @@ export const DataShowcasePage: React.FC = memo(function DataShowcasePage() {
 						/>
 					</Pivot>
 					<ProcessingProgress />
+					{canRun && (
+						<DownloadButton
+							label="Download all assets"
+							onGetDownloadInfo={onGetAllAssetsDownloadInfo}
+						/>
+					)}
 				</Stack>
 			) : (
 				<></>

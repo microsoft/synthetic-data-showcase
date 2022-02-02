@@ -3,6 +3,7 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { useCallback } from 'react'
+import { useOnGetSensitiveAnalysisCsv } from '.'
 import { DownloadInfo } from '~components/controls/DownloadButton'
 import { EvaluationMetrics } from '~models'
 
@@ -13,12 +14,14 @@ export function useOnGetSensitiveAnalysisDownloadInfo(
 	type = 'text/csv',
 	alias = 'sensitive_analysis_by_length.csv',
 ): () => Promise<DownloadInfo | undefined> {
-	return useCallback(async () => {
-		let data = `Length${delimiter}Mean sensitive count${delimiter}Rare sensitive combinations percentage${delimiter}Distinct sensitive combinations\n`
+	const getSensitiveAnalysisCsv = useOnGetSensitiveAnalysisCsv(
+		lenLabels,
+		evaluationMetrics,
+		delimiter,
+	)
 
-		lenLabels.forEach(l => {
-			data += `${l}${delimiter}${evaluationMetrics.meanSensitiveCombinationCountByLen[l]}${delimiter}${evaluationMetrics.rareSensitiveCombinationsPercentageByLen[l]}${delimiter}${evaluationMetrics.numberOfDistinctSensitiveCombinationsByLen[l]}\n`
-		})
+	return useCallback(async () => {
+		const data = getSensitiveAnalysisCsv()
 
 		return {
 			url: URL.createObjectURL(
@@ -28,5 +31,5 @@ export function useOnGetSensitiveAnalysisDownloadInfo(
 			),
 			alias,
 		}
-	}, [lenLabels, evaluationMetrics, delimiter, type, alias])
+	}, [getSensitiveAnalysisCsv, type, alias])
 }

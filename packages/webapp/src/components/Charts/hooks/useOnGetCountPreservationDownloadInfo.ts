@@ -3,6 +3,7 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { useCallback } from 'react'
+import { useOnGetCountPreservationCsv } from './useOnGetCountPreservationCsv'
 import { DownloadInfo } from '~components/controls/DownloadButton'
 import { EvaluationMetrics } from '~models'
 
@@ -13,12 +14,14 @@ export function useOnGetCountPreservationDownloadInfo(
 	type = 'text/csv',
 	alias = 'count_preservation.csv',
 ): () => Promise<DownloadInfo | undefined> {
-	return useCallback(async () => {
-		let data = `Bin${delimiter}Count preservation percentage${delimiter}Mean length of combinations\n`
+	const getPreservationCountCsv = useOnGetCountPreservationCsv(
+		countLabels,
+		evaluationMetrics,
+		delimiter,
+	)
 
-		countLabels.forEach(c => {
-			data += `${c}${delimiter}${evaluationMetrics.preservationPercentageByCount[c]}${delimiter}${evaluationMetrics.meanCombinationLengthByCount[c]}\n`
-		})
+	return useCallback(async () => {
+		const data = getPreservationCountCsv()
 
 		return {
 			url: URL.createObjectURL(
@@ -28,5 +31,5 @@ export function useOnGetCountPreservationDownloadInfo(
 			),
 			alias,
 		}
-	}, [countLabels, evaluationMetrics, delimiter, type, alias])
+	}, [getPreservationCountCsv, type, alias])
 }
