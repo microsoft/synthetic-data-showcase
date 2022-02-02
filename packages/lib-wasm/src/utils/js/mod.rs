@@ -1,5 +1,3 @@
-pub mod js_block_creator;
-
 pub mod js_progress_reporter;
 
 mod set_panic_hook;

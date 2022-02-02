@@ -6,13 +6,9 @@ export type ReportProgressCallback = (progress: number) => void;
 
 export type HeaderNames = string[];
 
-export type CsvRecord = string[];
-
-export type CsvData = CsvRecord[];
-
 export interface IGenerateResult {
   expansionRatio: number;
-  syntheticData: CsvData;
+  syntheticData: string;
 }
 
 export interface IPrivacyRiskSummary {
@@ -32,18 +28,9 @@ export interface IAggregateCountByLen {
   [length: number]: number
 }
 
-export interface IAggregateCountAndLength {
-  count: number;
-  length: number;
-}
-
-export interface IAggregatesCount {
-  [name: string]: IAggregateCountAndLength;
-}
-
 export interface IAggregateResult {
   reportingLength: number;
-  aggregatesCount?: IAggregatesCount;
+  aggregatesData?: string;
   rareCombinationsCountByLen: IAggregateCountByLen;
   combinationsCountByLen: IAggregateCountByLen;
   combinationsSumByLen: IAggregateCountByLen;
@@ -97,12 +84,6 @@ extern "C" {
     #[wasm_bindgen(typescript_type = "HeaderNames")]
     pub type JsHeaderNames;
 
-    #[wasm_bindgen(typescript_type = "CsvRecord")]
-    pub type JsCsvRecord;
-
-    #[wasm_bindgen(typescript_type = "CsvData")]
-    pub type JsCsvData;
-
     #[wasm_bindgen(typescript_type = "IGenerateResult")]
     pub type JsGenerateResult;
 
@@ -111,12 +92,6 @@ extern "C" {
 
     #[wasm_bindgen(typescript_type = "IAggregateCountByLen")]
     pub type JsAggregateCountByLen;
-
-    #[wasm_bindgen(typescript_type = "IAggregateCountAndLength")]
-    pub type JsAggregateCountAndLength;
-
-    #[wasm_bindgen(typescript_type = "IAggregatesCount")]
-    pub type JsAggregatesCount;
 
     #[wasm_bindgen(typescript_type = "IAggregateResult")]
     pub type JsAggregateResult;

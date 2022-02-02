@@ -131,14 +131,30 @@ impl PrivacyRiskSummary {
             rare_combinations_count,
             records_with_unique_combinations_proportion: (records_with_unique_combinations.len()
                 as f64)
-                / (total_number_of_records as f64),
+                / if total_number_of_records != 0 {
+                    total_number_of_records as f64
+                } else {
+                    1.0
+                },
             records_with_rare_combinations_proportion: (records_with_rare_combinations.len()
                 as f64)
-                / (total_number_of_records as f64),
+                / if total_number_of_records != 0 {
+                    total_number_of_records as f64
+                } else {
+                    1.0
+                },
             unique_combinations_proportion: (unique_combinations_count as f64)
-                / (total_number_of_combinations as f64),
+                / if total_number_of_combinations != 0 {
+                    total_number_of_combinations as f64
+                } else {
+                    1.0
+                },
             rare_combinations_proportion: (rare_combinations_count as f64)
-                / (total_number_of_combinations as f64),
+                / if total_number_of_combinations != 0 {
+                    total_number_of_combinations as f64
+                } else {
+                    1.0
+                },
         }
     }
 }

@@ -7,13 +7,15 @@ import {
 	SetterOrUpdater,
 	useRecoilState,
 	useRecoilValue,
+	useResetRecoilState,
 	useSetRecoilState,
 } from 'recoil'
-import { defaultCsvContent, ICsvContent } from 'src/models/csv'
+import { defaultCsvContent, ICsvContent } from '~models/csv'
 
 const state = atom<ICsvContent>({
 	key: 'sensitive-content',
 	default: defaultCsvContent,
+	dangerouslyAllowMutability: true,
 })
 
 export function useSensitiveContent(): [
@@ -29,4 +31,8 @@ export function useSensitiveContentValue(): ICsvContent {
 
 export function useSensitiveContentSetter(): SetterOrUpdater<ICsvContent> {
 	return useSetRecoilState(state)
+}
+
+export function useResetSensitiveContent(): () => void {
+	return useResetRecoilState(state)
 }

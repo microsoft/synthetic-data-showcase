@@ -27,8 +27,12 @@ deploy.zip
 german_credit_showcase/
 credit_config.json
 *data*/
+!DataTransform/
+!DataShowcasePage/
+!DataBinning/
 !data_block/
 !dataShowcaseContext/
+!dataSynthesis/
 *output*/
 
 # Byte-compiled / optimized / DLL files

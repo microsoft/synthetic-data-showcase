@@ -6,36 +6,30 @@ import {
 	getTheme,
 	IStackStyles,
 	IStackTokens,
+	Position,
 	PrimaryButton,
+	SpinButton,
 	Stack,
-	TextField,
 } from '@fluentui/react'
-import { memo, useCallback } from 'react'
-import {
-	FabricatedCountChart,
-	LeakageCountChart,
-	MeanCombinationsByLengthChart,
-	PreservationByCountChart,
-	PreservationPercentageByLength,
-	RareCombinationsByLengthChart,
-} from '~components/Charts'
+import { memo } from 'react'
+import { useCanRun, useOnRunEvaluate, useSpinButtonOnChange } from './hooks'
+import { useOnGetAggregatesDownloadInfo } from './hooks/evaluation'
+import { SensitiveDataCharts, SyntheticDataCharts } from '~components/Charts'
 import { EvaluationSummary } from '~components/EvaluationSummary'
-import {
-	useClearEvaluate,
-	useEvaluateResult,
-	useIsProcessing,
-	useProcessingProgressSetter,
-	useReportingLength,
-	useWasmWorkerValue,
-} from '~states'
+import { InfoTooltip } from '~components/InfoTooltip'
+import { TooltipWrapper } from '~components/TooltipWrapper'
+import { DownloadButton } from '~components/controls/DownloadButton'
+import { useEvaluateResult, useIsProcessing, useReportingLength } from '~states'
+import { tooltips } from '~ui-tooltips'
 
 export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 	const [reportingLength, setReportingLength] = useReportingLength()
-	const [isProcessing, setIsProcessing] = useIsProcessing()
+	const [isProcessing] = useIsProcessing()
 	const [evaluateResult, setEvaluateResult] = useEvaluateResult()
-	const worker = useWasmWorkerValue()
-	const setProcessingProgress = useProcessingProgressSetter()
-	const clearEvaluate = useClearEvaluate()
+	const canRun = useCanRun()
+	const onRunEvaluate = useOnRunEvaluate(setEvaluateResult, reportingLength)
+	const onGetAggregatesDownloadInfo = useOnGetAggregatesDownloadInfo()
+	const handleReportingLengthChange = useSpinButtonOnChange(setReportingLength)
 
 	const theme = getTheme()
 
@@ -76,209 +70,78 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 	}
 
 	const chartHeight = 400
+
 	const chartWidth = 550
-
-	const onRunEvaluate = useCallback(async () => {
-		setIsProcessing(true)
-		await clearEvaluate()
-		setProcessingProgress(0.0)
-
-		const response = await worker?.evaluate(
-			reportingLength,
-			0,
-			';',
-			false,
-			p => {
-				setProcessingProgress(p)
-			},
-		)
-
-		setIsProcessing(false)
-		if (response) {
-			setEvaluateResult(response)
-		}
-	}, [
-		worker,
-		setIsProcessing,
-		reportingLength,
-		clearEvaluate,
-		setEvaluateResult,
-		setProcessingProgress,
-	])
 
 	return (
 		<Stack styles={mainStackStyles} tokens={mainStackTokens}>
 			<Stack.Item>
-				<h3>Evaluation parameters</h3>
-			</Stack.Item>
-			<Stack.Item>
 				<Stack tokens={subStackTokens} horizontal>
 					<Stack.Item>
-						<TextField
+						<TooltipWrapper
+							tooltip={tooltips.analysisLength}
 							label="Analysis length"
-							type="number"
-							value={reportingLength.toString()}
-							disabled={isProcessing}
-							required
-							onChange={(_, newValue) => setReportingLength(+(newValue ?? 0))}
-						/>
+						>
+							<SpinButton
+								labelPosition={Position.top}
+								min={1}
+								step={1}
+								value={reportingLength.toString()}
+								disabled={isProcessing}
+								onChange={handleReportingLengthChange}
+							/>
+						</TooltipWrapper>
 					</Stack.Item>
 					<Stack.Item align="end">
 						<PrimaryButton
 							type="submit"
 							onClick={onRunEvaluate}
-							disabled={isProcessing}
+							disabled={!canRun}
 						>
 							Run
 						</PrimaryButton>
 					</Stack.Item>
+					<Stack.Item align="end">
+						<InfoTooltip>{tooltips.evaluate}</InfoTooltip>
+					</Stack.Item>
+					{evaluateResult && (
+						<Stack.Item align="end">
+							<DownloadButton
+								title="Download sensitive aggregates CSV"
+								label="Sensitive aggregates"
+								onGetDownloadInfo={onGetAggregatesDownloadInfo}
+							/>
+						</Stack.Item>
+					)}
 				</Stack>
 			</Stack.Item>
 
 			{evaluateResult && (
 				<>
-					<Stack.Item>
-						<h3>Summary</h3>
-					</Stack.Item>
-					<Stack.Item>
-						<EvaluationSummary
-							privacyRiskLabel="Sensitive privacy risk"
-							utilityCostLabel="Synthetic utility cost"
-							privacyRisk={evaluateResult.sensitiveAggregateResult.privacyRisk}
-							recordExpansion={evaluateResult.recordExpansion}
-							combinationLoss={
-								evaluateResult.preservationByCount.combinationLoss
-							}
-						/>
-					</Stack.Item>
-					<Stack.Item>
-						<h3>Sensitive data charts</h3>
-					</Stack.Item>
-					<Stack
-						horizontal
-						wrap
-						styles={chartStackStyles}
-						tokens={chartStackTokens}
-					>
-						<Stack.Item styles={chartStackItemStyles}>
-							<MeanCombinationsByLengthChart
-								meanLabel="Mean sensitive count by length"
-								combinationsCountByLen={
-									evaluateResult.sensitiveAggregateResult.combinationsCountByLen
-								}
-								combinationsSumByLen={
-									evaluateResult.sensitiveAggregateResult.combinationsSumByLen
-								}
-								height={chartHeight}
-								width={chartWidth}
-							/>
-						</Stack.Item>
-						<Stack.Item styles={chartStackItemStyles}>
-							<RareCombinationsByLengthChart
-								combinationsLabel="Combinations by length"
-								rareCombinationsLabel="Rare combinations percentages by length"
-								combinationsCountByLen={
-									evaluateResult.sensitiveAggregateResult.combinationsCountByLen
-								}
-								rareCombinationsCountByLen={
-									evaluateResult.sensitiveAggregateResult
-										.rareCombinationsCountByLen
-								}
-								height={chartHeight}
-								width={chartWidth}
-							/>
-						</Stack.Item>
-					</Stack>
-					<Stack.Item>
-						<h3>Synthetic data charts</h3>
-					</Stack.Item>
-					<Stack
-						horizontal
-						wrap
-						styles={chartStackStyles}
-						tokens={chartStackTokens}
-					>
-						<Stack.Item styles={chartStackItemStyles}>
-							<MeanCombinationsByLengthChart
-								meanLabel="Mean synthetic count by length"
-								combinationsCountByLen={
-									evaluateResult.syntheticAggregateResult.combinationsCountByLen
-								}
-								combinationsSumByLen={
-									evaluateResult.syntheticAggregateResult.combinationsSumByLen
-								}
-								height={chartHeight}
-								width={chartWidth}
-							/>
-						</Stack.Item>
-						<Stack.Item styles={chartStackItemStyles}>
-							<RareCombinationsByLengthChart
-								combinationsLabel="Combinations by length"
-								rareCombinationsLabel="Rare combinations percentages by length"
-								combinationsCountByLen={
-									evaluateResult.syntheticAggregateResult.combinationsCountByLen
-								}
-								rareCombinationsCountByLen={
-									evaluateResult.syntheticAggregateResult
-										.rareCombinationsCountByLen
-								}
-								height={chartHeight}
-								width={chartWidth}
-							/>
-						</Stack.Item>
-						<Stack.Item styles={chartStackItemStyles}>
-							<LeakageCountChart
-								combinationsLabel="Combinations by length"
-								leakageLabel="Leakage count by length"
-								combinationsCountByLen={
-									evaluateResult.syntheticAggregateResult.combinationsCountByLen
-								}
-								leakageCountByLen={evaluateResult.leakageCountByLen ?? {}}
-								height={chartHeight}
-								width={chartWidth}
-							/>
-						</Stack.Item>
-						<Stack.Item styles={chartStackItemStyles}>
-							<FabricatedCountChart
-								combinationsLabel="Combinations by length"
-								fabricatedLabel="Fabricated count by length"
-								combinationsCountByLen={
-									evaluateResult.syntheticAggregateResult.combinationsCountByLen
-								}
-								fabricatedCountByLen={evaluateResult.fabricatedCountByLen}
-								height={chartHeight}
-								width={chartWidth}
-							/>
-						</Stack.Item>
-						<Stack.Item styles={chartStackItemStyles}>
-							<PreservationPercentageByLength
-								combinationsLabel="Sensitive combinations by length"
-								preservationLabel="Preservation percentage by length"
-								combinationsCountByLen={
-									evaluateResult.sensitiveAggregateResult.combinationsCountByLen
-								}
-								sensitiveCombinationsCountByLen={
-									evaluateResult.sensitiveAggregateResult.combinationsCountByLen
-								}
-								syntheticCombinationsCountByLen={
-									evaluateResult.syntheticAggregateResult.combinationsCountByLen
-								}
-								height={chartHeight}
-								width={chartWidth}
-							/>
-						</Stack.Item>
-						<Stack.Item styles={chartStackItemStyles}>
-							<PreservationByCountChart
-								meanLengthLabel="Mean length of combinations"
-								preservationLabel="Count preservation percentage"
-								preservationByCountBuckets={
-									evaluateResult.preservationByCount.buckets
-								}
-								height={chartHeight}
-								width={chartWidth}
-							/>
-						</Stack.Item>
-					</Stack>
+					<EvaluationSummary
+						privacyRiskLabel="Sensitive privacy risk"
+						utilityCostLabel="Synthetic utility cost"
+						privacyRisk={evaluateResult.sensitiveAggregateResult.privacyRisk}
+						recordExpansion={evaluateResult.recordExpansion}
+						combinationLoss={evaluateResult.preservationByCount.combinationLoss}
+						chartStackTokens={chartStackTokens}
+					/>
+					<SensitiveDataCharts
+						evaluateResult={evaluateResult}
+						chartHeight={chartHeight}
+						chartWidth={chartWidth}
+						chartStackStyles={chartStackStyles}
+						chartStackTokens={chartStackTokens}
+						chartStackItemStyles={chartStackItemStyles}
+					/>
+					<SyntheticDataCharts
+						evaluateResult={evaluateResult}
+						chartHeight={chartHeight}
+						chartWidth={chartWidth}
+						chartStackStyles={chartStackStyles}
+						chartStackTokens={chartStackTokens}
+						chartStackItemStyles={chartStackItemStyles}
+					/>
 				</>
 			)}
 		</Stack>

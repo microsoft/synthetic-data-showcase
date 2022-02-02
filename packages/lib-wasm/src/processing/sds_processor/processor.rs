@@ -1,14 +1,18 @@
+use csv::ReaderBuilder;
 use js_sys::Function;
 use sds_core::{
-    data_block::{block::DataBlock, data_block_creator::DataBlockCreator, typedefs::CsvRecord},
+    data_block::{
+        block::DataBlock, csv_block_creator::CsvDataBlockCreator,
+        data_block_creator::DataBlockCreator, typedefs::CsvRecord,
+    },
     processing::{
         aggregator::Aggregator,
         generator::{Generator, SynthesisMode},
     },
     utils::time::ElapsedDurationLogger,
 };
-use std::convert::TryFrom;
 use std::sync::Arc;
+use std::{convert::TryFrom, io::Cursor};
 use wasm_bindgen::{prelude::*, JsCast};
 
 use crate::{
@@ -18,10 +22,7 @@ use crate::{
             aggregator::aggregate_result::WasmAggregateResult,
             generator::generate_result::WasmGenerateResult,
         },
-        utils::js::{
-            js_block_creator::JsDataBlockCreator,
-            ts_definitions::{JsCsvData, JsHeaderNames, JsReportProgressCallback},
-        },
+        utils::js::ts_definitions::{JsHeaderNames, JsReportProgressCallback},
     },
 };
 
@@ -43,18 +44,22 @@ impl SDSProcessor {
 impl SDSProcessor {
     #[wasm_bindgen(constructor)]
     pub fn new(
-        csv_data: JsCsvData,
+        csv_data: &str,
+        delimiter: char,
         use_columns: JsHeaderNames,
         sensitive_zeros: JsHeaderNames,
         record_limit: usize,
     ) -> Result<SDSProcessor, JsValue> {
         let _duration_logger = ElapsedDurationLogger::new(String::from("sds processor creation"));
-        let data_block = JsDataBlockCreator::create(
-            Ok(csv_data.dyn_into()?),
+        let data_block = CsvDataBlockCreator::create(
+            Ok(ReaderBuilder::new()
+                .delimiter(delimiter as u8)
+                .from_reader(Cursor::new(csv_data))),
             &CsvRecord::try_from(use_columns)?,
             &CsvRecord::try_from(sensitive_zeros)?,
             record_limit,
-        )?;
+        )
+        .map_err(|err| JsValue::from(err.to_string()))?;
 
         Ok(SDSProcessor { data_block })
     }

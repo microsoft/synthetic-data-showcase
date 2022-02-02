@@ -7,10 +7,15 @@ import {
 	DetailsListLayoutMode,
 	IColumn,
 	IGroup,
+	IStackTokens,
 	SelectionMode,
+	Stack,
 } from '@fluentui/react'
 import { memo } from 'react'
 import { IPrivacyRiskSummary } from 'sds-wasm'
+import { useEvaluationSummaryItems, useOnGetSummaryDownloadInfo } from './hooks'
+import { InfoTooltip } from '~components/InfoTooltip'
+import { DownloadButton } from '~components/controls/DownloadButton'
 
 export interface EvaluationSummaryProps {
 	privacyRiskLabel: string
@@ -18,6 +23,7 @@ export interface EvaluationSummaryProps {
 	privacyRisk: IPrivacyRiskSummary
 	recordExpansion: number
 	combinationLoss: number
+	chartStackTokens?: IStackTokens
 }
 
 export const EvaluationSummary: React.FC<EvaluationSummaryProps> = memo(
@@ -27,8 +33,8 @@ export const EvaluationSummary: React.FC<EvaluationSummaryProps> = memo(
 		privacyRisk,
 		recordExpansion,
 		combinationLoss,
+		chartStackTokens,
 	}: EvaluationSummaryProps) {
-		const precision = 2
 		const columns: IColumn[] = [
 			{
 				key: 'metric',
@@ -37,6 +43,14 @@ export const EvaluationSummary: React.FC<EvaluationSummaryProps> = memo(
 				isResizable: true,
 				minWidth: 200,
 				maxWidth: 400,
+				onRender: item => (
+					<Stack horizontal>
+						<Stack.Item align="center">{item.metric}</Stack.Item>
+						<Stack.Item align="center">
+							<InfoTooltip>{item.tooltip}</InfoTooltip>
+						</Stack.Item>
+					</Stack>
+				),
 			},
 			{
 				key: 'value',
@@ -63,54 +77,36 @@ export const EvaluationSummary: React.FC<EvaluationSummaryProps> = memo(
 				level: 0,
 			},
 		]
-		const items = [
-			{
-				metric: 'Records containing unique attribute combinations',
-				value:
-					(privacyRisk.recordsWithUniqueCombinationsProportion * 100)
-						.toFixed(precision)
-						.toString() + ' %',
-			},
-			{
-				metric: 'Records containing rare attribute combinations',
-				value:
-					(privacyRisk.recordsWithRareCombinationsProportion * 100)
-						.toFixed(precision)
-						.toString() + ' %',
-			},
-			{
-				metric: 'Unique attribute combinations',
-				value:
-					(privacyRisk.uniqueCombinationsProportion * 100)
-						.toFixed(precision)
-						.toString() + ' %',
-			},
-			{
-				metric: 'Rare attribute combinations',
-				value:
-					(privacyRisk.rareCombinationsProportion * 100)
-						.toFixed(precision)
-						.toString() + ' %',
-			},
-			{
-				metric: 'Record expansion',
-				value:
-					((recordExpansion - 1) * 100).toFixed(precision).toString() + ' %',
-			},
-			{
-				metric: 'Combination loss',
-				value: (combinationLoss * 100).toFixed(precision).toString() + ' %',
-			},
-		]
+		const items = useEvaluationSummaryItems(
+			privacyRisk,
+			recordExpansion,
+			combinationLoss,
+		)
+		const onGetSummaryDownloadInfo = useOnGetSummaryDownloadInfo(
+			privacyRisk,
+			recordExpansion,
+			combinationLoss,
+		)
 
 		return (
-			<DetailsList
-				selectionMode={SelectionMode.none}
-				layoutMode={DetailsListLayoutMode.justified}
-				columns={columns}
-				groups={groups}
-				items={items}
-			/>
+			<>
+				<Stack horizontal tokens={chartStackTokens}>
+					<h3>Summary</h3>
+					<Stack.Item align="center">
+						<DownloadButton
+							title="Download evaluation summary CSV"
+							onGetDownloadInfo={onGetSummaryDownloadInfo}
+						/>
+					</Stack.Item>
+				</Stack>
+				<DetailsList
+					selectionMode={SelectionMode.none}
+					layoutMode={DetailsListLayoutMode.justified}
+					columns={columns}
+					groups={groups}
+					items={items}
+				/>
+			</>
 		)
 	},
 )

@@ -1,17 +1,12 @@
-use super::aggregate_count_and_length::WasmAggregateCountAndLength;
 use js_sys::{Object, Reflect::set};
 use sds_core::{
     processing::aggregator::aggregated_data::AggregatedData, utils::time::ElapsedDurationLogger,
 };
-use std::{
-    convert::TryFrom,
-    ops::{Deref, DerefMut},
-};
+use std::ops::{Deref, DerefMut};
 use wasm_bindgen::{prelude::*, JsCast};
 
 use crate::utils::js::ts_definitions::{
-    JsAggregateCountAndLength, JsAggregateCountByLen, JsAggregateResult, JsAggregatesCount,
-    JsPrivacyRiskSummary, JsResult,
+    JsAggregateCountByLen, JsAggregateResult, JsPrivacyRiskSummary, JsResult,
 };
 
 #[wasm_bindgen]
@@ -44,27 +39,19 @@ impl WasmAggregateResult {
     #[wasm_bindgen(js_name = "aggregatesCountToJs")]
     pub fn aggregates_count_to_js(
         &self,
+        aggregates_delimiter: char,
         combination_delimiter: &str,
-    ) -> JsResult<JsAggregatesCount> {
-        let result = Object::new();
-
-        for (agg, count) in self.aggregated_data.aggregates_count.iter() {
-            set(
-                &result,
-                &agg.format_str_using_headers(
-                    &self.aggregated_data.data_block.headers,
-                    combination_delimiter,
-                )
-                .into(),
-                &JsAggregateCountAndLength::try_from(WasmAggregateCountAndLength::new(
-                    count.count,
-                    agg.len(),
-                ))?
-                .into(),
-            )?;
-        }
-
-        Ok(result.unchecked_into::<JsAggregatesCount>())
+        resolution: usize,
+        counts_are_protected: bool,
+    ) -> JsResult<String> {
+        self.aggregated_data
+            .write_aggregates_to_string(
+                aggregates_delimiter,
+                combination_delimiter,
+                resolution,
+                counts_are_protected,
+            )
+            .map_err(|err| JsValue::from(err.to_string()))
     }
 
     #[wasm_bindgen(js_name = "rareCombinationsCountByLenToJs")]
@@ -161,9 +148,11 @@ impl WasmAggregateResult {
     #[wasm_bindgen(js_name = "toJs")]
     pub fn to_js(
         &self,
+        aggregates_delimiter: char,
         combination_delimiter: &str,
         resolution: usize,
-        include_aggregates_count: bool,
+        counts_are_protected: bool,
+        include_aggregates_data: bool,
     ) -> JsResult<JsAggregateResult> {
         let _duration_logger =
             ElapsedDurationLogger::new(String::from("aggregate result serialization"));
@@ -174,11 +163,18 @@ impl WasmAggregateResult {
             &"reportingLength".into(),
             &self.reporting_length().into(),
         )?;
-        if include_aggregates_count {
+        if include_aggregates_data {
             set(
                 &result,
-                &"aggregatesCount".into(),
-                &self.aggregates_count_to_js(combination_delimiter)?.into(),
+                &"aggregatesData".into(),
+                &self
+                    .aggregates_count_to_js(
+                        aggregates_delimiter,
+                        combination_delimiter,
+                        resolution,
+                        counts_are_protected,
+                    )?
+                    .into(),
             )?;
         }
         set(

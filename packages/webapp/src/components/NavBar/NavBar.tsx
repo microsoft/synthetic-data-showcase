@@ -2,16 +2,13 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import {
-	IStackTokens,
-	PartialTheme,
-	PrimaryButton,
-	Stack,
-	useTheme,
-} from '@fluentui/react'
+import { IStackTokens, PrimaryButton, Stack, useTheme } from '@fluentui/react'
+import { FluentTheme } from '@thematic/fluent'
+import { useThematic } from '@thematic/react'
 import React, { memo, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import styled from 'styled-components'
+
 export interface NavBarProps {
 	title: string
 	menuItems: {
@@ -24,6 +21,7 @@ export interface NavBarProps {
 export const NavBar: React.FC<NavBarProps> = memo(function NavBar(props) {
 	const navigate = useNavigate()
 	const theme = useTheme()
+	const thematic = useThematic()
 	const [currentPagePath, setCurrentPagePath] = useState(useLocation().pathname)
 	const menuStackTokens: IStackTokens = {
 		childrenGap: theme.spacing.m,
@@ -45,7 +43,7 @@ export const NavBar: React.FC<NavBarProps> = memo(function NavBar(props) {
 							<NavBarPrimaryButton
 								style={{
 									textDecoration: m.active ? 'underline' : 'none',
-									background: theme.palette.accent,
+									background: thematic.application().accent().hex(),
 									border: 'none',
 								}}
 								onClick={() => {
@@ -66,19 +64,21 @@ export const NavBar: React.FC<NavBarProps> = memo(function NavBar(props) {
 })
 
 const Container = styled.div`
-	background: ${({ theme }: { theme: PartialTheme }) => theme.palette?.accent};
+	background: ${({ theme }: { theme: FluentTheme }) =>
+		theme.application().accent().hex()};
 	height: 48px;
 `
 
 const NavBarStack = styled(Stack)`
 	height: 100%;
-	margin-left: ${({ theme }: { theme: PartialTheme }) => theme.spacing?.l2};
-	margin-right: ${({ theme }: { theme: PartialTheme }) => theme.spacing?.l2}; ;
+	margin-left: ${({ theme }: { theme: FluentTheme }) => theme.spacing?.l2};
+	margin-right: ${({ theme }: { theme: FluentTheme }) => theme.spacing?.l2}; ;
 `
 
 const NavBarStackItem = styled(Stack.Item)`
 	align-items: center;
-	color: ${({ theme }: { theme: PartialTheme }) => theme.palette?.white};
+	color: ${({ theme }: { theme: FluentTheme }) =>
+		theme.application().background().hex()};
 	display: flex;
 	justify-content: center;
 	line-height: 22px;

@@ -11,7 +11,10 @@
 			"~models": ["src/models/index.ts"],
 			"~models/*": ["src/models/*"],
 			"~states": ["src/states/index.ts"],
-			"~states/*": ["src/states/*"]
+			"~states/*": ["src/states/*"],
+			"~workers/*": ["./src/workers/*"],
+			"~ui-tooltips": ["src/ui-tooltips/index.ts"],
+			"~ui-tooltips/*": ["src/ui-tooltips/*"]
 		},
 		"allowJs": true,
 		"lib": ["ESNext", "DOM"],

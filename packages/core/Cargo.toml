@@ -1,10 +1,10 @@
 [package]
 name = "sds-core"
-version = "1.1.0"
+version = "1.2.0"
 license = "MIT"
 description = "Synthetic data showcase core library"
 repository = "https://github.com/microsoft/synthetic-data-showcase"
-edition = "2018"
+edition = "2021"
 
 [lib]
 crate-type = ["rlib"]

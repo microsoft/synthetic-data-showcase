@@ -12,14 +12,14 @@ import {
 
 export const StyleContext: React.FC = memo(function StyleContext({ children }) {
 	const theme = useThematic()
-	const fluentTheme = useMemo(() => loadFluentTheme(theme).toFluent(), [theme])
+	const fluentTheme = useMemo(() => loadFluentTheme(theme), [theme])
 	return (
 		<>
 			{/* core thematic for charting colors and imperative use */}
 			<ThematicFluentProvider theme={theme}>
 				<GlobalStyle />
 				<ApplicationStyles />
-				{/* styled-components theme - now only used for fluent spacing values */}
+				{/* pass unified thematic/fluent theme to styled-components as well */}
 				<StyledProvider theme={fluentTheme}>{children}</StyledProvider>
 			</ThematicFluentProvider>
 		</>

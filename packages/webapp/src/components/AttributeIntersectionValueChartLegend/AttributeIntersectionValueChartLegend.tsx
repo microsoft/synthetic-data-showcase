@@ -24,10 +24,10 @@ export const AttributeIntersectionValueChartLegend: React.FC = memo(
 				horizontalAlign="center"
 				verticalAlign="center"
 			>
-				<ColorLegend color={estimatedColor} />
-				<ColorLabel>Estimated</ColorLabel>
 				<ColorLegend color={actualColor} />
 				<ColorLabel>Actual</ColorLabel>
+				<ColorLegend color={estimatedColor} />
+				<ColorLabel>Estimated</ColorLabel>
 			</Stack>
 		)
 	},

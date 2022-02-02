@@ -3,8 +3,8 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import {
-	CsvData,
 	HeaderNames,
+	IAggregateResult,
 	IAttributesIntersectionByColumn,
 	IEvaluateResult,
 	ISelectedAttributesByColumn,
@@ -23,6 +23,8 @@ import {
 	SdsWasmEvaluateResponse,
 	SdsWasmGenerateMessage,
 	SdsWasmGenerateResponse,
+	SdsWasmGetSensitiveAggregateResultMessage,
+	SdsWasmGetSensitiveAggregateResultResponse,
 	SdsWasmInitMessage,
 	SdsWasmMessage,
 	SdsWasmMessageType,
@@ -32,6 +34,7 @@ import {
 	SdsWasmSelectAttributesMessage,
 } from './types'
 import Worker from './worker?worker'
+import { SynthesisMode } from '~models'
 
 type SdsWasmResponseCallback = ((value: SdsWasmResponse) => void) | undefined
 
@@ -146,7 +149,8 @@ export class SdsWasmWorker {
 	}
 
 	public async generate(
-		sensitiveCsvData: CsvData,
+		sensitiveCsvData: string,
+		delimiter: string,
 		useColumns: string[],
 		sensitiveZeros: string[],
 		recordLimit: number,
@@ -154,20 +158,21 @@ export class SdsWasmWorker {
 		cacheSize: number,
 		reportProgress?: ReportProgressCallback,
 		emptyValue = '',
-		seeded = true,
-	): Promise<CsvData | undefined> {
+		synthesisMode = SynthesisMode.Seeded,
+	): Promise<string | undefined> {
 		const response = await this.execute(
 			{
 				id: v4(),
 				type: SdsWasmMessageType.Generate,
 				sensitiveCsvData,
+				delimiter,
 				useColumns,
 				sensitiveZeros,
 				recordLimit,
 				resolution,
 				emptyValue,
 				cacheSize,
-				seeded,
+				seeded: synthesisMode === SynthesisMode.Seeded,
 			} as SdsWasmGenerateMessage,
 			reportProgress,
 		)
@@ -181,8 +186,9 @@ export class SdsWasmWorker {
 	public async evaluate(
 		reportingLength: number,
 		sensitivityThreshold = 0,
+		aggregatesDelimiter = ',',
 		combinationDelimiter = ';',
-		includeAggregatesCount = false,
+		includeAggregatesData = false,
 		reportProgress?: ReportProgressCallback,
 	): Promise<IEvaluateResult | undefined> {
 		const response = await this.execute(
@@ -191,8 +197,9 @@ export class SdsWasmWorker {
 				type: SdsWasmMessageType.Evaluate,
 				reportingLength,
 				sensitivityThreshold,
+				aggregatesDelimiter,
 				combinationDelimiter,
-				includeAggregatesCount,
+				includeAggregatesData,
 			} as SdsWasmEvaluateMessage,
 			reportProgress,
 		)
@@ -210,21 +217,6 @@ export class SdsWasmWorker {
 		} as SdsWasmNavigateMessage)
 
 		return response.type === SdsWasmMessageType.Navigate
-	}
-
-	public async findColumnsWithZeros(items: CsvData): Promise<number[]> {
-		const zeros = new Set<number>()
-
-		items.forEach(line => {
-			line.forEach((v, i) => {
-				if (!zeros.has(i)) {
-					if (v.trim() === '0') {
-						zeros.add(i)
-					}
-				}
-			})
-		})
-		return Array.from(zeros)
 	}
 
 	public async selectAttributes(
@@ -251,6 +243,26 @@ export class SdsWasmWorker {
 		if (response.type === SdsWasmMessageType.AttributesIntersectionsByColumn) {
 			return (response as SdsWasmAttributesIntersectionsByColumnResponse)
 				.attributesIntersectionByColumn
+		}
+		return undefined
+	}
+
+	public async getSensitiveAggregateResult(
+		aggregatesDelimiter = ',',
+		combinationDelimiter = ';',
+		includeAggregatesData = true,
+	): Promise<IAggregateResult | undefined> {
+		const response = await this.execute({
+			id: v4(),
+			type: SdsWasmMessageType.GetSensitiveAggregateResult,
+			aggregatesDelimiter,
+			combinationDelimiter,
+			includeAggregatesData,
+		} as SdsWasmGetSensitiveAggregateResultMessage)
+
+		if (response.type === SdsWasmMessageType.GetSensitiveAggregateResult) {
+			return (response as SdsWasmGetSensitiveAggregateResultResponse)
+				.aggregateResult
 		}
 		return undefined
 	}

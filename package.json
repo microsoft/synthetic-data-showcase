@@ -8,7 +8,7 @@
 		"start:": "yarn workspaces foreach -piv run start",
 		"lint:": "essex lint --fix --strict",
 		"build:lib-wasm": "cd packages/lib-wasm && wasm-pack build --release --target web --out-dir ../../target/wasm",
-		"prettify": "essex prettify",
+		"prettify:": "essex prettify",
 		"rebuild-all": "cargo clean && run-s clean: && cargo build --release && run-s build:lib-wasm && yarn install && run-s build:"
 	},
 	"prettier": "@essex/prettier-config",

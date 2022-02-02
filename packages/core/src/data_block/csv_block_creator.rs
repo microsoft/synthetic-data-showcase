@@ -1,16 +1,18 @@
 use super::{data_block_creator::DataBlockCreator, typedefs::CsvRecord};
 use csv::{Error, Reader, StringRecord};
-use std::fs::File;
+use std::{io::Read, marker::PhantomData};
 
 /// Creates a data block by reading a CSV file
-pub struct CsvDataBlockCreator;
+pub struct CsvDataBlockCreator<T: Read> {
+    phantom: PhantomData<T>,
+}
 
-impl DataBlockCreator for CsvDataBlockCreator {
-    type InputType = Reader<File>;
+impl<T: Read> DataBlockCreator for CsvDataBlockCreator<T> {
+    type InputType = Reader<T>;
     type ErrorType = Error;
 
-    /// Reads the headers from the CSV file
-    fn get_headers(reader: &mut Reader<File>) -> Result<CsvRecord, Error> {
+    /// Reads the headers from the CSV reader
+    fn get_headers(reader: &mut Self::InputType) -> Result<CsvRecord, Error> {
         Ok(reader
             .headers()?
             .into_iter()
@@ -18,7 +20,7 @@ impl DataBlockCreator for CsvDataBlockCreator {
             .collect())
     }
 
-    /// Reads the records from the CSV file
+    /// Reads the records from the CSV reader
     fn get_records(reader: &mut Self::InputType) -> Result<Vec<CsvRecord>, Error> {
         reader
             .records()

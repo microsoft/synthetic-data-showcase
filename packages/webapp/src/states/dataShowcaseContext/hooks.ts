@@ -4,52 +4,54 @@
  */
 import { useCallback, useMemo } from 'react'
 import { HeaderNames } from 'sds-wasm'
-import { defaultCsvContent } from '~models'
 import {
-	useEvaluateResultSetter,
-	useSensitiveContentSetter,
-	useSyntheticContentSetter,
+	useResetEvaluateResult,
+	useResetSensitiveContent,
+	useResetSyntheticContent,
 	useSyntheticContentValue,
 	useWasmWorkerValue,
 } from '~states'
+import { headers } from '~utils/arquero'
 
-export function useClearSensitiveData(): () => Promise<void> {
+export type DataClearer = () => Promise<void>
+
+export function useClearSensitiveData(): DataClearer {
 	const worker = useWasmWorkerValue()
-	const setSensitiveContent = useSensitiveContentSetter()
+	const resetSensitiveContent = useResetSensitiveContent()
 	const clearGenerate = useClearGenerate()
 
 	return useCallback(async () => {
 		await worker?.clearSensitiveData()
-		setSensitiveContent(defaultCsvContent)
+		resetSensitiveContent()
 		await clearGenerate()
-	}, [worker, setSensitiveContent, clearGenerate])
+	}, [worker, resetSensitiveContent, clearGenerate])
 }
 
-export function useClearGenerate(): () => Promise<void> {
+export function useClearGenerate(): DataClearer {
 	const worker = useWasmWorkerValue()
-	const setSyntheticContent = useSyntheticContentSetter()
+	const resetSyntheticContent = useResetSyntheticContent()
 	const clearEvaluate = useClearEvaluate()
 
 	return useCallback(async () => {
 		await worker?.clearGenerate()
-		setSyntheticContent(defaultCsvContent)
+		resetSyntheticContent()
 		await clearEvaluate()
-	}, [worker, setSyntheticContent, clearEvaluate])
+	}, [worker, resetSyntheticContent, clearEvaluate])
 }
 
-export function useClearEvaluate(): () => Promise<void> {
+export function useClearEvaluate(): DataClearer {
 	const worker = useWasmWorkerValue()
-	const setEvaluateResult = useEvaluateResultSetter()
+	const resetEvaluateResult = useResetEvaluateResult()
 	const clearNavigate = useClearNavigate()
 
 	return useCallback(async () => {
 		await worker?.clearEvaluate()
-		setEvaluateResult(null)
+		resetEvaluateResult()
 		await clearNavigate()
-	}, [worker, setEvaluateResult, clearNavigate])
+	}, [worker, resetEvaluateResult, clearNavigate])
 }
 
-export function useClearNavigate(): () => Promise<void> {
+export function useClearNavigate(): DataClearer {
 	const worker = useWasmWorkerValue()
 
 	return useCallback(async () => {
@@ -60,8 +62,5 @@ export function useClearNavigate(): () => Promise<void> {
 export function useSyntheticHeaders(): HeaderNames {
 	const syntheticContent = useSyntheticContentValue()
 
-	return useMemo(
-		() => syntheticContent.headers.map(h => h.name),
-		[syntheticContent.headers],
-	)
+	return useMemo(() => headers(syntheticContent), [syntheticContent])
 }

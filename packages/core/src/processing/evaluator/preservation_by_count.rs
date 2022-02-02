@@ -82,7 +82,13 @@ impl PreservationByCountBuckets {
 
         self.buckets_map
             .values()
-            .map(|b| 1.0 - (b.preservation_sum / (b.size as f64)))
+            .map(|b| {
+                if b.size > 0 {
+                    1.0 - (b.preservation_sum / (b.size as f64))
+                } else {
+                    0.0
+                }
+            })
             .sum::<f64>()
             / (self.buckets_map.len() as f64)
     }
@@ -96,7 +102,7 @@ impl PreservationByCountBuckets {
         preservation_by_count_path: &str,
         preservation_by_count_delimiter: char,
     ) -> Result<(), Error> {
-        let mut file = std::fs::File::create(preservation_by_count_path)?;
+        let mut file = std::io::BufWriter::new(std::fs::File::create(preservation_by_count_path)?);
 
         file.write_all(
             format!(

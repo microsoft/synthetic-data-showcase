@@ -3,8 +3,8 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import {
-	CsvData,
 	HeaderNames,
+	IAggregateResult,
 	IAttributesIntersectionByColumn,
 	IEvaluateResult,
 	ISelectedAttributesByColumn,
@@ -23,6 +23,7 @@ export enum SdsWasmMessageType {
 	Navigate = 'Navigate',
 	SelectAttributes = 'SelectAttributes',
 	AttributesIntersectionsByColumn = 'AttributesIntersectionsByColumn',
+	GetSensitiveAggregateResult = 'GetSensitiveAggregateResult',
 }
 
 export interface SdsWasmMessage {
@@ -90,7 +91,8 @@ export interface SdsWasmReportProgressResponse extends SdsWasmResponse {
 
 export interface SdsWasmGenerateMessage extends SdsWasmMessage {
 	type: SdsWasmMessageType.Generate
-	sensitiveCsvData: CsvData
+	sensitiveCsvData: string
+	delimiter: string
 	useColumns: HeaderNames
 	sensitiveZeros: HeaderNames
 	recordLimit: number
@@ -102,15 +104,16 @@ export interface SdsWasmGenerateMessage extends SdsWasmMessage {
 
 export interface SdsWasmGenerateResponse extends SdsWasmResponse {
 	type: SdsWasmMessageType.Generate
-	syntheticCsvData: CsvData
+	syntheticCsvData: string
 }
 
 export interface SdsWasmEvaluateMessage extends SdsWasmMessage {
 	type: SdsWasmMessageType.Evaluate
 	reportingLength: number
 	sensitivityThreshold: number
+	aggregatesDelimiter: string
 	combinationDelimiter: string
-	includeAggregatesCount: boolean
+	includeAggregatesData: boolean
 }
 
 export interface SdsWasmEvaluateResponse extends SdsWasmResponse {
@@ -145,4 +148,18 @@ export interface SdsWasmAttributesIntersectionsByColumnResponse
 	extends SdsWasmResponse {
 	type: SdsWasmMessageType.AttributesIntersectionsByColumn
 	attributesIntersectionByColumn: IAttributesIntersectionByColumn
+}
+
+export interface SdsWasmGetSensitiveAggregateResultMessage
+	extends SdsWasmMessage {
+	type: SdsWasmMessageType.GetSensitiveAggregateResult
+	aggregatesDelimiter: string
+	combinationDelimiter: string
+	includeAggregatesData: boolean
+}
+
+export interface SdsWasmGetSensitiveAggregateResultResponse
+	extends SdsWasmResponse {
+	type: SdsWasmMessageType.GetSensitiveAggregateResult
+	aggregateResult: IAggregateResult
 }
