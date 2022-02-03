@@ -1,6 +1,6 @@
 [package]
 name = "sds-cli"
-version = "1.2.0"
+version = "1.2.1"
 license = "MIT"
 description = "Command line interface for the sds-core library"
 repository = "https://github.com/microsoft/synthetic-data-showcase"
