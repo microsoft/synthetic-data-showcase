@@ -16,3 +16,9 @@ pub mod typedefs;
 mod seeded_rows_synthesizer;
 
 mod unseeded_rows_synthesizer;
+
+mod consolidate;
+
+mod suppress;
+
+mod synthesis_data;
