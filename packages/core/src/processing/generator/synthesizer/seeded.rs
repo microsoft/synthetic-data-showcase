@@ -36,23 +36,6 @@ pub struct SeededSynthesizer {
     suppress_percentage: f64,
 }
 
-impl SynthesisData for SeededSynthesizer {
-    #[inline]
-    fn get_data_block(&self) -> &Arc<DataBlock> {
-        &self.data_block
-    }
-
-    #[inline]
-    fn get_attr_rows_map(&self) -> &Arc<AttributeRowsMap> {
-        &self.attr_rows_map
-    }
-
-    #[inline]
-    fn get_resolution(&self) -> usize {
-        self.resolution
-    }
-}
-
 impl SeededSynthesizer {
     /// Returns a new SeededSynthesizer
     /// # Arguments
@@ -180,6 +163,29 @@ impl SeededSynthesizer {
         self.synthesize_percentage * 0.5
             + self.consolidate_percentage * 0.3
             + self.suppress_percentage * 0.2
+    }
+}
+
+impl SynthesisData for SeededSynthesizer {
+    #[inline]
+    fn get_data_block(&self) -> &Arc<DataBlock> {
+        &self.data_block
+    }
+
+    #[inline]
+    fn get_attr_rows_map(&self) -> &AttributeRowsMap {
+        &self.attr_rows_map
+    }
+
+    #[inline]
+    fn get_resolution(&self) -> usize {
+        self.resolution
+    }
+
+    #[inline]
+    fn get_attr_rows_map_mut(&mut self) -> &mut AttributeRowsMap {
+        // this should never happen during the seeded data synthesis
+        panic!("invalid use of get_attr_rows_map_mut");
     }
 }
 

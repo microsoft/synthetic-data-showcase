@@ -155,7 +155,7 @@ impl Generator {
     where
         T: ReportProgress,
     {
-        let attr_rows_map = Arc::new(self.data_block.calc_attr_rows());
+        let attr_rows_map = self.data_block.calc_attr_rows();
         let mut synth = FromCountsSynthesizer::new(
             self.data_block.clone(),
             attr_rows_map,

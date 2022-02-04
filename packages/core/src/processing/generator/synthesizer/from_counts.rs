@@ -17,7 +17,7 @@ pub struct FromCountsSynthesizer {
     /// Reference to the original data block
     data_block: Arc<DataBlock>,
     /// Maps a data block value to all the rows where it occurs
-    attr_rows_map: Arc<AttributeRowsMap>,
+    attr_rows_map: AttributeRowsMap,
     /// Reporting resolution used for data synthesis
     resolution: usize,
     /// Maximum cache size allowed
@@ -26,23 +26,6 @@ pub struct FromCountsSynthesizer {
     consolidate_percentage: f64,
     /// Percentage already completed on the suppression step
     suppress_percentage: f64,
-}
-
-impl SynthesisData for FromCountsSynthesizer {
-    #[inline]
-    fn get_data_block(&self) -> &Arc<DataBlock> {
-        &self.data_block
-    }
-
-    #[inline]
-    fn get_attr_rows_map(&self) -> &Arc<AttributeRowsMap> {
-        &self.attr_rows_map
-    }
-
-    #[inline]
-    fn get_resolution(&self) -> usize {
-        self.resolution
-    }
 }
 
 impl FromCountsSynthesizer {
@@ -55,7 +38,7 @@ impl FromCountsSynthesizer {
     #[inline]
     pub fn new(
         data_block: Arc<DataBlock>,
-        attr_rows_map: Arc<AttributeRowsMap>,
+        attr_rows_map: AttributeRowsMap,
         resolution: usize,
         cache_max_size: usize,
     ) -> FromCountsSynthesizer {
@@ -106,6 +89,28 @@ impl FromCountsSynthesizer {
     #[inline]
     fn calc_overall_progress(&self) -> f64 {
         self.consolidate_percentage * 0.7 + self.suppress_percentage * 0.3
+    }
+}
+
+impl SynthesisData for FromCountsSynthesizer {
+    #[inline]
+    fn get_data_block(&self) -> &Arc<DataBlock> {
+        &self.data_block
+    }
+
+    #[inline]
+    fn get_attr_rows_map(&self) -> &AttributeRowsMap {
+        &self.attr_rows_map
+    }
+
+    #[inline]
+    fn get_resolution(&self) -> usize {
+        self.resolution
+    }
+
+    #[inline]
+    fn get_attr_rows_map_mut(&mut self) -> &mut AttributeRowsMap {
+        &mut self.attr_rows_map
     }
 }
 
