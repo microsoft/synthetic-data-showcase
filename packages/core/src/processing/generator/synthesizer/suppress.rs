@@ -36,7 +36,7 @@ pub trait Suppress: SynthesisData {
 
         for (attr, rows) in self.get_attr_rows_map().iter() {
             if rows.len() >= self.get_resolution() {
-                let t = current_counts[attr]
+                let t = current_counts.get(attr).unwrap_or(&0)
                     - iround_down(rows.len() as f64, self.get_resolution() as f64);
                 if t > 0 {
                     targets.insert(attr.clone(), t);

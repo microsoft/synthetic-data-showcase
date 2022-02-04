@@ -10,6 +10,10 @@ pub mod seeded;
 /// Module defining the unseeded synthesis process
 pub mod unseeded;
 
+/// Module defining data synthesis purely from counts
+/// (consolidate and suppression only)
+pub mod from_counts;
+
 /// Type definitions related to the synthesis process
 pub mod typedefs;
 

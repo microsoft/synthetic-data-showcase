@@ -6,7 +6,6 @@ use super::{
         SynthesizedRecordsSlice, SynthesizerSeedSlice,
     },
 };
-use itertools::izip;
 use log::info;
 
 use crate::{
@@ -16,33 +15,11 @@ use crate::{
 
 pub trait Consolidate: SynthesisData {
     #[inline]
-    fn count_not_used_attrs(
-        &self,
-        synthesized_records: &SynthesizedRecordsSlice,
-    ) -> AvailableAttrsMap {
-        let mut available_attrs: AvailableAttrsMap = AvailableAttrsMap::default();
-
-        // go through the pairs (original_record, synthesized_record) and count how many
-        // attributes were not used
-        for (original_record, synthesized_record) in izip!(
-            self.get_data_block().records.iter(),
-            synthesized_records.iter()
-        ) {
-            for d in original_record.values.iter() {
-                if !synthesized_record.contains(d) {
-                    let attr = available_attrs.entry(d.clone()).or_insert(0);
-                    *attr += 1;
-                }
-            }
-        }
-        available_attrs
-    }
-
     fn calc_available_attrs(
         &self,
         synthesized_records: &SynthesizedRecordsSlice,
     ) -> AvailableAttrsMap {
-        let mut available_attrs = self.count_not_used_attrs(synthesized_records);
+        let mut available_attrs = self.get_not_used_attrs(synthesized_records);
         let resolution_f64 = self.get_resolution() as f64;
 
         // add attributes for consolidation
@@ -157,6 +134,11 @@ pub trait Consolidate: SynthesisData {
         }
         self.update_consolidate_progress(n_processed, total_f64, progress_reporter);
     }
+
+    fn get_not_used_attrs(
+        &self,
+        synthesized_records: &SynthesizedRecordsSlice,
+    ) -> AvailableAttrsMap;
 
     fn update_consolidate_progress<T>(
         &mut self,

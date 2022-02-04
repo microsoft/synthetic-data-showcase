@@ -1,9 +1,12 @@
 use super::{
-    consolidate::Consolidate, context::SynthesizerContext,
-    seeded_rows_synthesizer::SeededRowsSynthesizer, suppress::Suppress,
-    synthesis_data::SynthesisData, typedefs::SynthesizedRecords,
+    consolidate::Consolidate,
+    context::SynthesizerContext,
+    seeded_rows_synthesizer::SeededRowsSynthesizer,
+    suppress::Suppress,
+    synthesis_data::SynthesisData,
+    typedefs::{AvailableAttrsMap, SynthesizedRecords, SynthesizedRecordsSlice},
 };
-use itertools::Itertools;
+use itertools::{izip, Itertools};
 use log::info;
 use std::sync::Arc;
 
@@ -181,6 +184,30 @@ impl SeededSynthesizer {
 }
 
 impl Consolidate for SeededSynthesizer {
+    #[inline]
+    fn get_not_used_attrs(
+        &self,
+        synthesized_records: &SynthesizedRecordsSlice,
+    ) -> AvailableAttrsMap {
+        let mut available_attrs: AvailableAttrsMap = AvailableAttrsMap::default();
+
+        // go through the pairs (original_record, synthesized_record) and count how many
+        // attributes were not used
+        for (original_record, synthesized_record) in izip!(
+            self.get_data_block().records.iter(),
+            synthesized_records.iter()
+        ) {
+            for d in original_record.values.iter() {
+                if !synthesized_record.contains(d) {
+                    let attr = available_attrs.entry(d.clone()).or_insert(0);
+                    *attr += 1;
+                }
+            }
+        }
+        available_attrs
+    }
+
+    #[inline]
     fn update_consolidate_progress<T>(
         &mut self,
         n_processed: usize,
@@ -197,6 +224,7 @@ impl Consolidate for SeededSynthesizer {
 }
 
 impl Suppress for SeededSynthesizer {
+    #[inline]
     fn update_suppress_progress<T>(
         &mut self,
         n_processed: usize,

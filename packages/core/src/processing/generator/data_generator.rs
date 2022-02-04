@@ -1,4 +1,5 @@
 use super::generated_data::GeneratedData;
+use super::synthesizer::from_counts::FromCountsSynthesizer;
 use super::synthesizer::typedefs::SynthesizedRecords;
 use super::synthesizer::unseeded::UnseededSynthesizer;
 use super::SynthesisMode;
@@ -60,6 +61,9 @@ impl Generator {
                 &empty_value_arc,
                 progress_reporter,
             ),
+            SynthesisMode::FromCounts => {
+                self.from_counts_synthesis(resolution, cache_max_size, progress_reporter)
+            }
         };
 
         self.build_generated_data(synthesized_records, empty_value_arc)
@@ -137,6 +141,26 @@ impl Generator {
             resolution,
             cache_max_size,
             empty_value.clone(),
+        );
+        synth.run(progress_reporter)
+    }
+
+    #[inline]
+    pub fn from_counts_synthesis<T>(
+        &self,
+        resolution: usize,
+        cache_max_size: usize,
+        progress_reporter: &mut Option<T>,
+    ) -> SynthesizedRecords
+    where
+        T: ReportProgress,
+    {
+        let attr_rows_map = Arc::new(self.data_block.calc_attr_rows());
+        let mut synth = FromCountsSynthesizer::new(
+            self.data_block.clone(),
+            attr_rows_map,
+            resolution,
+            cache_max_size,
         );
         synth.run(progress_reporter)
     }

@@ -32,7 +32,7 @@ enum Command {
         #[structopt(
             long = "mode",
             help = "synthesis mode",
-            possible_values = &["seeded", "unseeded"],
+            possible_values = &["seeded", "unseeded", "from_counts"],
             case_insensitive = true,
             default_value = "seeded"
         )]
