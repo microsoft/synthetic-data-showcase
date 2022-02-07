@@ -1,5 +1,5 @@
 use csv::ReaderBuilder;
-use pyo3::prelude::*;
+use pyo3::{exceptions::PyValueError, prelude::*};
 use sds_core::{
     data_block::{
         block::DataBlock, csv_block_creator::CsvDataBlockCreator, csv_io_error::CsvIOError,
@@ -11,7 +11,7 @@ use sds_core::{
     },
     utils::reporting::LoggerProgressReporter,
 };
-use std::sync::Arc;
+use std::{str::FromStr, sync::Arc};
 
 #[pyclass]
 /// Processor exposing the main features
@@ -112,22 +112,18 @@ impl SDSProcessor {
         cache_max_size: usize,
         resolution: usize,
         empty_value: String,
-        seeded: bool,
-    ) -> GeneratedData {
+        synthesis_mode: String,
+    ) -> Result<GeneratedData, PyErr> {
         let mut progress_reporter: Option<LoggerProgressReporter> = None;
         let mut generator = Generator::new(self.data_block.clone());
-        let mode = if seeded {
-            SynthesisMode::Seeded
-        } else {
-            SynthesisMode::Unseeded
-        };
+        let mode = SynthesisMode::from_str(&synthesis_mode).map_err(PyValueError::new_err)?;
 
-        generator.generate(
+        Ok(generator.generate(
             resolution,
             cache_max_size,
             empty_value,
             mode,
             &mut progress_reporter,
-        )
+        ))
     }
 }

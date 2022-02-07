@@ -75,12 +75,7 @@ impl FromCountsSynthesizer {
             self.consolidate_percentage = 0.0;
             self.suppress_percentage = 0.0;
 
-            self.consolidate(
-                &mut synthesized_records,
-                progress_reporter,
-                // use the first context to leverage already cached intersections
-                &mut context,
-            );
+            self.consolidate(&mut synthesized_records, progress_reporter, &mut context);
             self.suppress(&mut synthesized_records, progress_reporter);
         }
         synthesized_records

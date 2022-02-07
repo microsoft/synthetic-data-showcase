@@ -21,15 +21,12 @@ def generate(config):
     sensitive_zeros = config['sensitive_zeros']
     resolution = config['reporting_resolution']
     cache_max_size = config['cache_max_size']
-    seeded = config['seeded']
+    synthesis_mode = config['synthesis_mode']
 
     logging.info(f'Generate {sensitive_microdata_path}')
     start_time = time.time()
 
-    if seeded:
-        logging.info(f'Generating from seeds')
-    else:
-        logging.info(f'Generating unseeded')
+    logging.info(f'Generating ${synthesis_mode}')
 
     sds_processor = sds.SDSProcessor(
         sensitive_microdata_path,
@@ -42,7 +39,7 @@ def generate(config):
         cache_max_size,
         resolution,
         "",
-        seeded
+        synthesis_mode
     )
     generated_data.write_synthetic_data(synthetic_microdata_path, '\t')
     syn_ratio = generated_data.expansion_ratio

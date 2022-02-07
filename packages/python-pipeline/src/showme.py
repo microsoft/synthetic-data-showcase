@@ -85,7 +85,7 @@ def main():
         'record_limit': -1,
         'reporting_length': 5,
         'reporting_resolution': 2,
-        'seeded': True,
+        'synthesis_mode': 'seeded',
         'sensitive_zeros': [],
         'output_dir': output_dir,
         'sensitive_microdata_path': sensitive_microdata_path,

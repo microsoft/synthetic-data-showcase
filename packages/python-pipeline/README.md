@@ -31,7 +31,7 @@ The pipeline is controlled via a json config file containing a variety of parame
     "reporting_resolution": 10,
     "reporting_length": 5,
 
-    "seeded": true,
+    "synthesis_mode": "seeded",
     "parallel_jobs": 8,
     "memory_limit_pct": 95,
     "cache_max_size": 100000,
@@ -79,7 +79,7 @@ The `reporting_length` determines the maximum length of attribute combination fo
 
 ## Synthetic data generation
 
-The `seeded` parameter indicates whether synthetic records should be seeded with a corresponding sensitive record (`true`) or generated in an unseeded way by randomly sampling joint attribute distributions (`false`). Seeded synthesis is faster and better preserves statistics for visual analytics, but unseeded synthesis creates longer records of more uniform length that may better preserve structure for machine learning.
+The `synthesis_mode` parameter indicates whether synthetic records should be seeded with a corresponding sensitive record (`seeded`) or generated in an unseeded way by randomly sampling joint attribute distributions (`unseeded`). Seeded synthesis is faster and better preserves statistics for visual analytics, but unseeded synthesis creates longer records of more uniform length that may better preserve structure for machine learning.
 
 Seeded synthesis proceeds by sampling attributes from a sensitive record until the addition of further attributes would create a rare combination based on the `reporting_resolution`. These privacy-preserving subsets of sensitive records are collected for output as synthetic records. The unused attributes of each seed are also collected, with further output records synthesized from these (without replacement) until all sensitive attributes are accounted for in a synthetic record.
 

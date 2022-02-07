@@ -58,11 +58,12 @@ impl PreservationByCountBuckets {
         } else {
             0.0
         };
+        let absolute_error = ((syn_count as isize) - (sen_count as isize)).abs() as usize;
 
         self.buckets_map
             .entry(bins.find_bucket_max_val(syn_count))
             .or_insert_with(PreservationBucket::default)
-            .add(preservation, comb.len(), syn_count);
+            .add(preservation, comb.len(), syn_count, absolute_error);
     }
 }
 
@@ -106,7 +107,8 @@ impl PreservationByCountBuckets {
 
         file.write_all(
             format!(
-                "syn_count_bucket{}mean_combo_count{}mean_combo_length{}count_preservation\n",
+                "syn_count_bucket{}mean_combo_count{}mean_combo_length{}count_preservation{}mean_absolute_error\n",
+                preservation_by_count_delimiter,
                 preservation_by_count_delimiter,
                 preservation_by_count_delimiter,
                 preservation_by_count_delimiter,
@@ -118,7 +120,7 @@ impl PreservationByCountBuckets {
 
             file.write_all(
                 format!(
-                    "{}{}{}{}{}{}{}\n",
+                    "{}{}{}{}{}{}{}{}{}\n",
                     max_val,
                     preservation_by_count_delimiter,
                     b.get_mean_combination_count(),
@@ -126,6 +128,8 @@ impl PreservationByCountBuckets {
                     b.get_mean_combination_length(),
                     preservation_by_count_delimiter,
                     b.get_mean_preservation(),
+                    preservation_by_count_delimiter,
+                    b.get_mean_absolute_error()
                 )
                 .as_bytes(),
             )?

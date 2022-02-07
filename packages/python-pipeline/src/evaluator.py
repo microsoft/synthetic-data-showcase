@@ -43,6 +43,9 @@ class Evaluator:
         self.preservation_by_count_svg = path.join(
             self.output_dir, f'{self.prefix}_preservation_by_count.svg'
         )
+        self.absolute_error_by_count_svg = path.join(
+            self.output_dir, f'{self.prefix}_absolute_error_by_count.svg'
+        )
         self.preservation_by_length_tsv = path.join(
             self.output_dir, f'{self.prefix}_preservation_by_length.tsv'
         )
@@ -196,6 +199,22 @@ class Evaluator:
             darker_color='green',
             stats_tsv=self.preservation_by_count_tsv,
             stats_svg=self.preservation_by_count_svg,
+            delimiter='\t',
+            style='whitegrid',
+            palette='magma'
+        )
+
+        util.plotStats(
+            x_axis='syn_count_bucket',
+            x_axis_title='Count of Filtered Synthetic Records',
+            y_bar='mean_combo_length',
+            y_bar_title='Mean Length of Combinations',
+            y_line='mean_absolute_error',
+            y_line_title='Mean absolute error (Synthetic - Sensitive)',
+            color='lightgreen',
+            darker_color='green',
+            stats_tsv=self.preservation_by_count_tsv,
+            stats_svg=self.absolute_error_by_count_svg,
             delimiter='\t',
             style='whitegrid',
             palette='magma'

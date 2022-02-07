@@ -13,6 +13,8 @@ pub struct PreservationBucket {
     pub length_sum: usize,
     /// Combination count sum
     pub combination_count_sum: usize,
+    /// Absolute error sum `|synthetic_count - sensitive_sensitive|`
+    pub absolute_error_sum: usize,
 }
 
 impl PreservationBucket {
@@ -23,6 +25,7 @@ impl PreservationBucket {
             preservation_sum: 0.0,
             length_sum: 0,
             combination_count_sum: 0,
+            absolute_error_sum: 0,
         }
     }
 
@@ -31,11 +34,19 @@ impl PreservationBucket {
     /// * `preservation` - Preservation related to the value
     /// * `length` - Combination length related to the value
     /// * `combination_count` - Combination count related to the value
-    pub fn add(&mut self, preservation: f64, length: usize, combination_count: usize) {
+    /// * `absolute_error` - Absolute error related to the value
+    pub fn add(
+        &mut self,
+        preservation: f64,
+        length: usize,
+        combination_count: usize,
+        absolute_error: usize,
+    ) {
         self.size += 1;
         self.preservation_sum += preservation;
         self.length_sum += length;
         self.combination_count_sum += combination_count;
+        self.absolute_error_sum += absolute_error;
     }
 }
 
@@ -54,5 +65,10 @@ impl PreservationBucket {
     /// Gets the mean combination count for the values in this bucket
     pub fn get_mean_combination_count(&self) -> f64 {
         (self.combination_count_sum as f64) / (self.size as f64)
+    }
+
+    /// Gets the mean absolute error (`|synthetic_count - sensitive_sensitive|`) for the values in this bucket
+    pub fn get_mean_absolute_error(&self) -> f64 {
+        (self.absolute_error_sum as f64) / (self.size as f64)
     }
 }
