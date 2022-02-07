@@ -52,7 +52,6 @@ def main():
 
         # set based on the number of cores/memory available
         config['parallel_jobs'] = config.get('parallel_jobs', 1)
-        config['memory_limit_pct'] = config.get('memory_limit_pct', 80)
         config['cache_max_size'] = config.get('cache_max_size', 100000)
 
         # numeric parameters controlling synthesis and aggregation

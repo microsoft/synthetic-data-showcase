@@ -79,7 +79,6 @@ def main():
 
     config = {
         'parallel_jobs': 1,
-        'memory_limit_pct': 90,
         'cache_max_size': 100000,
         'use_columns': [],
         'record_limit': -1,

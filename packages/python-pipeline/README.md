@@ -33,7 +33,6 @@ The pipeline is controlled via a json config file containing a variety of parame
 
     "synthesis_mode": "seeded",
     "parallel_jobs": 8,
-    "memory_limit_pct": 95,
     "cache_max_size": 100000,
     "output_dir": "./vices_output",
     "prefix": "vices",
@@ -91,7 +90,7 @@ Synthetic records are sorted by number of non-empty attribute values prior to ou
 
 The `parallel_jobs` parameter specifies the extent of parallel processing (e.g., based on the number of available processor cores). For local processing, this should be set to the number of available CPU cores. For faster processing of larger and more complex datasets, use of a virtual machine with multiple cores is recommended.
 
-Also for unseeded generation, the `memory_limit_pct` parameter sets the percentage utilization of system memory at which synthetic data generation will stop adding computed counts to a cache. On the other hand, for seeded generation the `cache-max-size` parameter sets the size of the cache used to store attribute combination counts during the synthesis process. The higher the value, the more memory will be used. The default value is `100000` which is generally a good balance between performance and memory usage, but this can be tuned depending on the input dataset.
+The `cache_max_size` parameter sets the size of the cache used to store attribute combination counts during the synthesis process. The higher the value, the more memory will be used. The default value is `100000` which is generally a good balance between performance and memory usage, but this can be tuned depending on the input dataset.
 
 Output files are saved to the `output_dir` directory and prefixed with the `prefix` string. The json config file used to generate the outputs is also copied to this directory as a record of the parameters used, and should therefore be stored outside `output_dir`.
 
