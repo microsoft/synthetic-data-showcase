@@ -1,5 +1,5 @@
 use fnv::{FnvHashMap, FnvHashSet};
-use std::{collections::BTreeSet, sync::Arc};
+use std::{collections::BTreeSet, sync::Arc, rc::Rc};
 
 use crate::{
     data_block::value::DataBlockValue, processing::aggregator::value_combination::ValueCombination,
@@ -33,7 +33,7 @@ pub type SynthesizedRecordsSlice = [SynthesizedRecord];
 pub type AvailableAttrsMap = FnvHashMap<Arc<DataBlockValue>, isize>;
 
 /// Raw count for attribute combinations
-pub type RawCombinationsCountMap = FnvHashMap<Arc<ValueCombination>, usize>;
+pub type RawCombinationsCountMap = FnvHashMap<Rc<ValueCombination>, usize>;
 
 /// Raw combinations set
-pub type RawCombinationsSet = FnvHashSet<Arc<ValueCombination>>;
+pub type RawCombinationsSet = FnvHashSet<Rc<ValueCombination>>;

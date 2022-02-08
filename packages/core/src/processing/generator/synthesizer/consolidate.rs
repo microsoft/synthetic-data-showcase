@@ -8,7 +8,7 @@ use super::{
 };
 use itertools::Itertools;
 use log::info;
-use std::sync::Arc;
+use std::{rc::Rc, sync::Arc};
 
 use crate::{
     data_block::value::DataBlockValue,
@@ -87,6 +87,8 @@ pub trait Consolidate: SynthesisData {
     ) -> bool {
         // if we need to keep a certain ratio for oversampling
         if let Some(ratio) = oversampling_ratio {
+            let mut local_synthetic_counts = RawCombinationsCountMap::default();
+
             // add the new sampled value to the combination
             last_processed.extend(value.clone(), &self.get_data_block().headers);
 
@@ -94,28 +96,26 @@ pub trait Consolidate: SynthesisData {
             for l in 1..=self.get_aggregated_data().reporting_length {
                 for mut comb in last_processed.iter().combinations(l) {
                     // this will be already sorted, since last_processed is
-                    let value_combination = Arc::new(ValueCombination::new(
+                    let value_combination = Rc::new(ValueCombination::new(
                         comb.drain(..).map(|k| (*k).clone()).collect(),
                     ));
 
                     if !processed_combinations.contains(&value_combination) {
-                        // mark this combination as processed, so we wont
-                        // increment its synthetic count again
-                        processed_combinations.insert(value_combination.clone());
-
                         if let Some(sensitive_count) = self
                             .get_aggregated_data()
                             .aggregates_count
-                            .get(&value_combination)
+                            .get(&(*value_combination))
                         {
                             let synthetic_count =
-                                synthetic_counts.entry(value_combination).or_insert(0);
+                                synthetic_counts.get(&value_combination).unwrap_or(&0);
 
-                            *synthetic_count += 1;
-
-                            if (*synthetic_count as f64)
-                                > ((sensitive_count.count as f64) * (*ratio))
+                            if ((*synthetic_count + 1) as f64)
+                                <= ((sensitive_count.count as f64) * (*ratio))
                             {
+                                *local_synthetic_counts
+                                    .entry(value_combination.clone())
+                                    .or_insert(0) += 1;
+                            } else {
                                 // the synthetic count as exceeded the allowed ratio, let stop
                                 // the sampling process right here for this record
                                 return false;
@@ -124,6 +124,18 @@ pub trait Consolidate: SynthesisData {
                     }
                 }
             }
+
+            // update synthetic counts if the value is going to be used
+            local_synthetic_counts
+                .drain()
+                .for_each(|(value_combination, count)| {
+                    *synthetic_counts
+                        .entry(value_combination.clone())
+                        .or_insert(0) += count;
+                    // mark this combination as processed, so we wont
+                    // increment its synthetic count again
+                    processed_combinations.insert(value_combination);
+                })
         }
         synthesized_record.insert(value);
         true
