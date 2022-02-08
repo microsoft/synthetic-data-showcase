@@ -213,7 +213,7 @@ impl<'length_range> RowsAggregator<'length_range> {
                     let current_count = result
                         .aggregates_count
                         .entry(Arc::new(ValueCombination::new(
-                            c.drain(..).map(|k| (*k).clone()).collect(),
+                            c.drain(..).cloned().collect(),
                         )))
                         .or_insert_with(AggregatedCount::default);
                     current_count.count += 1;

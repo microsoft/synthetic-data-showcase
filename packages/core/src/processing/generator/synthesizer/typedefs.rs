@@ -1,5 +1,5 @@
 use fnv::{FnvHashMap, FnvHashSet};
-use std::{collections::BTreeSet, sync::Arc, rc::Rc};
+use std::{collections::BTreeSet, rc::Rc, sync::Arc};
 
 use crate::{
     data_block::value::DataBlockValue, processing::aggregator::value_combination::ValueCombination,

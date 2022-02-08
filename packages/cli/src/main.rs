@@ -47,7 +47,7 @@ enum Command {
 
         #[structopt(
             long = "oversampling-ratio",
-            help = "ratio used to avoid oversampling in \"from_counts\" mode",
+            help = "allowed oversampling ratio used on \"from_counts\" mode (0.1 means 10%)",
             requires = "aggregates-json"
         )]
         oversampling_ratio: Option<f64>,

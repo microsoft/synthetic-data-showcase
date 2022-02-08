@@ -96,9 +96,8 @@ pub trait Consolidate: SynthesisData {
             for l in 1..=self.get_aggregated_data().reporting_length {
                 for mut comb in last_processed.iter().combinations(l) {
                     // this will be already sorted, since last_processed is
-                    let value_combination = Rc::new(ValueCombination::new(
-                        comb.drain(..).map(|k| (*k).clone()).collect(),
-                    ));
+                    let value_combination =
+                        Rc::new(ValueCombination::new(comb.drain(..).cloned().collect()));
 
                     if !processed_combinations.contains(&value_combination) {
                         if let Some(sensitive_count) = self
@@ -110,7 +109,7 @@ pub trait Consolidate: SynthesisData {
                                 synthetic_counts.get(&value_combination).unwrap_or(&0);
 
                             if ((*synthetic_count + 1) as f64)
-                                <= ((sensitive_count.count as f64) * (*ratio))
+                                <= ((sensitive_count.count as f64) * (1.0 + *ratio))
                             {
                                 *local_synthetic_counts
                                     .entry(value_combination.clone())
