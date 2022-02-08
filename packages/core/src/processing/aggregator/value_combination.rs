@@ -6,13 +6,13 @@ use serde::{
 use std::{fmt::Display, marker::PhantomData, ops::Deref, str::FromStr, sync::Arc};
 
 use crate::data_block::{
-    typedefs::DataBlockHeadersSlice,
+    typedefs::{DataBlockHeaders, DataBlockHeadersSlice},
     value::{DataBlockValue, ParseDataBlockValueError},
 };
 
 const COMBINATIONS_DELIMITER: char = ';';
 
-#[derive(Eq, PartialEq, Hash)]
+#[derive(Eq, PartialEq, Hash, Clone)]
 /// Wraps a vector of data block values representing a value
 /// combination (sorted by `{header_name}:{block_value}`)
 pub struct ValueCombination {
@@ -81,6 +81,14 @@ impl ValueCombination {
             return false;
         }
         other.iter().all(|v| value_set.contains(v))
+    }
+
+    /// Adds `value` to the value combination, keeping it sorted
+    #[inline]
+    pub fn extend(&mut self, value: Arc<DataBlockValue>, headers: &DataBlockHeaders) {
+        self.combination.push(value);
+        self.combination
+            .sort_by_key(|k| k.format_str_using_headers(headers));
     }
 }
 

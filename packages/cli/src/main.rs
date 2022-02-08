@@ -2,12 +2,12 @@ use log::{error, info, log_enabled, trace, Level::Debug};
 use sds_core::{
     data_block::{csv_block_creator::CsvDataBlockCreator, data_block_creator::DataBlockCreator},
     processing::{
-        aggregator::Aggregator,
+        aggregator::{aggregated_data::AggregatedData, Aggregator},
         generator::{Generator, SynthesisMode},
     },
     utils::{reporting::LoggerProgressReporter, threading::set_number_of_threads},
 };
-use std::process;
+use std::{process, sync::Arc};
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
@@ -29,6 +29,7 @@ enum Command {
             default_value = "100000"
         )]
         cache_max_size: usize,
+
         #[structopt(
             long = "mode",
             help = "synthesis mode",
@@ -37,6 +38,19 @@ enum Command {
             default_value = "seeded"
         )]
         mode: SynthesisMode,
+
+        #[structopt(
+            long = "aggregates-json",
+            help = "json file generated on the aggregate step (used to avoid oversampling in \"from_counts\" mode)"
+        )]
+        aggregates_json: Option<String>,
+
+        #[structopt(
+            long = "oversampling-ratio",
+            help = "ratio used to avoid oversampling in \"from_counts\" mode",
+            requires = "aggregates-json"
+        )]
+        oversampling_ratio: Option<f64>,
     },
     Aggregate {
         #[structopt(long = "aggregates-path", help = "generated aggregates file path")]
@@ -113,6 +127,12 @@ enum Command {
             requires = "add-noise"
         )]
         noise_delta: Option<f64>,
+
+        #[structopt(
+            long = "aggregates-json",
+            help = "serialize aggregated data to json file (sensitive)"
+        )]
+        aggregates_json: Option<String>,
     },
 }
 
@@ -195,13 +215,27 @@ fn main() {
                 synthetic_delimiter,
                 cache_max_size,
                 mode,
+                aggregates_json,
+                oversampling_ratio,
             } => {
+                let aggregated_data = match aggregates_json {
+                    Some(json_path) => match AggregatedData::read_from_json(&json_path) {
+                        Ok(ad) => Some(Arc::new(ad)),
+                        Err(err) => {
+                            error!("error reading aggregates json file: {}", err);
+                            process::exit(1);
+                        }
+                    },
+                    _ => None,
+                };
                 let mut generator = Generator::new(data_block);
                 let generated_data = generator.generate(
                     cli.resolution,
                     cache_max_size,
                     String::from(""),
                     mode,
+                    aggregated_data,
+                    oversampling_ratio,
                     &mut progress_reporter,
                 );
 
@@ -226,6 +260,7 @@ fn main() {
                 add_noise,
                 noise_delta,
                 noise_epsilon,
+                aggregates_json,
             } => {
                 let mut aggregator = Aggregator::new(data_block.clone());
                 let mut aggregated_data = aggregator.aggregate(
@@ -271,6 +306,13 @@ fn main() {
                 ) {
                     error!("error writing output file: {}", err);
                     process::exit(1);
+                }
+
+                if let Some(json_path) = aggregates_json {
+                    if let Err(err) = aggregated_data.write_to_json(&json_path) {
+                        error!("error writing aggregates json file: {}", err);
+                        process::exit(1);
+                    }
                 }
 
                 if let Some(path) = records_sensitivity_path {

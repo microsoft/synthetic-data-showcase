@@ -1,11 +1,13 @@
+from doctest import OutputChecker
 import time
 import datetime
 import logging
 import sds
+from os import path
 
 
 def generate(config):
-    """Generates synthetic microdata approximiating the sensitive microdata at sensitive_microdata_path.
+    """Generates synthetic microdata approximating the sensitive microdata at sensitive_microdata_path.
 
     Produces the synthetic_microdata tsv file of synthetic records.
 
@@ -22,11 +24,16 @@ def generate(config):
     resolution = config['reporting_resolution']
     cache_max_size = config['cache_max_size']
     synthesis_mode = config['synthesis_mode']
+    output_dir = config['output_dir']
+    prefix = config['prefix']
+    sensitive_aggregated_data_json = path.join(
+        output_dir, f'{prefix}_sensitive_aggregated_data.json')
+    oversampling_ratio = config['oversampling_ratio']
 
     logging.info(f'Generate {sensitive_microdata_path}')
     start_time = time.time()
 
-    logging.info(f'Generating ${synthesis_mode}')
+    logging.info(f'Generating {synthesis_mode}')
 
     sds_processor = sds.SDSProcessor(
         sensitive_microdata_path,
@@ -39,7 +46,9 @@ def generate(config):
         cache_max_size,
         resolution,
         "",
-        synthesis_mode
+        synthesis_mode,
+        sensitive_aggregated_data_json if oversampling_ratio else None,
+        oversampling_ratio
     )
     generated_data.write_synthetic_data(synthetic_microdata_path, '\t')
     syn_ratio = generated_data.expansion_ratio

@@ -2,14 +2,20 @@ use super::{
     context::SynthesizerContext,
     synthesis_data::SynthesisData,
     typedefs::{
-        AvailableAttrsMap, NotAllowedAttrSet, SynthesizedRecord, SynthesizedRecords,
-        SynthesizedRecordsSlice, SynthesizerSeedSlice,
+        AvailableAttrsMap, NotAllowedAttrSet, RawCombinationsSet, SynthesizedRecord,
+        SynthesizedRecords, SynthesizedRecordsSlice, SynthesizerSeedSlice,
     },
 };
+use itertools::Itertools;
 use log::info;
+use std::sync::Arc;
 
 use crate::{
-    processing::generator::synthesizer::typedefs::SynthesizerSeed,
+    data_block::value::DataBlockValue,
+    processing::{
+        aggregator::value_combination::ValueCombination,
+        generator::synthesizer::typedefs::{RawCombinationsCountMap, SynthesizerSeed},
+    },
     utils::{math::iround_down, reporting::ReportProgress, time::ElapsedDurationLogger},
 };
 
@@ -70,15 +76,73 @@ pub trait Consolidate: SynthesisData {
     }
 
     #[inline]
+    fn add_value_to_synthetic_record(
+        &self,
+        synthesized_record: &mut SynthesizedRecord,
+        value: Arc<DataBlockValue>,
+        synthetic_counts: &mut RawCombinationsCountMap,
+        last_processed: &mut ValueCombination,
+        processed_combinations: &mut RawCombinationsSet,
+        oversampling_ratio: &Option<f64>,
+    ) -> bool {
+        // if we need to keep a certain ratio for oversampling
+        if let Some(ratio) = oversampling_ratio {
+            // add the new sampled value to the combination
+            last_processed.extend(value.clone(), &self.get_data_block().headers);
+
+            // process all combinations lengths up the reporting length
+            for l in 1..=self.get_aggregated_data().reporting_length {
+                for mut comb in last_processed.iter().combinations(l) {
+                    // this will be already sorted, since last_processed is
+                    let value_combination = Arc::new(ValueCombination::new(
+                        comb.drain(..).map(|k| (*k).clone()).collect(),
+                    ));
+
+                    if !processed_combinations.contains(&value_combination) {
+                        // mark this combination as processed, so we wont
+                        // increment its synthetic count again
+                        processed_combinations.insert(value_combination.clone());
+
+                        if let Some(sensitive_count) = self
+                            .get_aggregated_data()
+                            .aggregates_count
+                            .get(&value_combination)
+                        {
+                            let synthetic_count =
+                                synthetic_counts.entry(value_combination).or_insert(0);
+
+                            *synthetic_count += 1;
+
+                            if (*synthetic_count as f64)
+                                > ((sensitive_count.count as f64) * (*ratio))
+                            {
+                                // the synthetic count as exceeded the allowed ratio, let stop
+                                // the sampling process right here for this record
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        synthesized_record.insert(value);
+        true
+    }
+
+    #[inline]
     fn consolidate_record(
         &self,
         available_attrs: &mut AvailableAttrsMap,
         current_seed: &SynthesizerSeedSlice,
         context: &mut SynthesizerContext,
+        synthetic_counts: &mut RawCombinationsCountMap,
+        oversampling_ratio: &Option<f64>,
     ) -> SynthesizedRecord {
         let mut not_allowed_attr_set: NotAllowedAttrSet =
             self.calc_not_allowed_attrs(available_attrs);
         let mut synthesized_record = SynthesizedRecord::default();
+        let mut last_processed = ValueCombination::default();
+        let mut processed_combinations = RawCombinationsSet::default();
 
         loop {
             let next = context.sample_next_attr_from_seed(
@@ -99,7 +163,17 @@ pub trait Consolidate: SynthesisData {
                     } else {
                         available_attrs.insert(value.clone(), next_count - 1);
                     }
-                    synthesized_record.insert(value);
+
+                    if !self.add_value_to_synthetic_record(
+                        &mut synthesized_record,
+                        value,
+                        synthetic_counts,
+                        &mut last_processed,
+                        &mut processed_combinations,
+                        oversampling_ratio,
+                    ) {
+                        break;
+                    }
                 }
             }
         }
@@ -111,14 +185,17 @@ pub trait Consolidate: SynthesisData {
         synthesized_records: &mut SynthesizedRecords,
         progress_reporter: &mut Option<T>,
         context: &mut SynthesizerContext,
+        oversampling_ratio: Option<f64>,
     ) where
         T: ReportProgress,
     {
         let _duration_logger = ElapsedDurationLogger::new("consolidation");
+
         info!("consolidating...");
 
         let mut available_attrs = self.calc_available_attrs(synthesized_records);
         let current_seed: SynthesizerSeed = available_attrs.keys().cloned().collect();
+        let mut synthetic_counts = RawCombinationsCountMap::default();
         let total = available_attrs.len();
         let total_f64 = total as f64;
         let mut n_processed = 0;
@@ -129,6 +206,8 @@ pub trait Consolidate: SynthesisData {
                 &mut available_attrs,
                 &current_seed,
                 context,
+                &mut synthetic_counts,
+                &oversampling_ratio,
             ));
             n_processed = total - available_attrs.len();
         }

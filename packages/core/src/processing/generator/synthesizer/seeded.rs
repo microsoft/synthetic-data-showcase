@@ -12,6 +12,7 @@ use std::sync::Arc;
 
 use crate::{
     data_block::{block::DataBlock, typedefs::AttributeRowsMap},
+    processing::aggregator::aggregated_data::AggregatedData,
     utils::{
         math::calc_percentage, reporting::ReportProgress, threading::get_number_of_threads,
         time::ElapsedDurationLogger,
@@ -89,6 +90,7 @@ impl SeededSynthesizer {
                 progress_reporter,
                 // use the first context to leverage already cached intersections
                 &mut rows_synthesizers[0].context,
+                None,
             );
             self.suppress(&mut synthesized_records, progress_reporter);
         }
@@ -186,6 +188,12 @@ impl SynthesisData for SeededSynthesizer {
     fn get_attr_rows_map_mut(&mut self) -> &mut AttributeRowsMap {
         // this should never happen during the seeded data synthesis
         panic!("invalid use of get_attr_rows_map_mut");
+    }
+
+    #[inline]
+    fn get_aggregated_data(&self) -> &AggregatedData {
+        // this should never happen during the seeded data synthesis
+        panic!("invalid use of get_aggregated_data");
     }
 }
 

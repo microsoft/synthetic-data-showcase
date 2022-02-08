@@ -66,6 +66,7 @@ def main():
         # parameters affecting the representation and interpretation of values
         config['sensitive_zeros'] = config.get('sensitive_zeros', [])
         config['synthesis_mode'] = config.get('synthesis_mode', 'seeded')
+        config['oversampling_ratio'] = config.get('oversampling_ratio', None)
 
         # specified parameters affecting file I/O
         config['prefix'] = config.get('prefix', 'my')

@@ -8,6 +8,7 @@ use std::sync::Arc;
 
 use crate::data_block::block::DataBlock;
 use crate::data_block::typedefs::RawSyntheticData;
+use crate::processing::aggregator::aggregated_data::AggregatedData;
 use crate::processing::generator::synthesizer::cache::SynthesizerCacheKey;
 use crate::processing::generator::synthesizer::seeded::SeededSynthesizer;
 use crate::utils::reporting::ReportProgress;
@@ -33,14 +34,19 @@ impl Generator {
     /// * `cache_max_size` - Maximum cache size allowed
     /// * `empty_value` - Empty values on the synthetic data will be represented by this
     /// * `mode` - Which mode to perform the data synthesis
+    /// * `aggregated_data` - Aggregated data used to avoid oversampling ("from_counts" mode)
+    /// * `oversampling_ratio` - Ratio of oversampling allowed for each L from 1 up ("from_counts" mode)
     /// * `progress_reporter` - Will be used to report the processing
     /// progress (`ReportProgress` trait). If `None`, nothing will be reported
+    #[allow(clippy::too_many_arguments)]
     pub fn generate<T>(
         &mut self,
         resolution: usize,
         cache_max_size: usize,
         empty_value: String,
         mode: SynthesisMode,
+        aggregated_data: Option<Arc<AggregatedData>>,
+        oversampling_ratio: Option<f64>,
         progress_reporter: &mut Option<T>,
     ) -> GeneratedData
     where
@@ -61,9 +67,13 @@ impl Generator {
                 &empty_value_arc,
                 progress_reporter,
             ),
-            SynthesisMode::FromCounts => {
-                self.from_counts_synthesis(resolution, cache_max_size, progress_reporter)
-            }
+            SynthesisMode::FromCounts => self.from_counts_synthesis(
+                resolution,
+                cache_max_size,
+                aggregated_data,
+                oversampling_ratio,
+                progress_reporter,
+            ),
         };
 
         self.build_generated_data(synthesized_records, empty_value_arc)
@@ -150,17 +160,26 @@ impl Generator {
         &self,
         resolution: usize,
         cache_max_size: usize,
+        aggregated_data: Option<Arc<AggregatedData>>,
+        oversampling_ratio: Option<f64>,
         progress_reporter: &mut Option<T>,
     ) -> SynthesizedRecords
     where
         T: ReportProgress,
     {
         let attr_rows_map = self.data_block.calc_attr_rows();
+
+        if oversampling_ratio.is_some() {
+            assert!(aggregated_data.is_some())
+        }
+
         let mut synth = FromCountsSynthesizer::new(
             self.data_block.clone(),
             attr_rows_map,
             resolution,
             cache_max_size,
+            aggregated_data,
+            oversampling_ratio,
         );
         synth.run(progress_reporter)
     }

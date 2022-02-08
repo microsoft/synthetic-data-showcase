@@ -9,6 +9,7 @@ use std::sync::Arc;
 
 use crate::{
     data_block::{block::DataBlock, typedefs::AttributeRowsMap},
+    processing::aggregator::aggregated_data::AggregatedData,
     utils::{math::calc_percentage, reporting::ReportProgress},
 };
 
@@ -22,6 +23,11 @@ pub struct FromCountsSynthesizer {
     resolution: usize,
     /// Maximum cache size allowed
     cache_max_size: usize,
+    /// Aggregated data used to avoid oversampling
+    aggregated_data: Arc<AggregatedData>,
+    /// Ratio of oversampling allowed for each L from 1 up
+    /// to the reporting length
+    oversampling_ratio: Option<f64>,
     /// Percentage already completed on the consolidation step
     consolidate_percentage: f64,
     /// Percentage already completed on the suppression step
@@ -35,18 +41,25 @@ impl FromCountsSynthesizer {
     /// * `attr_rows_map` - Maps a data block value to all the rows where it occurs
     /// * `resolution` - Reporting resolution used for data synthesis
     /// * `cache_max_size` - Maximum cache size allowed
+    /// * `aggregated_data` - Aggregated data used to avoid oversampling
+    /// * `oversampling_ratio` - Ratio of oversampling allowed for each L from 1 up
+    /// to the reporting length
     #[inline]
     pub fn new(
         data_block: Arc<DataBlock>,
         attr_rows_map: AttributeRowsMap,
         resolution: usize,
         cache_max_size: usize,
+        aggregated_data: Option<Arc<AggregatedData>>,
+        oversampling_ratio: Option<f64>,
     ) -> FromCountsSynthesizer {
         FromCountsSynthesizer {
             data_block,
             attr_rows_map,
             resolution,
             cache_max_size,
+            aggregated_data: aggregated_data.unwrap_or_else(|| Arc::new(AggregatedData::default())),
+            oversampling_ratio,
             consolidate_percentage: 0.0,
             suppress_percentage: 0.0,
         }
@@ -75,7 +88,12 @@ impl FromCountsSynthesizer {
             self.consolidate_percentage = 0.0;
             self.suppress_percentage = 0.0;
 
-            self.consolidate(&mut synthesized_records, progress_reporter, &mut context);
+            self.consolidate(
+                &mut synthesized_records,
+                progress_reporter,
+                &mut context,
+                self.oversampling_ratio,
+            );
             self.suppress(&mut synthesized_records, progress_reporter);
         }
         synthesized_records
@@ -106,6 +124,11 @@ impl SynthesisData for FromCountsSynthesizer {
     #[inline]
     fn get_attr_rows_map_mut(&mut self) -> &mut AttributeRowsMap {
         &mut self.attr_rows_map
+    }
+
+    #[inline]
+    fn get_aggregated_data(&self) -> &AggregatedData {
+        &self.aggregated_data
     }
 }
 

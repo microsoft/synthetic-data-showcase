@@ -106,23 +106,33 @@ impl SDSProcessor {
     /// * `cache_max_size` - Maximum cache size used during the synthesis process
     /// * `resolution` - Reporting resolution to be used
     /// * `empty_value` - Empty values on the synthetic data will be represented by this
-    /// * `seeded` - True for seeded synthesis, False for unseeded
+    /// * `synthesis_mode` - Which mode to perform the data synthesis ("seeded", "unseeded", "from_counts")
+    /// * `aggregated_data` - Aggregated data used to avoid oversampling ("from_counts" mode)
+    /// * `oversampling_ratio` - Ratio of oversampling allowed for each L from 1 up ("from_counts" mode)
     pub fn generate(
         &self,
         cache_max_size: usize,
         resolution: usize,
         empty_value: String,
         synthesis_mode: String,
+        aggregates_path: Option<String>,
+        oversampling_ratio: Option<f64>,
     ) -> Result<GeneratedData, PyErr> {
         let mut progress_reporter: Option<LoggerProgressReporter> = None;
         let mut generator = Generator::new(self.data_block.clone());
         let mode = SynthesisMode::from_str(&synthesis_mode).map_err(PyValueError::new_err)?;
+        let aggregated_data = match aggregates_path {
+            Some(json_path) => Some(Arc::new(AggregatedData::read_from_json(&json_path)?)),
+            _ => None,
+        };
 
         Ok(generator.generate(
             resolution,
             cache_max_size,
             empty_value,
             mode,
+            aggregated_data,
+            oversampling_ratio,
             &mut progress_reporter,
         ))
     }

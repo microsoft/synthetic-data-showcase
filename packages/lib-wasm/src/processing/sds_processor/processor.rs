@@ -119,6 +119,8 @@ impl SDSProcessor {
             cache_max_size,
             empty_value,
             mode,
+            None,
+            None,
             &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
         )))
     }
