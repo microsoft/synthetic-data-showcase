@@ -6,6 +6,7 @@ pub enum SynthesisMode {
     Seeded,
     Unseeded,
     FromCounts,
+    FromAggregates,
 }
 
 impl FromStr for SynthesisMode {
@@ -16,7 +17,8 @@ impl FromStr for SynthesisMode {
             "seeded" => Ok(SynthesisMode::Seeded),
             "unseeded" => Ok(SynthesisMode::Unseeded),
             "from_counts" => Ok(SynthesisMode::FromCounts),
-            _ => Err("invalid mode, should be seeded, unseeded or from_counts"),
+            "from_aggregates" => Ok(SynthesisMode::FromAggregates),
+            _ => Err("invalid mode, should be seeded, unseeded, from_counts or from_aggregates"),
         }
     }
 }
@@ -27,6 +29,7 @@ impl Display for SynthesisMode {
             SynthesisMode::Seeded => Ok(write!(f, "seeded")?),
             SynthesisMode::Unseeded => Ok(write!(f, "unseeded")?),
             SynthesisMode::FromCounts => Ok(write!(f, "from_counts")?),
+            SynthesisMode::FromAggregates => Ok(write!(f, "from_aggregates")?),
         }
     }
 }

@@ -10,6 +10,11 @@ pub mod seeded;
 /// Module defining the unseeded synthesis process
 pub mod unseeded;
 
+/// Module defining data synthesis purely from aggregate counts
+/// (useful in the differential privacy context)
+/// (consolidate and suppression only)
+pub mod from_aggregates;
+
 /// Module defining data synthesis purely from counts
 /// (consolidate and suppression only)
 pub mod from_counts;

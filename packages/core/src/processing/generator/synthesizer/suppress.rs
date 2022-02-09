@@ -34,10 +34,10 @@ pub trait Suppress: SynthesisData {
     ) -> FnvHashMap<Arc<DataBlockValue>, isize> {
         let mut targets: FnvHashMap<Arc<DataBlockValue>, isize> = FnvHashMap::default();
 
-        for (attr, rows) in self.get_attr_rows_map().iter() {
-            if rows.len() >= self.get_resolution() {
+        for (attr, n_rows) in self.get_single_attr_counts().iter() {
+            if *n_rows >= self.get_resolution() {
                 let t = current_counts.get(attr).unwrap_or(&0)
-                    - iround_down(rows.len() as f64, self.get_resolution() as f64);
+                    - iround_down(*n_rows as f64, self.get_resolution() as f64);
                 if t > 0 {
                     targets.insert(attr.clone(), t);
                 }

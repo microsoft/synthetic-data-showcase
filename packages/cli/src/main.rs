@@ -33,7 +33,7 @@ enum Command {
         #[structopt(
             long = "mode",
             help = "synthesis mode",
-            possible_values = &["seeded", "unseeded", "from_counts"],
+            possible_values = &["seeded", "unseeded", "from_counts", "from_aggregates"],
             case_insensitive = true,
             default_value = "seeded"
         )]
@@ -41,7 +41,7 @@ enum Command {
 
         #[structopt(
             long = "aggregates-json",
-            help = "json file generated on the aggregate step (used to avoid oversampling in \"from_counts\" mode)"
+            help = "json file generated on the aggregate step (optional on the \"from_counts\" mode, required on \"from_aggregates\" mode)"
         )]
         aggregates_json: Option<String>,
 

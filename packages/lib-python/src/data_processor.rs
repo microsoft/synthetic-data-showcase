@@ -106,9 +106,10 @@ impl SDSProcessor {
     /// * `cache_max_size` - Maximum cache size used during the synthesis process
     /// * `resolution` - Reporting resolution to be used
     /// * `empty_value` - Empty values on the synthetic data will be represented by this
-    /// * `synthesis_mode` - Which mode to perform the data synthesis ("seeded", "unseeded", "from_counts")
-    /// * `aggregated_data` - Aggregated data used to avoid oversampling ("from_counts" mode)
-    /// * `oversampling_ratio` - Ratio of oversampling allowed for each L from 1 up ("from_counts" mode)
+    /// * `synthesis_mode` - Which mode to perform the data synthesis ("seeded", "unseeded", "from_counts" or "from_aggregates")
+    /// * `aggregated_data` - Aggregated data optionally used in "from_counts" mode to avoid oversampling or
+    /// used in the "from_aggregates" mode
+    /// * `oversampling_ratio` - Ratio of oversampling allowed for each L from 1 up ("from_counts" adn "from_aggregates" mode)
     pub fn generate(
         &self,
         cache_max_size: usize,

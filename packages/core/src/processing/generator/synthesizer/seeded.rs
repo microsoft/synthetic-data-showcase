@@ -4,14 +4,14 @@ use super::{
     seeded_rows_synthesizer::SeededRowsSynthesizer,
     suppress::Suppress,
     synthesis_data::SynthesisData,
-    typedefs::{AvailableAttrsMap, SynthesizedRecords, SynthesizedRecordsSlice},
+    typedefs::{AttributeCountMap, AvailableAttrsMap, SynthesizedRecords, SynthesizedRecordsSlice},
 };
 use itertools::{izip, Itertools};
 use log::info;
 use std::sync::Arc;
 
 use crate::{
-    data_block::{block::DataBlock, typedefs::AttributeRowsMap},
+    data_block::{block::DataBlock, typedefs::AttributeRowsMap, value::DataBlockValue},
     processing::aggregator::aggregated_data::AggregatedData,
     utils::{
         math::calc_percentage, reporting::ReportProgress, threading::get_number_of_threads,
@@ -25,6 +25,8 @@ pub struct SeededSynthesizer {
     data_block: Arc<DataBlock>,
     /// Maps a data block value to all the rows where it occurs
     attr_rows_map: Arc<AttributeRowsMap>,
+    /// Cached single attribute counts
+    single_attr_counts: AttributeCountMap,
     /// Reporting resolution used for data synthesis
     resolution: usize,
     /// Maximum cache size allowed
@@ -53,6 +55,10 @@ impl SeededSynthesizer {
     ) -> SeededSynthesizer {
         SeededSynthesizer {
             data_block,
+            single_attr_counts: attr_rows_map
+                .iter()
+                .map(|(attr, rows)| (attr.clone(), rows.len()))
+                .collect(),
             attr_rows_map,
             resolution,
             cache_max_size,
@@ -175,19 +181,14 @@ impl SynthesisData for SeededSynthesizer {
     }
 
     #[inline]
-    fn get_attr_rows_map(&self) -> &AttributeRowsMap {
-        &self.attr_rows_map
+    fn get_single_attr_counts(&self) -> &AttributeCountMap {
+        // get all the single attribute counts
+        &self.single_attr_counts
     }
 
     #[inline]
     fn get_resolution(&self) -> usize {
         self.resolution
-    }
-
-    #[inline]
-    fn get_attr_rows_map_mut(&mut self) -> &mut AttributeRowsMap {
-        // this should never happen during the seeded data synthesis
-        panic!("invalid use of get_attr_rows_map_mut");
     }
 
     #[inline]
@@ -219,6 +220,24 @@ impl Consolidate for SeededSynthesizer {
             }
         }
         available_attrs
+    }
+
+    #[inline]
+    fn sample_next_attr(
+        &self,
+        context: &mut SynthesizerContext,
+        _last_processed: &crate::processing::aggregator::value_combination::ValueCombination,
+        current_seed: &super::typedefs::SynthesizerSeedSlice,
+        synthesized_record: &super::typedefs::SynthesizedRecord,
+        _available_attrs: &AvailableAttrsMap,
+        not_allowed_attr_set: &super::typedefs::NotAllowedAttrSet,
+    ) -> Option<Arc<DataBlockValue>> {
+        context.sample_next_attr_from_seed(
+            synthesized_record,
+            current_seed,
+            not_allowed_attr_set,
+            &self.attr_rows_map,
+        )
     }
 
     #[inline]

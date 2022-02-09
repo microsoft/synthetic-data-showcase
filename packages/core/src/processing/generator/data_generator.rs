@@ -1,4 +1,5 @@
 use super::generated_data::GeneratedData;
+use super::synthesizer::from_aggregates::FromAggregatesSynthesizer;
 use super::synthesizer::from_counts::FromCountsSynthesizer;
 use super::synthesizer::typedefs::SynthesizedRecords;
 use super::synthesizer::unseeded::UnseededSynthesizer;
@@ -68,6 +69,13 @@ impl Generator {
                 progress_reporter,
             ),
             SynthesisMode::FromCounts => self.from_counts_synthesis(
+                resolution,
+                cache_max_size,
+                aggregated_data,
+                oversampling_ratio,
+                progress_reporter,
+            ),
+            SynthesisMode::FromAggregates => self.from_aggregates_synthesis(
                 resolution,
                 cache_max_size,
                 aggregated_data,
@@ -170,12 +178,36 @@ impl Generator {
         let attr_rows_map = self.data_block.calc_attr_rows();
 
         if oversampling_ratio.is_some() {
-            assert!(aggregated_data.is_some())
+            assert!(aggregated_data.is_some(), "no aggregated data provided");
         }
 
         let mut synth = FromCountsSynthesizer::new(
             self.data_block.clone(),
             attr_rows_map,
+            resolution,
+            cache_max_size,
+            aggregated_data,
+            oversampling_ratio,
+        );
+        synth.run(progress_reporter)
+    }
+
+    #[inline]
+    pub fn from_aggregates_synthesis<T>(
+        &self,
+        resolution: usize,
+        cache_max_size: usize,
+        aggregated_data: Option<Arc<AggregatedData>>,
+        oversampling_ratio: Option<f64>,
+        progress_reporter: &mut Option<T>,
+    ) -> SynthesizedRecords
+    where
+        T: ReportProgress,
+    {
+        assert!(aggregated_data.is_some(), "no aggregated data provided");
+
+        let mut synth = FromAggregatesSynthesizer::new(
+            self.data_block.clone(),
             resolution,
             cache_max_size,
             aggregated_data,

@@ -29,12 +29,10 @@ pub trait Consolidate: SynthesisData {
         let resolution_f64 = self.get_resolution() as f64;
 
         // add attributes for consolidation
-        for (attr, value) in self.get_attr_rows_map().iter() {
-            let n_rows = value.len();
-
-            if n_rows >= self.get_resolution() {
-                let target_attr_count = iround_down(n_rows as f64, resolution_f64)
-                    - (n_rows as isize)
+        for (attr, n_rows) in self.get_single_attr_counts().iter() {
+            if *n_rows >= self.get_resolution() {
+                let target_attr_count = iround_down(*n_rows as f64, resolution_f64)
+                    - (*n_rows as isize)
                     + match available_attrs.get(attr) {
                         None => 0,
                         Some(v) => *v,
@@ -58,7 +56,7 @@ pub trait Consolidate: SynthesisData {
 
     #[inline]
     fn calc_not_allowed_attrs(&self, available_attrs: &mut AvailableAttrsMap) -> NotAllowedAttrSet {
-        self.get_attr_rows_map()
+        self.get_single_attr_counts()
             .keys()
             .filter_map(|attr| match available_attrs.get(attr) {
                 // not on available attributes
@@ -85,12 +83,12 @@ pub trait Consolidate: SynthesisData {
         processed_combinations: &mut RawCombinationsSet,
         oversampling_ratio: &Option<f64>,
     ) -> bool {
+        // add the new sampled value to the combination
+        last_processed.extend(value.clone(), &self.get_data_block().headers);
+
         // if we need to keep a certain ratio for oversampling
         if let Some(ratio) = oversampling_ratio {
             let mut local_synthetic_counts = RawCombinationsCountMap::default();
-
-            // add the new sampled value to the combination
-            last_processed.extend(value.clone(), &self.get_data_block().headers);
 
             // process all combinations lengths up the reporting length
             for l in 1..=self.get_aggregated_data().reporting_length {
@@ -156,11 +154,13 @@ pub trait Consolidate: SynthesisData {
         let mut processed_combinations = RawCombinationsSet::default();
 
         loop {
-            let next = context.sample_next_attr_from_seed(
-                &synthesized_record,
+            let next = self.sample_next_attr(
+                context,
+                &last_processed,
                 current_seed,
+                &synthesized_record,
+                available_attrs,
                 &not_allowed_attr_set,
-                self.get_attr_rows_map(),
             );
 
             match next {
@@ -229,6 +229,16 @@ pub trait Consolidate: SynthesisData {
         &self,
         synthesized_records: &SynthesizedRecordsSlice,
     ) -> AvailableAttrsMap;
+
+    fn sample_next_attr(
+        &self,
+        context: &mut SynthesizerContext,
+        last_processed: &ValueCombination,
+        current_seed: &SynthesizerSeedSlice,
+        synthesized_record: &SynthesizedRecord,
+        available_attrs: &AvailableAttrsMap,
+        not_allowed_attr_set: &NotAllowedAttrSet,
+    ) -> Option<Arc<DataBlockValue>>;
 
     fn update_consolidate_progress<T>(
         &mut self,

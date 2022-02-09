@@ -8,19 +8,16 @@ use super::{
 use std::sync::Arc;
 
 use crate::{
-    data_block::{block::DataBlock, typedefs::AttributeRowsMap},
+    data_block::block::DataBlock,
     processing::aggregator::aggregated_data::AggregatedData,
     utils::{math::calc_percentage, reporting::ReportProgress},
 };
 
-/// Represents all the information required to perform the synthesis from counts
-pub struct FromCountsSynthesizer {
+/// Represents all the information required to perform the synthesis from aggregates
+/// (useful in the differential privacy context)
+pub struct FromAggregatesSynthesizer {
     /// Reference to the original data block
     data_block: Arc<DataBlock>,
-    /// Maps a data block value to all the rows where it occurs
-    attr_rows_map: AttributeRowsMap,
-    /// Cached single attribute counts
-    single_attr_counts: AttributeCountMap,
     /// Reporting resolution used for data synthesis
     resolution: usize,
     /// Maximum cache size allowed
@@ -30,17 +27,18 @@ pub struct FromCountsSynthesizer {
     /// Ratio of oversampling allowed for each L from 1 up
     /// to the reporting length
     oversampling_ratio: Option<f64>,
+    /// Cached single attribute counts
+    single_attr_counts: AttributeCountMap,
     /// Percentage already completed on the consolidation step
     consolidate_percentage: f64,
     /// Percentage already completed on the suppression step
     suppress_percentage: f64,
 }
 
-impl FromCountsSynthesizer {
-    /// Returns a new FromCountsSynthesizer
+impl FromAggregatesSynthesizer {
+    /// Returns a new FromAggregatesSynthesizer
     /// # Arguments
     /// * `data_block` - Sensitive data to be synthesized
-    /// * `attr_rows_map` - Maps a data block value to all the rows where it occurs
     /// * `resolution` - Reporting resolution used for data synthesis
     /// * `cache_max_size` - Maximum cache size allowed
     /// * `aggregated_data` - Aggregated data used to avoid oversampling
@@ -49,29 +47,36 @@ impl FromCountsSynthesizer {
     #[inline]
     pub fn new(
         data_block: Arc<DataBlock>,
-        attr_rows_map: AttributeRowsMap,
         resolution: usize,
         cache_max_size: usize,
         aggregated_data: Option<Arc<AggregatedData>>,
         oversampling_ratio: Option<f64>,
-    ) -> FromCountsSynthesizer {
-        FromCountsSynthesizer {
+    ) -> FromAggregatesSynthesizer {
+        let ad = aggregated_data.unwrap_or_else(|| Arc::new(AggregatedData::default()));
+
+        FromAggregatesSynthesizer {
             data_block,
-            single_attr_counts: attr_rows_map
-                .iter()
-                .map(|(attr, rows)| (attr.clone(), rows.len()))
-                .collect(),
-            attr_rows_map,
             resolution,
             cache_max_size,
-            aggregated_data: aggregated_data.unwrap_or_else(|| Arc::new(AggregatedData::default())),
+            single_attr_counts: ad
+                .aggregates_count
+                .iter()
+                .filter_map(|(attr, count)| {
+                    if attr.len() == 1 {
+                        Some((attr[0].clone(), count.count))
+                    } else {
+                        None
+                    }
+                })
+                .collect(),
+            aggregated_data: ad,
             oversampling_ratio,
             consolidate_percentage: 0.0,
             suppress_percentage: 0.0,
         }
     }
 
-    /// Performs the synthesis from the counts, including the consolidation and suppression
+    /// Performs the synthesis from the aggregates, including the consolidation and suppression
     /// steps only
     /// Returns the synthesized records
     /// # Arguments
@@ -111,7 +116,7 @@ impl FromCountsSynthesizer {
     }
 }
 
-impl SynthesisData for FromCountsSynthesizer {
+impl SynthesisData for FromAggregatesSynthesizer {
     #[inline]
     fn get_data_block(&self) -> &Arc<DataBlock> {
         &self.data_block
@@ -135,16 +140,24 @@ impl SynthesisData for FromCountsSynthesizer {
     }
 }
 
-impl Consolidate for FromCountsSynthesizer {
+impl Consolidate for FromAggregatesSynthesizer {
     #[inline]
     fn get_not_used_attrs(
         &self,
         _synthesized_records: &SynthesizedRecordsSlice,
     ) -> AvailableAttrsMap {
         // get all the single attribute counts
-        self.attr_rows_map
+        // from the aggregate counts
+        self.get_aggregated_data()
+            .aggregates_count
             .iter()
-            .map(|(attr, rows)| (attr.clone(), rows.len() as isize))
+            .filter_map(|(attr, count)| {
+                if attr.len() == 1 {
+                    Some((attr[0].clone(), count.count as isize))
+                } else {
+                    None
+                }
+            })
             .collect()
     }
 
@@ -152,17 +165,19 @@ impl Consolidate for FromCountsSynthesizer {
     fn sample_next_attr(
         &self,
         context: &mut SynthesizerContext,
-        _last_processed: &crate::processing::aggregator::value_combination::ValueCombination,
-        current_seed: &super::typedefs::SynthesizerSeedSlice,
+        last_processed: &crate::processing::aggregator::value_combination::ValueCombination,
+        _current_seed: &super::typedefs::SynthesizerSeedSlice,
         synthesized_record: &super::typedefs::SynthesizedRecord,
-        _available_attrs: &AvailableAttrsMap,
+        available_attrs: &AvailableAttrsMap,
         not_allowed_attr_set: &super::typedefs::NotAllowedAttrSet,
     ) -> Option<Arc<crate::data_block::value::DataBlockValue>> {
-        context.sample_next_attr_from_seed(
+        context.sample_next_attr_from_aggregates(
+            last_processed,
             synthesized_record,
-            current_seed,
+            &self.get_data_block().headers,
+            available_attrs,
             not_allowed_attr_set,
-            &self.attr_rows_map,
+            self.get_aggregated_data(),
         )
     }
 
@@ -182,7 +197,7 @@ impl Consolidate for FromCountsSynthesizer {
     }
 }
 
-impl Suppress for FromCountsSynthesizer {
+impl Suppress for FromAggregatesSynthesizer {
     #[inline]
     fn update_suppress_progress<T>(
         &mut self,
