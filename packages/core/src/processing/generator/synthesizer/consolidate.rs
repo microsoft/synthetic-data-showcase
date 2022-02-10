@@ -83,8 +83,10 @@ pub trait Consolidate: SynthesisData {
         processed_combinations: &mut RawCombinationsSet,
         oversampling_ratio: &Option<f64>,
     ) -> bool {
+        let mut current_comb = last_processed.clone();
+
         // add the new sampled value to the combination
-        last_processed.extend(value.clone(), &self.get_data_block().headers);
+        current_comb.extend(value.clone(), &self.get_data_block().headers);
 
         // if we need to keep a certain ratio for oversampling
         if let Some(ratio) = oversampling_ratio {
@@ -92,8 +94,8 @@ pub trait Consolidate: SynthesisData {
 
             // process all combinations lengths up the reporting length
             for l in 1..=self.get_aggregated_data().reporting_length {
-                for mut comb in last_processed.iter().combinations(l) {
-                    // this will be already sorted, since last_processed is
+                for mut comb in current_comb.iter().combinations(l) {
+                    // this will be already sorted, since current_comb is
                     let value_combination =
                         Rc::new(ValueCombination::new(comb.drain(..).cloned().collect()));
 
@@ -134,6 +136,7 @@ pub trait Consolidate: SynthesisData {
                     processed_combinations.insert(value_combination);
                 })
         }
+        *last_processed = current_comb;
         synthesized_record.insert(value);
         true
     }
@@ -146,12 +149,14 @@ pub trait Consolidate: SynthesisData {
         context: &mut SynthesizerContext,
         synthetic_counts: &mut RawCombinationsCountMap,
         oversampling_ratio: &Option<f64>,
+        oversampling_tries: usize,
     ) -> SynthesizedRecord {
         let mut not_allowed_attr_set: NotAllowedAttrSet =
             self.calc_not_allowed_attrs(available_attrs);
         let mut synthesized_record = SynthesizedRecord::default();
         let mut last_processed = ValueCombination::default();
         let mut processed_combinations = RawCombinationsSet::default();
+        let mut n_tries = oversampling_tries;
 
         loop {
             let next = self.sample_next_attr(
@@ -182,8 +187,12 @@ pub trait Consolidate: SynthesisData {
                         } else {
                             available_attrs.insert(value.clone(), next_count - 1);
                         }
+                        n_tries = oversampling_tries;
                     } else {
-                        break;
+                        n_tries -= 1;
+                        if n_tries == 0 {
+                            break;
+                        }
                     }
                 }
             }
@@ -197,6 +206,7 @@ pub trait Consolidate: SynthesisData {
         progress_reporter: &mut Option<T>,
         context: &mut SynthesizerContext,
         oversampling_ratio: Option<f64>,
+        oversampling_tries: Option<usize>,
     ) where
         T: ReportProgress,
     {
@@ -219,6 +229,7 @@ pub trait Consolidate: SynthesisData {
                 context,
                 &mut synthetic_counts,
                 &oversampling_ratio,
+                oversampling_tries.unwrap_or(1),
             ));
             n_processed = total - available_attrs.len();
         }

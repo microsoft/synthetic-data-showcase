@@ -121,6 +121,7 @@ impl SDSProcessor {
             mode,
             None,
             None,
+            None,
             &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
         )))
     }

@@ -97,6 +97,7 @@ impl SeededSynthesizer {
                 // use the first context to leverage already cached intersections
                 &mut rows_synthesizers[0].context,
                 None,
+                None,
             );
             self.suppress(&mut synthesized_records, progress_reporter);
         }

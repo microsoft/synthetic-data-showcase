@@ -37,6 +37,8 @@ impl Generator {
     /// * `mode` - Which mode to perform the data synthesis
     /// * `aggregated_data` - Aggregated data used to avoid oversampling ("from_counts" mode)
     /// * `oversampling_ratio` - Ratio of oversampling allowed for each L from 1 up ("from_counts" mode)
+    /// * `oversampling_tries` - How many times should we try to resample if
+    /// the currently sampled value causes oversampling
     /// * `progress_reporter` - Will be used to report the processing
     /// progress (`ReportProgress` trait). If `None`, nothing will be reported
     #[allow(clippy::too_many_arguments)]
@@ -48,6 +50,7 @@ impl Generator {
         mode: SynthesisMode,
         aggregated_data: Option<Arc<AggregatedData>>,
         oversampling_ratio: Option<f64>,
+        oversampling_tries: Option<usize>,
         progress_reporter: &mut Option<T>,
     ) -> GeneratedData
     where
@@ -73,6 +76,7 @@ impl Generator {
                 cache_max_size,
                 aggregated_data,
                 oversampling_ratio,
+                oversampling_tries,
                 progress_reporter,
             ),
             SynthesisMode::FromAggregates => self.from_aggregates_synthesis(
@@ -80,6 +84,7 @@ impl Generator {
                 cache_max_size,
                 aggregated_data,
                 oversampling_ratio,
+                oversampling_tries,
                 progress_reporter,
             ),
         };
@@ -170,6 +175,7 @@ impl Generator {
         cache_max_size: usize,
         aggregated_data: Option<Arc<AggregatedData>>,
         oversampling_ratio: Option<f64>,
+        oversampling_tries: Option<usize>,
         progress_reporter: &mut Option<T>,
     ) -> SynthesizedRecords
     where
@@ -188,6 +194,7 @@ impl Generator {
             cache_max_size,
             aggregated_data,
             oversampling_ratio,
+            oversampling_tries,
         );
         synth.run(progress_reporter)
     }
@@ -199,6 +206,7 @@ impl Generator {
         cache_max_size: usize,
         aggregated_data: Option<Arc<AggregatedData>>,
         oversampling_ratio: Option<f64>,
+        oversampling_tries: Option<usize>,
         progress_reporter: &mut Option<T>,
     ) -> SynthesizedRecords
     where
@@ -212,6 +220,7 @@ impl Generator {
             cache_max_size,
             aggregated_data,
             oversampling_ratio,
+            oversampling_tries,
         );
         synth.run(progress_reporter)
     }

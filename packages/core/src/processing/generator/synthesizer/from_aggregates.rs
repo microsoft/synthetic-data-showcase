@@ -27,6 +27,9 @@ pub struct FromAggregatesSynthesizer {
     /// Ratio of oversampling allowed for each L from 1 up
     /// to the reporting length
     oversampling_ratio: Option<f64>,
+    /// How many times should we try to resample if
+    /// the currently sampled value causes oversampling
+    oversampling_tries: Option<usize>,
     /// Cached single attribute counts
     single_attr_counts: AttributeCountMap,
     /// Percentage already completed on the consolidation step
@@ -43,6 +46,8 @@ impl FromAggregatesSynthesizer {
     /// * `cache_max_size` - Maximum cache size allowed
     /// * `aggregated_data` - Aggregated data used to avoid oversampling
     /// * `oversampling_ratio` - Ratio of oversampling allowed for each L from 1 up
+    /// * `oversampling_tries` - How many times should we try to resample if
+    /// the currently sampled value causes oversampling
     /// to the reporting length
     #[inline]
     pub fn new(
@@ -51,6 +56,7 @@ impl FromAggregatesSynthesizer {
         cache_max_size: usize,
         aggregated_data: Option<Arc<AggregatedData>>,
         oversampling_ratio: Option<f64>,
+        oversampling_tries: Option<usize>,
     ) -> FromAggregatesSynthesizer {
         let ad = aggregated_data.unwrap_or_else(|| Arc::new(AggregatedData::default()));
 
@@ -71,6 +77,7 @@ impl FromAggregatesSynthesizer {
                 .collect(),
             aggregated_data: ad,
             oversampling_ratio,
+            oversampling_tries,
             consolidate_percentage: 0.0,
             suppress_percentage: 0.0,
         }
@@ -104,6 +111,7 @@ impl FromAggregatesSynthesizer {
                 progress_reporter,
                 &mut context,
                 self.oversampling_ratio,
+                self.oversampling_tries,
             );
             self.suppress(&mut synthesized_records, progress_reporter);
         }

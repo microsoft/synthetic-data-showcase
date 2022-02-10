@@ -110,6 +110,8 @@ impl SDSProcessor {
     /// * `aggregated_data` - Aggregated data optionally used in "from_counts" mode to avoid oversampling or
     /// used in the "from_aggregates" mode
     /// * `oversampling_ratio` - Ratio of oversampling allowed for each L from 1 up ("from_counts" adn "from_aggregates" mode)
+    /// * `oversampling_tries` - How many times should we try to resample if the currently sampled value causes oversampling
+    #[allow(clippy::too_many_arguments)]
     pub fn generate(
         &self,
         cache_max_size: usize,
@@ -118,6 +120,7 @@ impl SDSProcessor {
         synthesis_mode: String,
         aggregates_path: Option<String>,
         oversampling_ratio: Option<f64>,
+        oversampling_tries: Option<usize>,
     ) -> Result<GeneratedData, PyErr> {
         let mut progress_reporter: Option<LoggerProgressReporter> = None;
         let mut generator = Generator::new(self.data_block.clone());
@@ -134,6 +137,7 @@ impl SDSProcessor {
             mode,
             aggregated_data,
             oversampling_ratio,
+            oversampling_tries,
             &mut progress_reporter,
         ))
     }

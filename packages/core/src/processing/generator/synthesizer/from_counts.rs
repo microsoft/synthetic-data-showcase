@@ -30,6 +30,9 @@ pub struct FromCountsSynthesizer {
     /// Ratio of oversampling allowed for each L from 1 up
     /// to the reporting length
     oversampling_ratio: Option<f64>,
+    /// How many times should we try to resample if
+    /// the currently sampled value causes oversampling
+    oversampling_tries: Option<usize>,
     /// Percentage already completed on the consolidation step
     consolidate_percentage: f64,
     /// Percentage already completed on the suppression step
@@ -46,6 +49,8 @@ impl FromCountsSynthesizer {
     /// * `aggregated_data` - Aggregated data used to avoid oversampling
     /// * `oversampling_ratio` - Ratio of oversampling allowed for each L from 1 up
     /// to the reporting length
+    /// * `oversampling_tries` - How many times should we try to resample if
+    /// the currently sampled value causes oversampling
     #[inline]
     pub fn new(
         data_block: Arc<DataBlock>,
@@ -54,6 +59,7 @@ impl FromCountsSynthesizer {
         cache_max_size: usize,
         aggregated_data: Option<Arc<AggregatedData>>,
         oversampling_ratio: Option<f64>,
+        oversampling_tries: Option<usize>,
     ) -> FromCountsSynthesizer {
         FromCountsSynthesizer {
             data_block,
@@ -66,6 +72,7 @@ impl FromCountsSynthesizer {
             cache_max_size,
             aggregated_data: aggregated_data.unwrap_or_else(|| Arc::new(AggregatedData::default())),
             oversampling_ratio,
+            oversampling_tries,
             consolidate_percentage: 0.0,
             suppress_percentage: 0.0,
         }
@@ -99,6 +106,7 @@ impl FromCountsSynthesizer {
                 progress_reporter,
                 &mut context,
                 self.oversampling_ratio,
+                self.oversampling_tries,
             );
             self.suppress(&mut synthesized_records, progress_reporter);
         }

@@ -51,6 +51,13 @@ enum Command {
             requires = "aggregates-json"
         )]
         oversampling_ratio: Option<f64>,
+
+        #[structopt(
+            long = "oversampling-tries",
+            help = "how many times try to resample in case the currently sampled value causes oversampling",
+            requires = "aggregates-json"
+        )]
+        oversampling_tries: Option<usize>,
     },
     Aggregate {
         #[structopt(long = "aggregates-path", help = "generated aggregates file path")]
@@ -217,6 +224,7 @@ fn main() {
                 mode,
                 aggregates_json,
                 oversampling_ratio,
+                oversampling_tries,
             } => {
                 let aggregated_data = match aggregates_json {
                     Some(json_path) => match AggregatedData::read_from_json(&json_path) {
@@ -236,6 +244,7 @@ fn main() {
                     mode,
                     aggregated_data,
                     oversampling_ratio,
+                    oversampling_tries,
                     &mut progress_reporter,
                 );
 
