@@ -26,8 +26,13 @@ def generate(config):
     synthesis_mode = config['synthesis_mode']
     output_dir = config['output_dir']
     prefix = config['prefix']
-    sensitive_aggregated_data_json = path.join(
-        output_dir, f'{prefix}_sensitive_aggregated_data.json')
+    dp_aggregates = config['dp_aggregates']
+    if dp_aggregates:
+        aggregated_data_json = path.join(
+            output_dir, f'{prefix}_protected_aggregated_data.json')
+    else:
+        aggregated_data_json = path.join(
+            output_dir, f'{prefix}_sensitive_aggregated_data.json')
     oversampling_ratio = config['oversampling_ratio']
 
     logging.info(f'Generate {sensitive_microdata_path}')
@@ -47,7 +52,8 @@ def generate(config):
         resolution,
         "",
         synthesis_mode,
-        sensitive_aggregated_data_json if oversampling_ratio else None,
+        aggregated_data_json if (
+            oversampling_ratio or dp_aggregates) else None,
         oversampling_ratio
     )
     generated_data.write_synthetic_data(synthetic_microdata_path, '\t')

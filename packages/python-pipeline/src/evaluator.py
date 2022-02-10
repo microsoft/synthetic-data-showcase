@@ -52,6 +52,7 @@ class Evaluator:
         self.preservation_by_length_svg = path.join(
             self.output_dir, f'{self.prefix}_preservation_by_length.svg'
         )
+        self.dp_aggregates = config['dp_aggregates']
 
     def _load_sensitive_aggregates(self):
         if not path.exists(self.sensitive_aggregated_data_json):
@@ -156,8 +157,9 @@ class Evaluator:
             for length in range(1, self.reporting_length + 1):
                 combo_count = comb_counts.get(length, 0)
                 leak_count = leakage_counts.get(length, 0)
-                # by design there should be no leakage
-                assert leak_count == 0
+                if not self.dp_aggregates:
+                    # by design there should be no leakage
+                    assert leak_count == 0
                 leak_prop = leak_count/combo_count if combo_count > 0 else 0
                 f.write('\t'.join(
                     [str(length), str(combo_count), str(leak_count), str(leak_prop)])+'\n'

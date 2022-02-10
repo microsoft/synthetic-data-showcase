@@ -63,6 +63,15 @@ def main():
         # only report counts rounded down to the closest resolution
         config['reporting_resolution'] = config.get('reporting_resolution', 10)
 
+        # differential privacy
+        config['dp_aggregates'] = config.get('dp_aggregates', False)
+        config['sensitivities_epsilon'] = config.get(
+            'sensitivities_epsilon', None)
+        config['sensitivities_percentile'] = config.get(
+            'sensitivities_percentile', None)
+        config['noise_epsilon'] = config.get('noise_epsilon', None)
+        config['noise_delta'] = config.get('noise_delta', None)
+
         # parameters affecting the representation and interpretation of values
         config['sensitive_zeros'] = config.get('sensitive_zeros', [])
         config['synthesis_mode'] = config.get('synthesis_mode', 'seeded')
