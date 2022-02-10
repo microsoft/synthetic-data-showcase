@@ -8,7 +8,7 @@ use super::{
 };
 use fnv::FnvHashMap;
 use itertools::Itertools;
-use log::info;
+use log::{info, warn};
 use rand::{prelude::Distribution as rand_dist, thread_rng};
 use serde::{Deserialize, Serialize};
 use statrs::{distribution::Normal, statistics::Distribution};
@@ -291,20 +291,27 @@ impl AggregatedData {
 
         // generate the noise normal distribution by length
         for (length, l1_sensitivity) in allowed_sensitivity_by_len.iter().sorted() {
-            let n = Normal::new_analytic_gaussian(
-                f64::sqrt(*l1_sensitivity as f64),
-                epsilon_by_length,
-                delta,
-                DEFAULT_TOLERANCE,
-            )?;
+            if *l1_sensitivity > 0 {
+                let n = Normal::new_analytic_gaussian(
+                    f64::sqrt(*l1_sensitivity as f64),
+                    epsilon_by_length,
+                    delta,
+                    DEFAULT_TOLERANCE,
+                )?;
 
-            info!(
-                "for length = {} the calculated sigma for the noise is {:.2} [used privacy budget is {}]",
-                length,
-                n.std_dev().unwrap(),
-                epsilon_by_length
-            );
-            noise.insert(*length, n);
+                info!(
+                    "for length = {} the calculated sigma for the noise is {:.2} [used privacy budget is {}]",
+                    length,
+                    n.std_dev().unwrap(),
+                    epsilon_by_length
+                );
+                noise.insert(*length, n);
+            } else {
+                warn!(
+                    "combinations of length = {} are being completely removed",
+                    length
+                );
+            }
         }
 
         for (comb, count) in self.aggregates_count.iter_mut() {

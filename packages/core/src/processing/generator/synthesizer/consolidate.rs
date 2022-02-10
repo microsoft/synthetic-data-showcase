@@ -217,7 +217,7 @@ pub trait Consolidate: SynthesisData {
         let mut available_attrs = self.calc_available_attrs(synthesized_records);
         let current_seed: SynthesizerSeed = available_attrs.keys().cloned().collect();
         let mut synthetic_counts = RawCombinationsCountMap::default();
-        let total = available_attrs.len();
+        let total = available_attrs.values().sum::<isize>();
         let total_f64 = total as f64;
         let mut n_processed = 0;
 
@@ -231,7 +231,7 @@ pub trait Consolidate: SynthesisData {
                 &oversampling_ratio,
                 oversampling_tries.unwrap_or(1),
             ));
-            n_processed = total - available_attrs.len();
+            n_processed = (total - available_attrs.values().sum::<isize>()) as usize;
         }
         self.update_consolidate_progress(n_processed, total_f64, progress_reporter);
     }

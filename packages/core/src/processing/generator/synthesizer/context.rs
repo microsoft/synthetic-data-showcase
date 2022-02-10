@@ -148,18 +148,15 @@ impl SynthesizerContext {
                     for mut comb in current_comb.iter().combinations(combination_length) {
                         let value_combination =
                             ValueCombination::new(comb.drain(..).cloned().collect());
-                        let local_count = aggregated_data
-                            .aggregates_count
-                            .get(&value_combination)
-                            .map(|c| c.count)
-                            .unwrap_or(0);
+                        let local_count = aggregated_data.aggregates_count.get(&value_combination);
 
-                        if local_count < self.resolution {
+                        if let Some(c) = local_count {
+                            // get the aggregate count
+                            // that will be used in the weighted sampling
+                            sensitive_count += c.count;
+                        } else {
                             return None;
                         }
-                        // get the aggregate count
-                        // that will be used in the weighted sampling
-                        sensitive_count += local_count;
                     }
 
                     Some((attr.clone(), sensitive_count))
