@@ -168,21 +168,21 @@ pub trait Consolidate: SynthesisData {
                 Some(value) => {
                     let next_count = *available_attrs.get(&value).unwrap();
 
-                    if next_count <= 1 {
-                        available_attrs.remove(&value);
-                        not_allowed_attr_set.insert(value.clone());
-                    } else {
-                        available_attrs.insert(value.clone(), next_count - 1);
-                    }
-
-                    if !self.add_value_to_synthetic_record(
+                    if self.add_value_to_synthetic_record(
                         &mut synthesized_record,
-                        value,
+                        value.clone(),
                         synthetic_counts,
                         &mut last_processed,
                         &mut processed_combinations,
                         oversampling_ratio,
                     ) {
+                        if next_count <= 1 {
+                            available_attrs.remove(&value);
+                            not_allowed_attr_set.insert(value.clone());
+                        } else {
+                            available_attrs.insert(value.clone(), next_count - 1);
+                        }
+                    } else {
                         break;
                     }
                 }
