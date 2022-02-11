@@ -28,7 +28,9 @@ use crate::{
         stats_error::StatsError,
         typedefs::AllowedSensitivityByLen,
     },
-    processing::aggregator::typedefs::RecordsSet,
+    processing::aggregator::{
+        typedefs::RecordsSet, value_combination::ValueCombination, AggregatedCount,
+    },
     utils::{math::uround_down, time::ElapsedDurationLogger},
 };
 
@@ -247,6 +249,33 @@ impl AggregatedData {
         self.aggregates_count.retain(|_, count| count.count > 0);
     }
 
+    /// Add missing sub combinations which have higher order combinations reported
+    pub fn add_missing_sub_combinations(&mut self) {
+        info!("adding missing sub combinations");
+        let mut missing_combs = AggregatesCountMap::default();
+
+        for (comb, count) in self.aggregates_count.iter() {
+            for l in 2..comb.len() {
+                for mut sub_comb in comb.iter().combinations(l) {
+                    let value_combination =
+                        ValueCombination::new(sub_comb.drain(..).cloned().collect());
+
+                    if !self.aggregates_count.contains_key(&value_combination) {
+                        let max_count = missing_combs
+                            .entry(Arc::new(value_combination))
+                            .or_insert_with(AggregatedCount::default);
+
+                        (*max_count).count = max_count.count.max(count.count);
+                    }
+                }
+            }
+        }
+
+        for (comb, count) in missing_combs.drain() {
+            self.aggregates_count.insert(comb, count);
+        }
+    }
+
     /// Filters aggregates counts for each record to ensure that the final sensitivity
     /// for each record will be `<= percentile_percentage`.
     /// Returns the maximum allowed sensitivity by combination length.
@@ -317,7 +346,7 @@ impl AggregatedData {
         for (comb, count) in self.aggregates_count.iter_mut() {
             if let Some(n) = noise.get(&comb.len()) {
                 // if it becomes negative, drop the count
-                count.count = f64::max(
+                (*count).count = f64::max(
                     0.0,
                     ((count.count as f64) + n.sample(&mut thread_rng())).round(),
                 ) as usize;
@@ -325,6 +354,7 @@ impl AggregatedData {
         }
 
         self.remove_zero_counts();
+        self.add_missing_sub_combinations();
 
         Ok(())
     }
