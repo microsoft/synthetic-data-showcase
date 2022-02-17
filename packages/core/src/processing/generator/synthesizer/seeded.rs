@@ -1,10 +1,13 @@
 use super::{
-    consolidate::Consolidate,
+    consolidate::{Consolidate, ConsolidateContext},
     context::SynthesizerContext,
     seeded_rows_synthesizer::SeededRowsSynthesizer,
     suppress::Suppress,
     synthesis_data::SynthesisData,
-    typedefs::{AttributeCountMap, AvailableAttrsMap, SynthesizedRecords, SynthesizedRecordsSlice},
+    typedefs::{
+        AttributeCountMap, AvailableAttrsMap, NotAllowedAttrSet, SynthesizedRecord,
+        SynthesizedRecords, SynthesizedRecordsSlice,
+    },
 };
 use itertools::{izip, Itertools};
 use log::info;
@@ -12,7 +15,9 @@ use std::sync::Arc;
 
 use crate::{
     data_block::{block::DataBlock, typedefs::AttributeRowsMap, value::DataBlockValue},
-    processing::aggregator::aggregated_data::AggregatedData,
+    processing::aggregator::{
+        aggregated_data::AggregatedData, value_combination::ValueCombination,
+    },
     utils::{
         math::calc_percentage, reporting::ReportProgress, threading::get_number_of_threads,
         time::ElapsedDurationLogger,
@@ -98,6 +103,7 @@ impl SeededSynthesizer {
                 &mut rows_synthesizers[0].context,
                 None,
                 None,
+                false,
             );
             self.suppress(&mut synthesized_records, progress_reporter);
         }
@@ -113,8 +119,7 @@ impl SeededSynthesizer {
         for c in &self.data_block.records.iter().chunks(chunk_size) {
             rows_synthesizers.push(SeededRowsSynthesizer::new(
                 SynthesizerContext::new(
-                    self.data_block.headers.len(),
-                    self.data_block.records.len(),
+                    self.data_block.clone(),
                     self.resolution,
                     self.cache_max_size,
                 ),
@@ -226,16 +231,15 @@ impl Consolidate for SeededSynthesizer {
     #[inline]
     fn sample_next_attr(
         &self,
-        context: &mut SynthesizerContext,
-        _last_processed: &crate::processing::aggregator::value_combination::ValueCombination,
-        current_seed: &super::typedefs::SynthesizerSeedSlice,
-        synthesized_record: &super::typedefs::SynthesizedRecord,
-        _available_attrs: &AvailableAttrsMap,
-        not_allowed_attr_set: &super::typedefs::NotAllowedAttrSet,
+        synthesizer_context: &mut SynthesizerContext,
+        consolidate_context: &ConsolidateContext,
+        _last_processed: &ValueCombination,
+        synthesized_record: &SynthesizedRecord,
+        not_allowed_attr_set: &NotAllowedAttrSet,
     ) -> Option<Arc<DataBlockValue>> {
-        context.sample_next_attr_from_seed(
+        synthesizer_context.sample_next_attr_from_seed(
             synthesized_record,
-            current_seed,
+            &consolidate_context.current_seed,
             not_allowed_attr_set,
             &self.attr_rows_map,
         )

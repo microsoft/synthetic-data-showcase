@@ -1,15 +1,20 @@
 use super::{
-    consolidate::Consolidate,
+    consolidate::{Consolidate, ConsolidateContext},
     context::SynthesizerContext,
     suppress::Suppress,
     synthesis_data::SynthesisData,
-    typedefs::{AttributeCountMap, AvailableAttrsMap, SynthesizedRecords, SynthesizedRecordsSlice},
+    typedefs::{
+        AttributeCountMap, AvailableAttrsMap, NotAllowedAttrSet, SynthesizedRecord,
+        SynthesizedRecords, SynthesizedRecordsSlice,
+    },
 };
 use std::sync::Arc;
 
 use crate::{
-    data_block::{block::DataBlock, typedefs::AttributeRowsMap},
-    processing::aggregator::aggregated_data::AggregatedData,
+    data_block::{block::DataBlock, typedefs::AttributeRowsMap, value::DataBlockValue},
+    processing::aggregator::{
+        aggregated_data::AggregatedData, value_combination::ValueCombination,
+    },
     utils::{math::calc_percentage, reporting::ReportProgress},
 };
 
@@ -92,8 +97,7 @@ impl FromCountsSynthesizer {
 
         if !self.data_block.records.is_empty() {
             let mut context = SynthesizerContext::new(
-                self.data_block.headers.len(),
-                self.data_block.records.len(),
+                self.data_block.clone(),
                 self.resolution,
                 self.cache_max_size,
             );
@@ -107,6 +111,7 @@ impl FromCountsSynthesizer {
                 &mut context,
                 self.oversampling_ratio,
                 self.oversampling_tries,
+                self.oversampling_ratio.is_some(),
             );
             self.suppress(&mut synthesized_records, progress_reporter);
         }
@@ -159,16 +164,15 @@ impl Consolidate for FromCountsSynthesizer {
     #[inline]
     fn sample_next_attr(
         &self,
-        context: &mut SynthesizerContext,
-        _last_processed: &crate::processing::aggregator::value_combination::ValueCombination,
-        current_seed: &super::typedefs::SynthesizerSeedSlice,
-        synthesized_record: &super::typedefs::SynthesizedRecord,
-        _available_attrs: &AvailableAttrsMap,
-        not_allowed_attr_set: &super::typedefs::NotAllowedAttrSet,
-    ) -> Option<Arc<crate::data_block::value::DataBlockValue>> {
-        context.sample_next_attr_from_seed(
+        synthesizer_context: &mut SynthesizerContext,
+        consolidate_context: &ConsolidateContext,
+        _last_processed: &ValueCombination,
+        synthesized_record: &SynthesizedRecord,
+        not_allowed_attr_set: &NotAllowedAttrSet,
+    ) -> Option<Arc<DataBlockValue>> {
+        synthesizer_context.sample_next_attr_from_seed(
             synthesized_record,
-            current_seed,
+            &consolidate_context.current_seed,
             not_allowed_attr_set,
             &self.attr_rows_map,
         )
