@@ -252,6 +252,7 @@ impl AggregatedData {
     /// Add missing sub combinations which have higher order combinations reported
     pub fn add_missing_sub_combinations(&mut self) {
         info!("adding missing sub combinations");
+        let _duration_logger = ElapsedDurationLogger::new("add missing sub combinations");
         let mut missing_combs = AggregatesCountMap::default();
 
         for (comb, count) in self.aggregates_count.iter() {
@@ -273,6 +274,49 @@ impl AggregatedData {
 
         for (comb, count) in missing_combs.drain() {
             self.aggregates_count.insert(comb, count);
+        }
+    }
+
+    /// Normalize noisy combinations, so lower order combinations will always have a bigger
+    /// count than higher order combinations that contains them
+    ///
+    /// For example (this scenario can happen when noise is added):
+    ///     - A:a1;B:b1 -> 25
+    ///     - A:a1;B:b1;C:c1 -> 30
+    ///     - A:a1;B:b1;C:c2 -> 40
+    ///
+    /// Would be normalized to:
+    ///     - A:a1;B:b1 -> 25
+    ///     - A:a1;B:b1;C:c1 -> **25**
+    ///     - A:a1;B:b1;C:c2 -> **25**
+    pub fn normalize_noisy_combinations(&mut self) {
+        info!("normalizing noisy combinations");
+        let _duration_logger = ElapsedDurationLogger::new("normalize noisy combinations");
+        let mut noisy_combs: FnvHashMap<Arc<ValueCombination>, usize> = FnvHashMap::default();
+
+        for (comb, count) in self.aggregates_count.iter() {
+            for l in 1..comb.len() {
+                for mut lower_len_comb in comb.iter().combinations(l) {
+                    let value_combination =
+                        ValueCombination::new(lower_len_comb.drain(..).cloned().collect());
+
+                    if let Some(lower_len_comb_count) =
+                        self.aggregates_count.get(&value_combination)
+                    {
+                        if lower_len_comb_count.count < count.count {
+                            let min_count = noisy_combs
+                                .entry(comb.clone())
+                                .or_insert_with(|| lower_len_comb_count.count);
+
+                            (*min_count) = (*min_count).min(lower_len_comb_count.count);
+                        }
+                    }
+                }
+            }
+        }
+
+        for (comb, count) in noisy_combs.drain() {
+            self.aggregates_count.get_mut(&comb).unwrap().count = count;
         }
     }
 
@@ -355,6 +399,7 @@ impl AggregatedData {
 
         self.remove_zero_counts();
         self.add_missing_sub_combinations();
+        self.normalize_noisy_combinations();
 
         Ok(())
     }
