@@ -2,12 +2,14 @@ use log::{error, info, log_enabled, trace, Level::Debug};
 use sds_core::{
     data_block::{csv_block_creator::CsvDataBlockCreator, data_block_creator::DataBlockCreator},
     processing::{
-        aggregator::{aggregated_data::AggregatedData, Aggregator},
-        generator::{Generator, SynthesisMode},
+        aggregator::Aggregator,
+        generator::{
+            synthesizer::consolidate_parameters::ConsolidateParameters, Generator, SynthesisMode,
+        },
     },
     utils::{reporting::LoggerProgressReporter, threading::set_number_of_threads},
 };
-use std::{process, sync::Arc};
+use std::process;
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
@@ -47,7 +49,7 @@ enum Command {
 
         #[structopt(
             long = "oversampling-ratio",
-            help = "allowed oversampling ratio used on \"from_counts\" mode (0.1 means 10%)",
+            help = "allowed oversampling ratio used on \"from_counts\" and \"from_aggregates\" modes (0.1 means 10%)",
             requires = "aggregates-json"
         )]
         oversampling_ratio: Option<f64>,
@@ -58,6 +60,13 @@ enum Command {
             requires = "aggregates-json"
         )]
         oversampling_tries: Option<usize>,
+
+        #[structopt(
+            long = "use-synthetic-counts",
+            help = "use synthetic aggregates to balance attribute sampling on \"from_aggregates\" mode",
+            requires = "aggregates-json"
+        )]
+        use_synthetic_counts: bool,
     },
     Aggregate {
         #[structopt(long = "aggregates-path", help = "generated aggregates file path")]
@@ -225,16 +234,19 @@ fn main() {
                 aggregates_json,
                 oversampling_ratio,
                 oversampling_tries,
+                use_synthetic_counts,
             } => {
-                let aggregated_data = match aggregates_json {
-                    Some(json_path) => match AggregatedData::read_from_json(&json_path) {
-                        Ok(ad) => Some(Arc::new(ad)),
-                        Err(err) => {
-                            error!("error reading aggregates json file: {}", err);
-                            process::exit(1);
-                        }
-                    },
-                    _ => None,
+                let consolidate_parameters = match ConsolidateParameters::new(
+                    aggregates_json,
+                    oversampling_ratio,
+                    oversampling_tries,
+                    use_synthetic_counts,
+                ) {
+                    Ok(parameters) => parameters,
+                    Err(err) => {
+                        error!("error reading aggregates json file: {}", err);
+                        process::exit(1);
+                    }
                 };
                 let mut generator = Generator::new(data_block);
                 let generated_data = generator.generate(
@@ -242,9 +254,7 @@ fn main() {
                     cache_max_size,
                     String::from(""),
                     mode,
-                    aggregated_data,
-                    oversampling_ratio,
-                    oversampling_tries,
+                    consolidate_parameters,
                     &mut progress_reporter,
                 );
 

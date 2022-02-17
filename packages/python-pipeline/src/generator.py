@@ -35,6 +35,7 @@ def generate(config):
             output_dir, f'{prefix}_sensitive_aggregated_data.json')
     oversampling_ratio = config['oversampling_ratio']
     oversampling_tries = config['oversampling_tries']
+    use_synthetic_counts = config['use_synthetic_counts']
 
     logging.info(f'Generate {sensitive_microdata_path}')
     start_time = time.time()
@@ -53,10 +54,13 @@ def generate(config):
         resolution,
         "",
         synthesis_mode,
-        aggregated_data_json if (
-            oversampling_ratio or dp_aggregates) else None,
-        oversampling_ratio,
-        oversampling_tries
+        sds.ConsolidateParameters(
+            aggregated_data_json if (
+                oversampling_ratio or dp_aggregates) else None,
+            oversampling_ratio,
+            oversampling_tries,
+            use_synthetic_counts
+        )
     )
     generated_data.write_synthetic_data(synthetic_microdata_path, '\t')
     syn_ratio = generated_data.expansion_ratio

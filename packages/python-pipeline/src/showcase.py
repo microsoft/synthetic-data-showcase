@@ -77,6 +77,8 @@ def main():
         config['synthesis_mode'] = config.get('synthesis_mode', 'seeded')
         config['oversampling_ratio'] = config.get('oversampling_ratio', None)
         config['oversampling_tries'] = config.get('oversampling_tries', None)
+        config['use_synthetic_counts'] = config.get(
+            'use_synthetic_counts', False)
 
         # specified parameters affecting file I/O
         config['prefix'] = config.get('prefix', 'my')

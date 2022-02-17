@@ -1,6 +1,9 @@
 /// Module defining the cache used during the synthesis process
 pub mod cache;
 
+/// Consolidate process input parameters definitions
+pub mod consolidate_parameters;
+
 /// Module defining the context used for data synthesis
 pub mod context;
 

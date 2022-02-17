@@ -1,4 +1,5 @@
 use super::generated_data::GeneratedData;
+use super::synthesizer::consolidate_parameters::ConsolidateParameters;
 use super::synthesizer::from_aggregates::FromAggregatesSynthesizer;
 use super::synthesizer::from_counts::FromCountsSynthesizer;
 use super::synthesizer::typedefs::SynthesizedRecords;
@@ -9,7 +10,6 @@ use std::sync::Arc;
 
 use crate::data_block::block::DataBlock;
 use crate::data_block::typedefs::RawSyntheticData;
-use crate::processing::aggregator::aggregated_data::AggregatedData;
 use crate::processing::generator::synthesizer::cache::SynthesizerCacheKey;
 use crate::processing::generator::synthesizer::seeded::SeededSynthesizer;
 use crate::utils::reporting::ReportProgress;
@@ -35,22 +35,16 @@ impl Generator {
     /// * `cache_max_size` - Maximum cache size allowed
     /// * `empty_value` - Empty values on the synthetic data will be represented by this
     /// * `mode` - Which mode to perform the data synthesis
-    /// * `aggregated_data` - Aggregated data used to avoid oversampling ("from_counts" mode)
-    /// * `oversampling_ratio` - Ratio of oversampling allowed for each L from 1 up ("from_counts" mode)
-    /// * `oversampling_tries` - How many times should we try to resample if
-    /// the currently sampled value causes oversampling
+    /// * `consolidate_parameters` - Parameters used for data consolidation
     /// * `progress_reporter` - Will be used to report the processing
     /// progress (`ReportProgress` trait). If `None`, nothing will be reported
-    #[allow(clippy::too_many_arguments)]
     pub fn generate<T>(
         &mut self,
         resolution: usize,
         cache_max_size: usize,
         empty_value: String,
         mode: SynthesisMode,
-        aggregated_data: Option<Arc<AggregatedData>>,
-        oversampling_ratio: Option<f64>,
-        oversampling_tries: Option<usize>,
+        consolidate_parameters: ConsolidateParameters,
         progress_reporter: &mut Option<T>,
     ) -> GeneratedData
     where
@@ -74,17 +68,13 @@ impl Generator {
             SynthesisMode::FromCounts => self.from_counts_synthesis(
                 resolution,
                 cache_max_size,
-                aggregated_data,
-                oversampling_ratio,
-                oversampling_tries,
+                consolidate_parameters,
                 progress_reporter,
             ),
             SynthesisMode::FromAggregates => self.from_aggregates_synthesis(
                 resolution,
                 cache_max_size,
-                aggregated_data,
-                oversampling_ratio,
-                oversampling_tries,
+                consolidate_parameters,
                 progress_reporter,
             ),
         };
@@ -173,9 +163,7 @@ impl Generator {
         &self,
         resolution: usize,
         cache_max_size: usize,
-        aggregated_data: Option<Arc<AggregatedData>>,
-        oversampling_ratio: Option<f64>,
-        oversampling_tries: Option<usize>,
+        consolidate_parameters: ConsolidateParameters,
         progress_reporter: &mut Option<T>,
     ) -> SynthesizedRecords
     where
@@ -183,8 +171,14 @@ impl Generator {
     {
         let attr_rows_map = self.data_block.calc_attr_rows();
 
-        if oversampling_ratio.is_some() {
-            assert!(aggregated_data.is_some(), "no aggregated data provided");
+        if consolidate_parameters.oversampling_ratio.is_some() {
+            assert!(
+                !consolidate_parameters
+                    .aggregated_data
+                    .aggregates_count
+                    .is_empty(),
+                "no aggregated data provided"
+            );
         }
 
         let mut synth = FromCountsSynthesizer::new(
@@ -192,9 +186,7 @@ impl Generator {
             attr_rows_map,
             resolution,
             cache_max_size,
-            aggregated_data,
-            oversampling_ratio,
-            oversampling_tries,
+            consolidate_parameters,
         );
         synth.run(progress_reporter)
     }
@@ -204,23 +196,25 @@ impl Generator {
         &self,
         resolution: usize,
         cache_max_size: usize,
-        aggregated_data: Option<Arc<AggregatedData>>,
-        oversampling_ratio: Option<f64>,
-        oversampling_tries: Option<usize>,
+        consolidate_parameters: ConsolidateParameters,
         progress_reporter: &mut Option<T>,
     ) -> SynthesizedRecords
     where
         T: ReportProgress,
     {
-        assert!(aggregated_data.is_some(), "no aggregated data provided");
+        assert!(
+            !consolidate_parameters
+                .aggregated_data
+                .aggregates_count
+                .is_empty(),
+            "no aggregated data provided"
+        );
 
         let mut synth = FromAggregatesSynthesizer::new(
             self.data_block.clone(),
             resolution,
             cache_max_size,
-            aggregated_data,
-            oversampling_ratio,
-            oversampling_tries,
+            consolidate_parameters,
         );
         synth.run(progress_reporter)
     }

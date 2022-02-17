@@ -8,7 +8,10 @@ use sds_core::{
     },
     processing::{
         aggregator::{aggregated_data::AggregatedData, Aggregator},
-        generator::{generated_data::GeneratedData, Generator, SynthesisMode},
+        generator::{
+            generated_data::GeneratedData,
+            synthesizer::consolidate_parameters::ConsolidateParameters, Generator, SynthesisMode,
+        },
     },
     utils::reporting::LoggerProgressReporter,
 };
@@ -112,20 +115,14 @@ impl SDSProcessor {
     /// * `resolution` - Reporting resolution to be used
     /// * `empty_value` - Empty values on the synthetic data will be represented by this
     /// * `synthesis_mode` - Which mode to perform the data synthesis ("seeded", "unseeded", "from_counts" or "from_aggregates")
-    /// * `aggregated_data` - Aggregated data optionally used in "from_counts" mode to avoid oversampling or
-    /// used in the "from_aggregates" mode
-    /// * `oversampling_ratio` - Ratio of oversampling allowed for each L from 1 up ("from_counts" adn "from_aggregates" mode)
-    /// * `oversampling_tries` - How many times should we try to resample if the currently sampled value causes oversampling
-    #[allow(clippy::too_many_arguments)]
+    // * `consolidate_parameters` - Parameters used for data consolidation
     pub fn generate(
         &self,
         cache_max_size: usize,
         resolution: usize,
         empty_value: String,
         synthesis_mode: String,
-        aggregates_path: Option<String>,
-        oversampling_ratio: Option<f64>,
-        oversampling_tries: Option<usize>,
+        consolidate_parameters: ConsolidateParameters,
     ) -> Result<GeneratedData, PyErr> {
         let mut progress_reporter = if log_enabled!(Debug) {
             Some(LoggerProgressReporter::new(Debug))
@@ -134,19 +131,13 @@ impl SDSProcessor {
         };
         let mut generator = Generator::new(self.data_block.clone());
         let mode = SynthesisMode::from_str(&synthesis_mode).map_err(PyValueError::new_err)?;
-        let aggregated_data = match aggregates_path {
-            Some(json_path) => Some(Arc::new(AggregatedData::read_from_json(&json_path)?)),
-            _ => None,
-        };
 
         Ok(generator.generate(
             resolution,
             cache_max_size,
             empty_value,
             mode,
-            aggregated_data,
-            oversampling_ratio,
-            oversampling_tries,
+            consolidate_parameters,
             &mut progress_reporter,
         ))
     }

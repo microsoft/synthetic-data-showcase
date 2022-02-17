@@ -1,5 +1,6 @@
 use super::{
     consolidate::{Consolidate, ConsolidateContext},
+    consolidate_parameters::ConsolidateParameters,
     context::SynthesizerContext,
     suppress::Suppress,
     synthesis_data::SynthesisData,
@@ -12,9 +13,7 @@ use std::sync::Arc;
 
 use crate::{
     data_block::{block::DataBlock, typedefs::AttributeRowsMap, value::DataBlockValue},
-    processing::aggregator::{
-        aggregated_data::AggregatedData, value_combination::ValueCombination,
-    },
+    processing::aggregator::value_combination::ValueCombination,
     utils::{math::calc_percentage, reporting::ReportProgress},
 };
 
@@ -30,14 +29,8 @@ pub struct FromCountsSynthesizer {
     resolution: usize,
     /// Maximum cache size allowed
     cache_max_size: usize,
-    /// Aggregated data used to avoid oversampling
-    aggregated_data: Arc<AggregatedData>,
-    /// Ratio of oversampling allowed for each L from 1 up
-    /// to the reporting length
-    oversampling_ratio: Option<f64>,
-    /// How many times should we try to resample if
-    /// the currently sampled value causes oversampling
-    oversampling_tries: Option<usize>,
+    // Parameters used for data consolidation
+    consolidate_parameters: ConsolidateParameters,
     /// Percentage already completed on the consolidation step
     consolidate_percentage: f64,
     /// Percentage already completed on the suppression step
@@ -51,20 +44,14 @@ impl FromCountsSynthesizer {
     /// * `attr_rows_map` - Maps a data block value to all the rows where it occurs
     /// * `resolution` - Reporting resolution used for data synthesis
     /// * `cache_max_size` - Maximum cache size allowed
-    /// * `aggregated_data` - Aggregated data used to avoid oversampling
-    /// * `oversampling_ratio` - Ratio of oversampling allowed for each L from 1 up
-    /// to the reporting length
-    /// * `oversampling_tries` - How many times should we try to resample if
-    /// the currently sampled value causes oversampling
+    /// * `consolidate_parameters` - Parameters used for data consolidation
     #[inline]
     pub fn new(
         data_block: Arc<DataBlock>,
         attr_rows_map: AttributeRowsMap,
         resolution: usize,
         cache_max_size: usize,
-        aggregated_data: Option<Arc<AggregatedData>>,
-        oversampling_ratio: Option<f64>,
-        oversampling_tries: Option<usize>,
+        consolidate_parameters: ConsolidateParameters,
     ) -> FromCountsSynthesizer {
         FromCountsSynthesizer {
             data_block,
@@ -75,9 +62,7 @@ impl FromCountsSynthesizer {
             attr_rows_map,
             resolution,
             cache_max_size,
-            aggregated_data: aggregated_data.unwrap_or_else(|| Arc::new(AggregatedData::default())),
-            oversampling_ratio,
-            oversampling_tries,
+            consolidate_parameters,
             consolidate_percentage: 0.0,
             suppress_percentage: 0.0,
         }
@@ -109,9 +94,7 @@ impl FromCountsSynthesizer {
                 &mut synthesized_records,
                 progress_reporter,
                 &mut context,
-                self.oversampling_ratio,
-                self.oversampling_tries,
-                self.oversampling_ratio.is_some(),
+                self.consolidate_parameters.clone(),
             );
             self.suppress(&mut synthesized_records, progress_reporter);
         }
@@ -141,11 +124,6 @@ impl SynthesisData for FromCountsSynthesizer {
     fn get_resolution(&self) -> usize {
         self.resolution
     }
-
-    #[inline]
-    fn get_aggregated_data(&self) -> &AggregatedData {
-        &self.aggregated_data
-    }
 }
 
 impl Consolidate for FromCountsSynthesizer {
@@ -154,12 +132,13 @@ impl Consolidate for FromCountsSynthesizer {
         &self,
         _synthesized_records: &SynthesizedRecordsSlice,
     ) -> AvailableAttrsMap {
-        if self.oversampling_ratio.is_some() {
+        if self.consolidate_parameters.oversampling_ratio.is_some() {
             // since the aggregate counts will be used
             // to control oversampling
             // get all the single attribute counts
             // from the aggregate counts
-            self.get_aggregated_data()
+            self.consolidate_parameters
+                .aggregated_data
                 .aggregates_count
                 .iter()
                 .filter_map(|(attr, count)| {

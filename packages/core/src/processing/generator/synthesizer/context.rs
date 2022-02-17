@@ -1,5 +1,6 @@
 use super::cache::{SynthesizerCache, SynthesizerCacheKey};
 use super::consolidate::ConsolidateContext;
+use super::consolidate_parameters::ConsolidateParameters;
 use super::typedefs::{
     AttributeCountMap, NotAllowedAttrSet, SynthesizedRecord, SynthesizerSeedSlice,
 };
@@ -13,7 +14,6 @@ use crate::data_block::typedefs::{
     AttributeRowsSlice,
 };
 use crate::data_block::value::DataBlockValue;
-use crate::processing::aggregator::aggregated_data::AggregatedData;
 use crate::processing::aggregator::typedefs::RecordsSet;
 use crate::processing::aggregator::value_combination::ValueCombination;
 use crate::utils::collections::ordered_vec_intersection;
@@ -123,7 +123,7 @@ impl SynthesizerContext {
         last_processed: &ValueCombination,
         synthesized_record: &SynthesizedRecord,
         not_allowed_attr_set: &NotAllowedAttrSet,
-        aggregated_data: &AggregatedData,
+        consolidate_parameters: &ConsolidateParameters,
     ) -> Option<Arc<DataBlockValue>> {
         let counts: AttributeCountMap = consolidate_context
             .available_attrs
@@ -137,7 +137,7 @@ impl SynthesizerContext {
                     // length and the combination length
                     let combination_length = usize::min(
                         synthesized_record.len() + 1,
-                        aggregated_data.reporting_length,
+                        consolidate_parameters.aggregated_data.reporting_length,
                     );
                     let mut current_comb = last_processed.clone();
                     let mut sensitive_count = 0;
@@ -151,27 +151,35 @@ impl SynthesizerContext {
                         let value_combination =
                             ValueCombination::new(comb.drain(..).cloned().collect());
 
-                        if let Some(local_count) =
-                            aggregated_data.aggregates_count.get(&value_combination)
+                        if let Some(local_count) = consolidate_parameters
+                            .aggregated_data
+                            .aggregates_count
+                            .get(&value_combination)
                         {
-                            let synthetic_count = consolidate_context
-                                .synthetic_counts
-                                .get(&value_combination)
-                                .unwrap_or(&0);
+                            if consolidate_parameters.use_synthetic_counts {
+                                let synthetic_count = consolidate_context
+                                    .synthetic_counts
+                                    .get(&value_combination)
+                                    .unwrap_or(&0);
 
-                            if *synthetic_count == 0 {
-                                // burst contribution if the combination has not
-                                // been used just yet
-                                sensitive_count += 2 * self.records_len;
-                            } else {
-                                if *synthetic_count > local_count.count {
-                                    return None;
+                                if *synthetic_count == 0 {
+                                    // burst contribution if the combination has not
+                                    // been used just yet
+                                    sensitive_count += 2 * self.records_len;
+                                } else {
+                                    if *synthetic_count > local_count.count {
+                                        return None;
+                                    }
+
+                                    // get the aggregate count
+                                    // that will be used in the weighted sampling
+                                    // and remove the count already synthesized
+                                    sensitive_count += local_count.count - synthetic_count;
                                 }
-
+                            } else {
                                 // get the aggregate count
                                 // that will be used in the weighted sampling
-                                // and remove the count already synthesized
-                                sensitive_count += local_count.count - synthetic_count;
+                                sensitive_count += local_count.count;
                             }
                         } else {
                             return None;

@@ -1,5 +1,6 @@
 use super::{
     consolidate::{Consolidate, ConsolidateContext},
+    consolidate_parameters::ConsolidateParameters,
     context::SynthesizerContext,
     seeded_rows_synthesizer::SeededRowsSynthesizer,
     suppress::Suppress,
@@ -15,9 +16,7 @@ use std::sync::Arc;
 
 use crate::{
     data_block::{block::DataBlock, typedefs::AttributeRowsMap, value::DataBlockValue},
-    processing::aggregator::{
-        aggregated_data::AggregatedData, value_combination::ValueCombination,
-    },
+    processing::aggregator::value_combination::ValueCombination,
     utils::{
         math::calc_percentage, reporting::ReportProgress, threading::get_number_of_threads,
         time::ElapsedDurationLogger,
@@ -101,9 +100,7 @@ impl SeededSynthesizer {
                 progress_reporter,
                 // use the first context to leverage already cached intersections
                 &mut rows_synthesizers[0].context,
-                None,
-                None,
-                false,
+                ConsolidateParameters::default(),
             );
             self.suppress(&mut synthesized_records, progress_reporter);
         }
@@ -195,12 +192,6 @@ impl SynthesisData for SeededSynthesizer {
     #[inline]
     fn get_resolution(&self) -> usize {
         self.resolution
-    }
-
-    #[inline]
-    fn get_aggregated_data(&self) -> &AggregatedData {
-        // this should never happen during the seeded data synthesis
-        panic!("invalid use of get_aggregated_data");
     }
 }
 

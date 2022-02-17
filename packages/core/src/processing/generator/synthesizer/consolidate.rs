@@ -1,4 +1,5 @@
 use super::{
+    consolidate_parameters::ConsolidateParameters,
     context::SynthesizerContext,
     synthesis_data::SynthesisData,
     typedefs::{
@@ -80,7 +81,6 @@ pub trait Consolidate: SynthesisData {
     }
 
     #[inline]
-    #[allow(clippy::too_many_arguments)]
     fn add_value_to_synthetic_record(
         &self,
         synthesized_record: &mut SynthesizedRecord,
@@ -88,8 +88,7 @@ pub trait Consolidate: SynthesisData {
         synthetic_counts: &mut RawCombinationsCountMap,
         last_processed: &mut ValueCombination,
         processed_combinations: &mut RawCombinationsSet,
-        oversampling_ratio: &Option<f64>,
-        calc_synthetic_counts: bool,
+        parameters: &ConsolidateParameters,
     ) -> bool {
         let mut current_comb = last_processed.clone();
         let mut local_synthetic_counts = RawCombinationsCountMap::default();
@@ -97,17 +96,17 @@ pub trait Consolidate: SynthesisData {
         // add the new sampled value to the combination
         current_comb.extend(value.clone(), &self.get_data_block().headers);
 
-        if calc_synthetic_counts {
+        if parameters.use_synthetic_counts || parameters.oversampling_ratio.is_some() {
             // process all combinations lengths up the reporting length
-            for l in 1..=self.get_aggregated_data().reporting_length {
+            for l in 1..=parameters.aggregated_data.reporting_length {
                 for mut comb in current_comb.iter().combinations(l) {
                     // this will be already sorted, since current_comb is
                     let value_combination =
                         Rc::new(ValueCombination::new(comb.drain(..).cloned().collect()));
 
                     if !processed_combinations.contains(&value_combination) {
-                        if let Some(sensitive_count) = self
-                            .get_aggregated_data()
+                        if let Some(sensitive_count) = parameters
+                            .aggregated_data
                             .aggregates_count
                             .get(&(*value_combination))
                         {
@@ -115,9 +114,9 @@ pub trait Consolidate: SynthesisData {
                                 synthetic_counts.get(&value_combination).unwrap_or(&0);
 
                             // if we need to keep a certain ratio for oversampling
-                            if let Some(ratio) = oversampling_ratio {
+                            if let Some(ratio) = parameters.oversampling_ratio {
                                 if ((*synthetic_count + 1) as f64)
-                                    > ((sensitive_count.count as f64) * (1.0 + *ratio))
+                                    > ((sensitive_count.count as f64) * (1.0 + ratio))
                                 {
                                     // the synthetic count as exceeded the allowed ratio, let stop
                                     // the sampling process right here for this record
@@ -156,15 +155,14 @@ pub trait Consolidate: SynthesisData {
         &self,
         synthesizer_context: &mut SynthesizerContext,
         consolidate_context: &mut ConsolidateContext,
-        oversampling_ratio: &Option<f64>,
-        oversampling_tries: usize,
-        calc_synthetic_counts: bool,
+        parameters: &ConsolidateParameters,
     ) -> SynthesizedRecord {
         let mut not_allowed_attr_set: NotAllowedAttrSet =
             self.calc_not_allowed_attrs(&consolidate_context.available_attrs);
         let mut synthesized_record = SynthesizedRecord::default();
         let mut last_processed = ValueCombination::default();
         let mut processed_combinations = RawCombinationsSet::default();
+        let oversampling_tries = parameters.oversampling_tries.unwrap_or(1);
         let mut n_tries = oversampling_tries;
 
         loop {
@@ -185,8 +183,7 @@ pub trait Consolidate: SynthesisData {
                         &mut consolidate_context.synthetic_counts,
                         &mut last_processed,
                         &mut processed_combinations,
-                        oversampling_ratio,
-                        calc_synthetic_counts,
+                        parameters,
                     ) {
                         let next_count = *consolidate_context.available_attrs.get(&value).unwrap();
 
@@ -216,9 +213,7 @@ pub trait Consolidate: SynthesisData {
         synthesized_records: &mut SynthesizedRecords,
         progress_reporter: &mut Option<T>,
         synthesizer_context: &mut SynthesizerContext,
-        oversampling_ratio: Option<f64>,
-        oversampling_tries: Option<usize>,
-        calc_synthetic_counts: bool,
+        parameters: ConsolidateParameters,
     ) where
         T: ReportProgress,
     {
@@ -242,9 +237,7 @@ pub trait Consolidate: SynthesisData {
             synthesized_records.push(self.consolidate_record(
                 synthesizer_context,
                 &mut consolidate_context,
-                &oversampling_ratio,
-                oversampling_tries.unwrap_or(1),
-                calc_synthetic_counts,
+                &parameters,
             ));
             n_processed =
                 (total - consolidate_context.available_attrs.values().sum::<isize>()) as usize;

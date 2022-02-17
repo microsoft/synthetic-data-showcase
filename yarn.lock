@@ -8875,8 +8875,8 @@ resolve@^2.0.0-next.3:
 
 "sds-wasm@file:../../target/wasm::locator=webapp%40workspace%3Apackages%2Fwebapp":
   version: 1.2.1
-  resolution: "sds-wasm@file:../../target/wasm#../../target/wasm::hash=bff941&locator=webapp%40workspace%3Apackages%2Fwebapp"
-  checksum: 72ad6ffaa854ba77490b91d2c73f4bc4a1e40dcf75512386a05f5f517d93426d21e6e4e83015db20e85247e5af47a5ccd40f0ef133c47ef1e02286b1e0563561
+  resolution: "sds-wasm@file:../../target/wasm#../../target/wasm::hash=edcc09&locator=webapp%40workspace%3Apackages%2Fwebapp"
+  checksum: 1b8379d2eec39d3eef24b12e9d81abd33910ec5f27502201427744909d57c28de15df7d16f7d0d823f785c1330fca0b3e3cc71ea530e454a207e24861c0077f5
   languageName: node
   linkType: hard
 
