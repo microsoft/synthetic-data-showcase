@@ -1,4 +1,5 @@
 use csv::ReaderBuilder;
+use log::{log_enabled, Level::Debug};
 use pyo3::{exceptions::PyValueError, prelude::*};
 use sds_core::{
     data_block::{
@@ -91,7 +92,11 @@ impl SDSProcessor {
         reporting_length: usize,
         sensitivity_threshold: usize,
     ) -> AggregatedData {
-        let mut progress_reporter: Option<LoggerProgressReporter> = None;
+        let mut progress_reporter = if log_enabled!(Debug) {
+            Some(LoggerProgressReporter::new(Debug))
+        } else {
+            None
+        };
         let mut aggregator = Aggregator::new(self.data_block.clone());
         aggregator.aggregate(
             reporting_length,
@@ -122,7 +127,11 @@ impl SDSProcessor {
         oversampling_ratio: Option<f64>,
         oversampling_tries: Option<usize>,
     ) -> Result<GeneratedData, PyErr> {
-        let mut progress_reporter: Option<LoggerProgressReporter> = None;
+        let mut progress_reporter = if log_enabled!(Debug) {
+            Some(LoggerProgressReporter::new(Debug))
+        } else {
+            None
+        };
         let mut generator = Generator::new(self.data_block.clone());
         let mode = SynthesisMode::from_str(&synthesis_mode).map_err(PyValueError::new_err)?;
         let aggregated_data = match aggregates_path {

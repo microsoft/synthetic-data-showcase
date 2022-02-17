@@ -154,11 +154,29 @@ impl Consolidate for FromCountsSynthesizer {
         &self,
         _synthesized_records: &SynthesizedRecordsSlice,
     ) -> AvailableAttrsMap {
-        // get all the single attribute counts
-        self.attr_rows_map
-            .iter()
-            .map(|(attr, rows)| (attr.clone(), rows.len() as isize))
-            .collect()
+        if self.oversampling_ratio.is_some() {
+            // since the aggregate counts will be used
+            // to control oversampling
+            // get all the single attribute counts
+            // from the aggregate counts
+            self.get_aggregated_data()
+                .aggregates_count
+                .iter()
+                .filter_map(|(attr, count)| {
+                    if attr.len() == 1 {
+                        Some((attr[0].clone(), count.count as isize))
+                    } else {
+                        None
+                    }
+                })
+                .collect()
+        } else {
+            // get all the single attribute counts
+            self.attr_rows_map
+                .iter()
+                .map(|(attr, rows)| (attr.clone(), rows.len() as isize))
+                .collect()
+        }
     }
 
     #[inline]
