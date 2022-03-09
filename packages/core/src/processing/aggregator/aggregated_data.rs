@@ -2,8 +2,9 @@ use super::{
     privacy_risk_summary::PrivacyRiskSummary,
     records_analysis_data::RecordsAnalysisData,
     typedefs::{
-        AggregatedCountByLenMap, AggregatesCountMap, AggregatesCountStringMap, RecordsByLenMap,
-        RecordsSensitivityByLen, ALL_SENSITIVITIES_INDEX,
+        AggregatedCountByLenMap, AggregatedMetricByLenMap, AggregatesCountMap,
+        AggregatesCountStringMap, RecordsByLenMap, RecordsSensitivityByLen,
+        ALL_SENSITIVITIES_INDEX,
     },
 };
 use fnv::FnvHashMap;
@@ -211,6 +212,12 @@ impl AggregatedData {
 
 #[cfg_attr(feature = "pyo3", pymethods)]
 impl AggregatedData {
+    #[inline]
+    /// Total number of distinct combinations
+    pub fn total_number_of_combinations(&self) -> usize {
+        self.aggregates_count.len()
+    }
+
     /// Builds a map from value combinations formatted as string to its aggregated count
     /// This method will clone the data, so its recommended to have its result stored
     /// in a local variable to avoid it being called multiple times
@@ -566,6 +573,42 @@ impl AggregatedData {
             *curr_sum += count.count;
         }
         result
+    }
+
+    /// Calculates the mean of all combination counts grouped by combination length
+    pub fn calc_combinations_mean_by_len(&self) -> AggregatedMetricByLenMap {
+        let _duration_logger = ElapsedDurationLogger::new("combinations mean by len calculation");
+        let mut result = AggregatedMetricByLenMap::default();
+
+        info!("calculating combination counts mean by length");
+
+        let comb_sums = self.calc_combinations_sum_by_len();
+        let comb_counts = self.calc_combinations_count_by_len();
+
+        for (l, s) in comb_sums.iter() {
+            let c = comb_counts.get(l).cloned().unwrap_or(0);
+
+            if c > 0 {
+                result.insert(*l, (*s as f64) / (c as f64));
+            }
+        }
+        result
+    }
+
+    /// Calculates the mean of all combination counts
+    pub fn calc_combinations_mean(&self) -> f64 {
+        let _duration_logger = ElapsedDurationLogger::new("combinations mean calculation");
+
+        info!("calculating combination counts mean");
+
+        let comb_sum: usize = self.calc_combinations_sum_by_len().values().sum();
+        let comb_count: usize = self.calc_combinations_count_by_len().values().sum();
+
+        if comb_count > 0 {
+            (comb_sum as f64) / (comb_count as f64)
+        } else {
+            0.0
+        }
     }
 
     /// Calculates the privacy risk related with data block and the generated

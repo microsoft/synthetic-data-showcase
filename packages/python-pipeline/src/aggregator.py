@@ -32,8 +32,8 @@ def aggregate(config):
     prefix = config['prefix']
     sensitive_aggregated_data_json = path.join(
         output_dir, f'{prefix}_sensitive_aggregated_data.json')
-    protected_aggregated_data_json = path.join(
-        output_dir, f'{prefix}_protected_aggregated_data.json')
+    reportable_aggregated_data_json = path.join(
+        output_dir, f'{prefix}_reportable_aggregated_data.json')
     dp_aggregates = config['dp_aggregates']
     sensitivities_epsilon = config['sensitivities_epsilon']
     sensitivities_percentile = config['sensitivities_percentile']
@@ -92,7 +92,7 @@ def aggregate(config):
         reporting_resolution,
         True
     )
-    aggregated_data.write_to_json(protected_aggregated_data_json)
+    aggregated_data.write_to_json(reportable_aggregated_data_json)
 
     leakage_tsv = path.join(
         output_dir, f'{prefix}_sensitive_rare_by_length.tsv')

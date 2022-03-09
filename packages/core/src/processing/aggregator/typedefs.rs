@@ -19,6 +19,9 @@ pub type AggregatesCountStringMap = FnvHashMap<String, AggregatedCount>;
 /// Maps a length (1,2,3... up to reporting length) to a determined count
 pub type AggregatedCountByLenMap = FnvHashMap<usize, usize>;
 
+/// Maps a length (1,2,3... up to reporting length) to a determined metric
+pub type AggregatedMetricByLenMap = FnvHashMap<usize, f64>;
+
 /// Maps a length (1,2,3... up to reporting length) to a record set
 pub type RecordsByLenMap = FnvHashMap<usize, RecordsSet>;
 

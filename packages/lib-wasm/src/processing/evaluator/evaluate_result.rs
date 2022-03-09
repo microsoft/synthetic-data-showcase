@@ -96,7 +96,7 @@ impl WasmEvaluateResult {
 
     #[wasm_bindgen(js_name = "leakageCountByLenToJs")]
     pub fn leakage_count_by_len_to_js(&self, resolution: usize) -> JsResult<JsAggregateCountByLen> {
-        let count = self.evaluator.calc_leakage_count(
+        let count = self.evaluator.calc_leakage_count_by_len(
             &self.sensitive_aggregate_result,
             &self.synthetic_aggregate_result,
             resolution,
@@ -109,7 +109,7 @@ impl WasmEvaluateResult {
 
     #[wasm_bindgen(js_name = "fabricatedCountByLenToJs")]
     pub fn fabricated_count_by_len_to_js(&self) -> JsResult<JsAggregateCountByLen> {
-        let count = self.evaluator.calc_fabricated_count(
+        let count = self.evaluator.calc_fabricated_count_by_len(
             &self.sensitive_aggregate_result,
             &self.synthetic_aggregate_result,
         );

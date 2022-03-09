@@ -58,12 +58,16 @@ impl PreservationByCountBuckets {
         } else {
             0.0
         };
-        let absolute_error = ((syn_count as isize) - (sen_count as isize)).abs() as usize;
+        let proportional_error = if sen_count > 0 {
+            ((syn_count as f64) - (sen_count as f64)).abs() / (sen_count as f64)
+        } else {
+            1.0
+        };
 
         self.buckets_map
             .entry(bins.find_bucket_max_val(syn_count))
             .or_insert_with(PreservationBucket::default)
-            .add(preservation, comb.len(), syn_count, absolute_error);
+            .add(preservation, comb.len(), syn_count, proportional_error);
     }
 }
 
@@ -81,17 +85,39 @@ impl PreservationByCountBuckets {
     pub fn calc_combination_loss(&self) -> f64 {
         let _duration_logger = ElapsedDurationLogger::new("combination loss calculation");
 
-        self.buckets_map
-            .values()
-            .map(|b| {
-                if b.size > 0 {
-                    1.0 - (b.preservation_sum / (b.size as f64))
-                } else {
-                    0.0
-                }
-            })
-            .sum::<f64>()
-            / (self.buckets_map.len() as f64)
+        if !self.buckets_map.is_empty() {
+            self.buckets_map
+                .values()
+                .map(|b| {
+                    if b.size > 0 {
+                        1.0 - (b.preservation_sum / (b.size as f64))
+                    } else {
+                        0.0
+                    }
+                })
+                .sum::<f64>()
+                / (self.buckets_map.len() as f64)
+        } else {
+            0.0
+        }
+    }
+
+    /// Gets the mean proportional error between all buckets
+    ///
+    /// Proportional Error = `if sensitive_sensitive > 0
+    /// (|synthetic_count - sensitive_sensitive| / sensitive_sensitive) else 1`
+    pub fn calc_mean_proportional_error(&self) -> f64 {
+        let _duration_logger = ElapsedDurationLogger::new("mean proportion error calculation");
+
+        if !self.buckets_map.is_empty() {
+            self.buckets_map
+                .values()
+                .map(|b| b.get_mean_proportional_error())
+                .sum::<f64>()
+                / (self.buckets_map.len() as f64)
+        } else {
+            0.0
+        }
     }
 
     /// Writes the preservation grouped by counts to the file system in a csv/tsv like format
@@ -107,7 +133,7 @@ impl PreservationByCountBuckets {
 
         file.write_all(
             format!(
-                "syn_count_bucket{}mean_combo_count{}mean_combo_length{}count_preservation{}mean_absolute_error\n",
+                "syn_count_bucket{}mean_combo_count{}mean_combo_length{}count_preservation{}mean_proportional_error\n",
                 preservation_by_count_delimiter,
                 preservation_by_count_delimiter,
                 preservation_by_count_delimiter,
@@ -129,7 +155,7 @@ impl PreservationByCountBuckets {
                     preservation_by_count_delimiter,
                     b.get_mean_preservation(),
                     preservation_by_count_delimiter,
-                    b.get_mean_absolute_error()
+                    b.get_mean_proportional_error()
                 )
                 .as_bytes(),
             )?

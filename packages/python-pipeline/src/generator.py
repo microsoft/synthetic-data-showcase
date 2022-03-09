@@ -27,12 +27,8 @@ def generate(config):
     output_dir = config['output_dir']
     prefix = config['prefix']
     dp_aggregates = config['dp_aggregates']
-    if dp_aggregates:
-        aggregated_data_json = path.join(
-            output_dir, f'{prefix}_protected_aggregated_data.json')
-    else:
-        aggregated_data_json = path.join(
-            output_dir, f'{prefix}_sensitive_aggregated_data.json')
+    aggregated_data_json = path.join(
+        output_dir, f'{prefix}_reportable_aggregated_data.json')
     oversampling_ratio = config['oversampling_ratio']
     oversampling_tries = config['oversampling_tries']
     use_synthetic_counts = config['use_synthetic_counts']
@@ -56,7 +52,8 @@ def generate(config):
         synthesis_mode,
         sds.ConsolidateParameters(
             aggregated_data_json if (
-                oversampling_ratio or dp_aggregates) else None,
+                oversampling_ratio or dp_aggregates or synthesis_mode == 'from_aggregates'
+            ) else None,
             oversampling_ratio,
             oversampling_tries,
             use_synthetic_counts
