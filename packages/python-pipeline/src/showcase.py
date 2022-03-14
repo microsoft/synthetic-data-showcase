@@ -43,57 +43,79 @@ def main():
         config['evaluate'] = args.evaluate if args.evaluate != None else False
         config['navigate'] = args.navigate if args.navigate != None else False
 
-        # if no cmd options set, we do everyting
-        if not config['aggregate'] and not config['generate'] and not config['evaluate'] and not config['navigate']:
-            config['aggregate'] = True
-            config['generate'] = True
-            config['evaluate'] = True
-            config['navigate'] = True
-
-        # set based on the number of cores/memory available
-        config['parallel_jobs'] = config.get('parallel_jobs', 1)
-        config['memory_limit_pct'] = config.get('memory_limit_pct', 80)
-        config['cache_max_size'] = config.get('cache_max_size', 100000)
-
-        # numeric parameters controlling synthesis and aggregation
-        config['use_columns'] = config.get('use_columns', [])
-        config['record_limit'] = config.get(
-            'record_limit', -1)  # use all sensitive records
-        config['reporting_length'] = config.get(
-            'reporting_length', 3)  # support any 2 selections
-        # only report counts rounded down to the closest resolution
-        config['reporting_resolution'] = config.get('reporting_resolution', 10)
-
-        # parameters affecting the representation and interpretation of values
-        config['sensitive_zeros'] = config.get('sensitive_zeros', [])
-        config['seeded'] = config.get('seeded', True)
-
-        # specified parameters affecting file I/O
-        config['prefix'] = config.get('prefix', 'my')
-        config['output_dir'] = config.get('output_dir', './')
-        config['sensitive_microdata_path'] = config.get(
-            'sensitive_microdata_path', None)
-        config['sensitive_microdata_delimiter'] = config.get(
-            'sensitive_microdata_delimiter', ',')
-
-        # derived parameters affecting file I/O
-        config['reportable_aggregates_path'] = path.join(
-            config['output_dir'],
-            config['prefix'] + '_reportable_aggregates.tsv')
-        config['synthetic_microdata_path'] = path.join(
-            config['output_dir'],
-            config['prefix'] + '_synthetic_microdata.tsv')
-        config['sensitive_aggregates_path'] = path.join(
-            config['output_dir'],
-            config['prefix'] + '_sensitive_aggregates.tsv')
-
-        if not path.exists(config['output_dir']):
-            mkdir(config['output_dir'])
-
-        runPipeline(config)
+        runForConfig(config)
     except Exception as e:
         logging.exception(
             f"Failed to run pipeline with exception: {e}", exc_info=True)
+
+
+def runForConfig(config):
+    """Configures with default parameters if they are not provided and runs the pipeline.
+
+    Args:
+        config: options from the json config file, else default values.
+    """
+
+    # if no cmd options set, we do everyting
+    if not config['aggregate'] and not config['generate'] and not config['evaluate'] and not config['navigate']:
+        config['aggregate'] = True
+        config['generate'] = True
+        config['evaluate'] = True
+        config['navigate'] = True
+
+    # set based on the number of cores/memory available
+    config['parallel_jobs'] = config.get('parallel_jobs', 1)
+    config['cache_max_size'] = config.get('cache_max_size', 100000)
+
+    # numeric parameters controlling synthesis and aggregation
+    config['use_columns'] = config.get('use_columns', [])
+    config['record_limit'] = config.get(
+        'record_limit', -1)  # use all sensitive records
+    config['reporting_length'] = config.get(
+        'reporting_length', 3)  # support any 2 selections
+    # only report counts rounded down to the closest resolution
+    config['reporting_resolution'] = config.get('reporting_resolution', 10)
+
+    # differential privacy
+    config['dp_aggregates'] = config.get('dp_aggregates', False)
+    config['sensitivities_epsilon'] = config.get(
+        'sensitivities_epsilon', None)
+    config['sensitivities_percentile'] = config.get(
+        'sensitivities_percentile', None)
+    config['noise_epsilon'] = config.get('noise_epsilon', None)
+    config['noise_delta'] = config.get('noise_delta', None)
+
+    # parameters affecting the representation and interpretation of values
+    config['sensitive_zeros'] = config.get('sensitive_zeros', [])
+    config['synthesis_mode'] = config.get('synthesis_mode', 'seeded')
+    config['oversampling_ratio'] = config.get('oversampling_ratio', None)
+    config['oversampling_tries'] = config.get('oversampling_tries', None)
+    config['use_synthetic_counts'] = config.get(
+        'use_synthetic_counts', False)
+
+    # specified parameters affecting file I/O
+    config['prefix'] = config.get('prefix', 'my')
+    config['output_dir'] = config.get('output_dir', './')
+    config['sensitive_microdata_path'] = config.get(
+        'sensitive_microdata_path', None)
+    config['sensitive_microdata_delimiter'] = config.get(
+        'sensitive_microdata_delimiter', ',')
+
+    # derived parameters affecting file I/O
+    config['reportable_aggregates_path'] = path.join(
+        config['output_dir'],
+        config['prefix'] + '_reportable_aggregates.tsv')
+    config['synthetic_microdata_path'] = path.join(
+        config['output_dir'],
+        config['prefix'] + '_synthetic_microdata.tsv')
+    config['sensitive_aggregates_path'] = path.join(
+        config['output_dir'],
+        config['prefix'] + '_sensitive_aggregates.tsv')
+
+    if not path.exists(config['output_dir']):
+        mkdir(config['output_dir'])
+
+    runPipeline(config)
 
 
 def runPipeline(config):

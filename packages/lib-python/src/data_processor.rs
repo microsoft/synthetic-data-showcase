@@ -1,5 +1,6 @@
 use csv::ReaderBuilder;
-use pyo3::prelude::*;
+use log::{log_enabled, Level::Debug};
+use pyo3::{exceptions::PyValueError, prelude::*};
 use sds_core::{
     data_block::{
         block::DataBlock, csv_block_creator::CsvDataBlockCreator, csv_io_error::CsvIOError,
@@ -7,11 +8,14 @@ use sds_core::{
     },
     processing::{
         aggregator::{aggregated_data::AggregatedData, Aggregator},
-        generator::{generated_data::GeneratedData, Generator, SynthesisMode},
+        generator::{
+            generated_data::GeneratedData,
+            synthesizer::consolidate_parameters::ConsolidateParameters, Generator, SynthesisMode,
+        },
     },
     utils::reporting::LoggerProgressReporter,
 };
-use std::sync::Arc;
+use std::{str::FromStr, sync::Arc};
 
 #[pyclass]
 /// Processor exposing the main features
@@ -91,7 +95,11 @@ impl SDSProcessor {
         reporting_length: usize,
         sensitivity_threshold: usize,
     ) -> AggregatedData {
-        let mut progress_reporter: Option<LoggerProgressReporter> = None;
+        let mut progress_reporter = if log_enabled!(Debug) {
+            Some(LoggerProgressReporter::new(Debug))
+        } else {
+            None
+        };
         let mut aggregator = Aggregator::new(self.data_block.clone());
         aggregator.aggregate(
             reporting_length,
@@ -106,28 +114,31 @@ impl SDSProcessor {
     /// * `cache_max_size` - Maximum cache size used during the synthesis process
     /// * `resolution` - Reporting resolution to be used
     /// * `empty_value` - Empty values on the synthetic data will be represented by this
-    /// * `seeded` - True for seeded synthesis, False for unseeded
+    /// * `synthesis_mode` - Which mode to perform the data synthesis ("seeded", "unseeded", "from_counts" or "from_aggregates")
+    // * `consolidate_parameters` - Parameters used for data consolidation
     pub fn generate(
         &self,
         cache_max_size: usize,
         resolution: usize,
         empty_value: String,
-        seeded: bool,
-    ) -> GeneratedData {
-        let mut progress_reporter: Option<LoggerProgressReporter> = None;
-        let mut generator = Generator::new(self.data_block.clone());
-        let mode = if seeded {
-            SynthesisMode::Seeded
+        synthesis_mode: String,
+        consolidate_parameters: ConsolidateParameters,
+    ) -> Result<GeneratedData, PyErr> {
+        let mut progress_reporter = if log_enabled!(Debug) {
+            Some(LoggerProgressReporter::new(Debug))
         } else {
-            SynthesisMode::Unseeded
+            None
         };
+        let mut generator = Generator::new(self.data_block.clone());
+        let mode = SynthesisMode::from_str(&synthesis_mode).map_err(PyValueError::new_err)?;
 
-        generator.generate(
+        Ok(generator.generate(
             resolution,
             cache_max_size,
             empty_value,
             mode,
+            consolidate_parameters,
             &mut progress_reporter,
-        )
+        ))
     }
 }

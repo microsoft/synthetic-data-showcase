@@ -49,11 +49,16 @@ impl PreservationByLengthBuckets {
         } else {
             0.0
         };
+        let proportional_error = if sen_count > 0 {
+            ((syn_count as f64) - (sen_count as f64)).abs() / (sen_count as f64)
+        } else {
+            1.0
+        };
 
         self.buckets_map
             .entry(comb.len())
             .or_insert_with(PreservationBucket::default)
-            .add(preservation, comb.len(), syn_count);
+            .add(preservation, comb.len(), syn_count, proportional_error);
     }
 }
 
@@ -79,8 +84,10 @@ impl PreservationByLengthBuckets {
 
         file.write_all(
             format!(
-                "syn_combo_length{}mean_combo_count{}count_preservation\n",
-                preservation_by_length_delimiter, preservation_by_length_delimiter,
+                "syn_combo_length{}mean_combo_count{}count_preservation{}mean_proportional_error\n",
+                preservation_by_length_delimiter,
+                preservation_by_length_delimiter,
+                preservation_by_length_delimiter
             )
             .as_bytes(),
         )?;
@@ -89,12 +96,14 @@ impl PreservationByLengthBuckets {
 
             file.write_all(
                 format!(
-                    "{}{}{}{}{}\n",
+                    "{}{}{}{}{}{}{}\n",
                     length,
                     preservation_by_length_delimiter,
                     b.get_mean_combination_count(),
                     preservation_by_length_delimiter,
                     b.get_mean_preservation(),
+                    preservation_by_length_delimiter,
+                    b.get_mean_proportional_error()
                 )
                 .as_bytes(),
             )?

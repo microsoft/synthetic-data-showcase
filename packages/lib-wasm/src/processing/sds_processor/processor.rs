@@ -7,7 +7,9 @@ use sds_core::{
     },
     processing::{
         aggregator::Aggregator,
-        generator::{Generator, SynthesisMode},
+        generator::{
+            synthesizer::consolidate_parameters::ConsolidateParameters, Generator, SynthesisMode,
+        },
     },
     utils::time::ElapsedDurationLogger,
 };
@@ -119,6 +121,7 @@ impl SDSProcessor {
             cache_max_size,
             empty_value,
             mode,
+            ConsolidateParameters::default(),
             &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
         )))
     }

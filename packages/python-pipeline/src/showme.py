@@ -79,13 +79,12 @@ def main():
 
     config = {
         'parallel_jobs': 1,
-        'memory_limit_pct': 90,
         'cache_max_size': 100000,
         'use_columns': [],
         'record_limit': -1,
         'reporting_length': 5,
         'reporting_resolution': 2,
-        'seeded': True,
+        'synthesis_mode': 'seeded',
         'sensitive_zeros': [],
         'output_dir': output_dir,
         'sensitive_microdata_path': sensitive_microdata_path,

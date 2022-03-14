@@ -1,4 +1,6 @@
 use super::cache::{SynthesizerCache, SynthesizerCacheKey};
+use super::consolidate::ConsolidateContext;
+use super::consolidate_parameters::ConsolidateParameters;
 use super::typedefs::{
     AttributeCountMap, NotAllowedAttrSet, SynthesizedRecord, SynthesizerSeedSlice,
 };
@@ -6,12 +8,14 @@ use itertools::Itertools;
 use rand::Rng;
 use std::sync::Arc;
 
+use crate::data_block::block::DataBlock;
 use crate::data_block::typedefs::{
     AttributeRows, AttributeRowsByColumnMap, AttributeRowsMap, AttributeRowsRefMap,
     AttributeRowsSlice,
 };
 use crate::data_block::value::DataBlockValue;
 use crate::processing::aggregator::typedefs::RecordsSet;
+use crate::processing::aggregator::value_combination::ValueCombination;
 use crate::utils::collections::ordered_vec_intersection;
 
 /// Represents a synthesis context, containing the information
@@ -22,6 +26,8 @@ pub struct SynthesizerContext {
     pub headers_len: usize,
     /// Number of records in the data block
     pub records_len: usize,
+    /// Reference to the original data block
+    data_block: Arc<DataBlock>,
     /// Cache used to store the rows where value combinations occurs
     cache: SynthesizerCache<Arc<AttributeRows>>,
     /// Reporting resolution used for data synthesis
@@ -31,20 +37,19 @@ pub struct SynthesizerContext {
 impl SynthesizerContext {
     /// Returns a new SynthesizerContext
     /// # Arguments
-    /// * `headers_len` - Number of headers in the data block
-    /// * `records_len` - Number of records in the data block
+    /// * `data_block` - Reference to the original data block
     /// * `resolution` - Reporting resolution used for data synthesis
     /// * `cache_max_size` - Maximum cache size allowed
     #[inline]
     pub fn new(
-        headers_len: usize,
-        records_len: usize,
+        data_block: Arc<DataBlock>,
         resolution: usize,
         cache_max_size: usize,
     ) -> SynthesizerContext {
         SynthesizerContext {
-            headers_len,
-            records_len,
+            headers_len: data_block.headers.len(),
+            records_len: data_block.records.len(),
+            data_block,
             cache: SynthesizerCache::new(cache_max_size),
             resolution,
         }
@@ -97,6 +102,97 @@ impl SynthesizerContext {
             not_allowed_attr_set,
             attr_rows_map,
         );
+        SynthesizerContext::sample_from_attr_counts(&counts)
+    }
+
+    /// Samples the next attribute from the `aggregated_data` using
+    /// information about the `available_attrs` and currently `synthesized_record`
+    /// Returns `None` if nothing more can be sampled.
+    /// # Arguments
+    /// * `last_processed` - Value combinations processed so far,
+    /// related to the `synthesized_record`
+    /// * `synthesized_record` - Record synthesized so far
+    /// * `headers` - Data block headers used to create value combinations
+    /// * `available_attrs` - Currently available attributes to sample from
+    /// * `not_allowed_attr_set` - Attributes not allowed to be sampled
+    /// * `aggregated_data` - Aggregated data with the aggregate counts used
+    /// to infer the next sample
+    pub fn sample_next_attr_from_aggregates(
+        &mut self,
+        consolidate_context: &ConsolidateContext,
+        last_processed: &ValueCombination,
+        synthesized_record: &SynthesizedRecord,
+        not_allowed_attr_set: &NotAllowedAttrSet,
+        consolidate_parameters: &ConsolidateParameters,
+    ) -> Option<Arc<DataBlockValue>> {
+        let counts: AttributeCountMap = consolidate_context
+            .available_attrs
+            .iter()
+            .filter_map(|(attr, count)| {
+                if *count > 0
+                    && !synthesized_record.contains(attr)
+                    && !not_allowed_attr_set.contains(attr)
+                {
+                    // find the minimum value between the new record
+                    // length and the combination length
+                    let combination_length = usize::min(
+                        synthesized_record.len() + 1,
+                        consolidate_parameters.aggregated_data.reporting_length,
+                    );
+                    let mut current_comb = last_processed.clone();
+                    let mut sensitive_count = 0;
+
+                    current_comb.extend(attr.clone(), &self.data_block.headers);
+
+                    // check if the combinations
+                    // from this record are valid according
+                    // to the resolution
+                    for mut comb in current_comb.iter().combinations(combination_length) {
+                        let value_combination =
+                            ValueCombination::new(comb.drain(..).cloned().collect());
+
+                        if let Some(local_count) = consolidate_parameters
+                            .aggregated_data
+                            .aggregates_count
+                            .get(&value_combination)
+                        {
+                            if consolidate_parameters.use_synthetic_counts {
+                                let synthetic_count = consolidate_context
+                                    .synthetic_counts
+                                    .get(&value_combination)
+                                    .unwrap_or(&0);
+
+                                if *synthetic_count == 0 {
+                                    // burst contribution if the combination has not
+                                    // been used just yet
+                                    sensitive_count += 2 * self.records_len;
+                                } else {
+                                    if *synthetic_count > local_count.count {
+                                        return None;
+                                    }
+
+                                    // get the aggregate count
+                                    // that will be used in the weighted sampling
+                                    // and remove the count already synthesized
+                                    sensitive_count += local_count.count - synthetic_count;
+                                }
+                            } else {
+                                // get the aggregate count
+                                // that will be used in the weighted sampling
+                                sensitive_count += local_count.count;
+                            }
+                        } else {
+                            return None;
+                        }
+                    }
+
+                    Some((attr.clone(), sensitive_count))
+                } else {
+                    None
+                }
+            })
+            .collect();
+
         SynthesizerContext::sample_from_attr_counts(&counts)
     }
 

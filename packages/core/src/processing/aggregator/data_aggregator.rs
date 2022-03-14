@@ -87,7 +87,12 @@ impl Aggregator {
 
         let result = RowsAggregator::aggregate_all(
             total_n_records,
-            &mut self.build_rows_aggregators(&length_range, sensitivity_threshold),
+            reporting_length,
+            &mut self.build_rows_aggregators(
+                reporting_length,
+                &length_range,
+                sensitivity_threshold,
+            ),
             progress_reporter,
         );
 
@@ -103,13 +108,13 @@ impl Aggregator {
         );
         info!(
             "suppression ratio of aggregates is {:.2}%",
-            (1.0 - (result.selected_combs_count as f64 / result.all_combs_count as f64)) * 100.0
+            (1.0 - (result.selected_combs_count / result.all_combs_count)) * 100.0
         );
 
         AggregatedData::new(
             self.data_block.clone(),
             result.aggregates_count,
-            result.records_sensitivity,
+            result.records_sensitivity_by_len,
             normalized_reporting_length,
         )
     }
@@ -117,6 +122,7 @@ impl Aggregator {
     #[inline]
     fn build_rows_aggregators<'length_range>(
         &self,
+        reporting_length: usize,
         length_range: &'length_range [usize],
         sensitivity_threshold: usize,
     ) -> Vec<RowsAggregator<'length_range>> {
@@ -145,6 +151,7 @@ impl Aggregator {
                     sensitivity_threshold,
                     attr_rows_map.clone(),
                 ),
+                reporting_length,
             ))
         }
         rows_aggregators
