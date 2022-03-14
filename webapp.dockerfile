@@ -24,7 +24,7 @@ COPY . .
 RUN cd packages/lib-wasm && wasm-pack build --release --target web --out-dir ../../target/wasm
 
 # --- compile application from typescript ---
-FROM node:14 as app-builder
+FROM node:16 as app-builder
 
 WORKDIR /usr/src/sds
 
