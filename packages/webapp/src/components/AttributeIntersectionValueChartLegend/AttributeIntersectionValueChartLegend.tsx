@@ -3,7 +3,7 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { IStackTokens, Label, useTheme } from '@fluentui/react'
-import { Stack } from '@fluentui/react/lib/components/Stack/Stack'
+import { Stack } from '@fluentui/react'
 import { memo } from 'react'
 import styled from 'styled-components'
 import { useActualNominalColor, useEstimatedNominalColor } from './hooks'
