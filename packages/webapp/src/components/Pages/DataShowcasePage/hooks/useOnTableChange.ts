@@ -3,10 +3,11 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { introspect } from '@data-wrangling-components/core'
-import ColumnTable from 'arquero/dist/types/table/column-table'
+import type ColumnTable from 'arquero/dist/types/table/column-table'
 import { useCallback } from 'react'
-import { SetterOrUpdater } from 'recoil'
-import { ICsvContent } from '~models'
+import type { SetterOrUpdater } from 'recoil'
+
+import type { ICsvContent } from '~models'
 import { tableHeaders } from '~utils/arquero'
 
 /**

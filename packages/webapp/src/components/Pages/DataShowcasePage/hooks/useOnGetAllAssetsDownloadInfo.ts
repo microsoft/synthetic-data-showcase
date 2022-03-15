@@ -7,7 +7,7 @@ import {
 	FileWithPath,
 } from '@data-wrangling-components/utilities'
 import { useCallback } from 'react'
-import { useOnGetAggregatesCsv } from './evaluation'
+
 import {
 	useEvaluationMetrics,
 	useMetricsByCountLabels,
@@ -16,13 +16,15 @@ import {
 	useOnGetSensitiveAnalysisCsv,
 	useOnGetSyntheticAnalysisCsv,
 } from '~components/Charts/hooks'
+import type { DownloadInfo } from '~components/controls/DownloadButton'
 import { useOnGetSummaryCsv } from '~components/EvaluationSummary/hooks'
-import { DownloadInfo } from '~components/controls/DownloadButton'
 import {
 	useEvaluateResultValue,
 	useSensitiveContentValue,
 	useSyntheticContentValue,
 } from '~states'
+
+import { useOnGetAggregatesCsv } from './evaluation'
 
 export function useOnGetAllAssetsDownloadInfo(
 	delimiter = ',',

@@ -4,8 +4,9 @@
  */
 import { introspect } from '@data-wrangling-components/core'
 import { useCallback } from 'react'
-import { SetterOrUpdater } from 'recoil'
-import { ICsvContent, SynthesisMode } from '~models'
+import type { SetterOrUpdater } from 'recoil'
+
+import type { ICsvContent, SynthesisMode } from '~models'
 import {
 	useClearGenerate,
 	useIsProcessingSetter,

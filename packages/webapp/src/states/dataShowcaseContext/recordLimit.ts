@@ -2,13 +2,8 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import {
-	atom,
-	SetterOrUpdater,
-	useRecoilState,
-	useRecoilValue,
-	useSetRecoilState,
-} from 'recoil'
+import type { SetterOrUpdater } from 'recoil'
+import { atom, useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
 
 const state = atom<number>({
 	key: 'record-limit',

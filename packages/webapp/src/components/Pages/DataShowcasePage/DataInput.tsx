@@ -3,16 +3,16 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { ColumnTransformModal } from '@data-wrangling-components/react'
-import {
-	getTheme,
-	IStackStyles,
-	IStackTokens,
-	MessageBar,
-	MessageBarType,
-	Stack,
-} from '@fluentui/react'
+import type { IStackStyles, IStackTokens } from '@fluentui/react'
+import { getTheme, MessageBar, MessageBarType, Stack } from '@fluentui/react'
 import { useBoolean } from '@fluentui/react-hooks'
 import { memo } from 'react'
+
+import { FileInputButton } from '~components/controls'
+import { InfoTooltip } from '~components/InfoTooltip'
+import { useSensitiveContent } from '~states'
+import { tooltips } from '~ui-tooltips'
+
 import { CsvTable } from './CsvTable'
 import {
 	useOnFileChange,
@@ -22,10 +22,6 @@ import {
 	useSubjectIdErrorMessage,
 	useVisibleColumnNames,
 } from './hooks'
-import { InfoTooltip } from '~components/InfoTooltip'
-import { FileInputButton } from '~components/controls'
-import { useSensitiveContent } from '~states'
-import { tooltips } from '~ui-tooltips'
 
 export const DataInput: React.FC = memo(function DataInput() {
 	const [sensitiveContent, setSensitiveContent] = useSensitiveContent()

@@ -3,8 +3,10 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { useCallback } from 'react'
+
+import type { DownloadInfo } from '~components/controls/DownloadButton'
+
 import { useOnGetAggregatesCsv } from './useOnGetAggregatesCsv'
-import { DownloadInfo } from '~components/controls/DownloadButton'
 
 export function useOnGetAggregatesDownloadInfo(
 	aggregatesDelimiter = ',',

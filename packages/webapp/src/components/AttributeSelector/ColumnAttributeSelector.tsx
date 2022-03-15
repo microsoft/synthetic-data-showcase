@@ -2,14 +2,16 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { Stack, Label, Spinner } from '@fluentui/react'
+import { Label, Spinner, Stack } from '@fluentui/react'
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
-import { IAttributesIntersection } from 'sds-wasm'
-import { useMaxCount } from './hooks'
+import type { IAttributesIntersection } from 'sds-wasm'
+
 import { AttributeIntersectionValueChart } from '~components/Charts/AttributeIntersectionValueChart'
 import { useStopPropagation } from '~components/Charts/hooks'
-import { SetSelectedAttributesCallback } from '~components/Pages/DataShowcasePage/DataNavigation'
+import type { SetSelectedAttributesCallback } from '~components/Pages/DataShowcasePage/DataNavigation'
 import { useWasmWorkerValue } from '~states'
+
+import { useMaxCount } from './hooks'
 
 export interface ColumnAttributeSelectorProps {
 	headerName: string

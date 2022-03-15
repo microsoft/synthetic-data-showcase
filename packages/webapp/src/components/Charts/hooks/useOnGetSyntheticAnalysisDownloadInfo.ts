@@ -3,9 +3,11 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { useCallback } from 'react'
+
+import type { DownloadInfo } from '~components/controls/DownloadButton'
+import type { EvaluationMetrics } from '~models'
+
 import { useOnGetSyntheticAnalysisCsv } from '.'
-import { DownloadInfo } from '~components/controls/DownloadButton'
-import { EvaluationMetrics } from '~models'
 
 export function useOnGetSyntheticAnalysisDownloadInfo(
 	lenLabels: number[],

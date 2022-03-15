@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { IMetrics } from '~models'
+import type { IMetrics } from '~models'
 
 export interface EvaluationMetrics {
 	meanSensitiveCombinationCountByLen: IMetrics

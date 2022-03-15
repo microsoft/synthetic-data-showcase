@@ -2,8 +2,10 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { RefObject, useCallback } from 'react'
-import { DownloadInfo } from './DownloadInfo'
+import type { RefObject } from 'react'
+import { useCallback } from 'react'
+
+import type { DownloadInfo } from './DownloadInfo'
 
 export function useDownloadOnClick(
 	downloadAnchorRef: RefObject<HTMLAnchorElement>,

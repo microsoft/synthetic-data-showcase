@@ -3,10 +3,11 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { checkedItemsCommand } from '@data-wrangling-components/react'
-import { ICommandBarItemProps } from '@fluentui/react'
+import type { ICommandBarItemProps } from '@fluentui/react'
 import { useCallback, useMemo } from 'react'
-import { SetterOrUpdater } from 'recoil'
-import { ICsvContent } from '~models'
+import type { SetterOrUpdater } from 'recoil'
+
+import type { ICsvContent } from '~models'
 
 export function useSubjectIdCommand(
 	content: ICsvContent,

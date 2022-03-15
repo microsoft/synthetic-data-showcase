@@ -6,9 +6,12 @@ import { introspect } from '@data-wrangling-components/core'
 import { from, table } from 'arquero'
 import _ from 'lodash'
 import { parse } from 'papaparse'
-import { useCallback, ChangeEvent } from 'react'
-import { SetterOrUpdater } from 'recoil'
-import { defaultSubjectID, ICsvContent } from '~models'
+import type { ChangeEvent } from 'react'
+import { useCallback } from 'react'
+import type { SetterOrUpdater } from 'recoil'
+
+import type { ICsvContent } from '~models'
+import { defaultSubjectID } from '~models'
 import {
 	useClearSensitiveData,
 	useIsProcessingSetter,

@@ -4,8 +4,8 @@
  */
 export * from './charts'
 export * from './useEvaluationMetrics'
-export * from './useMetricsByLenLabels'
 export * from './useMetricsByCountLabels'
+export * from './useMetricsByLenLabels'
 export * from './useOnGetCountPreservationCsv'
 export * from './useOnGetCountPreservationDownloadInfo'
 export * from './useOnGetSensitiveAnalysisCsv'

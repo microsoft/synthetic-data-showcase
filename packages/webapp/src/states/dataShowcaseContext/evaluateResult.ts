@@ -2,15 +2,15 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import type { SetterOrUpdater } from 'recoil'
 import {
 	atom,
-	SetterOrUpdater,
 	useRecoilState,
 	useRecoilValue,
 	useResetRecoilState,
 	useSetRecoilState,
 } from 'recoil'
-import { IEvaluateResult } from 'sds-wasm'
+import type { IEvaluateResult } from 'sds-wasm'
 
 const state = atom<IEvaluateResult | null>({
 	key: 'evaluate-result',

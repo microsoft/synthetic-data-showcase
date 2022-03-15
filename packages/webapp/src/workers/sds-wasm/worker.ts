@@ -3,7 +3,8 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import init, { init_logger, SDSContext } from 'sds-wasm'
-import {
+
+import type {
 	SdsWasmAttributesIntersectionsByColumnMessage,
 	SdsWasmAttributesIntersectionsByColumnResponse,
 	SdsWasmClearEvaluateMessage,
@@ -19,18 +20,18 @@ import {
 	SdsWasmEvaluateResponse,
 	SdsWasmGenerateMessage,
 	SdsWasmGenerateResponse,
+	SdsWasmGetSensitiveAggregateResultMessage,
+	SdsWasmGetSensitiveAggregateResultResponse,
 	SdsWasmInitMessage,
 	SdsWasmInitResponse,
 	SdsWasmMessage,
-	SdsWasmMessageType,
 	SdsWasmNavigateMessage,
 	SdsWasmNavigateResponse,
 	SdsWasmReportProgressResponse,
 	SdsWasmSelectAttributesMessage,
 	SdsWasmSelectAttributesResponse,
-	SdsWasmGetSensitiveAggregateResultMessage,
-	SdsWasmGetSensitiveAggregateResultResponse,
 } from './types'
+import { SdsWasmMessageType } from './types'
 
 let CONTEXT: SDSContext
 

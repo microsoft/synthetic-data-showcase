@@ -3,7 +3,7 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { useMemo } from 'react'
-import { IEvaluateResult } from 'sds-wasm'
+import type { IEvaluateResult } from 'sds-wasm'
 
 export function useMetricsByCountLabels(
 	res?: IEvaluateResult | null,

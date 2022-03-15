@@ -4,6 +4,7 @@
  */
 import { Label, Stack } from '@fluentui/react'
 import { memo } from 'react'
+
 import { InfoTooltip } from '~components/InfoTooltip'
 
 export interface TooltipWrapperProps {

@@ -2,18 +2,34 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import type { IIconProps, IStackStyles, IStackTokens } from '@fluentui/react'
 import {
-	Stack,
-	IStackStyles,
-	useTheme,
-	IStackTokens,
-	Spinner,
-	IIconProps,
 	IconButton,
 	Separator,
+	Spinner,
+	Stack,
+	useTheme,
 } from '@fluentui/react'
 import { memo, useEffect, useRef, useState } from 'react'
-import { IAttributesIntersection, ISelectedAttributesByColumn } from 'sds-wasm'
+import type {
+	IAttributesIntersection,
+	ISelectedAttributesByColumn,
+} from 'sds-wasm'
+
+import {
+	ColumnAttributeSelectorGrid,
+	HeaderSelector,
+	SelectedAttributes,
+} from '~components/AttributeSelector'
+import { InfoTooltip } from '~components/InfoTooltip'
+import { PipelineStep } from '~models'
+import {
+	useSelectedPipelineStepSetter,
+	useSyntheticHeaders,
+	useWasmWorkerValue,
+} from '~states'
+import { tooltips } from '~ui-tooltips'
+
 import {
 	useInitiallySelectedHeaders,
 	useOnClearSelectedAttributes,
@@ -23,19 +39,6 @@ import {
 	useOnSetSelectedAttributes,
 	useOnToggleSelectedHeader,
 } from './hooks/navigation'
-import {
-	ColumnAttributeSelectorGrid,
-	HeaderSelector,
-	SelectedAttributes,
-} from '~components/AttributeSelector'
-import { InfoTooltip } from '~components/InfoTooltip'
-import { PipelineStep } from '~models'
-import {
-	useWasmWorkerValue,
-	useSelectedPipelineStepSetter,
-	useSyntheticHeaders,
-} from '~states'
-import { tooltips } from '~ui-tooltips'
 
 const backIcon: IIconProps = { iconName: 'Back' }
 

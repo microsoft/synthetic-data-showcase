@@ -4,7 +4,8 @@
  */
 import { memo } from 'react'
 import { Chart } from 'react-chartjs-2'
-import { IMetrics } from '~models'
+
+import type { IMetrics } from '~models'
 
 export interface IMetricsChart {
 	label: string

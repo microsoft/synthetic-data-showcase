@@ -4,7 +4,10 @@
  */
 import _ from 'lodash'
 import { useMemo } from 'react'
-import { IAttributesIntersection, ISelectedAttributesByColumn } from 'sds-wasm'
+import type {
+	IAttributesIntersection,
+	ISelectedAttributesByColumn,
+} from 'sds-wasm'
 
 export function useMaxCount(items: IAttributesIntersection[]): number {
 	return useMemo(

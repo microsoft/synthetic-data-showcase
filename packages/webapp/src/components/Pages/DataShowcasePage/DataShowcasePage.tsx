@@ -2,22 +2,12 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import {
-	getTheme,
-	IStackStyles,
-	IStackTokens,
-	Pivot,
-	PivotItem,
-	Stack,
-} from '@fluentui/react'
+import type { IStackStyles, IStackTokens } from '@fluentui/react'
+import { getTheme, Pivot, PivotItem, Stack } from '@fluentui/react'
 import { memo, useCallback, useEffect } from 'react'
-import { DataEvaluation } from './DataEvaluation'
-import { DataInput } from './DataInput'
-import { DataNavigation } from './DataNavigation'
-import { DataSynthesis } from './DataSynthesis'
-import { useCanRun, useOnGetAllAssetsDownloadInfo } from './hooks'
-import { ProcessingProgress } from '~components/ProcessingProgress'
+
 import { DownloadButton } from '~components/controls/DownloadButton'
+import { ProcessingProgress } from '~components/ProcessingProgress'
 import { PipelineStep } from '~models'
 import {
 	useIsProcessingSetter,
@@ -25,6 +15,12 @@ import {
 	useWasmWorker,
 } from '~states/dataShowcaseContext'
 import { SdsWasmWorker } from '~workers/sds-wasm'
+
+import { DataEvaluation } from './DataEvaluation'
+import { DataInput } from './DataInput'
+import { DataNavigation } from './DataNavigation'
+import { DataSynthesis } from './DataSynthesis'
+import { useCanRun, useOnGetAllAssetsDownloadInfo } from './hooks'
 
 export const DataShowcasePage: React.FC = memo(function DataShowcasePage() {
 	const [worker, setWorker] = useWasmWorker()

@@ -3,8 +3,10 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { useMemo } from 'react'
-import { useIsSubjectIdValid } from '.'
+
 import { useIsProcessingValue, useSensitiveContentValue } from '~states'
+
+import { useIsSubjectIdValid } from '.'
 
 export function useCanRun(): boolean {
 	const content = useSensitiveContentValue()

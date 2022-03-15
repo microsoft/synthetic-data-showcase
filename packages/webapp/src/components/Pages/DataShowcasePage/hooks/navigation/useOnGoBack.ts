@@ -3,8 +3,9 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { useCallback } from 'react'
-import { SetterOrUpdater } from 'recoil'
-import { PipelineStep } from '~models'
+import type { SetterOrUpdater } from 'recoil'
+
+import type { PipelineStep } from '~models'
 
 export function useOnGoBack(
 	setSelectedPipelineStep: SetterOrUpdater<string>,

@@ -6,11 +6,15 @@ lib/
 coverage/
 public/
 .yarn/
+.yarnrc.yaml
+yarn.lock
 .pnp.js
 .pnp.cjs
 .cache/
-node_modules/
 pkg/
 target/
 .eslintrc.js
 babel.config.js
+target/
+bot_backups/*
+DATA_REVIEW.md

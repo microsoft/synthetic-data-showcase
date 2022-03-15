@@ -2,10 +2,11 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { IStackTokens, Label, useTheme } from '@fluentui/react'
-import { Stack } from '@fluentui/react'
+import type { IStackTokens } from '@fluentui/react'
+import { Label, Stack, useTheme } from '@fluentui/react'
 import { memo } from 'react'
 import styled from 'styled-components'
+
 import { useActualNominalColor, useEstimatedNominalColor } from './hooks'
 
 export const AttributeIntersectionValueChartLegend: React.FC = memo(

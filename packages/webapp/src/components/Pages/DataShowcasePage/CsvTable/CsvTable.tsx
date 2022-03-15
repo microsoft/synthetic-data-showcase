@@ -3,13 +3,15 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import {
-	ArqueroTableHeader,
 	ArqueroDetailsList,
+	ArqueroTableHeader,
 } from '@data-wrangling-components/react'
-import { ICommandBarItemProps, Stack } from '@fluentui/react'
+import type { ICommandBarItemProps } from '@fluentui/react'
+import { Stack } from '@fluentui/react'
 import { useThematic } from '@thematic/react'
 import { memo } from 'react'
-import { ICsvContent } from '~models/csv'
+
+import type { ICsvContent } from '~models/csv'
 
 export interface ICsvTableProps {
 	content: ICsvContent

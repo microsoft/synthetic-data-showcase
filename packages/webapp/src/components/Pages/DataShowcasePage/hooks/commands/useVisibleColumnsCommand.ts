@@ -3,11 +3,13 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { visibleColumnsCommand } from '@data-wrangling-components/react'
-import { ICommandBarItemProps } from '@fluentui/react'
+import type { ICommandBarItemProps } from '@fluentui/react'
 import { useCallback, useMemo } from 'react'
-import { SetterOrUpdater } from 'recoil'
+import type { SetterOrUpdater } from 'recoil'
+
+import type { ICsvContent } from '~models'
+
 import { useOnUseColumnCheckToggle, useVisibleColumnNames } from '..'
-import { ICsvContent } from '~models'
 
 export function useVisibleColumnsCommand(
 	content: ICsvContent,
@@ -35,8 +37,8 @@ export function useVisibleColumnsCommand(
 				handleCheckChangeByName,
 				{
 					key: 'use-columns',
-					text: 'Use columns'
-				}
+					text: 'Use columns',
+				},
 			),
 		[content, visibleColumns, handleCheckChangeByName],
 	)

@@ -3,8 +3,9 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { useCallback } from 'react'
-import { SetterOrUpdater } from 'recoil'
-import { ICsvContent } from '~models'
+import type { SetterOrUpdater } from 'recoil'
+
+import type { ICsvContent } from '~models'
 
 export function useOnUseColumnCheckToggle(
 	setter: SetterOrUpdater<ICsvContent>,

@@ -3,8 +3,9 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { useMemo } from 'react'
-import { IEvaluateResult } from 'sds-wasm'
-import { EvaluationMetrics } from '~models'
+import type { IEvaluateResult } from 'sds-wasm'
+
+import type { EvaluationMetrics } from '~models'
 
 function not_zero_or(
 	value: number | null | undefined,

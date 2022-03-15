@@ -5,16 +5,18 @@
 import { Spinner, Stack } from '@fluentui/react'
 import React, { memo, Suspense } from 'react'
 import styled from 'styled-components'
-import { Pages } from './Pages'
+
 import { NavBar } from '~components/NavBar'
 
+import { Pages } from './Pages'
+
 export const Layout: React.FC = memo(function Layout({ children }) {
-	const menuItems = Object.keys(Pages)
-		.filter(k => !Pages[k].hideFromMenu)
-		.map(k => ({
-			key: Pages[k].name,
-			text: Pages[k].name,
-			pagePath: Pages[k].path,
+	const menuItems = Object.values(Pages)
+		.filter(page => !page.hideFromMenu)
+		.map(({ name, path }) => ({
+			key: name,
+			text: name,
+			pagePath: path,
 		}))
 
 	return (

@@ -2,15 +2,17 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import type { SetterOrUpdater } from 'recoil'
 import {
 	atom,
-	SetterOrUpdater,
 	useRecoilState,
 	useRecoilValue,
 	useResetRecoilState,
 	useSetRecoilState,
 } from 'recoil'
-import { defaultCsvContent, ICsvContent } from '~models/csv'
+
+import type { ICsvContent } from '~models/csv'
+import { defaultCsvContent } from '~models/csv'
 
 const state = atom<ICsvContent>({
 	key: 'synthetic-content',

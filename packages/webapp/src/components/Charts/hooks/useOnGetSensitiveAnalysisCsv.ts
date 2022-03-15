@@ -3,7 +3,8 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { useCallback } from 'react'
-import { EvaluationMetrics } from '~models'
+
+import type { EvaluationMetrics } from '~models'
 
 export function useOnGetSensitiveAnalysisCsv(
 	lenLabels: number[],

@@ -4,6 +4,6 @@
  */
 export * from './useDownloadCommand'
 export * from './useEditColumnCommand'
-export * from './useSubjectIdCommand'
 export * from './useSensitiveZerosCommand'
+export * from './useSubjectIdCommand'
 export * from './useVisibleColumnsCommand'

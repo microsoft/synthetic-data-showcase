@@ -2,9 +2,9 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { TableMetadata } from '@data-wrangling-components/core'
+import type { TableMetadata } from '@data-wrangling-components/core'
 import { table } from 'arquero'
-import ColumnTable from 'arquero/dist/types/table/column-table'
+import type ColumnTable from 'arquero/dist/types/table/column-table'
 
 export const defaultSubjectID = 'RowID'
 

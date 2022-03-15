@@ -2,25 +2,26 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import type { IStackStyles, IStackTokens } from '@fluentui/react'
 import {
 	getTheme,
-	IStackStyles,
-	IStackTokens,
 	Position,
 	PrimaryButton,
 	SpinButton,
 	Stack,
 } from '@fluentui/react'
 import { memo } from 'react'
-import { useCanRun, useOnRunEvaluate, useSpinButtonOnChange } from './hooks'
-import { useOnGetAggregatesDownloadInfo } from './hooks/evaluation'
+
 import { SensitiveDataCharts, SyntheticDataCharts } from '~components/Charts'
+import { DownloadButton } from '~components/controls/DownloadButton'
 import { EvaluationSummary } from '~components/EvaluationSummary'
 import { InfoTooltip } from '~components/InfoTooltip'
 import { TooltipWrapper } from '~components/TooltipWrapper'
-import { DownloadButton } from '~components/controls/DownloadButton'
 import { useEvaluateResult, useIsProcessing, useReportingLength } from '~states'
 import { tooltips } from '~ui-tooltips'
+
+import { useCanRun, useOnRunEvaluate, useSpinButtonOnChange } from './hooks'
+import { useOnGetAggregatesDownloadInfo } from './hooks/evaluation'
 
 export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 	const [reportingLength, setReportingLength] = useReportingLength()
