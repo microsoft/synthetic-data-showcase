@@ -3,7 +3,10 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { useCallback } from 'react'
-import { IAttributesIntersection, ISelectedAttributesByColumn } from 'sds-wasm'
+import type {
+	IAttributesIntersection,
+	ISelectedAttributesByColumn,
+} from 'sds-wasm'
 
 export function useOnSetSelectedAttributes(
 	setNewSelectedAttributesByColumn: (

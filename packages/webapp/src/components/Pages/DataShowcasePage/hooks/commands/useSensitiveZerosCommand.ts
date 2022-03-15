@@ -3,11 +3,13 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { checkedItemsCommand } from '@data-wrangling-components/react'
-import { ICommandBarItemProps } from '@fluentui/react'
+import type { ICommandBarItemProps } from '@fluentui/react'
 import { useCallback, useMemo } from 'react'
-import { SetterOrUpdater } from 'recoil'
+import type { SetterOrUpdater } from 'recoil'
+
+import type { ICsvContent } from '~models'
+
 import { useColumnsWithZeros, useOnSensitiveZeroCheckToggle } from '..'
-import { ICsvContent } from '~models'
 
 export function useSensitiveZerosCommand(
 	content: ICsvContent,
@@ -40,8 +42,8 @@ export function useSensitiveZerosCommand(
 				{
 					key: 'sensitive-zeros',
 					text: 'Sensitive zeros',
-					disabled: columnsWithZeros?.length === 0
-				}
+					disabled: columnsWithZeros?.length === 0,
+				},
 			),
 		[columnsWithZeros, selectedZeros, handleZeroCheckChangeByName],
 	)

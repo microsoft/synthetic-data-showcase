@@ -2,21 +2,17 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import {
-	CommandButton,
-	IIconProps,
-	IStackTokens,
-	PrimaryButton,
-	Stack,
-	useTheme,
-} from '@fluentui/react'
+import type { IIconProps, IStackTokens } from '@fluentui/react'
+import { CommandButton, PrimaryButton, Stack, useTheme } from '@fluentui/react'
 import { memo } from 'react'
-import { HeaderNames, ISelectedAttributesByColumn } from 'sds-wasm'
-import { useSelectedAttributesByColumnEntries } from './hooks'
-import {
+import type { HeaderNames, ISelectedAttributesByColumn } from 'sds-wasm'
+
+import type {
 	ClearSelectedAttributesCallback,
 	SetSelectedAttributesCallback,
 } from '~components/Pages/DataShowcasePage/DataNavigation'
+
+import { useSelectedAttributesByColumnEntries } from './hooks'
 
 const deleteIcon: IIconProps = { iconName: 'Delete' }
 

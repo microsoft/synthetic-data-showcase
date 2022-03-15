@@ -4,6 +4,7 @@
  */
 import { memo } from 'react'
 import { HashRouter } from 'react-router-dom'
+
 import { ChartContext } from './ChartContext'
 import { DataContext } from './DataContext'
 import { Layout } from './Layout'

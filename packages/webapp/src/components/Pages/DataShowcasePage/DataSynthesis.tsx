@@ -2,26 +2,17 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import type { IStackStyles, IStackTokens } from '@fluentui/react'
 import {
 	Dropdown,
 	getTheme,
-	IStackStyles,
-	IStackTokens,
 	Position,
 	PrimaryButton,
 	SpinButton,
 	Stack,
 } from '@fluentui/react'
 import { memo } from 'react'
-import { CsvTable } from './CsvTable'
-import {
-	useCanRun,
-	useOnRunGenerate,
-	useSpinButtonOnChange,
-	useSynthesisModeOnChange,
-	useSynthesisModeOptions,
-	useSyntheticTableCommands,
-} from './hooks'
+
 import { InfoTooltip } from '~components/InfoTooltip'
 import { TooltipWrapper } from '~components/TooltipWrapper'
 import {
@@ -34,6 +25,16 @@ import {
 	useSyntheticContent,
 } from '~states'
 import { tooltips } from '~ui-tooltips'
+
+import { CsvTable } from './CsvTable'
+import {
+	useCanRun,
+	useOnRunGenerate,
+	useSpinButtonOnChange,
+	useSynthesisModeOnChange,
+	useSynthesisModeOptions,
+	useSyntheticTableCommands,
+} from './hooks'
 
 export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 	const [resolution, setResolution] = useResolution()

@@ -3,7 +3,7 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { useMemo } from 'react'
-import { HeaderNames } from 'sds-wasm'
+import type { HeaderNames } from 'sds-wasm'
 
 const initiallySelectedHeaders = 6
 

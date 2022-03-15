@@ -3,8 +3,9 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { useCallback, useMemo } from 'react'
-import { IPrivacyRiskSummary } from 'sds-wasm'
-import { DownloadInfo } from '~components/controls/DownloadButton'
+import type { IPrivacyRiskSummary } from 'sds-wasm'
+
+import type { DownloadInfo } from '~components/controls/DownloadButton'
 import { tooltips } from '~ui-tooltips'
 
 export function useEvaluationSummaryItems(

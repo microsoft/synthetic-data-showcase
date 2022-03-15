@@ -4,5 +4,5 @@
  */
 export enum SynthesisMode {
 	Seeded = 'Seeded',
-	Unseeded = 'Unseeded'
+	Unseeded = 'Unseeded',
 }

@@ -3,7 +3,7 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { useCallback } from 'react'
-import { SetterOrUpdater } from 'recoil'
+import type { SetterOrUpdater } from 'recoil'
 
 /**
  * onChange handler that only fires if the input is a valid number

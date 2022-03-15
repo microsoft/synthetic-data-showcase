@@ -2,20 +2,20 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import type { IColumn, IGroup, IStackTokens } from '@fluentui/react'
 import {
 	DetailsList,
 	DetailsListLayoutMode,
-	IColumn,
-	IGroup,
-	IStackTokens,
 	SelectionMode,
 	Stack,
 } from '@fluentui/react'
 import { memo } from 'react'
-import { IPrivacyRiskSummary } from 'sds-wasm'
-import { useEvaluationSummaryItems, useOnGetSummaryDownloadInfo } from './hooks'
-import { InfoTooltip } from '~components/InfoTooltip'
+import type { IPrivacyRiskSummary } from 'sds-wasm'
+
 import { DownloadButton } from '~components/controls/DownloadButton'
+import { InfoTooltip } from '~components/InfoTooltip'
+
+import { useEvaluationSummaryItems, useOnGetSummaryDownloadInfo } from './hooks'
 
 export interface EvaluationSummaryProps {
 	privacyRiskLabel: string

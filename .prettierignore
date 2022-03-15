@@ -1,8 +1,3 @@
-.yarn/
-.yarnrc.yml
-yarn.lock
-.pnp.js
-.pnp.cjs
 node_modules/
 storybook-static/
 build/
@@ -10,7 +5,16 @@ dist/
 lib/
 coverage/
 public/
+.yarn/
+.yarnrc.yml
+yarn.lock
+.pnp.js
+.pnp.cjs
+.cache/
+pkg/
+target/
+.eslintrc.js
+babel.config.js
+target/
 bot_backups/*
 DATA_REVIEW.md
-.cache
-.eslintrc

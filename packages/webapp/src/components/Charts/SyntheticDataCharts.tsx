@@ -2,9 +2,16 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { IStackStyles, IStackTokens, Stack } from '@fluentui/react'
+import type { IStackStyles, IStackTokens } from '@fluentui/react'
+import { Stack } from '@fluentui/react'
 import { memo } from 'react'
-import { IEvaluateResult } from 'sds-wasm'
+import type { IEvaluateResult } from 'sds-wasm'
+
+import { MetricsChart } from '~components/Charts'
+import { DownloadButton } from '~components/controls/DownloadButton'
+import { InfoTooltip } from '~components/InfoTooltip'
+import { tooltips } from '~ui-tooltips'
+
 import {
 	useEvaluationMetrics,
 	useMetricsByCountLabels,
@@ -12,10 +19,6 @@ import {
 	useOnGetCountPreservationDownloadInfo,
 	useOnGetSyntheticAnalysisDownloadInfo,
 } from './hooks'
-import { MetricsChart } from '~components/Charts'
-import { InfoTooltip } from '~components/InfoTooltip'
-import { DownloadButton } from '~components/controls/DownloadButton'
-import { tooltips } from '~ui-tooltips'
 
 export interface SyntheticDataChartsProps {
 	evaluateResult: IEvaluateResult

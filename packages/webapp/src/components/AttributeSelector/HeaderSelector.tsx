@@ -2,9 +2,10 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { Stack, useTheme, IStackTokens, Checkbox } from '@fluentui/react'
+import type { IStackTokens } from '@fluentui/react'
+import { Checkbox, Stack, useTheme } from '@fluentui/react'
 import { memo } from 'react'
-import { HeaderNames } from 'sds-wasm'
+import type { HeaderNames } from 'sds-wasm'
 
 export interface HeaderSelectorProps {
 	headers: HeaderNames

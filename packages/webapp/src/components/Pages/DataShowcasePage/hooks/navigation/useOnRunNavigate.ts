@@ -2,8 +2,10 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { MutableRefObject, useCallback } from 'react'
-import { SdsWasmWorker } from '~workers/sds-wasm'
+import type { MutableRefObject } from 'react'
+import { useCallback } from 'react'
+
+import type { SdsWasmWorker } from '~workers/sds-wasm'
 
 export function useOnRunNavigate(
 	setIsLoading: (value: boolean) => void,

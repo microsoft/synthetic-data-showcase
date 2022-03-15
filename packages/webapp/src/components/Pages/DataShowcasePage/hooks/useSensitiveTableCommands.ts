@@ -2,17 +2,19 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { ICommandBarItemProps } from '@fluentui/react'
+import type { ICommandBarItemProps } from '@fluentui/react'
 import { useMemo } from 'react'
-import { SetterOrUpdater } from 'recoil'
+import type { SetterOrUpdater } from 'recoil'
+
+import type { ICsvContent } from '~models'
+
 import {
 	useDownloadCommand,
 	useEditColumnCommand,
-	useSubjectIdCommand,
 	useSensitiveZerosCommand,
+	useSubjectIdCommand,
 	useVisibleColumnsCommand,
 } from './commands'
-import { ICsvContent } from '~models'
 import {} from './commands/useEditColumnCommand'
 
 export function useSensitiveTableCommands(

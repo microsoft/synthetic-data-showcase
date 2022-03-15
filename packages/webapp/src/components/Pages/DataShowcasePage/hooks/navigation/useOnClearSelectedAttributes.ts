@@ -3,7 +3,7 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { useCallback } from 'react'
-import { ISelectedAttributesByColumn } from 'sds-wasm'
+import type { ISelectedAttributesByColumn } from 'sds-wasm'
 
 export function useOnClearSelectedAttributes(
 	setNewSelectedAttributesByColumn: (

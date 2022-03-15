@@ -3,7 +3,8 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { useMemo } from 'react'
-import { ICsvContent } from '~models'
+
+import type { ICsvContent } from '~models'
 
 export function useVisibleColumnNames(content: ICsvContent): string[] {
 	return useMemo(() => {

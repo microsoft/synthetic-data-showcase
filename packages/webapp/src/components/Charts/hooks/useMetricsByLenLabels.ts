@@ -4,7 +4,7 @@
  */
 import _ from 'lodash'
 import { useMemo } from 'react'
-import { IEvaluateResult } from 'sds-wasm'
+import type { IEvaluateResult } from 'sds-wasm'
 
 export function useMetricsByLenLabels(res: IEvaluateResult | null): number[] {
 	return useMemo(() => {

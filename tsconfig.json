@@ -1,9 +1,16 @@
 {
 	"compilerOptions": {
 		"module": "ESNext",
-		"moduleResolution": "Node",
+		"target": "ESNext",
 		"lib": ["ESNext"],
-		"skipLibCheck": false,
-		"forceConsistentCasingInFileNames": true
+		"declaration": true,
+		"sourceMap": true,
+		"strict": true,
+		"moduleResolution": "node",
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"useDefineForClassFields": true,
+		"forceConsistentCasingInFileNames": true,
+		"noErrorTruncation": true
 	}
 }

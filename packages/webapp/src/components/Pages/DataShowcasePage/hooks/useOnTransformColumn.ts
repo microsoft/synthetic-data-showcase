@@ -2,15 +2,16 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import {
-	Step,
-	runPipeline,
+import type {
 	InputColumnArgs,
 	OutputColumnArgs,
+	Step,
 } from '@data-wrangling-components/core'
-import ColumnTable from 'arquero/dist/types/table/column-table'
+import { runPipeline } from '@data-wrangling-components/core'
+import type ColumnTable from 'arquero/dist/types/table/column-table'
 import { useCallback } from 'react'
-import { ICsvContent } from '~models'
+
+import type { ICsvContent } from '~models'
 
 // TODO: this would be convenient as a dwc export
 interface ColumnTransformArgs extends InputColumnArgs, OutputColumnArgs {}

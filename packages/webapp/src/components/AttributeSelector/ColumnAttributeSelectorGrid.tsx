@@ -4,11 +4,13 @@
  */
 import { Stack, useTheme } from '@fluentui/react'
 import { memo } from 'react'
-import { HeaderNames, ISelectedAttributesByColumn } from 'sds-wasm'
-import { ColumnAttributeSelector } from './ColumnAttributeSelector'
+import type { HeaderNames, ISelectedAttributesByColumn } from 'sds-wasm'
+
 import { AttributeIntersectionValueChartLegend } from '~components/AttributeIntersectionValueChartLegend'
 import { useHorizontalScrolling } from '~components/Charts/hooks'
-import { SetSelectedAttributesCallback } from '~components/Pages/DataShowcasePage/DataNavigation'
+import type { SetSelectedAttributesCallback } from '~components/Pages/DataShowcasePage/DataNavigation'
+
+import { ColumnAttributeSelector } from './ColumnAttributeSelector'
 
 export interface ColumnAttributeSelectorGridProps {
 	viewHeight: string | number

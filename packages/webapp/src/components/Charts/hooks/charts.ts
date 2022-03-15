@@ -3,11 +3,13 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { useThematic } from '@thematic/react'
-import { _DeepPartialObject } from 'chart.js/types/utils'
-import { Options } from 'chartjs-plugin-datalabels/types/options'
-import { BaseSyntheticEvent, useCallback, useMemo, WheelEvent } from 'react'
+import type { _DeepPartialObject } from 'chart.js/types/utils'
+import type { Options } from 'chartjs-plugin-datalabels/types/options'
+import type { BaseSyntheticEvent, WheelEvent } from 'react'
+import { useCallback, useMemo } from 'react'
+
+import type { BarColors } from '~components/AttributeIntersectionValueChartLegend'
 import {
-	BarColors,
 	useActualBarChartColors,
 	useEstimatedBarChartColors,
 } from '~components/AttributeIntersectionValueChartLegend'

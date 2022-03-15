@@ -3,8 +3,9 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { useCallback } from 'react'
-import { SetterOrUpdater } from 'recoil'
-import { IEvaluateResult } from 'sds-wasm'
+import type { SetterOrUpdater } from 'recoil'
+import type { IEvaluateResult } from 'sds-wasm'
+
 import {
 	useClearEvaluate,
 	useIsProcessingSetter,

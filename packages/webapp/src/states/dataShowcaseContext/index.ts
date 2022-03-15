@@ -4,6 +4,7 @@
  */
 export * from './cacheSize'
 export * from './evaluateResult'
+export * from './hooks'
 export * from './isProcessing'
 export * from './processingProgress'
 export * from './recordLimit'
@@ -14,4 +15,3 @@ export * from './sensitiveContent'
 export * from './synthesisMode'
 export * from './syntheticContent'
 export * from './wasmWorker'
-export * from './hooks'

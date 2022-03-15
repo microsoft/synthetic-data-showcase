@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import {
+import type {
 	HeaderNames,
 	IAggregateResult,
 	IAttributesIntersectionByColumn,
@@ -11,7 +11,10 @@ import {
 	ReportProgressCallback,
 } from 'sds-wasm'
 import { v4 } from 'uuid'
-import {
+
+import { SynthesisMode } from '~models'
+
+import type {
 	SdsWasmAttributesIntersectionsByColumnMessage,
 	SdsWasmAttributesIntersectionsByColumnResponse,
 	SdsWasmClearEvaluateMessage,
@@ -27,14 +30,13 @@ import {
 	SdsWasmGetSensitiveAggregateResultResponse,
 	SdsWasmInitMessage,
 	SdsWasmMessage,
-	SdsWasmMessageType,
 	SdsWasmNavigateMessage,
 	SdsWasmReportProgressResponse,
 	SdsWasmResponse,
 	SdsWasmSelectAttributesMessage,
 } from './types'
+import { SdsWasmMessageType } from './types'
 import Worker from './worker?worker'
-import { SynthesisMode } from '~models'
 
 type SdsWasmResponseCallback = ((value: SdsWasmResponse) => void) | undefined
 
