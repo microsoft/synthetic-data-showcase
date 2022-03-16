@@ -37,7 +37,7 @@ use crate::{
 
 /// Aggregated data produced by the Aggregator
 #[cfg_attr(feature = "pyo3", pyclass)]
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct AggregatedData {
     /// Data block from where this aggregated data was generated
     pub data_block: Arc<DataBlock>,
@@ -547,7 +547,34 @@ impl AggregatedData {
         result
     }
 
-    /// Calculates the number of combinations grouped by combination length
+    /// Calculates the percentage of rare combinations grouped by combination length
+    /// # Arguments:
+    /// * `resolution` - Reporting resolution used for data synthesis
+    pub fn calc_rare_combinations_percentage_by_len(
+        &self,
+        resolution: usize,
+    ) -> AggregatedMetricByLenMap {
+        let _duration_logger =
+            ElapsedDurationLogger::new("rare combinations percentage by len calculation");
+
+        info!(
+            "calculating rare combinations percentage by length with resolution {}",
+            resolution
+        );
+
+        let total_by_len = self.calc_combinations_count_by_len();
+
+        self.calc_rare_combinations_count_by_len(resolution)
+            .iter()
+            .filter_map(|(l, c)| {
+                total_by_len
+                    .get(l)
+                    .map(|total_count| (*l, ((*c as f64) / (*total_count as f64)) * 100.0))
+            })
+            .collect::<AggregatedMetricByLenMap>()
+    }
+
+    /// Calculates the number of distinct combinations grouped by combination length
     pub fn calc_combinations_count_by_len(&self) -> AggregatedCountByLenMap {
         let _duration_logger = ElapsedDurationLogger::new("combination count by len calculation");
         let mut result: AggregatedCountByLenMap = AggregatedCountByLenMap::default();

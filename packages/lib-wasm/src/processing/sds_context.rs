@@ -1,4 +1,5 @@
 use super::{
+    aggregator::aggregate_result::WasmAggregateResult,
     evaluator::evaluate_result::WasmEvaluateResult, generator::generate_result::WasmGenerateResult,
     navigator::navigate_result::WasmNavigateResult, sds_processor::SDSProcessor,
 };
@@ -20,6 +21,9 @@ pub struct SDSContext {
     generate_result: WasmGenerateResult,
     resolution: usize,
     synthetic_processor: SDSProcessor,
+    sensitive_aggregate_result: WasmAggregateResult,
+    reportable_aggregate_result: WasmAggregateResult,
+    synthetic_aggregate_result: WasmAggregateResult,
     evaluate_result: WasmEvaluateResult,
     navigate_result: WasmNavigateResult,
 }
@@ -37,6 +41,9 @@ impl SDSContext {
             generate_result: WasmGenerateResult::default(),
             resolution: 0,
             synthetic_processor: SDSProcessor::default(),
+            sensitive_aggregate_result: WasmAggregateResult::default(),
+            reportable_aggregate_result: WasmAggregateResult::default(),
+            synthetic_aggregate_result: WasmAggregateResult::default(),
             evaluate_result: WasmEvaluateResult::default(),
             navigate_result: WasmNavigateResult::default(),
         }
@@ -62,6 +69,9 @@ impl SDSContext {
 
     #[wasm_bindgen(js_name = "clearEvaluate")]
     pub fn clear_evaluate(&mut self) {
+        self.sensitive_aggregate_result = WasmAggregateResult::default();
+        self.reportable_aggregate_result = WasmAggregateResult::default();
+        self.synthetic_aggregate_result = WasmAggregateResult::default();
         self.evaluate_result = WasmEvaluateResult::default();
         self.clear_navigate()
     }
@@ -138,15 +148,21 @@ impl SDSContext {
     ) -> JsResult<()> {
         debug!("aggregating sensitive data...");
 
-        let sensitive_aggregate_result = self.sensitive_processor.aggregate(
+        self.sensitive_aggregate_result = self.sensitive_processor.aggregate(
             reporting_length,
             sensitivity_threshold,
             sensitive_progress_callback,
         )?;
 
+        debug!("calculating reportable aggregate data...");
+
+        self.reportable_aggregate_result = self.sensitive_aggregate_result.clone();
+        self.reportable_aggregate_result
+            .protect_aggregates_count(self.resolution);
+
         debug!("aggregating synthetic data...");
 
-        let synthetic_aggregate_result = self.synthetic_processor.aggregate(
+        self.synthetic_aggregate_result = self.synthetic_processor.aggregate(
             reporting_length,
             sensitivity_threshold,
             synthetic_progress_callback,
@@ -155,21 +171,15 @@ impl SDSContext {
         debug!("evaluating synthetic data based on sensitive data...");
 
         self.evaluate_result = WasmEvaluateResult::from_aggregate_results(
-            sensitive_aggregate_result,
-            synthetic_aggregate_result,
-        );
+            &self.sensitive_aggregate_result,
+            &self.reportable_aggregate_result,
+            &self.synthetic_aggregate_result,
+            self.resolution,
+        )?;
 
         self.clear_navigate();
 
         Ok(())
-    }
-
-    #[wasm_bindgen(js_name = "protectSensitiveAggregatesCount")]
-    pub fn protect_sensitive_aggregates_count(&mut self) {
-        debug!("protecting sensitive aggregates count...");
-
-        self.evaluate_result
-            .protect_sensitive_aggregates_count(self.resolution);
     }
 
     pub fn navigate(&mut self) {
@@ -189,10 +199,8 @@ impl SDSContext {
         &mut self,
         columns: JsHeaderNames,
     ) -> JsResult<JsAttributesIntersectionByColumn> {
-        self.navigate_result.attributes_intersections_by_column(
-            columns,
-            &self.evaluate_result.sensitive_aggregate_result,
-        )
+        self.navigate_result
+            .attributes_intersections_by_column(columns, &self.sensitive_aggregate_result)
     }
 
     #[wasm_bindgen(js_name = "generateResultToJs")]
@@ -201,18 +209,8 @@ impl SDSContext {
     }
 
     #[wasm_bindgen(js_name = "evaluateResultToJs")]
-    pub fn evaluate_result_to_js(
-        &self,
-        aggregates_delimiter: char,
-        combination_delimiter: &str,
-        include_aggregates_data: bool,
-    ) -> JsResult<JsEvaluateResult> {
-        self.evaluate_result.to_js(
-            aggregates_delimiter,
-            combination_delimiter,
-            self.resolution,
-            include_aggregates_data,
-        )
+    pub fn evaluate_result_to_js(&self) -> JsResult<JsEvaluateResult> {
+        self.evaluate_result.to_js()
     }
 
     #[wasm_bindgen(js_name = "sensitiveAggregateResultToJs")]
@@ -220,13 +218,26 @@ impl SDSContext {
         &self,
         aggregates_delimiter: char,
         combination_delimiter: &str,
-        include_aggregates_data: bool,
     ) -> JsResult<JsAggregateResult> {
-        self.evaluate_result.sensitive_aggregate_result_to_js(
+        self.sensitive_aggregate_result.to_js(
             aggregates_delimiter,
             combination_delimiter,
             self.resolution,
-            include_aggregates_data,
+            false,
+        )
+    }
+
+    #[wasm_bindgen(js_name = "reportableAggregateResultToJs")]
+    pub fn reportable_aggregate_result_to_js(
+        &self,
+        aggregates_delimiter: char,
+        combination_delimiter: &str,
+    ) -> JsResult<JsAggregateResult> {
+        self.reportable_aggregate_result.to_js(
+            aggregates_delimiter,
+            combination_delimiter,
+            self.resolution,
+            true,
         )
     }
 
@@ -235,13 +246,12 @@ impl SDSContext {
         &self,
         aggregates_delimiter: char,
         combination_delimiter: &str,
-        include_aggregates_data: bool,
     ) -> JsResult<JsAggregateResult> {
-        self.evaluate_result.synthetic_aggregate_result_to_js(
+        self.synthetic_aggregate_result.to_js(
             aggregates_delimiter,
             combination_delimiter,
             self.resolution,
-            include_aggregates_data,
+            false,
         )
     }
 }

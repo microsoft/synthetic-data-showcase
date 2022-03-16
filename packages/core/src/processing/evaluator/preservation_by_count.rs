@@ -9,7 +9,10 @@ use std::{
 use pyo3::prelude::*;
 
 use crate::{
-    processing::aggregator::{typedefs::AggregatesCountMap, value_combination::ValueCombination},
+    processing::aggregator::{
+        typedefs::{AggregatedMetricByLenMap, AggregatesCountMap},
+        value_combination::ValueCombination,
+    },
     utils::time::ElapsedDurationLogger,
 };
 
@@ -80,6 +83,16 @@ impl PreservationByCountBuckets {
         self.buckets_map.clone()
     }
 
+    /// Calculates the mean combination length by bucket
+    pub fn calc_mean_combination_length_by_bucket(&self) -> AggregatedMetricByLenMap {
+        let _duration_logger =
+            ElapsedDurationLogger::new("mean combination length by bucket calculation");
+
+        self.iter()
+            .map(|(bucket_max, b)| (*bucket_max, b.get_mean_combination_length()))
+            .collect::<AggregatedMetricByLenMap>()
+    }
+
     /// Calculates the combination loss for the calculated bucket preservation information
     /// (`combination_loss = avg(1 - bucket_preservation_sum / bucket_size) for all buckets`)
     pub fn calc_combination_loss(&self) -> f64 {
@@ -118,6 +131,19 @@ impl PreservationByCountBuckets {
         } else {
             0.0
         }
+    }
+
+    /// Calculates the mean proportional error by bucket.
+    ///
+    /// Proportional Error = `if sensitive_sensitive > 0
+    /// (|synthetic_count - sensitive_sensitive| / sensitive_sensitive) else 1`
+    pub fn calc_mean_proportional_error_by_bucket(&self) -> AggregatedMetricByLenMap {
+        let _duration_logger =
+            ElapsedDurationLogger::new("mean proportion error by bucket calculation");
+
+        self.iter()
+            .map(|(bucket_max, b)| (*bucket_max, b.get_mean_proportional_error()))
+            .collect::<AggregatedMetricByLenMap>()
     }
 
     /// Writes the preservation grouped by counts to the file system in a csv/tsv like format
