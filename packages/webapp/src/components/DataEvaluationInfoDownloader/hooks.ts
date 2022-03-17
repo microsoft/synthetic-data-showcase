@@ -6,7 +6,8 @@ import { useCallback } from 'react'
 import type { IMicrodataStatistics } from 'sds-wasm'
 
 import type { DownloadInfo } from '~components/controls/DownloadButton'
-import { EvaluationStatsType } from '~models'
+import { useMicrodataMetricsItems } from '~components/MetricsSummaryTable'
+import type { EvaluationStatsType } from '~models'
 import { useWasmWorkerValue } from '~states'
 
 export function useOnGetMetricsSummaryCsv(
@@ -14,51 +15,16 @@ export function useOnGetMetricsSummaryCsv(
 	statsType: EvaluationStatsType,
 	delimiter = ',',
 ): () => string {
-	return useCallback(() => {
-		let data = `Metric${delimiter}Value\n`
+	const microdataMetricItems = useMicrodataMetricsItems(stats, statsType)
 
-		if (
-			statsType === EvaluationStatsType.AggregateCounts ||
-			statsType === EvaluationStatsType.SyntheticData
-		) {
-			data += `Suppressed combinations percentage${delimiter}${stats?.suppressedCombinationsPercentage}\n`
-		}
-		if (
-			statsType === EvaluationStatsType.AggregateCounts ||
-			statsType === EvaluationStatsType.SyntheticData
-		) {
-			data += `Fabricated combinations percentage${delimiter}${stats?.fabricatedCombinationsPercentage}\n`
-		}
-		Object.keys(stats?.originalMeanCombinationsCountByLen ?? {}).forEach(l => {
-			data += `${l}-count mean value +/- Mean error${delimiter}${
-				stats?.originalMeanCombinationsCountByLen[l] ?? 0
-			} +/- ${stats?.meanCombinationsCountErrorByLen[l]}\n`
-		})
-		data += `Mean combination count +/- Mean error${delimiter}${stats?.originalMeanCombinationsCount} +/- ${stats?.meanCombinationsCountError}\n`
-		if (statsType === EvaluationStatsType.SyntheticData) {
-			data += `Record expansion percentage${delimiter}${stats?.recordExpansionPercentage}\n`
-		}
-		if (
-			statsType === EvaluationStatsType.AggregateCounts ||
-			statsType === EvaluationStatsType.SyntheticData
-		) {
-			data += `Mean proportional error${delimiter}${stats?.meanProportionalError}\n`
-		}
-		if (statsType === EvaluationStatsType.SensitiveData) {
-			data += `Percentage of records containing unique attribute combinations${delimiter}${stats?.recordsWithUniqueCombinationsPercentage}\n`
-		}
-		if (statsType === EvaluationStatsType.SensitiveData) {
-			data += `Percentage of records containing rare attribute combinations${delimiter}${stats?.recordsWithRareCombinationsPercentage}\n`
-		}
-		if (statsType === EvaluationStatsType.SensitiveData) {
-			data += `Percentage of unique attribute combinations${delimiter}${stats?.uniqueCombinationsPercentage}\n`
-		}
-		if (statsType === EvaluationStatsType.SensitiveData) {
-			data += `Percentage of rare attribute combinations${delimiter}${stats?.rareCombinationsPercentage}\n`
-		}
-
-		return data
-	}, [stats, statsType, delimiter])
+	return useCallback(
+		() =>
+			`Metric${delimiter}Value\n` +
+			microdataMetricItems
+				.map(item => `${item.metric}${delimiter}${item.value}`)
+				.join('\n'),
+		[microdataMetricItems, delimiter],
+	)
 }
 
 export function useOnGetAnalysisByCountCsv(
@@ -67,15 +33,19 @@ export function useOnGetAnalysisByCountCsv(
 	delimiter = ',',
 ): () => string {
 	return useCallback(() => {
-		let data = `Bin${delimiter}Mean proportional error${delimiter}Mean length of combinations\n`
+		let csv = `Bin${delimiter}Mean proportional error${delimiter}Mean length of combinations\n`
 
-		countLabels.forEach(c => {
-			data += `${c}${delimiter}${
-				stats?.meanProportionalErrorByBucket[c] ?? 0
-			}${delimiter}${stats?.meanCombinationsLengthByBucket[c] ?? 0}\n`
-		})
-
-		return data
+		if (stats) {
+			csv += countLabels
+				.map(
+					c =>
+						`${c}${delimiter}${
+							stats.meanProportionalErrorByBucket[c] ?? 0
+						}${delimiter}${stats.meanCombinationsLengthByBucket[c] ?? 0}`,
+				)
+				.join('\n')
+		}
+		return csv
 	}, [countLabels, stats, delimiter])
 }
 
@@ -85,21 +55,23 @@ export function useOnGetAnalysisByLenCsv(
 	delimiter = ',',
 ): () => string {
 	return useCallback(() => {
-		let data = `Length${delimiter}Mean combinations count${delimiter}Distinct combinations count${delimiter}Rare combinations count${delimiter}Rare combinations percentage${delimiter}Leakage count${delimiter}Leakage percentage${delimiter}\n`
+		let csv = `Length${delimiter}Mean combinations count${delimiter}Distinct combinations count${delimiter}Rare combinations count${delimiter}Rare combinations percentage${delimiter}Leakage count${delimiter}Leakage percentage${delimiter}\n`
 
-		lenLabels.forEach(l => {
-			data += `${l}${delimiter}${
-				stats?.meanCombinationsCountByLen[l] ?? 0
-			}${delimiter}${
-				stats?.distinctCombinationsCountByLen[l] ?? 0
-			}${delimiter}${stats?.rareCombinationsCountByLen[l] ?? 0}${delimiter}${
-				stats?.rareCombinationsPercentageByLen[l] ?? 0
-			}${delimiter}${stats?.leakageCountByLen[l] ?? 0}${delimiter}${
-				stats?.leakagePercentageByLen[l] ?? 0
-			}\n`
-		})
-
-		return data
+		if (stats) {
+			csv += lenLabels.map(
+				l =>
+					`${l}${delimiter}${
+						stats.meanCombinationsCountByLen[l] ?? 0
+					}${delimiter}${
+						stats.distinctCombinationsCountByLen[l] ?? 0
+					}${delimiter}${stats.rareCombinationsCountByLen[l] ?? 0}${delimiter}${
+						stats.rareCombinationsPercentageByLen[l] ?? 0
+					}${delimiter}${stats.leakageCountByLen[l] ?? 0}${delimiter}${
+						stats.leakagePercentageByLen[l] ?? 0
+					}`,
+			)
+		}
+		return csv
 	}, [lenLabels, stats, delimiter])
 }
 

@@ -10,7 +10,7 @@ import type {
 	ISelectedAttributesByColumn,
 } from 'sds-wasm'
 
-import type { EvaluationStatsType } from '~models';
+import type { EvaluationStatsType } from '~models'
 
 export enum SdsWasmMessageType {
 	Init = 'Init',
