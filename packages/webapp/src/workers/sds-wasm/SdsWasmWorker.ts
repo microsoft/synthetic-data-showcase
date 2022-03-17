@@ -12,6 +12,7 @@ import type {
 } from 'sds-wasm'
 import { v4 } from 'uuid'
 
+import type { EvaluationStatsType} from '~models';
 import { SynthesisMode } from '~models'
 
 import type {
@@ -26,8 +27,8 @@ import type {
 	SdsWasmEvaluateResponse,
 	SdsWasmGenerateMessage,
 	SdsWasmGenerateResponse,
-	SdsWasmGetSensitiveAggregateResultMessage,
-	SdsWasmGetSensitiveAggregateResultResponse,
+	SdsWasmGetAggregateResultMessage,
+	SdsWasmGetAggregateResultResponse,
 	SdsWasmInitMessage,
 	SdsWasmMessage,
 	SdsWasmNavigateMessage,
@@ -188,9 +189,6 @@ export class SdsWasmWorker {
 	public async evaluate(
 		reportingLength: number,
 		sensitivityThreshold = 0,
-		aggregatesDelimiter = ',',
-		combinationDelimiter = ';',
-		includeAggregatesData = false,
 		reportProgress?: ReportProgressCallback,
 	): Promise<IEvaluateResult | undefined> {
 		const response = await this.execute(
@@ -199,9 +197,6 @@ export class SdsWasmWorker {
 				type: SdsWasmMessageType.Evaluate,
 				reportingLength,
 				sensitivityThreshold,
-				aggregatesDelimiter,
-				combinationDelimiter,
-				includeAggregatesData,
 			} as SdsWasmEvaluateMessage,
 			reportProgress,
 		)
@@ -249,21 +244,21 @@ export class SdsWasmWorker {
 		return undefined
 	}
 
-	public async getSensitiveAggregateResult(
+	public async getAggregateResult(
+		aggregateType: EvaluationStatsType,
 		aggregatesDelimiter = ',',
 		combinationDelimiter = ';',
-		includeAggregatesData = true,
 	): Promise<IAggregateResult | undefined> {
 		const response = await this.execute({
 			id: v4(),
-			type: SdsWasmMessageType.GetSensitiveAggregateResult,
+			type: SdsWasmMessageType.GetAggregateResult,
 			aggregatesDelimiter,
 			combinationDelimiter,
-			includeAggregatesData,
-		} as SdsWasmGetSensitiveAggregateResultMessage)
+			aggregateType
+		} as SdsWasmGetAggregateResultMessage)
 
-		if (response.type === SdsWasmMessageType.GetSensitiveAggregateResult) {
-			return (response as SdsWasmGetSensitiveAggregateResultResponse)
+		if (response.type === SdsWasmMessageType.GetAggregateResult) {
+			return (response as SdsWasmGetAggregateResultResponse)
 				.aggregateResult
 		}
 		return undefined

@@ -10,6 +10,8 @@ import type {
 	ISelectedAttributesByColumn,
 } from 'sds-wasm'
 
+import type { EvaluationStatsType } from '~models';
+
 export enum SdsWasmMessageType {
 	Init = 'Init',
 	Error = 'Error',
@@ -23,7 +25,7 @@ export enum SdsWasmMessageType {
 	Navigate = 'Navigate',
 	SelectAttributes = 'SelectAttributes',
 	AttributesIntersectionsByColumn = 'AttributesIntersectionsByColumn',
-	GetSensitiveAggregateResult = 'GetSensitiveAggregateResult',
+	GetAggregateResult = 'GetAggregateResult',
 }
 
 export interface SdsWasmMessage {
@@ -111,9 +113,6 @@ export interface SdsWasmEvaluateMessage extends SdsWasmMessage {
 	type: SdsWasmMessageType.Evaluate
 	reportingLength: number
 	sensitivityThreshold: number
-	aggregatesDelimiter: string
-	combinationDelimiter: string
-	includeAggregatesData: boolean
 }
 
 export interface SdsWasmEvaluateResponse extends SdsWasmResponse {
@@ -150,16 +149,16 @@ export interface SdsWasmAttributesIntersectionsByColumnResponse
 	attributesIntersectionByColumn: IAttributesIntersectionByColumn
 }
 
-export interface SdsWasmGetSensitiveAggregateResultMessage
+export interface SdsWasmGetAggregateResultMessage
 	extends SdsWasmMessage {
-	type: SdsWasmMessageType.GetSensitiveAggregateResult
+	type: SdsWasmMessageType.GetAggregateResult
+	aggregateType: EvaluationStatsType
 	aggregatesDelimiter: string
 	combinationDelimiter: string
-	includeAggregatesData: boolean
 }
 
-export interface SdsWasmGetSensitiveAggregateResultResponse
+export interface SdsWasmGetAggregateResultResponse
 	extends SdsWasmResponse {
-	type: SdsWasmMessageType.GetSensitiveAggregateResult
+	type: SdsWasmMessageType.GetAggregateResult
 	aggregateResult: IAggregateResult
 }

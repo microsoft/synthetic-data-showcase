@@ -4,6 +4,7 @@
  */
 import init, { init_logger, SDSContext } from 'sds-wasm'
 
+import { EvaluationStatsType } from '../../models'
 import type {
 	SdsWasmAttributesIntersectionsByColumnMessage,
 	SdsWasmAttributesIntersectionsByColumnResponse,
@@ -20,8 +21,8 @@ import type {
 	SdsWasmEvaluateResponse,
 	SdsWasmGenerateMessage,
 	SdsWasmGenerateResponse,
-	SdsWasmGetSensitiveAggregateResultMessage,
-	SdsWasmGetSensitiveAggregateResultResponse,
+	SdsWasmGetAggregateResultMessage,
+	SdsWasmGetAggregateResultResponse,
 	SdsWasmInitMessage,
 	SdsWasmInitResponse,
 	SdsWasmMessage,
@@ -47,8 +48,7 @@ const HANDLERS = {
 	[SdsWasmMessageType.SelectAttributes]: handleSelectAttributes,
 	[SdsWasmMessageType.AttributesIntersectionsByColumn]:
 		handleAttributesIntersectionsByColumn,
-	[SdsWasmMessageType.GetSensitiveAggregateResult]:
-		handleGetSensitiveAggregateResult,
+	[SdsWasmMessageType.GetAggregateResult]: handleGetAggregateResult,
 }
 
 function postProgress(id: string, progress: number) {
@@ -164,18 +164,10 @@ async function handleEvaluate(
 		},
 	)
 
-	const evaluateResult = CONTEXT.evaluateResultToJs(
-		message.aggregatesDelimiter,
-		message.combinationDelimiter,
-		message.includeAggregatesData,
-	)
-
-	CONTEXT.protectSensitiveAggregatesCount()
-
 	return {
 		id: message.id,
 		type: message.type,
-		evaluateResult,
+		evaluateResult: CONTEXT.evaluateResultToJs(),
 	}
 }
 
@@ -213,14 +205,31 @@ async function handleAttributesIntersectionsByColumn(
 	}
 }
 
-async function handleGetSensitiveAggregateResult(
-	message: SdsWasmGetSensitiveAggregateResultMessage,
-): Promise<SdsWasmGetSensitiveAggregateResultResponse> {
-	const aggregateResult = CONTEXT.sensitiveAggregateResultToJs(
-		message.aggregatesDelimiter,
-		message.combinationDelimiter,
-		message.includeAggregatesData,
-	)
+async function handleGetAggregateResult(
+	message: SdsWasmGetAggregateResultMessage,
+): Promise<SdsWasmGetAggregateResultResponse> {
+	let aggregateResult
+
+	switch (message.aggregateType) {
+		case EvaluationStatsType.SensitiveData:
+			aggregateResult = CONTEXT.sensitiveAggregateResultToJs(
+				message.aggregatesDelimiter,
+				message.combinationDelimiter,
+			)
+			break
+		case EvaluationStatsType.AggregateCounts:
+			aggregateResult = CONTEXT.reportableAggregateResultToJs(
+				message.aggregatesDelimiter,
+				message.combinationDelimiter,
+			)
+			break
+		case EvaluationStatsType.SyntheticData:
+			aggregateResult = CONTEXT.syntheticAggregateResultToJs(
+				message.aggregatesDelimiter,
+				message.combinationDelimiter,
+			)
+			break
+	}
 
 	return {
 		id: message.id,

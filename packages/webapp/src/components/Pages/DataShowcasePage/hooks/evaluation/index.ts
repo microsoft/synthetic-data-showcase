@@ -2,5 +2,5 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-export * from './useOnGetAggregatesCsv'
-export * from './useOnGetAggregatesDownloadInfo'
+export * from './useEvaluationStatsTypeOnChange'
+export * from './useEvaluationStatsTypeOptions'

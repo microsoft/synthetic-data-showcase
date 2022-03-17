@@ -2,34 +2,47 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import type { IStackStyles, IStackTokens } from '@fluentui/react'
-import {
-	getTheme,
+import type { IStackStyles, IStackTokens} from '@fluentui/react';
+import { Dropdown, 	getTheme,
+Label ,
 	Position,
 	PrimaryButton,
 	SpinButton,
 	Stack,
 } from '@fluentui/react'
-import { memo } from 'react'
+import { memo, useState } from 'react'
 
-import { SensitiveDataCharts, SyntheticDataCharts } from '~components/Charts'
-import { DownloadButton } from '~components/controls/DownloadButton'
-import { EvaluationSummary } from '~components/EvaluationSummary'
+import { DataEvaluationInfo } from '~components/DataEvaluationInfo'
 import { InfoTooltip } from '~components/InfoTooltip'
 import { TooltipWrapper } from '~components/TooltipWrapper'
+import type { EvaluationStatsType } from '~models'
 import { useEvaluateResult, useIsProcessing, useReportingLength } from '~states'
 import { tooltips } from '~ui-tooltips'
 
 import { useCanRun, useOnRunEvaluate, useSpinButtonOnChange } from './hooks'
-import { useOnGetAggregatesDownloadInfo } from './hooks/evaluation'
+import {
+	useEvaluationStatsTypeOnChange,
+	useEvaluationStatsTypeOptions,
+} from './hooks/evaluation'
 
 export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 	const [reportingLength, setReportingLength] = useReportingLength()
 	const [isProcessing] = useIsProcessing()
 	const [evaluateResult, setEvaluateResult] = useEvaluateResult()
+	const [leftStatsType, setLeftStatsType] = useState<string | undefined>(
+		undefined,
+	)
+	const [rightStatsType, setRightStatsType] = useState<string | undefined>(
+		undefined,
+	)
+	const evaluationStatsTypeOptions = useEvaluationStatsTypeOptions()
+	const leftEvaluationStatsTypeOnChange =
+		useEvaluationStatsTypeOnChange(setLeftStatsType)
+	const rightEvaluationStatsTypeOnChange =
+		useEvaluationStatsTypeOnChange(setRightStatsType)
+
 	const canRun = useCanRun()
 	const onRunEvaluate = useOnRunEvaluate(setEvaluateResult, reportingLength)
-	const onGetAggregatesDownloadInfo = useOnGetAggregatesDownloadInfo()
 	const handleReportingLengthChange = useSpinButtonOnChange(setReportingLength)
 
 	const theme = getTheme()
@@ -51,6 +64,24 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 		childrenGap: theme.spacing.s1,
 	}
 
+	const dataStackStyles: IStackStyles = {
+		root: {
+			display: 'flex',
+		},
+	}
+
+	const dataStackTokens: IStackTokens = {
+		childrenGap: theme.spacing.s1,
+	}
+
+	const dataStackItemStyles = {
+		root: {
+			textAlign: 'center',
+			overflowX: 'auto',
+			flex: '1',
+		},
+	}
+
 	const chartStackStyles: IStackStyles = {
 		root: {
 			display: 'flex',
@@ -69,6 +100,8 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 			justifyContent: 'space-between',
 		},
 	}
+
+	const dropdownStyles = { root: { paddingBottom: theme.spacing.s1 } }
 
 	const chartHeight = 400
 
@@ -105,44 +138,66 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 					<Stack.Item align="end">
 						<InfoTooltip>{tooltips.evaluate}</InfoTooltip>
 					</Stack.Item>
-					{evaluateResult && (
-						<Stack.Item align="end">
-							<DownloadButton
-								title="Download sensitive aggregates CSV"
-								label="Sensitive aggregates"
-								onGetDownloadInfo={onGetAggregatesDownloadInfo}
-							/>
-						</Stack.Item>
-					)}
 				</Stack>
 			</Stack.Item>
 
 			{evaluateResult && (
 				<>
-					<EvaluationSummary
-						privacyRiskLabel="Sensitive privacy risk"
-						utilityCostLabel="Synthetic utility cost"
-						privacyRisk={evaluateResult.sensitiveAggregateResult.privacyRisk}
-						recordExpansion={evaluateResult.recordExpansion}
-						combinationLoss={evaluateResult.preservationByCount.combinationLoss}
-						chartStackTokens={chartStackTokens}
-					/>
-					<SensitiveDataCharts
-						evaluateResult={evaluateResult}
-						chartHeight={chartHeight}
-						chartWidth={chartWidth}
-						chartStackStyles={chartStackStyles}
-						chartStackTokens={chartStackTokens}
-						chartStackItemStyles={chartStackItemStyles}
-					/>
-					<SyntheticDataCharts
-						evaluateResult={evaluateResult}
-						chartHeight={chartHeight}
-						chartWidth={chartWidth}
-						chartStackStyles={chartStackStyles}
-						chartStackTokens={chartStackTokens}
-						chartStackItemStyles={chartStackItemStyles}
-					/>
+					<Stack horizontal styles={dataStackStyles} tokens={dataStackTokens}>
+						<Stack.Item styles={dataStackItemStyles}>
+							<Dropdown
+								selectedKey={leftStatsType}
+								onChange={leftEvaluationStatsTypeOnChange}
+								placeholder="Select data statistics"
+								options={evaluationStatsTypeOptions}
+								styles={dropdownStyles}
+							/>
+						</Stack.Item>
+						<Stack.Item styles={dataStackItemStyles}>
+							<Dropdown
+								selectedKey={rightStatsType}
+								onChange={rightEvaluationStatsTypeOnChange}
+								placeholder="Select data statistics"
+								options={evaluationStatsTypeOptions}
+								styles={dropdownStyles}
+							/>
+						</Stack.Item>
+					</Stack>
+
+					<Stack horizontal styles={dataStackStyles} tokens={dataStackTokens}>
+						<Stack.Item styles={dataStackItemStyles}>
+							{leftStatsType ? (
+								<DataEvaluationInfo
+									reportingLength={evaluateResult?.reportingLength}
+									stats={evaluateResult?.[leftStatsType] ?? {}}
+									statsType={leftStatsType as EvaluationStatsType}
+									chartHeight={chartHeight}
+									chartWidth={chartWidth}
+									stackStyles={chartStackStyles}
+									stackTokens={chartStackTokens}
+									stackItemStyles={chartStackItemStyles}
+								/>
+							) : (
+								<Label>Nothing selected</Label>
+							)}
+						</Stack.Item>
+						<Stack.Item styles={dataStackItemStyles}>
+							{rightStatsType ? (
+								<DataEvaluationInfo
+									reportingLength={evaluateResult?.reportingLength}
+									stats={evaluateResult?.[rightStatsType] ?? {}}
+									statsType={rightStatsType as EvaluationStatsType}
+									chartHeight={chartHeight}
+									chartWidth={chartWidth}
+									stackStyles={chartStackStyles}
+									stackTokens={chartStackTokens}
+									stackItemStyles={chartStackItemStyles}
+								/>
+							) : (
+								<Label>Nothing selected</Label>
+							)}
+						</Stack.Item>
+					</Stack>
 				</>
 			)}
 		</Stack>
