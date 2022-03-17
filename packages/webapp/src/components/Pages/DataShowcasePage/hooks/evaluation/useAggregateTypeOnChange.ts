@@ -5,15 +5,15 @@
 import type { IDropdownOption } from '@fluentui/react'
 import { useCallback } from 'react'
 
-import type { EvaluationStatsType } from '~models'
+import type { AggregateType } from '~models'
 
-export function useEvaluationStatsTypeOnChange(
-	setter: (key: EvaluationStatsType | undefined) => void,
+export function useAggregateTypeOnChange(
+	setter: (type: AggregateType | undefined) => void,
 ): (event: React.FormEvent<HTMLDivElement>, item?: IDropdownOption) => void {
 	return useCallback(
 		(event: React.FormEvent<HTMLDivElement>, item?: IDropdownOption) => {
 			if (item?.key) {
-				setter(item.key as EvaluationStatsType)
+				setter(item.key as AggregateType)
 			}
 		},
 		[setter],

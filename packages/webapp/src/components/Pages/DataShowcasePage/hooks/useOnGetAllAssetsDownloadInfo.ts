@@ -19,7 +19,7 @@ import {
 	useOnGetAnalysisByLenCsv,
 	useOnGetMetricsSummaryCsv,
 } from '~components/DataEvaluationInfoDownloader'
-import { EvaluationStatsType } from '~models'
+import { AggregateType } from '~models'
 import {
 	useEvaluateResultValue,
 	useSensitiveContentValue,
@@ -39,21 +39,21 @@ export function useOnGetAllAssetsDownloadInfo(
 	)
 	const getSensitiveSummaryCsv = useOnGetMetricsSummaryCsv(
 		evaluateResult?.sensitiveDataStats,
-		EvaluationStatsType.SensitiveData,
+		AggregateType.Sensitive,
 	)
-	const getAggregateCountsSummaryCsv = useOnGetMetricsSummaryCsv(
+	const getReportableSummaryCsv = useOnGetMetricsSummaryCsv(
 		evaluateResult?.aggregateCountsStats,
-		EvaluationStatsType.AggregateCounts,
+		AggregateType.Reportable,
 	)
 	const getSyntheticSummaryCsv = useOnGetMetricsSummaryCsv(
 		evaluateResult?.syntheticDataStats,
-		EvaluationStatsType.SyntheticData,
+		AggregateType.Synthetic,
 	)
 	const getSensitiveAnalysisByCount = useOnGetAnalysisByCountCsv(
 		countLabels,
 		evaluateResult?.sensitiveDataStats,
 	)
-	const getAggregateCountsAnalysisByCount = useOnGetAnalysisByCountCsv(
+	const getReportableAnalysisByCount = useOnGetAnalysisByCountCsv(
 		countLabels,
 		evaluateResult?.aggregateCountsStats,
 	)
@@ -65,7 +65,7 @@ export function useOnGetAllAssetsDownloadInfo(
 		lenLabels,
 		evaluateResult?.sensitiveDataStats,
 	)
-	const getAggregateCountsAnalysisByLen = useOnGetAnalysisByLenCsv(
+	const getReportableAnalysisByLen = useOnGetAnalysisByLenCsv(
 		lenLabels,
 		evaluateResult?.aggregateCountsStats,
 	)
@@ -74,13 +74,13 @@ export function useOnGetAllAssetsDownloadInfo(
 		evaluateResult?.syntheticDataStats,
 	)
 	const getSensitiveAggregatesCsv = useOnGetAggregatesCsv(
-		EvaluationStatsType.SensitiveData,
+		AggregateType.Sensitive,
 	)
-	const getAggregateCountsAggregatesCsv = useOnGetAggregatesCsv(
-		EvaluationStatsType.AggregateCounts,
+	const getReportableAggregatesCsv = useOnGetAggregatesCsv(
+		AggregateType.Reportable,
 	)
 	const getSyntheticAggregatesCsv = useOnGetAggregatesCsv(
-		EvaluationStatsType.SyntheticData,
+		AggregateType.Synthetic,
 	)
 
 	return useCallback(async () => {
@@ -101,93 +101,89 @@ export function useOnGetAllAssetsDownloadInfo(
 				'synthetic_data.csv',
 				'synthetic_data.csv',
 			),
-
 			new FileWithPath(
 				new Blob([getSensitiveSummaryCsv()], {
 					type: 'text/csv',
 				}),
-				`${EvaluationStatsType.SensitiveData}_metrics_summary.csv`,
-				`${EvaluationStatsType.SensitiveData}_metrics_summary.csv`,
+				`${AggregateType.Sensitive}_metrics_summary.csv`,
+				`${AggregateType.Sensitive}_metrics_summary.csv`,
 			),
 			new FileWithPath(
-				new Blob([getAggregateCountsSummaryCsv()], {
+				new Blob([getReportableSummaryCsv()], {
 					type: 'text/csv',
 				}),
-				`${EvaluationStatsType.AggregateCounts}_metrics_summary.csv`,
-				`${EvaluationStatsType.AggregateCounts}_metrics_summary.csv`,
+				`${AggregateType.Reportable}_metrics_summary.csv`,
+				`${AggregateType.Reportable}_metrics_summary.csv`,
 			),
 			new FileWithPath(
 				new Blob([getSyntheticSummaryCsv()], {
 					type: 'text/csv',
 				}),
-				`${EvaluationStatsType.SyntheticData}_metrics_summary.csv`,
-				`${EvaluationStatsType.SyntheticData}_metrics_summary.csv`,
+				`${AggregateType.Synthetic}_metrics_summary.csv`,
+				`${AggregateType.Synthetic}_metrics_summary.csv`,
 			),
-
 			new FileWithPath(
 				new Blob([getSensitiveAnalysisByCount()], {
 					type: 'text/csv',
 				}),
-				`${EvaluationStatsType.SensitiveData}_analysis_by_count.csv`,
-				`${EvaluationStatsType.SensitiveData}_analysis_by_count.csv`,
+				`${AggregateType.Sensitive}_analysis_by_count.csv`,
+				`${AggregateType.Sensitive}_analysis_by_count.csv`,
 			),
 			new FileWithPath(
-				new Blob([getAggregateCountsAnalysisByCount()], {
+				new Blob([getReportableAnalysisByCount()], {
 					type: 'text/csv',
 				}),
-				`${EvaluationStatsType.AggregateCounts}_analysis_by_count.csv`,
-				`${EvaluationStatsType.AggregateCounts}_analysis_by_count.csv`,
+				`${AggregateType.Reportable}_analysis_by_count.csv`,
+				`${AggregateType.Reportable}_analysis_by_count.csv`,
 			),
 			new FileWithPath(
 				new Blob([getSyntheticAnalysisByCount()], {
 					type: 'text/csv',
 				}),
-				`${EvaluationStatsType.SyntheticData}_analysis_by_count.csv`,
-				`${EvaluationStatsType.SyntheticData}_analysis_by_count.csv`,
+				`${AggregateType.Synthetic}_analysis_by_count.csv`,
+				`${AggregateType.Synthetic}_analysis_by_count.csv`,
 			),
-
 			new FileWithPath(
 				new Blob([getSensitiveAnalysisByLen()], {
 					type: 'text/csv',
 				}),
-				`${EvaluationStatsType.SensitiveData}_analysis_by_length.csv`,
-				`${EvaluationStatsType.SensitiveData}_analysis_by_length.csv`,
+				`${AggregateType.Sensitive}_analysis_by_length.csv`,
+				`${AggregateType.Sensitive}_analysis_by_length.csv`,
 			),
 			new FileWithPath(
-				new Blob([getAggregateCountsAnalysisByLen()], {
+				new Blob([getReportableAnalysisByLen()], {
 					type: 'text/csv',
 				}),
-				`${EvaluationStatsType.AggregateCounts}_analysis_by_length.csv`,
-				`${EvaluationStatsType.AggregateCounts}_analysis_by_length.csv`,
+				`${AggregateType.Reportable}_analysis_by_length.csv`,
+				`${AggregateType.Reportable}_analysis_by_length.csv`,
 			),
 			new FileWithPath(
 				new Blob([getSyntheticAnalysisByLen()], {
 					type: 'text/csv',
 				}),
-				`${EvaluationStatsType.SyntheticData}_analysis_by_length.csv`,
-				`${EvaluationStatsType.SyntheticData}_analysis_by_length.csv`,
+				`${AggregateType.Synthetic}_analysis_by_length.csv`,
+				`${AggregateType.Synthetic}_analysis_by_length.csv`,
 			),
-
 			new FileWithPath(
 				new Blob([await getSensitiveAggregatesCsv()], {
 					type: 'text/csv',
 				}),
-				`${EvaluationStatsType.SensitiveData}_aggregates.csv`,
-				`${EvaluationStatsType.SensitiveData}_aggregates.csv`,
+				`${AggregateType.Sensitive}_aggregates.csv`,
+				`${AggregateType.Sensitive}_aggregates.csv`,
 			),
 			new FileWithPath(
-				new Blob([await getAggregateCountsAggregatesCsv()], {
+				new Blob([await getReportableAggregatesCsv()], {
 					type: 'text/csv',
 				}),
-				`${EvaluationStatsType.AggregateCounts}_aggregates.csv`,
-				`${EvaluationStatsType.AggregateCounts}__aggregates.csv`,
+				`${AggregateType.Reportable}_aggregates.csv`,
+				`${AggregateType.Reportable}_aggregates.csv`,
 			),
 			new FileWithPath(
 				new Blob([await getSyntheticAggregatesCsv()], {
 					type: 'text/csv',
 				}),
-				`${EvaluationStatsType.SyntheticData}_aggregates.csv`,
-				`${EvaluationStatsType.SyntheticData}_aggregates.csv`,
+				`${AggregateType.Synthetic}_aggregates.csv`,
+				`${AggregateType.Synthetic}_aggregates.csv`,
 			),
 		])
 		// eslint-disable-next-line @essex/adjacent-await
@@ -200,16 +196,16 @@ export function useOnGetAllAssetsDownloadInfo(
 		delimiter,
 		alias,
 		getSensitiveSummaryCsv,
-		getAggregateCountsSummaryCsv,
+		getReportableSummaryCsv,
 		getSyntheticSummaryCsv,
 		getSensitiveAnalysisByCount,
-		getAggregateCountsAnalysisByCount,
+		getReportableAnalysisByCount,
 		getSyntheticAnalysisByCount,
 		getSensitiveAnalysisByLen,
-		getAggregateCountsAnalysisByLen,
+		getReportableAnalysisByLen,
 		getSyntheticAnalysisByLen,
 		getSensitiveAggregatesCsv,
-		getAggregateCountsAggregatesCsv,
+		getReportableAggregatesCsv,
 		getSyntheticAggregatesCsv,
 	])
 }

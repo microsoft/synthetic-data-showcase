@@ -2,9 +2,11 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import type { IStackStyles, IStackTokens} from '@fluentui/react';
-import { Dropdown, 	getTheme,
-Label ,
+import type { IStackStyles, IStackTokens } from '@fluentui/react'
+import {
+	Dropdown,
+	getTheme,
+	Label,
 	Position,
 	PrimaryButton,
 	SpinButton,
@@ -15,32 +17,39 @@ import { memo, useState } from 'react'
 import { DataEvaluationInfo } from '~components/DataEvaluationInfo'
 import { InfoTooltip } from '~components/InfoTooltip'
 import { TooltipWrapper } from '~components/TooltipWrapper'
-import type { EvaluationStatsType } from '~models'
+import { AggregateType } from '~models'
 import { useEvaluateResult, useIsProcessing, useReportingLength } from '~states'
 import { tooltips } from '~ui-tooltips'
 
 import { useCanRun, useOnRunEvaluate, useSpinButtonOnChange } from './hooks'
 import {
-	useEvaluationStatsTypeOnChange,
-	useEvaluationStatsTypeOptions,
+	useAggregateTypeOnChange,
+	useAggregateTypeOptions,
 } from './hooks/evaluation'
+
+const aggregateTypeToStatKey = {
+	[AggregateType.Sensitive]: 'sensitiveDataStats',
+	[AggregateType.Reportable]: 'aggregateCountsStats',
+	[AggregateType.Synthetic]: 'syntheticDataStats',
+}
 
 export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 	const [reportingLength, setReportingLength] = useReportingLength()
 	const [isProcessing] = useIsProcessing()
 	const [evaluateResult, setEvaluateResult] = useEvaluateResult()
-	const [leftStatsType, setLeftStatsType] = useState<string | undefined>(
-		undefined,
+	const [leftAggregateType, setLeftAggregateType] = useState<
+		AggregateType | undefined
+	>(undefined)
+	const [rightAggregateType, setRightAggregateType] = useState<
+		AggregateType | undefined
+	>(undefined)
+	const aggregateTypeOptions = useAggregateTypeOptions()
+	const leftAggregateTypeOnChange = useAggregateTypeOnChange(
+		setLeftAggregateType,
 	)
-	const [rightStatsType, setRightStatsType] = useState<string | undefined>(
-		undefined,
+	const rightAggregateTypeOnChange = useAggregateTypeOnChange(
+		setRightAggregateType,
 	)
-	const evaluationStatsTypeOptions = useEvaluationStatsTypeOptions()
-	const leftEvaluationStatsTypeOnChange =
-		useEvaluationStatsTypeOnChange(setLeftStatsType)
-	const rightEvaluationStatsTypeOnChange =
-		useEvaluationStatsTypeOnChange(setRightStatsType)
-
 	const canRun = useCanRun()
 	const onRunEvaluate = useOnRunEvaluate(setEvaluateResult, reportingLength)
 	const handleReportingLengthChange = useSpinButtonOnChange(setReportingLength)
@@ -146,19 +155,19 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 					<Stack horizontal styles={dataStackStyles} tokens={dataStackTokens}>
 						<Stack.Item styles={dataStackItemStyles}>
 							<Dropdown
-								selectedKey={leftStatsType}
-								onChange={leftEvaluationStatsTypeOnChange}
+								selectedKey={leftAggregateType}
+								onChange={leftAggregateTypeOnChange}
 								placeholder="Select data statistics"
-								options={evaluationStatsTypeOptions}
+								options={aggregateTypeOptions}
 								styles={dropdownStyles}
 							/>
 						</Stack.Item>
 						<Stack.Item styles={dataStackItemStyles}>
 							<Dropdown
-								selectedKey={rightStatsType}
-								onChange={rightEvaluationStatsTypeOnChange}
+								selectedKey={rightAggregateType}
+								onChange={rightAggregateTypeOnChange}
 								placeholder="Select data statistics"
-								options={evaluationStatsTypeOptions}
+								options={aggregateTypeOptions}
 								styles={dropdownStyles}
 							/>
 						</Stack.Item>
@@ -166,11 +175,13 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 
 					<Stack horizontal styles={dataStackStyles} tokens={dataStackTokens}>
 						<Stack.Item styles={dataStackItemStyles}>
-							{leftStatsType ? (
+							{leftAggregateType ? (
 								<DataEvaluationInfo
-									reportingLength={evaluateResult?.reportingLength}
-									stats={evaluateResult?.[leftStatsType] ?? {}}
-									statsType={leftStatsType as EvaluationStatsType}
+									reportingLength={evaluateResult.reportingLength}
+									stats={
+										evaluateResult[aggregateTypeToStatKey[leftAggregateType]]
+									}
+									aggregateType={leftAggregateType}
 									chartHeight={chartHeight}
 									chartWidth={chartWidth}
 									stackStyles={chartStackStyles}
@@ -182,11 +193,13 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 							)}
 						</Stack.Item>
 						<Stack.Item styles={dataStackItemStyles}>
-							{rightStatsType ? (
+							{rightAggregateType ? (
 								<DataEvaluationInfo
-									reportingLength={evaluateResult?.reportingLength}
-									stats={evaluateResult?.[rightStatsType] ?? {}}
-									statsType={rightStatsType as EvaluationStatsType}
+									reportingLength={evaluateResult.reportingLength}
+									stats={
+										evaluateResult[aggregateTypeToStatKey[rightAggregateType]]
+									}
+									aggregateType={rightAggregateType}
 									chartHeight={chartHeight}
 									chartWidth={chartWidth}
 									stackStyles={chartStackStyles}

@@ -4,7 +4,7 @@
  */
 import init, { init_logger, SDSContext } from 'sds-wasm'
 
-import { EvaluationStatsType } from '../../models'
+import { AggregateType } from '../../models'
 import type {
 	SdsWasmAttributesIntersectionsByColumnMessage,
 	SdsWasmAttributesIntersectionsByColumnResponse,
@@ -211,19 +211,19 @@ async function handleGetAggregateResult(
 	let aggregateResult
 
 	switch (message.aggregateType) {
-		case EvaluationStatsType.SensitiveData:
+		case AggregateType.Sensitive:
 			aggregateResult = CONTEXT.sensitiveAggregateResultToJs(
 				message.aggregatesDelimiter,
 				message.combinationDelimiter,
 			)
 			break
-		case EvaluationStatsType.AggregateCounts:
+		case AggregateType.Reportable:
 			aggregateResult = CONTEXT.reportableAggregateResultToJs(
 				message.aggregatesDelimiter,
 				message.combinationDelimiter,
 			)
 			break
-		case EvaluationStatsType.SyntheticData:
+		case AggregateType.Synthetic:
 			aggregateResult = CONTEXT.syntheticAggregateResultToJs(
 				message.aggregatesDelimiter,
 				message.combinationDelimiter,

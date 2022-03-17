@@ -10,7 +10,7 @@ import type {
 	ISelectedAttributesByColumn,
 } from 'sds-wasm'
 
-import type { EvaluationStatsType } from '~models'
+import type { AggregateType } from '~models'
 
 export enum SdsWasmMessageType {
 	Init = 'Init',
@@ -152,7 +152,7 @@ export interface SdsWasmAttributesIntersectionsByColumnResponse
 export interface SdsWasmGetAggregateResultMessage
 	extends SdsWasmMessage {
 	type: SdsWasmMessageType.GetAggregateResult
-	aggregateType: EvaluationStatsType
+	aggregateType: AggregateType
 	aggregatesDelimiter: string
 	combinationDelimiter: string
 }

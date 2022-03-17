@@ -14,12 +14,12 @@ import {
 } from '~components/Charts/hooks'
 import { DataEvaluationInfoDownloader } from '~components/DataEvaluationInfoDownloader'
 import { MetricsSummaryTable } from '~components/MetricsSummaryTable'
-import type { EvaluationStatsType } from '~models'
+import type { AggregateType } from '~models'
 
 export interface DataEvaluationInfoProps {
 	reportingLength: number
 	stats: IMicrodataStatistics
-	statsType: EvaluationStatsType
+	aggregateType: AggregateType
 	chartHeight: number
 	chartWidth: number
 	stackStyles?: IStackStyles
@@ -31,7 +31,7 @@ export const DataEvaluationInfo: React.FC<DataEvaluationInfoProps> = memo(
 	function DataEvaluationInfo({
 		reportingLength,
 		stats,
-		statsType,
+		aggregateType,
 		chartHeight,
 		chartWidth,
 		stackStyles,
@@ -48,12 +48,15 @@ export const DataEvaluationInfo: React.FC<DataEvaluationInfoProps> = memo(
 				<Stack.Item styles={stackItemStyles}>
 					<DataEvaluationInfoDownloader
 						stats={stats}
-						statsType={statsType}
+						aggregateType={aggregateType}
 						reportingLength={reportingLength}
+						stackStyles={stackStyles}
+						stackTokens={stackTokens}
+						stackItemStyles={stackItemStyles}
 					/>
 				</Stack.Item>
 				<Stack.Item styles={stackItemStyles}>
-					<MetricsSummaryTable stats={stats} statsType={statsType} />
+					<MetricsSummaryTable stats={stats} aggregateType={aggregateType} />
 				</Stack.Item>
 				<Stack.Item styles={stackItemStyles}>
 					<MetricsChart

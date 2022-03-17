@@ -5,12 +5,12 @@
 import { useMemo } from 'react'
 import type { IMicrodataStatistics } from 'sds-wasm'
 
-import { EvaluationStatsType } from '~models'
+import { AggregateType } from '~models'
 import { tooltips } from '~ui-tooltips'
 
 export function useMicrodataMetricsItems(
 	stats: IMicrodataStatistics | undefined,
-	statsType: EvaluationStatsType,
+	aggregateType: AggregateType,
 	precision = 2,
 	emptyValue = '-',
 ): { metric: string; tooltip?: JSX.Element; value: string }[] {
@@ -22,8 +22,8 @@ export function useMicrodataMetricsItems(
 							metric: 'Suppressed combinations',
 							tooltip: undefined,
 							value:
-								statsType === EvaluationStatsType.AggregateCounts ||
-								statsType === EvaluationStatsType.SyntheticData
+								aggregateType === AggregateType.Reportable ||
+								aggregateType === AggregateType.Synthetic
 									? stats.suppressedCombinationsPercentage
 											.toFixed(precision)
 											.toString() + ' %'
@@ -33,8 +33,8 @@ export function useMicrodataMetricsItems(
 							metric: 'Fabricated combinations',
 							tooltip: undefined,
 							value:
-								statsType === EvaluationStatsType.AggregateCounts ||
-								statsType === EvaluationStatsType.SyntheticData
+								aggregateType === AggregateType.Reportable ||
+								aggregateType === AggregateType.Synthetic
 									? stats.fabricatedCombinationsPercentage
 											.toFixed(precision)
 											.toString() + ' %'
@@ -68,7 +68,7 @@ export function useMicrodataMetricsItems(
 							metric: 'Record expansion',
 							tooltip: tooltips.recordExpansion,
 							value:
-								statsType === EvaluationStatsType.SyntheticData
+								aggregateType === AggregateType.Synthetic
 									? stats.recordExpansionPercentage
 											.toFixed(precision)
 											.toString() + ' %'
@@ -78,8 +78,8 @@ export function useMicrodataMetricsItems(
 							metric: 'Mean proportional error',
 							tooltip: undefined,
 							value:
-								statsType === EvaluationStatsType.AggregateCounts ||
-								statsType === EvaluationStatsType.SyntheticData
+								aggregateType === AggregateType.Reportable ||
+								aggregateType === AggregateType.Synthetic
 									? stats.meanProportionalError.toFixed(precision).toString()
 									: emptyValue,
 						},
@@ -87,7 +87,7 @@ export function useMicrodataMetricsItems(
 							metric: 'Records containing unique attribute combinations',
 							tooltip: tooltips.recordsWithUniqueCombs,
 							value:
-								statsType === EvaluationStatsType.SensitiveData
+								aggregateType === AggregateType.Sensitive
 									? stats.recordsWithUniqueCombinationsPercentage
 											.toFixed(precision)
 											.toString() + ' %'
@@ -97,7 +97,7 @@ export function useMicrodataMetricsItems(
 							metric: 'Records containing rare attribute combinations',
 							tooltip: tooltips.recordsWithRareCombs,
 							value:
-								statsType === EvaluationStatsType.SensitiveData
+								aggregateType === AggregateType.Sensitive
 									? stats.recordsWithRareCombinationsPercentage
 											.toFixed(precision)
 											.toString() + ' %'
@@ -107,7 +107,7 @@ export function useMicrodataMetricsItems(
 							metric: 'Unique attribute combinations',
 							tooltip: tooltips.uniqueCombs,
 							value:
-								statsType === EvaluationStatsType.SensitiveData
+								aggregateType === AggregateType.Sensitive
 									? stats.uniqueCombinationsPercentage
 											.toFixed(precision)
 											.toString() + ' %'
@@ -117,7 +117,7 @@ export function useMicrodataMetricsItems(
 							metric: 'Rare attribute combinations',
 							tooltip: tooltips.rareCombs,
 							value:
-								statsType === EvaluationStatsType.SensitiveData
+								aggregateType === AggregateType.Sensitive
 									? stats.rareCombinationsPercentage
 											.toFixed(precision)
 											.toString() + ' %'
@@ -125,6 +125,6 @@ export function useMicrodataMetricsItems(
 						},
 				  ]
 				: [],
-		[stats, statsType, precision, emptyValue],
+		[stats, aggregateType, precision, emptyValue],
 	)
 }

@@ -7,15 +7,15 @@ import type { IMicrodataStatistics } from 'sds-wasm'
 
 import type { DownloadInfo } from '~components/controls/DownloadButton'
 import { useMicrodataMetricsItems } from '~components/MetricsSummaryTable'
-import type { EvaluationStatsType } from '~models'
+import type { AggregateType } from '~models'
 import { useWasmWorkerValue } from '~states'
 
 export function useOnGetMetricsSummaryCsv(
 	stats: IMicrodataStatistics | undefined,
-	statsType: EvaluationStatsType,
+	aggregateType: AggregateType,
 	delimiter = ',',
 ): () => string {
-	const microdataMetricItems = useMicrodataMetricsItems(stats, statsType)
+	const microdataMetricItems = useMicrodataMetricsItems(stats, aggregateType)
 
 	return useCallback(
 		() =>
@@ -76,7 +76,7 @@ export function useOnGetAnalysisByLenCsv(
 }
 
 export function useOnGetAggregatesCsv(
-	statsType: EvaluationStatsType,
+	aggregateType: AggregateType,
 	aggregatesDelimiter = ',',
 	combinationDelimiter = ';',
 ): () => Promise<string> {
@@ -84,12 +84,12 @@ export function useOnGetAggregatesCsv(
 
 	return useCallback(async () => {
 		const result = await worker?.getAggregateResult(
-			statsType,
+			aggregateType,
 			aggregatesDelimiter,
 			combinationDelimiter,
 		)
 		return result?.aggregatesData || ''
-	}, [worker, statsType, aggregatesDelimiter, combinationDelimiter])
+	}, [worker, aggregateType, aggregatesDelimiter, combinationDelimiter])
 }
 
 export function useOnGetDownloadInfo(

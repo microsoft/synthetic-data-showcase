@@ -12,7 +12,7 @@ import {
 	useMetricsByLenLabels,
 } from '~components/Charts/hooks'
 import { DownloadButton } from '~components/controls/DownloadButton'
-import type { EvaluationStatsType } from '~models'
+import type { AggregateType } from '~models'
 
 import {
 	useOnGetAggregatesCsv,
@@ -25,7 +25,7 @@ import {
 export interface DataEvaluationInfoDownloaderProps {
 	reportingLength: number
 	stats: IMicrodataStatistics
-	statsType: EvaluationStatsType
+	aggregateType: AggregateType
 	stackStyles?: IStackStyles
 	stackTokens?: IStackTokens
 	stackItemStyles?: IStackStyles
@@ -35,19 +35,19 @@ export const DataEvaluationInfoDownloader: React.FC<DataEvaluationInfoDownloader
 	memo(function DataEvaluationInfoDownloader({
 		reportingLength,
 		stats,
-		statsType,
+		aggregateType,
 		stackStyles,
 		stackTokens,
 		stackItemStyles,
 	}: DataEvaluationInfoDownloaderProps) {
 		const onGetAggregatesDownloadInfo = useOnGetDownloadInfo(
-			useOnGetAggregatesCsv(statsType),
-			`${statsType}_aggregates.csv`,
+			useOnGetAggregatesCsv(aggregateType),
+			`${aggregateType}_aggregates.csv`,
 		)
 
 		const onGetMetricsSummaryDownloadInfo = useOnGetDownloadInfo(
-			useOnGetMetricsSummaryCsv(stats, statsType),
-			`${statsType}_metrics_summary.csv`,
+			useOnGetMetricsSummaryCsv(stats, aggregateType),
+			`${aggregateType}_metrics_summary.csv`,
 		)
 
 		const onGetAnalysisByCountDownloadInfo = useOnGetDownloadInfo(
@@ -55,12 +55,12 @@ export const DataEvaluationInfoDownloader: React.FC<DataEvaluationInfoDownloader
 				useMetricsByCountLabels(stats.meanProportionalErrorByBucket),
 				stats,
 			),
-			`${statsType}_analysis_by_count.csv`,
+			`${aggregateType}_analysis_by_count.csv`,
 		)
 
 		const onGetAnalysisByLenDownloadInfo = useOnGetDownloadInfo(
 			useOnGetAnalysisByLenCsv(useMetricsByLenLabels(reportingLength), stats),
-			`${statsType}_analysis_by_length.csv`,
+			`${aggregateType}_analysis_by_length.csv`,
 		)
 
 		return (
@@ -72,25 +72,25 @@ export const DataEvaluationInfoDownloader: React.FC<DataEvaluationInfoDownloader
 			>
 				<Stack.Item styles={stackItemStyles}>
 					<DownloadButton
-						label="Aggregates CSV"
+						label="Aggregates"
 						onGetDownloadInfo={onGetAggregatesDownloadInfo}
 					/>
 				</Stack.Item>
 				<Stack.Item styles={stackItemStyles}>
 					<DownloadButton
-						label="Metrics summary CSV"
+						label="Metrics summary"
 						onGetDownloadInfo={onGetMetricsSummaryDownloadInfo}
 					/>
 				</Stack.Item>
 				<Stack.Item styles={stackItemStyles}>
 					<DownloadButton
-						label="Analysis by count CSV"
+						label="Analysis by count"
 						onGetDownloadInfo={onGetAnalysisByCountDownloadInfo}
 					/>
 				</Stack.Item>
 				<Stack.Item styles={stackItemStyles}>
 					<DownloadButton
-						label="Analysis by length CSV"
+						label="Analysis by length"
 						onGetDownloadInfo={onGetAnalysisByLenDownloadInfo}
 					/>
 				</Stack.Item>

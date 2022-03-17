@@ -12,7 +12,7 @@ import type {
 } from 'sds-wasm'
 import { v4 } from 'uuid'
 
-import type { EvaluationStatsType} from '~models';
+import type { AggregateType } from '~models'
 import { SynthesisMode } from '~models'
 
 import type {
@@ -245,7 +245,7 @@ export class SdsWasmWorker {
 	}
 
 	public async getAggregateResult(
-		aggregateType: EvaluationStatsType,
+		aggregateType: AggregateType,
 		aggregatesDelimiter = ',',
 		combinationDelimiter = ';',
 	): Promise<IAggregateResult | undefined> {
