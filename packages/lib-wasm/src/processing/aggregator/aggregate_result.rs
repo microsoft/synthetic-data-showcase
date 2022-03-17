@@ -2,7 +2,7 @@ use js_sys::{Object, Reflect::set};
 use sds_core::{
     processing::aggregator::aggregated_data::AggregatedData, utils::time::ElapsedDurationLogger,
 };
-use std::ops::{Deref, DerefMut};
+use std::{ops::Deref, sync::Arc};
 use wasm_bindgen::{prelude::*, JsCast};
 
 use crate::utils::js::ts_definitions::{JsAggregateResult, JsResult};
@@ -10,19 +10,19 @@ use crate::utils::js::ts_definitions::{JsAggregateResult, JsResult};
 #[wasm_bindgen]
 #[derive(Clone)]
 pub struct WasmAggregateResult {
-    aggregated_data: AggregatedData,
+    pub(crate) aggregated_data: Arc<AggregatedData>,
 }
 
 impl WasmAggregateResult {
     #[inline]
     pub fn default() -> WasmAggregateResult {
         WasmAggregateResult {
-            aggregated_data: AggregatedData::default(),
+            aggregated_data: Arc::new(AggregatedData::default()),
         }
     }
 
     #[inline]
-    pub fn new(aggregated_data: AggregatedData) -> WasmAggregateResult {
+    pub fn new(aggregated_data: Arc<AggregatedData>) -> WasmAggregateResult {
         WasmAggregateResult { aggregated_data }
     }
 }
@@ -86,9 +86,32 @@ impl WasmAggregateResult {
         Ok(JsValue::from(result).unchecked_into::<JsAggregateResult>())
     }
 
-    #[wasm_bindgen(js_name = "protectAggregatesCount")]
-    pub fn protect_aggregates_count(&mut self, resolution: usize) {
-        self.aggregated_data.protect_aggregates_count(resolution)
+    #[wasm_bindgen(js_name = "protectWithKAnonymity")]
+    pub fn protect_with_k_anonymity(&mut self, resolution: usize) -> WasmAggregateResult {
+        let mut new_aggregated_data = (*self.aggregated_data).clone();
+
+        new_aggregated_data.protect_aggregates_count(resolution);
+
+        WasmAggregateResult::new(Arc::new(new_aggregated_data))
+    }
+
+    #[wasm_bindgen(js_name = "protectWithDp")]
+    pub fn protect_with_dp(
+        &mut self,
+        percentile_percentage: usize,
+        sensitivity_filter_epsilon: f64,
+        noise_epsilon: f64,
+        noise_delta: f64,
+    ) -> JsResult<WasmAggregateResult> {
+        let mut new_aggregated_data = (*self.aggregated_data).clone();
+        let allowed_sensitivity_by_len = new_aggregated_data
+            .filter_sensitivities(percentile_percentage, sensitivity_filter_epsilon);
+
+        new_aggregated_data
+            .add_gaussian_noise(noise_epsilon, noise_delta, allowed_sensitivity_by_len)
+            .map_err(|err| JsValue::from(err.to_string()))?;
+
+        Ok(WasmAggregateResult::new(Arc::new(new_aggregated_data)))
     }
 }
 
@@ -97,11 +120,5 @@ impl Deref for WasmAggregateResult {
 
     fn deref(&self) -> &Self::Target {
         &self.aggregated_data
-    }
-}
-
-impl DerefMut for WasmAggregateResult {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.aggregated_data
     }
 }

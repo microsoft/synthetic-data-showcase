@@ -188,7 +188,6 @@ export class SdsWasmWorker {
 
 	public async evaluate(
 		reportingLength: number,
-		sensitivityThreshold = 0,
 		reportProgress?: ReportProgressCallback,
 	): Promise<IEvaluateResult | undefined> {
 		const response = await this.execute(
@@ -196,7 +195,6 @@ export class SdsWasmWorker {
 				id: v4(),
 				type: SdsWasmMessageType.Evaluate,
 				reportingLength,
-				sensitivityThreshold,
 			} as SdsWasmEvaluateMessage,
 			reportProgress,
 		)

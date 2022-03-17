@@ -29,7 +29,6 @@ export function useOnRunEvaluate(
 
 		const response = await worker?.evaluate(
 			reportingLength,
-			0,
 			p => {
 				setProcessingProgress(p)
 			},

@@ -133,15 +133,25 @@ async function handleGenerate(
 		message.recordLimit,
 	)
 
-	CONTEXT.generate(
-		message.cacheSize,
-		message.resolution,
-		message.emptyValue,
-		message.seeded,
-		p => {
-			postProgress(message.id, p)
-		},
-	)
+	if (message.seeded) {
+		CONTEXT.generateRowSeeded(
+			message.cacheSize,
+			message.resolution,
+			message.emptyValue,
+			p => {
+				postProgress(message.id, p)
+			},
+		)
+	} else {
+		CONTEXT.generateUnseeded(
+			message.cacheSize,
+			message.resolution,
+			message.emptyValue,
+			p => {
+				postProgress(message.id, p)
+			},
+		)
+	}
 
 	return {
 		id: message.id,
@@ -155,7 +165,6 @@ async function handleEvaluate(
 ): Promise<SdsWasmEvaluateResponse> {
 	CONTEXT.evaluate(
 		message.reportingLength,
-		message.sensitivityThreshold,
 		p => {
 			postProgress(message.id, 0.5 * p)
 		},

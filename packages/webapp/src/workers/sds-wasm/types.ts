@@ -112,7 +112,6 @@ export interface SdsWasmGenerateResponse extends SdsWasmResponse {
 export interface SdsWasmEvaluateMessage extends SdsWasmMessage {
 	type: SdsWasmMessageType.Evaluate
 	reportingLength: number
-	sensitivityThreshold: number
 }
 
 export interface SdsWasmEvaluateResponse extends SdsWasmResponse {

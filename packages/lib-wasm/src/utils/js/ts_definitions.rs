@@ -20,7 +20,7 @@ export interface IAggregateResult {
   aggregatesData?: string
 }
 
-export interface IMicrodataStatistics extends IAggregateCountsStatistics {
+export interface IMicrodataStatistics {
   suppressedCombinationsPercentage: number
   fabricatedCombinationsPercentage: number
   originalMeanCombinationsCount: number
@@ -45,9 +45,9 @@ export interface IMicrodataStatistics extends IAggregateCountsStatistics {
 
 export interface IEvaluateResult {
   reportingLength: usize
-  aggregateCountsStats: IAggregateCountsStatistics
-  sensitiveDataStats: ISensitiveDataStatistics
-  syntheticDataStats: ISyntheticDataStatistics
+  aggregateCountsStats: IMicrodataStatistics
+  sensitiveDataStats: IMicrodataStatistics
+  syntheticDataStats: IMicrodataStatistics
 }
 
 export interface ISelectedAttributesByColumn {
