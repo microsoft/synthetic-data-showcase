@@ -175,6 +175,7 @@ impl SDSContext {
             &self.reportable_aggregate_result,
             &self.synthetic_aggregate_result,
             self.resolution,
+            reporting_length,
         )?;
 
         self.clear_navigate();

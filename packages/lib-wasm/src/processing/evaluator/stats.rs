@@ -148,9 +148,9 @@ pub fn calc_mean_combinations_length_by_bucket(
 }
 
 #[inline]
-pub fn calc_record_expansion(
+pub fn calc_record_expansion_percentage(
     original_aggregated_data: &AggregatedData,
     aggregated_data: &AggregatedData,
 ) -> f64 {
-    Evaluator::default().calc_expansion_ratio(original_aggregated_data, aggregated_data)
+    Evaluator::default().calc_record_expansion_percentage(original_aggregated_data, aggregated_data)
 }

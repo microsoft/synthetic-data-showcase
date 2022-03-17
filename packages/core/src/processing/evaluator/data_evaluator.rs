@@ -176,8 +176,9 @@ impl Evaluator {
         let total_count = sensitive_aggregated_data.total_number_of_combinations();
 
         if total_count > 0 {
-            (self.calc_missed_count(sensitive_aggregated_data, synthetic_aggregated_data) as f64)
-                / (total_count as f64)
+            ((self.calc_missed_count(sensitive_aggregated_data, synthetic_aggregated_data) as f64)
+                / (total_count as f64))
+                * 100.0
         } else {
             0.0
         }
@@ -228,9 +229,10 @@ impl Evaluator {
         let total_count = sensitive_aggregated_data.total_number_of_combinations();
 
         if total_count > 0 {
-            (self.calc_fabricated_count(sensitive_aggregated_data, synthetic_aggregated_data)
+            ((self.calc_fabricated_count(sensitive_aggregated_data, synthetic_aggregated_data)
                 as f64)
-                / (total_count as f64)
+                / (total_count as f64))
+                * 100.0
         } else {
             0.0
         }
@@ -464,19 +466,21 @@ impl Evaluator {
         }
     }
 
-    /// Calculates the expansion ratio
+    /// Calculates the record expansion percentage
     /// (number of synthetic records / number of sensitive records)
     /// # Arguments
     /// * `sensitive_aggregated_data` - Calculated aggregated data for the sensitive data
     /// * `synthetic_aggregated_data` - Calculated aggregated data for the synthetic data
-    pub fn calc_expansion_ratio(
+    pub fn calc_record_expansion_percentage(
         &self,
         sensitive_aggregated_data: &AggregatedData,
         synthetic_aggregated_data: &AggregatedData,
     ) -> f64 {
         if sensitive_aggregated_data.data_block.number_of_records() > 0 {
-            (synthetic_aggregated_data.data_block.number_of_records() as f64)
-                / (sensitive_aggregated_data.data_block.number_of_records() as f64)
+            (((synthetic_aggregated_data.data_block.number_of_records() as f64)
+                / (sensitive_aggregated_data.data_block.number_of_records() as f64))
+                - 1.0)
+                * 100.0
         } else {
             0.0
         }

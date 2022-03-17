@@ -20,7 +20,7 @@ export interface IAggregateResult {
   aggregatesData?: string
 }
 
-export interface IAggregateCountsStatistics {
+export interface IMicrodataStatistics extends IAggregateCountsStatistics {
   suppressedCombinationsPercentage: number
   fabricatedCombinationsPercentage: number
   originalMeanCombinationsCount: number
@@ -30,9 +30,6 @@ export interface IAggregateCountsStatistics {
   meanProportionalError: number
   meanProportionalErrorByBucket: IMetricByKey
   meanCombinationsLengthByBucket: IMetricByKey
-}
-
-export interface IBaseDataStatistics {
   meanCombinationsCountByLen: IMetricByKey
   distinctCombinationsCountByLen: IMetricByKey
   rareCombinationsCountByLen: IMetricByKey
@@ -43,17 +40,11 @@ export interface IBaseDataStatistics {
   recordsWithRareCombinationsPercentage: number
   uniqueCombinationsPercentage: number
   rareCombinationsPercentage: number
-}
-
-export interface ISensitiveDataStatistics extends IBaseDataStatistics {}
-
-export interface ISyntheticDataStatistics
-  extends IBaseDataStatistics,
-    IAggregateCountsStatistics {
-  recordExpansion: number
+  recordExpansionPercentage: number
 }
 
 export interface IEvaluateResult {
+  reportingLength: usize
   aggregateCountsStats: IAggregateCountsStatistics
   sensitiveDataStats: ISensitiveDataStatistics
   syntheticDataStats: ISyntheticDataStatistics
@@ -90,17 +81,8 @@ extern "C" {
     #[wasm_bindgen(typescript_type = "IAggregateResult")]
     pub type JsAggregateResult;
 
-    #[wasm_bindgen(typescript_type = "IAggregateCountsStatistics")]
-    pub type JsAggregateCountsStatistics;
-
-    #[wasm_bindgen(typescript_type = "IBaseDataStatistics")]
-    pub type JsBaseDataStatistics;
-
-    #[wasm_bindgen(typescript_type = "ISensitiveDataStatistics")]
-    pub type JsSensitiveDataStatistics;
-
-    #[wasm_bindgen(typescript_type = "ISyntheticDataStatistics")]
-    pub type JsSyntheticDataStatistics;
+    #[wasm_bindgen(typescript_type = "IMicrodataStatistics")]
+    pub type JsMicrodataStatistics;
 
     #[wasm_bindgen(typescript_type = "IEvaluateResult")]
     pub type JsEvaluateResult;

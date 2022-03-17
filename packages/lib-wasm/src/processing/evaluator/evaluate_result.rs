@@ -3,33 +3,19 @@ use sds_core::utils::time::ElapsedDurationLogger;
 use wasm_bindgen::{prelude::*, JsCast};
 
 use crate::{
-    processing::{
-        aggregator::aggregate_result::WasmAggregateResult,
-        evaluator::{
-            aggregate_counts_stats::WasmAggregateCountsStatistics,
-            sensitive_data_stats::WasmSensitiveDataStatistics,
-            synthetic_data_stats::WasmSyntheticDataStatistics,
-        },
-    },
+    processing::aggregator::aggregate_result::WasmAggregateResult,
     utils::js::ts_definitions::{JsEvaluateResult, JsResult},
 };
 
-#[wasm_bindgen]
-pub struct WasmEvaluateResult {
-    aggregate_counts_stats: WasmAggregateCountsStatistics,
-    sensitive_data_stats: WasmSensitiveDataStatistics,
-    synthetic_data_stats: WasmSyntheticDataStatistics,
-}
+use super::microdata_data_stats::WasmMicrodataStatistics;
 
-impl WasmEvaluateResult {
-    #[inline]
-    pub fn default() -> WasmEvaluateResult {
-        WasmEvaluateResult {
-            aggregate_counts_stats: WasmAggregateCountsStatistics::default(),
-            sensitive_data_stats: WasmSensitiveDataStatistics::default(),
-            synthetic_data_stats: WasmSyntheticDataStatistics::default(),
-        }
-    }
+#[wasm_bindgen]
+#[derive(Default)]
+pub struct WasmEvaluateResult {
+    aggregate_counts_stats: WasmMicrodataStatistics,
+    sensitive_data_stats: WasmMicrodataStatistics,
+    synthetic_data_stats: WasmMicrodataStatistics,
+    reporting_length: usize,
 }
 
 #[wasm_bindgen]
@@ -40,22 +26,25 @@ impl WasmEvaluateResult {
         reportable_aggregate_result: &WasmAggregateResult,
         synthetic_aggregate_result: &WasmAggregateResult,
         resolution: usize,
+        reporting_length: usize,
     ) -> JsResult<WasmEvaluateResult> {
         Ok(WasmEvaluateResult {
-            aggregate_counts_stats: WasmAggregateCountsStatistics::from_aggregate_results(
+            aggregate_counts_stats: WasmMicrodataStatistics::from_aggregate_results(
                 sensitive_aggregate_result,
                 reportable_aggregate_result,
                 resolution,
             )?,
-            sensitive_data_stats: WasmSensitiveDataStatistics::from_aggregate_results(
+            sensitive_data_stats: WasmMicrodataStatistics::from_aggregate_results(
+                sensitive_aggregate_result,
                 sensitive_aggregate_result,
                 resolution,
             )?,
-            synthetic_data_stats: WasmSyntheticDataStatistics::from_aggregate_results(
+            synthetic_data_stats: WasmMicrodataStatistics::from_aggregate_results(
                 sensitive_aggregate_result,
                 synthetic_aggregate_result,
                 resolution,
             )?,
+            reporting_length,
         })
     }
 
@@ -65,6 +54,11 @@ impl WasmEvaluateResult {
             ElapsedDurationLogger::new(String::from("evaluate result serialization"));
         let result = Object::new();
 
+        set(
+            &result,
+            &"reportingLength".into(),
+            &self.reporting_length.into(),
+        )?;
         set(
             &result,
             &"aggregateCountsStats".into(),
