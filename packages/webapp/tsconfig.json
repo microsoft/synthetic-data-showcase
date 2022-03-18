@@ -26,7 +26,9 @@
 		"esModuleInterop": true,
 		"allowSyntheticDefaultImports": true,
 		"skipLibCheck": true,
-		"noImplicitAny": false
+		"noImplicitAny": false,
+		"typeRoots": ["./node_modules/@types/", "./types"],
+		"noErrorTruncation": true
 	},
 	"include": ["src/**/*"],
 	"exclude": ["**/__tests__/**"]
