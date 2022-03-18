@@ -196,7 +196,7 @@ impl SDSContext {
 
         self.reportable_aggregate_result = self
             .sensitive_aggregate_result
-            .protect_with_k_anonymity(self.resolution);
+            .protect_with_k_anonymity(resolution);
 
         debug!("generating synthetic data using value-seeded approach...");
 
@@ -239,7 +239,7 @@ impl SDSContext {
 
         self.reportable_aggregate_result = self
             .sensitive_aggregate_result
-            .protect_with_k_anonymity(self.resolution);
+            .protect_with_k_anonymity(resolution);
 
         debug!("generating synthetic data using aggregate-seeded approach...");
 
