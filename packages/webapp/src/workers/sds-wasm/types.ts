@@ -10,7 +10,7 @@ import type {
 	ISelectedAttributesByColumn,
 } from 'sds-wasm'
 
-import type { AggregateType } from '~models'
+import type { AggregateType, SynthesisParameters } from '~models'
 
 export enum SdsWasmMessageType {
 	Init = 'Init',
@@ -98,10 +98,7 @@ export interface SdsWasmGenerateMessage extends SdsWasmMessage {
 	useColumns: HeaderNames
 	sensitiveZeros: HeaderNames
 	recordLimit: number
-	resolution: number
-	emptyValue: string
-	cacheSize: number
-	seeded: boolean
+	synthesisParameters: SynthesisParameters
 }
 
 export interface SdsWasmGenerateResponse extends SdsWasmResponse {

@@ -7,8 +7,11 @@ import type { IDropdownOption } from '@fluentui/react'
 import { SynthesisMode } from '~models'
 
 const synthesisModeOptions = [
-	{ key: SynthesisMode.Seeded, text: 'Seeded' },
-	{ key: SynthesisMode.Unseeded, text: 'Unseeded' },
+	{ key: SynthesisMode.Unseeded, text: SynthesisMode.Unseeded },
+	{ key: SynthesisMode.RowSeeded, text: SynthesisMode.RowSeeded },
+	{ key: SynthesisMode.ValueSeeded, text: SynthesisMode.ValueSeeded },
+	{ key: SynthesisMode.AggregateSeeded, text: SynthesisMode.AggregateSeeded },
+	{ key: SynthesisMode.DP, text: SynthesisMode.DP },
 ]
 
 export function useSynthesisModeOptions(): IDropdownOption[] {

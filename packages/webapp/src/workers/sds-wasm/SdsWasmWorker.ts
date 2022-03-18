@@ -12,8 +12,10 @@ import type {
 } from 'sds-wasm'
 import { v4 } from 'uuid'
 
-import type { AggregateType } from '~models'
-import { SynthesisMode } from '~models'
+import type {
+	AggregateType,
+	SynthesisParameters,
+} from '~models'
 
 import type {
 	SdsWasmAttributesIntersectionsByColumnMessage,
@@ -157,11 +159,8 @@ export class SdsWasmWorker {
 		useColumns: string[],
 		sensitiveZeros: string[],
 		recordLimit: number,
-		resolution: number,
-		cacheSize: number,
+		synthesisParameters: SynthesisParameters,
 		reportProgress?: ReportProgressCallback,
-		emptyValue = '',
-		synthesisMode = SynthesisMode.Seeded,
 	): Promise<string | undefined> {
 		const response = await this.execute(
 			{
@@ -172,10 +171,7 @@ export class SdsWasmWorker {
 				useColumns,
 				sensitiveZeros,
 				recordLimit,
-				resolution,
-				emptyValue,
-				cacheSize,
-				seeded: synthesisMode === SynthesisMode.Seeded,
+				synthesisParameters,
 			} as SdsWasmGenerateMessage,
 			reportProgress,
 		)
@@ -252,12 +248,11 @@ export class SdsWasmWorker {
 			type: SdsWasmMessageType.GetAggregateResult,
 			aggregatesDelimiter,
 			combinationDelimiter,
-			aggregateType
+			aggregateType,
 		} as SdsWasmGetAggregateResultMessage)
 
 		if (response.type === SdsWasmMessageType.GetAggregateResult) {
-			return (response as SdsWasmGetAggregateResultResponse)
-				.aggregateResult
+			return (response as SdsWasmGetAggregateResultResponse).aggregateResult
 		}
 		return undefined
 	}

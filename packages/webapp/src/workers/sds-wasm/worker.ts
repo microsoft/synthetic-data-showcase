@@ -4,7 +4,12 @@
  */
 import init, { init_logger, SDSContext } from 'sds-wasm'
 
-import { AggregateType } from '../../models'
+import {
+	AggregateType,
+	OversamplingType,
+	SynthesisMode,
+	UseSyntheticCounts,
+} from '../../models'
 import type {
 	SdsWasmAttributesIntersectionsByColumnMessage,
 	SdsWasmAttributesIntersectionsByColumnResponse,
@@ -133,24 +138,83 @@ async function handleGenerate(
 		message.recordLimit,
 	)
 
-	if (message.seeded) {
-		CONTEXT.generateRowSeeded(
-			message.cacheSize,
-			message.resolution,
-			message.emptyValue,
-			p => {
-				postProgress(message.id, p)
-			},
-		)
-	} else {
-		CONTEXT.generateUnseeded(
-			message.cacheSize,
-			message.resolution,
-			message.emptyValue,
-			p => {
-				postProgress(message.id, p)
-			},
-		)
+	console.log('message', message)
+
+	switch (message.synthesisParameters.synthesisMode) {
+		case SynthesisMode.Unseeded:
+			CONTEXT.generateUnseeded(
+				message.synthesisParameters.cacheSize,
+				message.synthesisParameters.resolution,
+				message.synthesisParameters.emptyValue,
+				p => {
+					postProgress(message.id, p)
+				},
+			)
+			break
+		case SynthesisMode.RowSeeded:
+			CONTEXT.generateRowSeeded(
+				message.synthesisParameters.cacheSize,
+				message.synthesisParameters.resolution,
+				message.synthesisParameters.emptyValue,
+				p => {
+					postProgress(message.id, p)
+				},
+			)
+			break
+		case SynthesisMode.ValueSeeded:
+			CONTEXT.generateValueSeeded(
+				message.synthesisParameters.cacheSize,
+				message.synthesisParameters.resolution,
+				message.synthesisParameters.emptyValue,
+				message.synthesisParameters.reportingLength,
+				message.synthesisParameters.oversamplingType === OversamplingType.Controlled
+					? message.synthesisParameters.oversamplingRatio
+					: undefined,
+				message.synthesisParameters.oversamplingType === OversamplingType.Controlled
+					? message.synthesisParameters.oversamplingTries
+					: undefined,
+				p => {
+					postProgress(message.id, 0.5 * p)
+				},
+				p => {
+					postProgress(message.id, 50.0 + 0.5 * p)
+				},
+			)
+			break
+		case SynthesisMode.AggregateSeeded:
+			CONTEXT.generateAggregateSeeded(
+				message.synthesisParameters.cacheSize,
+				message.synthesisParameters.resolution,
+				message.synthesisParameters.emptyValue,
+				message.synthesisParameters.reportingLength,
+				message.synthesisParameters.useSyntheticCounts === UseSyntheticCounts.Yes,
+				p => {
+					postProgress(message.id, 0.5 * p)
+				},
+				p => {
+					postProgress(message.id, 50.0 + 0.5 * p)
+				},
+			)
+			break
+		case SynthesisMode.DP:
+			CONTEXT.generateDp(
+				message.synthesisParameters.cacheSize,
+				message.synthesisParameters.resolution,
+				message.synthesisParameters.emptyValue,
+				message.synthesisParameters.reportingLength,
+				message.synthesisParameters.percentilePercentage,
+				message.synthesisParameters.sensitivityFilterEpsilon,
+				message.synthesisParameters.noiseEpsilon,
+				message.synthesisParameters.noiseDelta,
+				message.synthesisParameters.useSyntheticCounts === UseSyntheticCounts.Yes,
+				p => {
+					postProgress(message.id, 0.5 * p)
+				},
+				p => {
+					postProgress(message.id, 50.0 + 0.5 * p)
+				},
+			)
+			break
 	}
 
 	return {

@@ -6,7 +6,7 @@ import { introspect } from '@data-wrangling-components/core'
 import { useCallback } from 'react'
 import type { SetterOrUpdater } from 'recoil'
 
-import type { ICsvContent, SynthesisMode } from '~models'
+import type { ICsvContent, SynthesisParameters } from '~models'
 import {
 	useClearGenerate,
 	useIsProcessingSetter,
@@ -18,10 +18,8 @@ import { fromCsvData, tableHeaders } from '~utils/arquero'
 
 export function useOnRunGenerate(
 	setSyntheticContent: SetterOrUpdater<ICsvContent>,
-	resolution: number,
 	recordLimit: number,
-	cacheSize: number,
-	synthesisMode: SynthesisMode,
+	synthesisParameters: SynthesisParameters,
 ): () => Promise<void> {
 	const setIsProcessing = useIsProcessingSetter()
 	const worker = useWasmWorkerValue()
@@ -44,13 +42,10 @@ export function useOnRunGenerate(
 				.filter(h => h.hasSensitiveZeros)
 				.map(h => h.name),
 			recordLimit,
-			resolution,
-			cacheSize,
+			synthesisParameters,
 			p => {
 				setProcessingProgress(p)
 			},
-			'',
-			synthesisMode,
 		)
 
 		const table = fromCsvData(response, sensitiveContent.delimiter)
@@ -61,6 +56,7 @@ export function useOnRunGenerate(
 			headers: tableHeaders(table),
 			delimiter: sensitiveContent.delimiter,
 			table,
+			synthesisParameters,
 			metadata: introspect(table, true),
 		})
 	}, [
@@ -70,9 +66,7 @@ export function useOnRunGenerate(
 		clearGenerate,
 		sensitiveContent,
 		recordLimit,
-		resolution,
-		cacheSize,
+		synthesisParameters,
 		setProcessingProgress,
-		synthesisMode,
 	])
 }

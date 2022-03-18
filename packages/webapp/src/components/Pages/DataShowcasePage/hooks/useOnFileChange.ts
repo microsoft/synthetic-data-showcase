@@ -15,6 +15,7 @@ import { defaultSubjectID } from '~models'
 import {
 	useClearSensitiveData,
 	useIsProcessingSetter,
+	useNoiseDeltaSetter,
 	useRecordLimitSetter,
 } from '~states'
 import { columnIndexesWithZeros, tableHeaders } from '~utils/arquero'
@@ -32,6 +33,7 @@ export function useOnFileChange(
 	const setIsProcessing = useIsProcessingSetter()
 	const clearSensitiveData = useClearSensitiveData()
 	const setRecordLimit = useRecordLimitSetter()
+	const setNoiseDelta = useNoiseDeltaSetter()
 
 	return useCallback(
 		async (e: ChangeEvent<HTMLInputElement>) => {
@@ -61,12 +63,15 @@ export function useOnFileChange(
 							subjectId: defaultSubjectID,
 						})
 						setRecordLimit(t.numRows())
+						if (t.numRows() > 0) {
+							setNoiseDelta(1 / (2 * t.numRows()))
+						}
 						// allow the same file to be loaded again
 						e.target.value = ''
 					},
 				})
 			}
 		},
-		[setIsProcessing, clearSensitiveData, setSensitiveContent, setRecordLimit],
+		[setIsProcessing, clearSensitiveData, setSensitiveContent, setRecordLimit, setNoiseDelta],
 	)
 }

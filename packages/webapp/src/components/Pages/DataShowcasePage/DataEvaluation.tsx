@@ -17,8 +17,8 @@ import { memo, useState } from 'react'
 import { DataEvaluationInfo } from '~components/DataEvaluationInfo'
 import { InfoTooltip } from '~components/InfoTooltip'
 import { TooltipWrapper } from '~components/TooltipWrapper'
-import { AggregateType } from '~models'
-import { useEvaluateResult, useIsProcessing, useReportingLength } from '~states'
+import { AggregateType, SynthesisMode } from '~models'
+import { useEvaluateResult, useIsProcessing, useReportingLength, useSyntheticContentValue } from '~states'
 import { tooltips } from '~ui-tooltips'
 
 import { useCanRun, useOnRunEvaluate, useSpinButtonOnChange } from './hooks'
@@ -53,6 +53,7 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 	const canRun = useCanRun()
 	const onRunEvaluate = useOnRunEvaluate(setEvaluateResult, reportingLength)
 	const handleReportingLengthChange = useSpinButtonOnChange(setReportingLength)
+	const syntheticContent = useSyntheticContentValue()
 
 	const theme = getTheme()
 
@@ -130,7 +131,10 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 								min={1}
 								step={1}
 								value={reportingLength.toString()}
-								disabled={isProcessing}
+								disabled={isProcessing || (
+									syntheticContent.synthesisParameters?.synthesisMode !== SynthesisMode.Unseeded && 
+									syntheticContent.synthesisParameters?.synthesisMode !== SynthesisMode.RowSeeded)
+								}
 								onChange={handleReportingLengthChange}
 							/>
 						</TooltipWrapper>
