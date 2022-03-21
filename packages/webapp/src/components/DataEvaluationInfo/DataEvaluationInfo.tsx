@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import type { IStackStyles, IStackTokens} from '@fluentui/react';
+import type { IStackStyles, IStackTokens } from '@fluentui/react'
 import { Stack } from '@fluentui/react'
 import { memo } from 'react'
 import type { IMicrodataStatistics } from 'sds-wasm'
@@ -14,11 +14,12 @@ import {
 } from '~components/Charts/hooks'
 import { DataEvaluationInfoDownloader } from '~components/DataEvaluationInfoDownloader'
 import { MetricsSummaryTable } from '~components/MetricsSummaryTable'
-import type { AggregateType } from '~models'
+import type { AggregateType, IMicrodataMaxStatistics } from '~models'
 
 export interface DataEvaluationInfoProps {
 	reportingLength: number
 	stats: IMicrodataStatistics
+	microdataMaxStats: IMicrodataMaxStatistics
 	aggregateType: AggregateType
 	chartHeight: number
 	chartWidth: number
@@ -31,6 +32,7 @@ export const DataEvaluationInfo: React.FC<DataEvaluationInfoProps> = memo(
 	function DataEvaluationInfo({
 		reportingLength,
 		stats,
+		microdataMaxStats,
 		aggregateType,
 		chartHeight,
 		chartWidth,
@@ -65,6 +67,7 @@ export const DataEvaluationInfo: React.FC<DataEvaluationInfoProps> = memo(
 							label: 'Mean proportional error',
 							metrics: stats.meanProportionalErrorByBucket,
 							type: 'bar',
+							max: microdataMaxStats.meanProportionalErrorByBucket,
 						}}
 						height={chartHeight}
 						width={chartWidth}
@@ -77,6 +80,7 @@ export const DataEvaluationInfo: React.FC<DataEvaluationInfoProps> = memo(
 							label: 'Mean length of combinations',
 							metrics: stats.meanCombinationsLengthByBucket,
 							type: 'bar',
+							max: microdataMaxStats.meanCombinationsLengthByBucket,
 						}}
 						height={chartHeight}
 						width={chartWidth}
@@ -89,6 +93,7 @@ export const DataEvaluationInfo: React.FC<DataEvaluationInfoProps> = memo(
 							label: 'Mean combinations count by length',
 							metrics: stats.meanCombinationsCountByLen,
 							type: 'bar',
+							max: microdataMaxStats.meanCombinationsCountByLen,
 						}}
 						height={chartHeight}
 						width={chartWidth}
@@ -101,6 +106,7 @@ export const DataEvaluationInfo: React.FC<DataEvaluationInfoProps> = memo(
 							label: 'Distinct combinations count by length',
 							metrics: stats.distinctCombinationsCountByLen,
 							type: 'bar',
+							max: microdataMaxStats.distinctCombinationsCountByLen,
 						}}
 						height={chartHeight}
 						width={chartWidth}
@@ -113,6 +119,7 @@ export const DataEvaluationInfo: React.FC<DataEvaluationInfoProps> = memo(
 							label: 'Rare combinations count by length',
 							metrics: stats.rareCombinationsCountByLen,
 							type: 'bar',
+							max: microdataMaxStats.rareCombinationsCountByLen,
 						}}
 						height={chartHeight}
 						width={chartWidth}
@@ -125,6 +132,7 @@ export const DataEvaluationInfo: React.FC<DataEvaluationInfoProps> = memo(
 							label: 'Rare combinations percentage by length',
 							metrics: stats.rareCombinationsPercentageByLen,
 							type: 'bar',
+							max: microdataMaxStats.rareCombinationsPercentageByLen,
 						}}
 						height={chartHeight}
 						width={chartWidth}
@@ -137,6 +145,7 @@ export const DataEvaluationInfo: React.FC<DataEvaluationInfoProps> = memo(
 							label: 'Leakage count by length',
 							metrics: stats.leakageCountByLen,
 							type: 'bar',
+							max: microdataMaxStats.leakageCountByLen,
 						}}
 						height={chartHeight}
 						width={chartWidth}
@@ -149,6 +158,7 @@ export const DataEvaluationInfo: React.FC<DataEvaluationInfoProps> = memo(
 							label: 'Leakage percentage by length',
 							metrics: stats.leakagePercentageByLen,
 							type: 'bar',
+							max: microdataMaxStats.leakagePercentageByLen,
 						}}
 						height={chartHeight}
 						width={chartWidth}

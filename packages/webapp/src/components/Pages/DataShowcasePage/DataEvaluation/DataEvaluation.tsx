@@ -18,12 +18,18 @@ import { DataEvaluationInfo } from '~components/DataEvaluationInfo'
 import { InfoTooltip } from '~components/InfoTooltip'
 import { TooltipWrapper } from '~components/TooltipWrapper'
 import { AggregateType, SynthesisMode } from '~models'
-import { useEvaluateResult, useIsProcessing, useReportingLength, useSyntheticContentValue } from '~states'
+import {
+	useEvaluateResult,
+	useIsProcessing,
+	useReportingLength,
+	useSyntheticContentValue,
+} from '~states'
 import { tooltips } from '~ui-tooltips'
 
 import { useCanRun, useDropdownOnChange, useSpinButtonOnChange } from '../hooks'
 import {
 	useAggregateTypeOptions,
+	useMicrodataMaxStatistics,
 	useOnRunEvaluate,
 } from './hooks'
 
@@ -44,12 +50,17 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 		AggregateType | undefined
 	>(undefined)
 	const aggregateTypeOptions = useAggregateTypeOptions()
-	const leftAggregateTypeOnChange = useDropdownOnChange(
-		setLeftAggregateType,
-	)
-	const rightAggregateTypeOnChange = useDropdownOnChange(
-		setRightAggregateType,
-	)
+	const leftAggregateTypeOnChange = useDropdownOnChange(setLeftAggregateType)
+	const rightAggregateTypeOnChange = useDropdownOnChange(setRightAggregateType)
+	const leftStats =
+		leftAggregateType && evaluateResult
+			? evaluateResult[aggregateTypeToStatKey[leftAggregateType]]
+			: undefined
+	const rightStats =
+		rightAggregateType && evaluateResult
+			? evaluateResult[aggregateTypeToStatKey[rightAggregateType]]
+			: undefined
+	const microdataMaxStats = useMicrodataMaxStatistics([leftStats, rightStats])
 	const canRun = useCanRun()
 	const onRunEvaluate = useOnRunEvaluate(setEvaluateResult, reportingLength)
 	const handleReportingLengthChange = useSpinButtonOnChange(setReportingLength)
@@ -131,9 +142,12 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 								min={1}
 								step={1}
 								value={reportingLength.toString()}
-								disabled={isProcessing || (
-									syntheticContent.synthesisParameters?.synthesisMode !== SynthesisMode.Unseeded && 
-									syntheticContent.synthesisParameters?.synthesisMode !== SynthesisMode.RowSeeded)
+								disabled={
+									isProcessing ||
+									(syntheticContent.synthesisParameters?.synthesisMode !==
+										SynthesisMode.Unseeded &&
+										syntheticContent.synthesisParameters?.synthesisMode !==
+											SynthesisMode.RowSeeded)
 								}
 								onChange={handleReportingLengthChange}
 							/>
@@ -182,9 +196,8 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 							{leftAggregateType ? (
 								<DataEvaluationInfo
 									reportingLength={evaluateResult.reportingLength}
-									stats={
-										evaluateResult[aggregateTypeToStatKey[leftAggregateType]]
-									}
+									stats={leftStats}
+									microdataMaxStats={microdataMaxStats}
 									aggregateType={leftAggregateType}
 									chartHeight={chartHeight}
 									chartWidth={chartWidth}
@@ -200,9 +213,8 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 							{rightAggregateType ? (
 								<DataEvaluationInfo
 									reportingLength={evaluateResult.reportingLength}
-									stats={
-										evaluateResult[aggregateTypeToStatKey[rightAggregateType]]
-									}
+									stats={rightStats}
+									microdataMaxStats={microdataMaxStats}
 									aggregateType={rightAggregateType}
 									chartHeight={chartHeight}
 									chartWidth={chartWidth}
