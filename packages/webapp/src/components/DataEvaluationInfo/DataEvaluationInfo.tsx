@@ -64,10 +64,16 @@ export const DataEvaluationInfo: React.FC<DataEvaluationInfoProps> = memo(
 						leftChart={{
 							label: 'Mean proportional error',
 							metrics: stats.meanProportionalErrorByBucket,
-							type: 'line',
-							drawYAxisOnChartArea: false,
+							type: 'bar',
 						}}
-						rightChart={{
+						height={chartHeight}
+						width={chartWidth}
+					/>
+				</Stack.Item>
+				<Stack.Item styles={stackItemStyles}>
+					<MetricsChart
+						labels={countLabels}
+						leftChart={{
 							label: 'Mean length of combinations',
 							metrics: stats.meanCombinationsLengthByBucket,
 							type: 'bar',
