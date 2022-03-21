@@ -138,8 +138,6 @@ async function handleGenerate(
 		message.recordLimit,
 	)
 
-	console.log('message', message)
-
 	switch (message.synthesisParameters.synthesisMode) {
 		case SynthesisMode.Unseeded:
 			CONTEXT.generateUnseeded(

@@ -13,6 +13,7 @@ import {
 } from '@fluentui/react'
 import { memo } from 'react'
 
+import { CsvTable } from '~components/CsvTable'
 import { InfoTooltip } from '~components/InfoTooltip'
 import { TooltipWrapper } from '~components/TooltipWrapper'
 import { OversamplingType, SynthesisMode } from '~models'
@@ -36,12 +37,9 @@ import {
 } from '~states'
 import { tooltips } from '~ui-tooltips'
 
-import { CsvTable } from './CsvTable'
+import { useCanRun, useDropdownOnChange, useSpinButtonOnChange } from '../hooks'
 import {
-	useCanRun,
-	useDropdownOnChange,
 	useOnRunGenerate,
-	useSpinButtonOnChange,
 	useSynthesisModeOptions,
 	useSyntheticTableCommands,
 } from './hooks'
@@ -229,10 +227,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 				{synthesisMode === SynthesisMode.ValueSeeded && (
 					<>
 						<Stack.Item>
-							<TooltipWrapper
-								tooltip={tooltips.todo}
-								label="Oversampling"
-							>
+							<TooltipWrapper tooltip={tooltips.todo} label="Oversampling">
 								<Dropdown
 									selectedKey={oversamplingType}
 									onChange={handleOversamplingTypeChange}

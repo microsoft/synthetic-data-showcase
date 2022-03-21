@@ -9,11 +9,11 @@ import { useBoolean } from '@fluentui/react-hooks'
 import { memo } from 'react'
 
 import { FileInputButton } from '~components/controls'
+import { CsvTable } from '~components/CsvTable'
 import { InfoTooltip } from '~components/InfoTooltip'
 import { useSensitiveContent } from '~states'
 import { tooltips } from '~ui-tooltips'
 
-import { CsvTable } from './CsvTable'
 import {
 	useOnFileChange,
 	useOnTableChange,

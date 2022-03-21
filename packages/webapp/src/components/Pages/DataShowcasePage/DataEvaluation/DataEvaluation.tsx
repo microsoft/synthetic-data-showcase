@@ -21,11 +21,11 @@ import { AggregateType, SynthesisMode } from '~models'
 import { useEvaluateResult, useIsProcessing, useReportingLength, useSyntheticContentValue } from '~states'
 import { tooltips } from '~ui-tooltips'
 
-import { useCanRun, useOnRunEvaluate, useSpinButtonOnChange } from './hooks'
+import { useCanRun, useDropdownOnChange, useSpinButtonOnChange } from '../hooks'
 import {
-	useAggregateTypeOnChange,
 	useAggregateTypeOptions,
-} from './hooks/evaluation'
+	useOnRunEvaluate,
+} from './hooks'
 
 const aggregateTypeToStatKey = {
 	[AggregateType.Sensitive]: 'sensitiveDataStats',
@@ -44,10 +44,10 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 		AggregateType | undefined
 	>(undefined)
 	const aggregateTypeOptions = useAggregateTypeOptions()
-	const leftAggregateTypeOnChange = useAggregateTypeOnChange(
+	const leftAggregateTypeOnChange = useDropdownOnChange(
 		setLeftAggregateType,
 	)
-	const rightAggregateTypeOnChange = useAggregateTypeOnChange(
+	const rightAggregateTypeOnChange = useDropdownOnChange(
 		setRightAggregateType,
 	)
 	const canRun = useCanRun()

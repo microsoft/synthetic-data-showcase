@@ -5,9 +5,8 @@
 import type { ICommandBarItemProps } from '@fluentui/react'
 import { useMemo } from 'react'
 
+import { useDownloadCommand } from '~components/Pages/DataShowcasePage/hooks'
 import type { ICsvContent } from '~models'
-
-import { useDownloadCommand } from './commands'
 
 export function useSyntheticTableCommands(
 	content: ICsvContent,

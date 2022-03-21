@@ -9,7 +9,8 @@ import type { SetterOrUpdater } from 'recoil'
 
 import type { ICsvContent } from '~models'
 
-import { useOnUseColumnCheckToggle, useVisibleColumnNames } from '..'
+import { useOnUseColumnCheckToggle } from './useOnUseColumnCheckToggle'
+import { useVisibleColumnNames } from './useVisibleColumnNames'
 
 export function useVisibleColumnsCommand(
 	content: ICsvContent,

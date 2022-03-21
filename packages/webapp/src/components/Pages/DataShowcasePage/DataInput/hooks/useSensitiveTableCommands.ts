@@ -6,10 +6,10 @@ import type { ICommandBarItemProps } from '@fluentui/react'
 import { useMemo } from 'react'
 import type { SetterOrUpdater } from 'recoil'
 
+import { useDownloadCommand } from '~components/Pages/DataShowcasePage/hooks'
 import type { ICsvContent } from '~models'
 
 import {
-	useDownloadCommand,
 	useEditColumnCommand,
 	useSensitiveZerosCommand,
 	useSubjectIdCommand,

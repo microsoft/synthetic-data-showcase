@@ -38,7 +38,7 @@ import {
 	useOnRunNavigate,
 	useOnSetSelectedAttributes,
 	useOnToggleSelectedHeader,
-} from './hooks/navigation'
+} from './hooks'
 
 const backIcon: IIconProps = { iconName: 'Back' }
 

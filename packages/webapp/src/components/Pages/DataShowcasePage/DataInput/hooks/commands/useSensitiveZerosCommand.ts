@@ -9,7 +9,8 @@ import type { SetterOrUpdater } from 'recoil'
 
 import type { ICsvContent } from '~models'
 
-import { useColumnsWithZeros, useOnSensitiveZeroCheckToggle } from '..'
+import { useColumnsWithZeros } from './useColumnsWithZeros'
+import { useOnSensitiveZeroCheckToggle } from './useOnSensitiveZeroCheckChange'
 
 export function useSensitiveZerosCommand(
 	content: ICsvContent,
