@@ -31,8 +31,9 @@ WORKDIR /usr/src/sds
 # copy from rust build
 COPY --from=wasm-builder /usr/src/sds ./
 
-# setting sds wasm log level
+# setting sds env vars
 ENV VITE_SDS_WASM_LOG_LEVEL=warn
+ENV VITE_SDS_CONTEXT_CACHE_SIZE=4
 
 # install dependencies and build
 RUN yarn install && yarn build:

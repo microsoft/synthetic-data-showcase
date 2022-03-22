@@ -3,47 +3,53 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { useCallback } from 'react'
-import type { SetterOrUpdater } from 'recoil'
-import type { IEvaluateResult } from 'sds-wasm'
 
+import type { IContextParameters } from '~models'
 import {
-	useClearEvaluate,
+	useAllContextsParametersSetter,
 	useIsProcessingSetter,
 	useProcessingProgressSetter,
+	useSelectedContextParametersSetter,
 	useWasmWorkerValue,
 } from '~states'
 
 export function useOnRunEvaluate(
-	setEvaluateResult: SetterOrUpdater<IEvaluateResult | null>,
 	reportingLength: number,
+	selectedContextParameters: IContextParameters | undefined,
 ): () => Promise<void> {
 	const setIsProcessing = useIsProcessingSetter()
 	const setProcessingProgress = useProcessingProgressSetter()
-	const clearEvaluate = useClearEvaluate()
 	const worker = useWasmWorkerValue()
+	const setContextsParameters = useAllContextsParametersSetter()
+	const setSelectedContext = useSelectedContextParametersSetter()
 
 	return useCallback(async () => {
 		setIsProcessing(true)
-		await clearEvaluate()
-		setProcessingProgress(0.0)
 
-		const response = await worker?.evaluate(
-			reportingLength,
-			p => {
-				setProcessingProgress(p)
-			},
-		)
+		if (selectedContextParameters) {
+			setProcessingProgress(0.0)
+
+			const response = await worker?.evaluate(
+				selectedContextParameters.key,
+				reportingLength,
+				p => {
+					setProcessingProgress(p)
+				},
+			)
+			if (response) {
+				setContextsParameters(response)
+				setSelectedContext(response.find(c => c.key === selectedContextParameters.key))
+			}
+		}
 
 		setIsProcessing(false)
-		if (response) {
-			setEvaluateResult(response)
-		}
 	}, [
-		worker,
 		setIsProcessing,
-		reportingLength,
-		clearEvaluate,
-		setEvaluateResult,
+		selectedContextParameters,
 		setProcessingProgress,
+		worker,
+		reportingLength,
+		setContextsParameters,
+		setSelectedContext
 	])
 }

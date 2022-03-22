@@ -11,13 +11,16 @@ import {
 	SpinButton,
 	Stack,
 } from '@fluentui/react'
-import { memo } from 'react'
+import { memo, useEffect, useState } from 'react'
 
+import { ContextsDropdown } from '~components/ContextsDropdown'
 import { CsvTable } from '~components/CsvTable'
 import { InfoTooltip } from '~components/InfoTooltip'
 import { TooltipWrapper } from '~components/TooltipWrapper'
-import { OversamplingType, SynthesisMode } from '~models'
+import type { ICsvContent } from '~models'
+import { defaultCsvContent, OversamplingType, SynthesisMode } from '~models'
 import {
+	useAllContextsParametersValue,
 	useCacheSize,
 	useIsProcessingValue,
 	useNoiseDelta,
@@ -29,17 +32,19 @@ import {
 	useRecordLimit,
 	useReportingLength,
 	useResolution,
+	useSelectedContextParameters,
 	useSensitiveContentValue,
 	useSensitivityFilterEpsilon,
 	useSynthesisMode,
-	useSyntheticContent,
 	useUseSyntheticCounts,
 } from '~states'
 import { tooltips } from '~ui-tooltips'
 
 import { useCanRun, useDropdownOnChange, useSpinButtonOnChange } from '../hooks'
 import {
+	useGetSyntheticCsvContent,
 	useOnRunGenerate,
+	useSelectedContextParametersOnChange,
 	useSynthesisModeOptions,
 	useSyntheticTableCommands,
 } from './hooks'
@@ -64,11 +69,22 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 	const sensitiveContent = useSensitiveContentValue()
 	const [reportingLength, setReportingLength] = useReportingLength()
 	const canRun = useCanRun()
-	const [syntheticContent, setSyntheticContent] = useSyntheticContent()
+	const [syntheticContent, setSyntheticContent] =
+		useState<ICsvContent>(defaultCsvContent)
 	const [synthesisMode, setSynthesisMode] = useSynthesisMode()
 	const synthesisModeOptions = useSynthesisModeOptions()
 	const oversamplingTypeOptions = useOversamplingTypeOptions()
 	const useSyntheticCountsOptions = useUseSyntheticCountOptions()
+	const allContextsParameters = useAllContextsParametersValue()
+	const [selectedContextParameters, setSelectedContextParameters] =
+		useSelectedContextParameters()
+	const getSyntheticCsvContent = useGetSyntheticCsvContent()
+	const selectedContextParametersOnChange =
+		useSelectedContextParametersOnChange(
+			selectedContextParameters,
+			getSyntheticCsvContent,
+			setSyntheticContent,
+		)
 
 	const theme = getTheme()
 
@@ -95,7 +111,8 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 		},
 	}
 
-	const onRunGenerate = useOnRunGenerate(setSyntheticContent, recordLimit, {
+	const onRunGenerate = useOnRunGenerate({
+		recordLimit,
 		synthesisMode,
 		resolution,
 		cacheSize,
@@ -108,7 +125,6 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 		sensitivityFilterEpsilon,
 		noiseEpsilon,
 		noiseDelta,
-		emptyValue: '',
 	})
 
 	const tableCommands = useSyntheticTableCommands(syntheticContent)
@@ -134,6 +150,10 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 	)
 	const handleNoiseEpsilonChange = useSpinButtonOnChange(setNoiseEpsilon)
 	const handleNoiseDeltaChange = useSpinButtonOnChange(setNoiseDelta)
+
+	useEffect(() => {
+		selectedContextParametersOnChange()
+	}, [selectedContextParametersOnChange])
 
 	return (
 		<Stack styles={mainStackStyles} tokens={mainStackTokens}>
@@ -368,10 +388,17 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 				)}
 			</Stack>
 
-			{syntheticContent.table.numCols() > 0 && (
+			{!isProcessing && allContextsParameters.length > 0 && (
 				<>
 					<Stack.Item>
 						<h3>Synthetic data</h3>
+					</Stack.Item>
+					<Stack.Item>
+						<ContextsDropdown
+							selectedContextParameters={selectedContextParameters}
+							allContextsParameters={allContextsParameters}
+							onContextSelected={setSelectedContextParameters}
+						/>
 					</Stack.Item>
 					<Stack tokens={subStackTokens}>
 						<Stack.Item>

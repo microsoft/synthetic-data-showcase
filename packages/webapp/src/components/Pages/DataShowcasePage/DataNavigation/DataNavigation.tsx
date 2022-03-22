@@ -24,8 +24,8 @@ import {
 import { InfoTooltip } from '~components/InfoTooltip'
 import { PipelineStep } from '~models'
 import {
+	useSelectedContextParametersValue,
 	useSelectedPipelineStepSetter,
-	useSyntheticHeaders,
 	useWasmWorkerValue,
 } from '~states'
 import { tooltips } from '~ui-tooltips'
@@ -60,12 +60,14 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 	const worker = useWasmWorkerValue()
 	const setSelectedPipelineStep = useSelectedPipelineStepSetter()
 	const isMounted = useRef(true)
-	const headers = useSyntheticHeaders()
+	const selectedContextParameters = useSelectedContextParametersValue()
+	const headers = selectedContextParameters?.useColumns ?? []
 	const initiallySelectedHeaders = useInitiallySelectedHeaders(headers)
 	const [selectedHeaders, setSelectedHeaders] = useState<boolean[]>(
 		initiallySelectedHeaders,
 	)
 	const setNewSelectedAttributesByColumn = useOnNewSelectedAttributesByColumn(
+		selectedContextParameters?.key,
 		setIsLoading,
 		isMounted,
 		setSelectedAttributesByColumn,
@@ -83,7 +85,9 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 		selectedHeaders,
 		setSelectedHeaders,
 	)
+
 	const onRunNavigate = useOnRunNavigate(
+		selectedContextParameters?.key,
 		setIsLoading,
 		isMounted,
 		setSelectedHeaders,
@@ -134,49 +138,52 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 				onClearSelectedAttributes={onClearSelectedAttributes}
 			/>
 
-			<Stack horizontal tokens={subStackTokens} horizontalAlign="center">
-				{isLoading ? (
-					<Spinner />
-				) : (
-					<>
-						<Stack.Item
-							styles={{
-								root: {
-									overflow: 'auto',
-									paddingRight: '20px',
-									height: viewHeight,
-									minWidth: '80px',
-								},
-							}}
-						>
-							<HeaderSelector
-								headers={headers}
-								selectedHeaders={selectedHeaders}
-								onToggle={onToggleSelectedHeader}
-							/>
-						</Stack.Item>
+			{selectedContextParameters && (
+				<Stack horizontal tokens={subStackTokens} horizontalAlign="center">
+					{isLoading ? (
+						<Spinner />
+					) : (
+						<>
+							<Stack.Item
+								styles={{
+									root: {
+										overflow: 'auto',
+										paddingRight: '20px',
+										height: viewHeight,
+										minWidth: '80px',
+									},
+								}}
+							>
+								<HeaderSelector
+									headers={headers}
+									selectedHeaders={selectedHeaders}
+									onToggle={onToggleSelectedHeader}
+								/>
+							</Stack.Item>
 
-						<Separator
-							vertical={true}
-							styles={{ root: { height: viewHeight } }}
-						/>
-
-						<Stack.Item grow={1}>
-							<ColumnAttributeSelectorGrid
-								viewHeight={viewHeight}
-								headers={headers}
-								selectedHeaders={selectedHeaders}
-								chartHeight={chartHeight}
-								chartWidth={400}
-								chartBarHeight={40}
-								chartMinHeight={150}
-								selectedAttributesByColumn={selectedAttributesByColumn}
-								onSetSelectedAttributes={onSetSelectedAttributes}
+							<Separator
+								vertical={true}
+								styles={{ root: { height: viewHeight } }}
 							/>
-						</Stack.Item>
-					</>
-				)}
-			</Stack>
+
+							<Stack.Item grow={1}>
+								<ColumnAttributeSelectorGrid
+									contextKey={selectedContextParameters?.key}
+									viewHeight={viewHeight}
+									headers={headers}
+									selectedHeaders={selectedHeaders}
+									chartHeight={chartHeight}
+									chartWidth={400}
+									chartBarHeight={40}
+									chartMinHeight={150}
+									selectedAttributesByColumn={selectedAttributesByColumn}
+									onSetSelectedAttributes={onSetSelectedAttributes}
+								/>
+							</Stack.Item>
+						</>
+					)}
+				</Stack>
+			)}
 		</Stack>
 	)
 })

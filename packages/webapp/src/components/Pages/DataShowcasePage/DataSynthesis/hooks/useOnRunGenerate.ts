@@ -2,71 +2,91 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { introspect } from '@data-wrangling-components/core'
 import { useCallback } from 'react'
-import type { SetterOrUpdater } from 'recoil'
 
-import type { ICsvContent, SynthesisParameters } from '~models'
+import type {
+	IContextParameters,
+	OversamplingType,
+	SynthesisMode,
+	UseSyntheticCounts,
+} from '~models'
 import {
-	useClearGenerate,
+	useAllContextsParametersSetter,
 	useIsProcessingSetter,
 	useProcessingProgressSetter,
+	useSelectedContextParametersSetter,
 	useSensitiveContentValue,
 	useWasmWorkerValue,
 } from '~states'
-import { fromCsvData, tableHeaders } from '~utils/arquero'
+
+import { useContextKey } from './useContextKey'
+
+export interface IOnRunGenerateParameters {
+	recordLimit: number
+	synthesisMode: SynthesisMode
+	resolution: number
+	cacheSize: number
+	reportingLength: number
+	oversamplingType: OversamplingType
+	oversamplingRatio: number
+	oversamplingTries: number
+	useSyntheticCounts: UseSyntheticCounts
+	percentilePercentage: number
+	sensitivityFilterEpsilon: number
+	noiseEpsilon: number
+	noiseDelta: number
+}
 
 export function useOnRunGenerate(
-	setSyntheticContent: SetterOrUpdater<ICsvContent>,
-	recordLimit: number,
-	synthesisParameters: SynthesisParameters,
+	params: IOnRunGenerateParameters,
 ): () => Promise<void> {
 	const setIsProcessing = useIsProcessingSetter()
 	const worker = useWasmWorkerValue()
 	const setProcessingProgress = useProcessingProgressSetter()
 	const sensitiveContent = useSensitiveContentValue()
-	const clearGenerate = useClearGenerate()
+	const contextKey = useContextKey(params)
+	const setAllContextsParameters = useAllContextsParametersSetter()
+	const setSelectedContext = useSelectedContextParametersSetter()
 
 	return useCallback(async () => {
 		setIsProcessing(true)
-		await clearGenerate()
 		setProcessingProgress(0.0)
 
-		const response = await worker?.generate(
-			sensitiveContent.table.toCSV({ delimiter: sensitiveContent.delimiter }),
-			sensitiveContent.delimiter,
-			sensitiveContent.headers
+		const contextParameters: IContextParameters = {
+			...params,
+			key: contextKey,
+			delimiter: sensitiveContent.delimiter,
+			useColumns: sensitiveContent.headers
 				.filter(h => h.use && h.name !== sensitiveContent.subjectId)
 				.map(h => h.name),
-			sensitiveContent.headers
+			sensitiveZeros: sensitiveContent.headers
 				.filter(h => h.hasSensitiveZeros)
 				.map(h => h.name),
-			recordLimit,
-			synthesisParameters,
-			p => {
-				setProcessingProgress(p)
-			},
-		)
+			emptyValue: '',
+			isEvaluated: false,
+		}
 
-		const table = fromCsvData(response, sensitiveContent.delimiter)
+		const allContextParameters =
+			(await worker?.generate(
+				contextKey,
+				sensitiveContent.table.toCSV({ delimiter: sensitiveContent.delimiter }),
+				contextParameters,
+				p => {
+					setProcessingProgress(p)
+				},
+			)) ?? []
 
 		setIsProcessing(false)
-
-		setSyntheticContent({
-			headers: tableHeaders(table),
-			delimiter: sensitiveContent.delimiter,
-			table,
-			synthesisParameters,
-			metadata: introspect(table, true),
-		})
+		setAllContextsParameters(allContextParameters)
+		setSelectedContext(allContextParameters[allContextParameters.length - 1])
 	}, [
-		worker,
 		setIsProcessing,
-		setSyntheticContent,
-		clearGenerate,
-		sensitiveContent,
-		recordLimit,
-		synthesisParameters,
 		setProcessingProgress,
+		params,
+		contextKey,
+		sensitiveContent,
+		worker,
+		setAllContextsParameters,
+		setSelectedContext,
 	])
 }

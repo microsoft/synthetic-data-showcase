@@ -13,6 +13,7 @@ import type { SetSelectedAttributesCallback } from '~components/Pages/DataShowca
 import { ColumnAttributeSelector } from './ColumnAttributeSelector'
 
 export interface ColumnAttributeSelectorGridProps {
+	contextKey: string
 	viewHeight: string | number
 	headers: HeaderNames
 	selectedHeaders: boolean[]
@@ -26,6 +27,7 @@ export interface ColumnAttributeSelectorGridProps {
 
 export const ColumnAttributeSelectorGrid: React.FC<ColumnAttributeSelectorGridProps> =
 	memo(function ColumnAttributeSelectorGrid({
+		contextKey,
 		viewHeight,
 		headers,
 		selectedHeaders,
@@ -62,6 +64,7 @@ export const ColumnAttributeSelectorGrid: React.FC<ColumnAttributeSelectorGridPr
 							selectedHeaders[i] && (
 								<Stack.Item key={i}>
 									<ColumnAttributeSelector
+										contextKey={contextKey}
 										headerName={h}
 										columnIndex={i}
 										height={chartHeight}

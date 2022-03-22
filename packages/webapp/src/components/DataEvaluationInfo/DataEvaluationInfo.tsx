@@ -17,6 +17,7 @@ import { MetricsSummaryTable } from '~components/MetricsSummaryTable'
 import type { AggregateType, IMicrodataMaxStatistics } from '~models'
 
 export interface DataEvaluationInfoProps {
+	contextKey: string,
 	reportingLength: number
 	stats: IMicrodataStatistics
 	microdataMaxStats: IMicrodataMaxStatistics
@@ -30,6 +31,7 @@ export interface DataEvaluationInfoProps {
 
 export const DataEvaluationInfo: React.FC<DataEvaluationInfoProps> = memo(
 	function DataEvaluationInfo({
+		contextKey,
 		reportingLength,
 		stats,
 		microdataMaxStats,
@@ -49,6 +51,7 @@ export const DataEvaluationInfo: React.FC<DataEvaluationInfoProps> = memo(
 			<Stack styles={stackStyles} tokens={stackTokens}>
 				<Stack.Item styles={stackItemStyles}>
 					<DataEvaluationInfoDownloader
+						contextKey={contextKey}
 						stats={stats}
 						aggregateType={aggregateType}
 						reportingLength={reportingLength}

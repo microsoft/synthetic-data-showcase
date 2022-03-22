@@ -10,17 +10,12 @@ import {
 	SynthesisMode,
 	UseSyntheticCounts,
 } from '../../models'
+import { SDSContextCache } from './SDSContextCache'
 import type {
 	SdsWasmAttributesIntersectionsByColumnMessage,
 	SdsWasmAttributesIntersectionsByColumnResponse,
-	SdsWasmClearEvaluateMessage,
-	SdsWasmClearEvaluateResponse,
-	SdsWasmClearGenerateMessage,
-	SdsWasmClearGenerateResponse,
-	SdsWasmClearNavigateMessage,
-	SdsWasmClearNavigateResponse,
-	SdsWasmClearSensitiveDataMessage,
-	SdsWasmClearSensitiveDataResponse,
+	SdsWasmClearContextsMessage,
+	SdsWasmClearContextsResponse,
 	SdsWasmErrorResponse,
 	SdsWasmEvaluateMessage,
 	SdsWasmEvaluateResponse,
@@ -28,6 +23,10 @@ import type {
 	SdsWasmGenerateResponse,
 	SdsWasmGetAggregateResultMessage,
 	SdsWasmGetAggregateResultResponse,
+	SdsWasmGetEvaluateResultMessage,
+	SdsWasmGetEvaluateResultResponse,
+	SdsWasmGetGenerateResultMessage,
+	SdsWasmGetGenerateResultResponse,
 	SdsWasmInitMessage,
 	SdsWasmInitResponse,
 	SdsWasmMessage,
@@ -39,14 +38,11 @@ import type {
 } from './types'
 import { SdsWasmMessageType } from './types'
 
-let CONTEXT: SDSContext
+let CONTEXT_CACHE: SDSContextCache
 
 const HANDLERS = {
 	[SdsWasmMessageType.Init]: handleInit,
-	[SdsWasmMessageType.ClearSensitiveData]: handleClearSensitiveData,
-	[SdsWasmMessageType.ClearGenerate]: handleClearGenerate,
-	[SdsWasmMessageType.ClearEvaluate]: handleClearEvaluate,
-	[SdsWasmMessageType.ClearNavigate]: handleClearNavigate,
+	[SdsWasmMessageType.ClearContexts]: handleClearContexts,
 	[SdsWasmMessageType.Generate]: handleGenerate,
 	[SdsWasmMessageType.Evaluate]: handleEvaluate,
 	[SdsWasmMessageType.Navigate]: handleNavigate,
@@ -54,6 +50,8 @@ const HANDLERS = {
 	[SdsWasmMessageType.AttributesIntersectionsByColumn]:
 		handleAttributesIntersectionsByColumn,
 	[SdsWasmMessageType.GetAggregateResult]: handleGetAggregateResult,
+	[SdsWasmMessageType.GetGenerateResult]: handleGetGenerateResult,
+	[SdsWasmMessageType.GetEvaluateResult]: handleGetEvaluateResult,
 }
 
 function postProgress(id: string, progress: number) {
@@ -75,52 +73,22 @@ function postError(id: string, errorMessage: string) {
 async function handleInit(
 	message: SdsWasmInitMessage,
 ): Promise<SdsWasmInitResponse> {
+	CONTEXT_CACHE = new SDSContextCache(message.maxContextCacheSize)
+
 	await init(message.wasmPath)
 
 	init_logger(message.logLevel)
 
-	CONTEXT = new SDSContext()
-
 	return {
 		id: message.id,
 		type: message.type,
 	}
 }
 
-async function handleClearSensitiveData(
-	message: SdsWasmClearSensitiveDataMessage,
-): Promise<SdsWasmClearSensitiveDataResponse> {
-	CONTEXT.clearSensitiveData()
-	return {
-		id: message.id,
-		type: message.type,
-	}
-}
-
-async function handleClearGenerate(
-	message: SdsWasmClearGenerateMessage,
-): Promise<SdsWasmClearGenerateResponse> {
-	CONTEXT.clearGenerate()
-	return {
-		id: message.id,
-		type: message.type,
-	}
-}
-
-async function handleClearEvaluate(
-	message: SdsWasmClearEvaluateMessage,
-): Promise<SdsWasmClearEvaluateResponse> {
-	CONTEXT.clearEvaluate()
-	return {
-		id: message.id,
-		type: message.type,
-	}
-}
-
-async function handleClearNavigate(
-	message: SdsWasmClearNavigateMessage,
-): Promise<SdsWasmClearNavigateResponse> {
-	CONTEXT.clearNavigate()
+async function handleClearContexts(
+	message: SdsWasmClearContextsMessage,
+): Promise<SdsWasmClearContextsResponse> {
+	CONTEXT_CACHE.clear()
 	return {
 		id: message.id,
 		type: message.type,
@@ -130,46 +98,53 @@ async function handleClearNavigate(
 async function handleGenerate(
 	message: SdsWasmGenerateMessage,
 ): Promise<SdsWasmGenerateResponse> {
-	CONTEXT.setSensitiveData(
+	const context = CONTEXT_CACHE.set(message.contextKey, {
+		context: new SDSContext(),
+		contextParameters: message.contextParameters,
+	}).context
+
+	context.setSensitiveData(
 		message.sensitiveCsvData,
-		message.delimiter,
-		message.useColumns,
-		message.sensitiveZeros,
-		message.recordLimit,
+		message.contextParameters.delimiter,
+		message.contextParameters.useColumns,
+		message.contextParameters.sensitiveZeros,
+		message.contextParameters.recordLimit,
 	)
 
-	switch (message.synthesisParameters.synthesisMode) {
+	switch (message.contextParameters.synthesisMode) {
 		case SynthesisMode.Unseeded:
-			CONTEXT.generateUnseeded(
-				message.synthesisParameters.cacheSize,
-				message.synthesisParameters.resolution,
-				message.synthesisParameters.emptyValue,
+			context.generateUnseeded(
+				message.contextParameters.cacheSize,
+				message.contextParameters.resolution,
+				message.contextParameters.emptyValue,
 				p => {
 					postProgress(message.id, p)
 				},
 			)
 			break
 		case SynthesisMode.RowSeeded:
-			CONTEXT.generateRowSeeded(
-				message.synthesisParameters.cacheSize,
-				message.synthesisParameters.resolution,
-				message.synthesisParameters.emptyValue,
+			context.generateRowSeeded(
+				message.contextParameters.cacheSize,
+				message.contextParameters.resolution,
+				message.contextParameters.emptyValue,
 				p => {
 					postProgress(message.id, p)
 				},
 			)
 			break
 		case SynthesisMode.ValueSeeded:
-			CONTEXT.generateValueSeeded(
-				message.synthesisParameters.cacheSize,
-				message.synthesisParameters.resolution,
-				message.synthesisParameters.emptyValue,
-				message.synthesisParameters.reportingLength,
-				message.synthesisParameters.oversamplingType === OversamplingType.Controlled
-					? message.synthesisParameters.oversamplingRatio
+			context.generateValueSeeded(
+				message.contextParameters.cacheSize,
+				message.contextParameters.resolution,
+				message.contextParameters.emptyValue,
+				message.contextParameters.reportingLength,
+				message.contextParameters.oversamplingType ===
+					OversamplingType.Controlled
+					? message.contextParameters.oversamplingRatio
 					: undefined,
-				message.synthesisParameters.oversamplingType === OversamplingType.Controlled
-					? message.synthesisParameters.oversamplingTries
+				message.contextParameters.oversamplingType ===
+					OversamplingType.Controlled
+					? message.contextParameters.oversamplingTries
 					: undefined,
 				p => {
 					postProgress(message.id, 0.5 * p)
@@ -180,12 +155,13 @@ async function handleGenerate(
 			)
 			break
 		case SynthesisMode.AggregateSeeded:
-			CONTEXT.generateAggregateSeeded(
-				message.synthesisParameters.cacheSize,
-				message.synthesisParameters.resolution,
-				message.synthesisParameters.emptyValue,
-				message.synthesisParameters.reportingLength,
-				message.synthesisParameters.useSyntheticCounts === UseSyntheticCounts.Yes,
+			context.generateAggregateSeeded(
+				message.contextParameters.cacheSize,
+				message.contextParameters.resolution,
+				message.contextParameters.emptyValue,
+				message.contextParameters.reportingLength,
+				message.contextParameters.useSyntheticCounts ===
+					UseSyntheticCounts.Yes,
 				p => {
 					postProgress(message.id, 0.5 * p)
 				},
@@ -195,16 +171,17 @@ async function handleGenerate(
 			)
 			break
 		case SynthesisMode.DP:
-			CONTEXT.generateDp(
-				message.synthesisParameters.cacheSize,
-				message.synthesisParameters.resolution,
-				message.synthesisParameters.emptyValue,
-				message.synthesisParameters.reportingLength,
-				message.synthesisParameters.percentilePercentage,
-				message.synthesisParameters.sensitivityFilterEpsilon,
-				message.synthesisParameters.noiseEpsilon,
-				message.synthesisParameters.noiseDelta,
-				message.synthesisParameters.useSyntheticCounts === UseSyntheticCounts.Yes,
+			context.generateDp(
+				message.contextParameters.cacheSize,
+				message.contextParameters.resolution,
+				message.contextParameters.emptyValue,
+				message.contextParameters.reportingLength,
+				message.contextParameters.percentilePercentage,
+				message.contextParameters.sensitivityFilterEpsilon,
+				message.contextParameters.noiseEpsilon,
+				message.contextParameters.noiseDelta,
+				message.contextParameters.useSyntheticCounts ===
+					UseSyntheticCounts.Yes,
 				p => {
 					postProgress(message.id, 0.5 * p)
 				},
@@ -218,14 +195,16 @@ async function handleGenerate(
 	return {
 		id: message.id,
 		type: message.type,
-		syntheticCsvData: CONTEXT.generateResultToJs().syntheticData,
+		allContextParameters: CONTEXT_CACHE.allContextParameters(),
 	}
 }
 
 async function handleEvaluate(
 	message: SdsWasmEvaluateMessage,
 ): Promise<SdsWasmEvaluateResponse> {
-	CONTEXT.evaluate(
+	const value = CONTEXT_CACHE.getOrThrow(message.contextKey)
+
+	value.context.evaluate(
 		message.reportingLength,
 		p => {
 			postProgress(message.id, 0.5 * p)
@@ -235,17 +214,23 @@ async function handleEvaluate(
 		},
 	)
 
+	value.contextParameters.reportingLength = message.reportingLength
+	value.contextParameters.isEvaluated = true
+
+	// sets context again, so it is the latest one used
+	CONTEXT_CACHE.set(message.contextKey, value)
+
 	return {
 		id: message.id,
 		type: message.type,
-		evaluateResult: CONTEXT.evaluateResultToJs(),
+		allContextParameters: CONTEXT_CACHE.allContextParameters(),
 	}
 }
 
 async function handleNavigate(
 	message: SdsWasmNavigateMessage,
 ): Promise<SdsWasmNavigateResponse> {
-	CONTEXT.navigate()
+	CONTEXT_CACHE.getOrThrow(message.contextKey).context.navigate()
 
 	return {
 		id: message.id,
@@ -256,7 +241,9 @@ async function handleNavigate(
 async function handleSelectAttributes(
 	message: SdsWasmSelectAttributesMessage,
 ): Promise<SdsWasmSelectAttributesResponse> {
-	CONTEXT.selectAttributes(message.attributes)
+	CONTEXT_CACHE.getOrThrow(message.contextKey).context.selectAttributes(
+		message.attributes,
+	)
 
 	return {
 		id: message.id,
@@ -270,32 +257,33 @@ async function handleAttributesIntersectionsByColumn(
 	return {
 		id: message.id,
 		type: message.type,
-		attributesIntersectionByColumn: CONTEXT.attributesIntersectionsByColumn(
-			message.columns,
-		),
+		attributesIntersectionByColumn: CONTEXT_CACHE.getOrThrow(
+			message.contextKey,
+		).context.attributesIntersectionsByColumn(message.columns),
 	}
 }
 
 async function handleGetAggregateResult(
 	message: SdsWasmGetAggregateResultMessage,
 ): Promise<SdsWasmGetAggregateResultResponse> {
+	const context = CONTEXT_CACHE.getOrThrow(message.contextKey).context
 	let aggregateResult
 
 	switch (message.aggregateType) {
 		case AggregateType.Sensitive:
-			aggregateResult = CONTEXT.sensitiveAggregateResultToJs(
+			aggregateResult = context.sensitiveAggregateResultToJs(
 				message.aggregatesDelimiter,
 				message.combinationDelimiter,
 			)
 			break
 		case AggregateType.Reportable:
-			aggregateResult = CONTEXT.reportableAggregateResultToJs(
+			aggregateResult = context.reportableAggregateResultToJs(
 				message.aggregatesDelimiter,
 				message.combinationDelimiter,
 			)
 			break
 		case AggregateType.Synthetic:
-			aggregateResult = CONTEXT.syntheticAggregateResultToJs(
+			aggregateResult = context.syntheticAggregateResultToJs(
 				message.aggregatesDelimiter,
 				message.combinationDelimiter,
 			)
@@ -306,6 +294,30 @@ async function handleGetAggregateResult(
 		id: message.id,
 		type: message.type,
 		aggregateResult,
+	}
+}
+
+async function handleGetGenerateResult(
+	message: SdsWasmGetGenerateResultMessage,
+): Promise<SdsWasmGetGenerateResultResponse> {
+	const context = CONTEXT_CACHE.getOrThrow(message.contextKey).context
+
+	return {
+		id: message.id,
+		type: message.type,
+		generateResult: context.generateResultToJs(),
+	}
+}
+
+async function handleGetEvaluateResult(
+	message: SdsWasmGetEvaluateResultMessage,
+): Promise<SdsWasmGetEvaluateResultResponse> {
+	const context = CONTEXT_CACHE.getOrThrow(message.contextKey).context
+
+	return {
+		id: message.id,
+		type: message.type,
+		evaluateResult: context.evaluateResultToJs(),
 	}
 }
 

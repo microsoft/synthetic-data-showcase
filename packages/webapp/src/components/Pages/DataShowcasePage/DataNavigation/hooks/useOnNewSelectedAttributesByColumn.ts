@@ -9,6 +9,7 @@ import type { ISelectedAttributesByColumn } from 'sds-wasm'
 import type { SdsWasmWorker } from '~workers/sds-wasm'
 
 export function useOnNewSelectedAttributesByColumn(
+	contextKey: string | undefined,
 	setIsLoading: (value: boolean) => void,
 	isMounted: MutableRefObject<boolean>,
 	setSelectedAttributesByColumn: (value: ISelectedAttributesByColumn) => void,
@@ -18,9 +19,10 @@ export function useOnNewSelectedAttributesByColumn(
 ) => Promise<void> {
 	return useCallback(
 		async (newSelectedAttributesByColumn: ISelectedAttributesByColumn) => {
-			if (worker) {
+			if (worker && contextKey) {
 				setIsLoading(true)
 				const result = await worker.selectAttributes(
+					contextKey,
 					newSelectedAttributesByColumn,
 				)
 
@@ -30,6 +32,12 @@ export function useOnNewSelectedAttributesByColumn(
 				}
 			}
 		},
-		[worker, setIsLoading, isMounted, setSelectedAttributesByColumn],
+		[
+			worker,
+			setIsLoading,
+			isMounted,
+			setSelectedAttributesByColumn,
+			contextKey,
+		],
 	)
 }

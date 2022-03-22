@@ -8,6 +8,7 @@ import { useCallback } from 'react'
 import type { SdsWasmWorker } from '~workers/sds-wasm'
 
 export function useOnRunNavigate(
+	contextKey: string | undefined,
 	setIsLoading: (value: boolean) => void,
 	isMounted: MutableRefObject<boolean>,
 	setSelectedHeaders: (value: boolean[]) => void,
@@ -15,9 +16,9 @@ export function useOnRunNavigate(
 	worker: SdsWasmWorker | null,
 ): () => void {
 	return useCallback(() => {
-		if (worker) {
+		if (worker && contextKey) {
 			setIsLoading(true)
-			worker.navigate().then(result => {
+			worker.navigate(contextKey).then(result => {
 				if (isMounted.current && result) {
 					setSelectedHeaders(initiallySelectedHeaders)
 					setIsLoading(false)
@@ -30,5 +31,6 @@ export function useOnRunNavigate(
 		isMounted,
 		setSelectedHeaders,
 		initiallySelectedHeaders,
+		contextKey
 	])
 }

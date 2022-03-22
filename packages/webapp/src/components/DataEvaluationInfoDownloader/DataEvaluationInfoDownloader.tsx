@@ -23,6 +23,7 @@ import {
 } from './hooks'
 
 export interface DataEvaluationInfoDownloaderProps {
+	contextKey: string
 	reportingLength: number
 	stats: IMicrodataStatistics
 	aggregateType: AggregateType
@@ -33,6 +34,7 @@ export interface DataEvaluationInfoDownloaderProps {
 
 export const DataEvaluationInfoDownloader: React.FC<DataEvaluationInfoDownloaderProps> =
 	memo(function DataEvaluationInfoDownloader({
+		contextKey,
 		reportingLength,
 		stats,
 		aggregateType,
@@ -41,7 +43,7 @@ export const DataEvaluationInfoDownloader: React.FC<DataEvaluationInfoDownloader
 		stackItemStyles,
 	}: DataEvaluationInfoDownloaderProps) {
 		const onGetAggregatesDownloadInfo = useOnGetDownloadInfo(
-			useOnGetAggregatesCsv(aggregateType),
+			useOnGetAggregatesCsv(contextKey, aggregateType),
 			`${aggregateType}_aggregates.csv`,
 		)
 

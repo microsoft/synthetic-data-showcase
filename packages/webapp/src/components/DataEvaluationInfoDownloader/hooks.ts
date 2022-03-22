@@ -76,6 +76,7 @@ export function useOnGetAnalysisByLenCsv(
 }
 
 export function useOnGetAggregatesCsv(
+	contextKey: string | undefined,
 	aggregateType: AggregateType,
 	aggregatesDelimiter = ',',
 	combinationDelimiter = ';',
@@ -83,13 +84,17 @@ export function useOnGetAggregatesCsv(
 	const worker = useWasmWorkerValue()
 
 	return useCallback(async () => {
+		if (!worker || !contextKey) {
+			return ''
+		}
 		const result = await worker?.getAggregateResult(
+			contextKey,
 			aggregateType,
 			aggregatesDelimiter,
 			combinationDelimiter,
 		)
 		return result?.aggregatesData || ''
-	}, [worker, aggregateType, aggregatesDelimiter, combinationDelimiter])
+	}, [worker, contextKey, aggregateType, aggregatesDelimiter, combinationDelimiter])
 }
 
 export function useOnGetDownloadInfo(

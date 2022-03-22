@@ -12,17 +12,19 @@ import {
 	SpinButton,
 	Stack,
 } from '@fluentui/react'
-import { memo, useState } from 'react'
+import { memo, useEffect, useState } from 'react'
+import type { IEvaluateResult } from 'sds-wasm'
 
+import { ContextsDropdown } from '~components/ContextsDropdown'
 import { DataEvaluationInfo } from '~components/DataEvaluationInfo'
 import { InfoTooltip } from '~components/InfoTooltip'
 import { TooltipWrapper } from '~components/TooltipWrapper'
 import { AggregateType, SynthesisMode } from '~models'
 import {
-	useEvaluateResult,
+	useAllContextsParametersValue,
 	useIsProcessing,
 	useReportingLength,
-	useSyntheticContentValue,
+	useSelectedContextParameters,
 } from '~states'
 import { tooltips } from '~ui-tooltips'
 
@@ -31,6 +33,7 @@ import {
 	useAggregateTypeOptions,
 	useMicrodataMaxStatistics,
 	useOnRunEvaluate,
+	useSelectedContextParametersOnChange,
 } from './hooks'
 
 const aggregateTypeToStatKey = {
@@ -42,7 +45,9 @@ const aggregateTypeToStatKey = {
 export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 	const [reportingLength, setReportingLength] = useReportingLength()
 	const [isProcessing] = useIsProcessing()
-	const [evaluateResult, setEvaluateResult] = useEvaluateResult()
+	const [evaluateResult, setEvaluateResult] = useState<
+		IEvaluateResult | undefined
+	>()
 	const [leftAggregateType, setLeftAggregateType] = useState<
 		AggregateType | undefined
 	>(undefined)
@@ -62,9 +67,19 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 			: undefined
 	const microdataMaxStats = useMicrodataMaxStatistics([leftStats, rightStats])
 	const canRun = useCanRun()
-	const onRunEvaluate = useOnRunEvaluate(setEvaluateResult, reportingLength)
 	const handleReportingLengthChange = useSpinButtonOnChange(setReportingLength)
-	const syntheticContent = useSyntheticContentValue()
+	const allContextsParameters = useAllContextsParametersValue()
+	const [selectedContextParameters, setSelectedContextParameters] =
+		useSelectedContextParameters()
+	const onRunEvaluate = useOnRunEvaluate(
+		reportingLength,
+		selectedContextParameters,
+	)
+	const selectedContextParametersOnChange =
+		useSelectedContextParametersOnChange(
+			selectedContextParameters,
+			setEvaluateResult,
+		)
 
 	const theme = getTheme()
 
@@ -128,8 +143,20 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 
 	const chartWidth = 550
 
+	useEffect(() => {
+		selectedContextParametersOnChange()
+	}, [selectedContextParameters, selectedContextParametersOnChange])
+
 	return (
 		<Stack styles={mainStackStyles} tokens={mainStackTokens}>
+			<Stack.Item>
+				<ContextsDropdown
+					selectedContextParameters={selectedContextParameters}
+					allContextsParameters={allContextsParameters}
+					onContextSelected={setSelectedContextParameters}
+					disabled={allContextsParameters.length === 0 || isProcessing}
+				/>
+			</Stack.Item>
 			<Stack.Item>
 				<Stack tokens={subStackTokens} horizontal>
 					<Stack.Item>
@@ -144,9 +171,9 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 								value={reportingLength.toString()}
 								disabled={
 									isProcessing ||
-									(syntheticContent.synthesisParameters?.synthesisMode !==
+									(selectedContextParameters?.synthesisMode !==
 										SynthesisMode.Unseeded &&
-										syntheticContent.synthesisParameters?.synthesisMode !==
+										selectedContextParameters?.synthesisMode !==
 											SynthesisMode.RowSeeded)
 								}
 								onChange={handleReportingLengthChange}
@@ -157,7 +184,7 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 						<PrimaryButton
 							type="submit"
 							onClick={onRunEvaluate}
-							disabled={!canRun}
+							disabled={!canRun || !selectedContextParameters}
 						>
 							Run
 						</PrimaryButton>
@@ -168,8 +195,11 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 				</Stack>
 			</Stack.Item>
 
-			{evaluateResult && (
+			{evaluateResult && selectedContextParameters && (
 				<>
+					<Stack.Item>
+						<h3>Compare results</h3>
+					</Stack.Item>
 					<Stack horizontal styles={dataStackStyles} tokens={dataStackTokens}>
 						<Stack.Item styles={dataStackItemStyles}>
 							<Dropdown
@@ -195,6 +225,7 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 						<Stack.Item styles={dataStackItemStyles}>
 							{leftAggregateType ? (
 								<DataEvaluationInfo
+									contextKey={selectedContextParameters.key}
 									reportingLength={evaluateResult.reportingLength}
 									stats={leftStats}
 									microdataMaxStats={microdataMaxStats}
@@ -212,6 +243,7 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 						<Stack.Item styles={dataStackItemStyles}>
 							{rightAggregateType ? (
 								<DataEvaluationInfo
+									contextKey={selectedContextParameters.key}
 									reportingLength={evaluateResult.reportingLength}
 									stats={rightStats}
 									microdataMaxStats={microdataMaxStats}

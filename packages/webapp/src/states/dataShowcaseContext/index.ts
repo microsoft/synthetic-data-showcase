@@ -2,8 +2,8 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+export * from './allContextsParameters'
 export * from './cacheSize'
-export * from './evaluateResult'
 export * from './hooks'
 export * from './isProcessing'
 export * from './noiseDelta'
@@ -16,10 +16,10 @@ export * from './processingProgress'
 export * from './recordLimit'
 export * from './reportingLength'
 export * from './resolution'
+export * from './selectedContextParameters'
 export * from './selectedPipelineStep'
 export * from './sensitiveContent'
 export * from './sensitivityFilterEpsilon'
 export * from './synthesisMode'
-export * from './syntheticContent'
 export * from './useSyntheticCounts'
 export * from './wasmWorker'
