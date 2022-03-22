@@ -12,13 +12,14 @@ import {
 	SpinButton,
 	Stack,
 } from '@fluentui/react'
-import { memo, useEffect, useState } from 'react'
+import { memo, useEffect, useMemo, useState } from 'react'
 import type { IEvaluateResult } from 'sds-wasm'
 
 import { ContextsDropdown } from '~components/ContextsDropdown'
 import { DataEvaluationInfo } from '~components/DataEvaluationInfo'
 import { InfoTooltip } from '~components/InfoTooltip'
 import { TooltipWrapper } from '~components/TooltipWrapper'
+import type { IContextParameters } from '~models'
 import { AggregateType, SynthesisMode } from '~models'
 import {
 	useAllContextsParametersValue,
@@ -45,40 +46,54 @@ const aggregateTypeToStatKey = {
 export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 	const [reportingLength, setReportingLength] = useReportingLength()
 	const [isProcessing] = useIsProcessing()
-	const [evaluateResult, setEvaluateResult] = useState<
+	const [leftEvaluateResult, setLeftEvaluateResult] = useState<
 		IEvaluateResult | undefined
 	>()
-	const [leftAggregateType, setLeftAggregateType] = useState<
-		AggregateType | undefined
-	>(undefined)
-	const [rightAggregateType, setRightAggregateType] = useState<
-		AggregateType | undefined
-	>(undefined)
+	const [rightEvaluateResult, setRightEvaluateResult] = useState<
+		IEvaluateResult | undefined
+	>()
+	const [leftAggregateType, setLeftAggregateType] = useState<AggregateType>(
+		AggregateType.Sensitive,
+	)
+	const [rightAggregateType, setRightAggregateType] = useState<AggregateType>(
+		AggregateType.Synthetic,
+	)
 	const aggregateTypeOptions = useAggregateTypeOptions()
 	const leftAggregateTypeOnChange = useDropdownOnChange(setLeftAggregateType)
 	const rightAggregateTypeOnChange = useDropdownOnChange(setRightAggregateType)
-	const leftStats =
-		leftAggregateType && evaluateResult
-			? evaluateResult[aggregateTypeToStatKey[leftAggregateType]]
-			: undefined
-	const rightStats =
-		rightAggregateType && evaluateResult
-			? evaluateResult[aggregateTypeToStatKey[rightAggregateType]]
-			: undefined
+	const leftStats = leftEvaluateResult
+		? leftEvaluateResult[aggregateTypeToStatKey[leftAggregateType]]
+		: undefined
+	const rightStats = rightEvaluateResult
+		? rightEvaluateResult[aggregateTypeToStatKey[rightAggregateType]]
+		: undefined
 	const microdataMaxStats = useMicrodataMaxStatistics([leftStats, rightStats])
 	const canRun = useCanRun()
 	const handleReportingLengthChange = useSpinButtonOnChange(setReportingLength)
 	const allContextsParameters = useAllContextsParametersValue()
+	const allEvaluatedContextsParameters = useMemo(
+		() => allContextsParameters.filter(c => c.isEvaluated),
+		[allContextsParameters],
+	)
 	const [selectedContextParameters, setSelectedContextParameters] =
 		useSelectedContextParameters()
+	const [leftSelectedContextParameters, setLeftSelectedContextParameters] =
+		useState<IContextParameters | undefined>(selectedContextParameters)
+	const [rightSelectedContextParameters, setRightSelectedContextParameters] =
+		useState<IContextParameters | undefined>(selectedContextParameters)
 	const onRunEvaluate = useOnRunEvaluate(
 		reportingLength,
 		selectedContextParameters,
 	)
-	const selectedContextParametersOnChange =
+	const leftSelectedContextParametersOnChange =
 		useSelectedContextParametersOnChange(
-			selectedContextParameters,
-			setEvaluateResult,
+			leftSelectedContextParameters,
+			setLeftEvaluateResult,
+		)
+	const rightSelectedContextParametersOnChange =
+		useSelectedContextParametersOnChange(
+			rightSelectedContextParameters,
+			setRightEvaluateResult,
 		)
 
 	const theme = getTheme()
@@ -144,8 +159,12 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 	const chartWidth = 550
 
 	useEffect(() => {
-		selectedContextParametersOnChange()
-	}, [selectedContextParameters, selectedContextParametersOnChange])
+		leftSelectedContextParametersOnChange()
+	}, [allContextsParameters, leftSelectedContextParameters, leftSelectedContextParametersOnChange])
+
+	useEffect(() => {
+		rightSelectedContextParametersOnChange()
+	}, [allContextsParameters, rightSelectedContextParameters, rightSelectedContextParametersOnChange])
 
 	return (
 		<Stack styles={mainStackStyles} tokens={mainStackTokens}>
@@ -153,7 +172,10 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 				<ContextsDropdown
 					selectedContextParameters={selectedContextParameters}
 					allContextsParameters={allContextsParameters}
-					onContextSelected={setSelectedContextParameters}
+					onContextSelected={params => {
+						setReportingLength(params.reportingLength)
+						setSelectedContextParameters(params)
+					}}
 					disabled={allContextsParameters.length === 0 || isProcessing}
 				/>
 			</Stack.Item>
@@ -195,72 +217,98 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 				</Stack>
 			</Stack.Item>
 
-			{evaluateResult && selectedContextParameters && (
-				<>
-					<Stack.Item>
-						<h3>Compare results</h3>
-					</Stack.Item>
-					<Stack horizontal styles={dataStackStyles} tokens={dataStackTokens}>
-						<Stack.Item styles={dataStackItemStyles}>
-							<Dropdown
-								selectedKey={leftAggregateType}
-								onChange={leftAggregateTypeOnChange}
-								placeholder="Select data statistics"
-								options={aggregateTypeOptions}
-								styles={dropdownStyles}
-							/>
-						</Stack.Item>
-						<Stack.Item styles={dataStackItemStyles}>
-							<Dropdown
-								selectedKey={rightAggregateType}
-								onChange={rightAggregateTypeOnChange}
-								placeholder="Select data statistics"
-								options={aggregateTypeOptions}
-								styles={dropdownStyles}
-							/>
-						</Stack.Item>
+			<Stack.Item>
+				<h3>Compare results</h3>
+			</Stack.Item>
+			<Stack horizontal styles={dataStackStyles} tokens={dataStackTokens}>
+				<Stack.Item styles={dataStackItemStyles}>
+					<Stack styles={dataStackStyles} tokens={dataStackTokens}>
+						<ContextsDropdown
+							selectedContextParameters={leftSelectedContextParameters}
+							allContextsParameters={allEvaluatedContextsParameters}
+							onContextSelected={setLeftSelectedContextParameters}
+							disabled={
+								allEvaluatedContextsParameters.length === 0 || isProcessing
+							}
+						/>
+						<Dropdown
+							selectedKey={leftAggregateType}
+							onChange={leftAggregateTypeOnChange}
+							placeholder="Select data statistics"
+							options={aggregateTypeOptions}
+							styles={dropdownStyles}
+							disabled={
+								allEvaluatedContextsParameters.length === 0 ||
+								isProcessing ||
+								leftSelectedContextParameters === undefined
+							}
+						/>
 					</Stack>
+				</Stack.Item>
+				<Stack.Item styles={dataStackItemStyles}>
+					<Stack styles={dataStackStyles} tokens={dataStackTokens}>
+						<ContextsDropdown
+							selectedContextParameters={rightSelectedContextParameters}
+							allContextsParameters={allEvaluatedContextsParameters}
+							onContextSelected={setRightSelectedContextParameters}
+							disabled={
+								allEvaluatedContextsParameters.length === 0 || isProcessing
+							}
+						/>
+						<Dropdown
+							selectedKey={rightAggregateType}
+							onChange={rightAggregateTypeOnChange}
+							placeholder="Select data statistics"
+							options={aggregateTypeOptions}
+							styles={dropdownStyles}
+							disabled={
+								allEvaluatedContextsParameters.length === 0 ||
+								isProcessing ||
+								rightSelectedContextParameters === undefined
+							}
+						/>
+					</Stack>
+				</Stack.Item>
+			</Stack>
 
-					<Stack horizontal styles={dataStackStyles} tokens={dataStackTokens}>
-						<Stack.Item styles={dataStackItemStyles}>
-							{leftAggregateType ? (
-								<DataEvaluationInfo
-									contextKey={selectedContextParameters.key}
-									reportingLength={evaluateResult.reportingLength}
-									stats={leftStats}
-									microdataMaxStats={microdataMaxStats}
-									aggregateType={leftAggregateType}
-									chartHeight={chartHeight}
-									chartWidth={chartWidth}
-									stackStyles={chartStackStyles}
-									stackTokens={chartStackTokens}
-									stackItemStyles={chartStackItemStyles}
-								/>
-							) : (
-								<Label>Nothing selected</Label>
-							)}
-						</Stack.Item>
-						<Stack.Item styles={dataStackItemStyles}>
-							{rightAggregateType ? (
-								<DataEvaluationInfo
-									contextKey={selectedContextParameters.key}
-									reportingLength={evaluateResult.reportingLength}
-									stats={rightStats}
-									microdataMaxStats={microdataMaxStats}
-									aggregateType={rightAggregateType}
-									chartHeight={chartHeight}
-									chartWidth={chartWidth}
-									stackStyles={chartStackStyles}
-									stackTokens={chartStackTokens}
-									stackItemStyles={chartStackItemStyles}
-								/>
-							) : (
-								<Label>Nothing selected</Label>
-							)}
-						</Stack.Item>
-					</Stack>
-				</>
-			)}
+			<Stack horizontal styles={dataStackStyles} tokens={dataStackTokens}>
+				<Stack.Item styles={dataStackItemStyles}>
+					{leftSelectedContextParameters && leftEvaluateResult ? (
+						<DataEvaluationInfo
+							contextKey={leftSelectedContextParameters.key}
+							reportingLength={leftEvaluateResult.reportingLength}
+							stats={leftStats}
+							microdataMaxStats={microdataMaxStats}
+							aggregateType={leftAggregateType}
+							chartHeight={chartHeight}
+							chartWidth={chartWidth}
+							stackStyles={chartStackStyles}
+							stackTokens={chartStackTokens}
+							stackItemStyles={chartStackItemStyles}
+						/>
+					) : (
+						<Label>Nothing selected</Label>
+					)}
+				</Stack.Item>
+				<Stack.Item styles={dataStackItemStyles}>
+					{rightSelectedContextParameters && rightEvaluateResult ? (
+						<DataEvaluationInfo
+							contextKey={rightSelectedContextParameters.key}
+							reportingLength={rightEvaluateResult.reportingLength}
+							stats={rightStats}
+							microdataMaxStats={microdataMaxStats}
+							aggregateType={rightAggregateType}
+							chartHeight={chartHeight}
+							chartWidth={chartWidth}
+							stackStyles={chartStackStyles}
+							stackTokens={chartStackTokens}
+							stackItemStyles={chartStackItemStyles}
+						/>
+					) : (
+						<Label>Nothing selected</Label>
+					)}
+				</Stack.Item>
+			</Stack>
 		</Stack>
 	)
 })

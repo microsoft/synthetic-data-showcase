@@ -42,7 +42,7 @@ export const ContextsDropdown: React.FC<ContextsDropdownProps> = memo(
 			<Dropdown
 				selectedKey={selectedContextParameters?.key}
 				onChange={handleContextsParametersChange}
-				placeholder="Select synthetic data"
+				placeholder="Select"
 				options={allContextsParametersOptions}
 				disabled={disabled}
 			/>
