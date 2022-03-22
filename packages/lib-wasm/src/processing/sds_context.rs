@@ -385,7 +385,7 @@ impl SDSContext {
         columns: JsHeaderNames,
     ) -> JsResult<JsAttributesIntersectionByColumn> {
         self.navigate_result
-            .attributes_intersections_by_column(columns, &self.sensitive_aggregate_result)
+            .attributes_intersections_by_column(columns, &self.reportable_aggregate_result)
     }
 
     #[wasm_bindgen(js_name = "generateResultToJs")]
