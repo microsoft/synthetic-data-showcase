@@ -21,10 +21,12 @@ import {
 	HeaderSelector,
 	SelectedAttributes,
 } from '~components/AttributeSelector'
+import { ContextsDropdown } from '~components/ContextsDropdown'
 import { InfoTooltip } from '~components/InfoTooltip'
 import { PipelineStep } from '~models'
 import {
-	useSelectedContextParametersValue,
+	useAllContextsParametersValue,
+	useSelectedContextParameters,
 	useSelectedPipelineStepSetter,
 	useWasmWorkerValue,
 } from '~states'
@@ -60,7 +62,9 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 	const worker = useWasmWorkerValue()
 	const setSelectedPipelineStep = useSelectedPipelineStepSetter()
 	const isMounted = useRef(true)
-	const selectedContextParameters = useSelectedContextParametersValue()
+	const allContextsParameters = useAllContextsParametersValue()
+	const [selectedContextParameters, setSelectedContextParameters] =
+		useSelectedContextParameters()
 	const headers = selectedContextParameters?.useColumns ?? []
 	const initiallySelectedHeaders = useInitiallySelectedHeaders(headers)
 	const [selectedHeaders, setSelectedHeaders] = useState<boolean[]>(
@@ -130,6 +134,13 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 				<h3>Compare sensitive and synthetic results</h3>
 				<InfoTooltip>{tooltips.navigate}</InfoTooltip>
 			</Stack>
+
+			<ContextsDropdown
+				selectedContextParameters={selectedContextParameters}
+				allContextsParameters={allContextsParameters}
+				onContextSelected={setSelectedContextParameters}
+				disabled={allContextsParameters.length === 0 || isLoading}
+			/>
 
 			<SelectedAttributes
 				headers={headers}
