@@ -12,23 +12,23 @@ import {
 } from '~states'
 
 export type DataClearer = () => Promise<void>
-export type DataClearerByKey = (contextKey: string) => Promise<void>
 
 export function useClearSensitiveData(): DataClearer {
-	const worker = useWasmWorkerValue()
 	const resetSensitiveContent = useResetSensitiveContent()
+
+	return useCallback(async () => {
+		resetSensitiveContent()
+	}, [resetSensitiveContent])
+}
+
+export function useClearContexts(): DataClearer {
+	const worker = useWasmWorkerValue()
 	const resetAllContextParameters = useResetAllContextsParameters()
 	const resetSelectedContextParameters = useResetSelectedContextParameters()
 
 	return useCallback(async () => {
 		await worker?.clearContexts()
-		resetSensitiveContent()
 		resetAllContextParameters()
 		resetSelectedContextParameters()
-	}, [
-		worker,
-		resetSensitiveContent,
-		resetAllContextParameters,
-		resetSelectedContextParameters,
-	])
+	}, [worker, resetAllContextParameters, resetSelectedContextParameters])
 }
