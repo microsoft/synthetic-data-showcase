@@ -14,16 +14,17 @@ export function useOnRunNavigate(
 	setSelectedHeaders: (value: boolean[]) => void,
 	initiallySelectedHeaders: boolean[],
 	worker: SdsWasmWorker | null,
-): () => void {
-	return useCallback(() => {
+): () => Promise<void> {
+	return useCallback(async () => {
 		if (worker && contextKey) {
 			setIsLoading(true)
-			worker.navigate(contextKey).then(result => {
-				if (isMounted.current && result) {
-					setSelectedHeaders(initiallySelectedHeaders)
-					setIsLoading(false)
-				}
-			})
+
+			const result = worker.navigate(contextKey)
+
+			if (isMounted.current && result) {
+				setSelectedHeaders(initiallySelectedHeaders)
+				setIsLoading(false)
+			}
 		}
 	}, [
 		setIsLoading,
@@ -31,6 +32,6 @@ export function useOnRunNavigate(
 		isMounted,
 		setSelectedHeaders,
 		initiallySelectedHeaders,
-		contextKey
+		contextKey,
 	])
 }

@@ -11,7 +11,7 @@ import {
 	SpinButton,
 	Stack,
 } from '@fluentui/react'
-import { memo, useEffect, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 
 import { ContextsDropdown } from '~components/ContextsDropdown'
 import { CsvTable } from '~components/CsvTable'
@@ -52,6 +52,7 @@ import { useOversamplingTypeOptions } from './hooks/useOversamplingTypeOptions'
 import { useUseSyntheticCountOptions } from './hooks/useUseSyntheticCountOptions'
 
 export const DataSynthesis: React.FC = memo(function DataSynthesis() {
+	const isMounted = useRef(true)
 	const [resolution, setResolution] = useResolution()
 	const [recordLimit, setRecordLimit] = useRecordLimit()
 	const [cacheSize, setCacheSize] = useCacheSize()
@@ -84,6 +85,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 			selectedContextParameters,
 			getSyntheticCsvContent,
 			setSyntheticContent,
+			isMounted
 		)
 
 	const theme = getTheme()
@@ -154,6 +156,12 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 	useEffect(() => {
 		selectedContextParametersOnChange()
 	}, [selectedContextParametersOnChange])
+
+	useEffect(() => {
+		return () => {
+			isMounted.current = false
+		}
+	}, [])
 
 	return (
 		<Stack styles={mainStackStyles} tokens={mainStackTokens}>

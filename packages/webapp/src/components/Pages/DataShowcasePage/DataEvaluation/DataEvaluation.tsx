@@ -12,7 +12,7 @@ import {
 	SpinButton,
 	Stack,
 } from '@fluentui/react'
-import { memo, useEffect, useMemo, useState } from 'react'
+import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import type { IEvaluateResult } from 'sds-wasm'
 
 import { ContextsDropdown } from '~components/ContextsDropdown'
@@ -44,6 +44,7 @@ const aggregateTypeToStatKey = {
 }
 
 export const DataEvaluation: React.FC = memo(function DataEvaluation() {
+	const isMounted = useRef(true)
 	const [reportingLength, setReportingLength] = useReportingLength()
 	const [isProcessing] = useIsProcessing()
 	const [leftEvaluateResult, setLeftEvaluateResult] = useState<
@@ -89,11 +90,13 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 		useSelectedContextParametersOnChange(
 			leftSelectedContextParameters,
 			setLeftEvaluateResult,
+			isMounted,
 		)
 	const rightSelectedContextParametersOnChange =
 		useSelectedContextParametersOnChange(
 			rightSelectedContextParameters,
 			setRightEvaluateResult,
+			isMounted,
 		)
 
 	const theme = getTheme()
@@ -165,6 +168,12 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 	useEffect(() => {
 		rightSelectedContextParametersOnChange()
 	}, [allContextsParameters, rightSelectedContextParameters, rightSelectedContextParametersOnChange])
+
+	useEffect(() => {
+		return () => {
+			isMounted.current = false
+		}
+	}, [])
 
 	return (
 		<Stack styles={mainStackStyles} tokens={mainStackTokens}>
