@@ -7,23 +7,29 @@ import type {
 	IAggregateResult,
 	IAttributesIntersectionByColumn,
 	IEvaluateResult,
+	IGenerateResult,
 	ISelectedAttributesByColumn,
 } from 'sds-wasm'
+
+import type {
+	AggregateType,
+	AllContextsParameters,
+	IContextParameters,
+} from '~models'
 
 export enum SdsWasmMessageType {
 	Init = 'Init',
 	Error = 'Error',
-	ClearSensitiveData = 'ClearSensitiveData',
-	ClearGenerate = 'ClearGenerate',
-	ClearEvaluate = 'ClearEvaluate',
-	ClearNavigate = 'ClearNavigate',
+	ClearContexts = 'ClearContexts',
 	ReportProgress = 'ReportProgress',
 	Generate = 'Generate',
 	Evaluate = 'Evaluate',
 	Navigate = 'Navigate',
 	SelectAttributes = 'SelectAttributes',
 	AttributesIntersectionsByColumn = 'AttributesIntersectionsByColumn',
-	GetSensitiveAggregateResult = 'GetSensitiveAggregateResult',
+	GetAggregateResult = 'GetAggregateResult',
+	GetGenerateResult = 'GetGenerateResult',
+	GetEvaluateResult = 'GetEvaluateResult',
 }
 
 export interface SdsWasmMessage {
@@ -39,6 +45,7 @@ export interface SdsWasmResponse {
 export interface SdsWasmInitMessage extends SdsWasmMessage {
 	type: SdsWasmMessageType.Init
 	logLevel: string
+	maxContextCacheSize: number
 	wasmJsPath: string
 	wasmPath: string
 }
@@ -52,36 +59,12 @@ export interface SdsWasmErrorResponse extends SdsWasmResponse {
 	errorMessage: string
 }
 
-export interface SdsWasmClearSensitiveDataMessage extends SdsWasmMessage {
-	type: SdsWasmMessageType.ClearSensitiveData
+export interface SdsWasmClearContextsMessage extends SdsWasmMessage {
+	type: SdsWasmMessageType.ClearContexts
 }
 
-export interface SdsWasmClearSensitiveDataResponse extends SdsWasmResponse {
-	type: SdsWasmMessageType.ClearSensitiveData
-}
-
-export interface SdsWasmClearGenerateMessage extends SdsWasmMessage {
-	type: SdsWasmMessageType.ClearGenerate
-}
-
-export interface SdsWasmClearGenerateResponse extends SdsWasmResponse {
-	type: SdsWasmMessageType.ClearGenerate
-}
-
-export interface SdsWasmClearEvaluateMessage extends SdsWasmMessage {
-	type: SdsWasmMessageType.ClearEvaluate
-}
-
-export interface SdsWasmClearEvaluateResponse extends SdsWasmResponse {
-	type: SdsWasmMessageType.ClearEvaluate
-}
-
-export interface SdsWasmClearNavigateMessage extends SdsWasmMessage {
-	type: SdsWasmMessageType.ClearNavigate
-}
-
-export interface SdsWasmClearNavigateResponse extends SdsWasmResponse {
-	type: SdsWasmMessageType.ClearNavigate
+export interface SdsWasmClearContextsResponse extends SdsWasmResponse {
+	type: SdsWasmMessageType.ClearContexts
 }
 
 export interface SdsWasmReportProgressResponse extends SdsWasmResponse {
@@ -91,38 +74,30 @@ export interface SdsWasmReportProgressResponse extends SdsWasmResponse {
 
 export interface SdsWasmGenerateMessage extends SdsWasmMessage {
 	type: SdsWasmMessageType.Generate
+	contextKey: string
 	sensitiveCsvData: string
-	delimiter: string
-	useColumns: HeaderNames
-	sensitiveZeros: HeaderNames
-	recordLimit: number
-	resolution: number
-	emptyValue: string
-	cacheSize: number
-	seeded: boolean
+	contextParameters: IContextParameters
 }
 
 export interface SdsWasmGenerateResponse extends SdsWasmResponse {
 	type: SdsWasmMessageType.Generate
-	syntheticCsvData: string
+	allContextParameters: AllContextsParameters
 }
 
 export interface SdsWasmEvaluateMessage extends SdsWasmMessage {
 	type: SdsWasmMessageType.Evaluate
+	contextKey: string
 	reportingLength: number
-	sensitivityThreshold: number
-	aggregatesDelimiter: string
-	combinationDelimiter: string
-	includeAggregatesData: boolean
 }
 
 export interface SdsWasmEvaluateResponse extends SdsWasmResponse {
 	type: SdsWasmMessageType.Evaluate
-	evaluateResult: IEvaluateResult
+	allContextParameters: AllContextsParameters
 }
 
 export interface SdsWasmNavigateMessage extends SdsWasmMessage {
 	type: SdsWasmMessageType.Navigate
+	contextKey: string
 }
 
 export interface SdsWasmNavigateResponse extends SdsWasmResponse {
@@ -131,6 +106,7 @@ export interface SdsWasmNavigateResponse extends SdsWasmResponse {
 
 export interface SdsWasmSelectAttributesMessage extends SdsWasmMessage {
 	type: SdsWasmMessageType.SelectAttributes
+	contextKey: string
 	attributes: ISelectedAttributesByColumn
 }
 
@@ -141,6 +117,7 @@ export interface SdsWasmSelectAttributesResponse extends SdsWasmResponse {
 export interface SdsWasmAttributesIntersectionsByColumnMessage
 	extends SdsWasmMessage {
 	type: SdsWasmMessageType.AttributesIntersectionsByColumn
+	contextKey: string
 	columns: HeaderNames
 }
 
@@ -150,16 +127,35 @@ export interface SdsWasmAttributesIntersectionsByColumnResponse
 	attributesIntersectionByColumn: IAttributesIntersectionByColumn
 }
 
-export interface SdsWasmGetSensitiveAggregateResultMessage
-	extends SdsWasmMessage {
-	type: SdsWasmMessageType.GetSensitiveAggregateResult
+export interface SdsWasmGetAggregateResultMessage extends SdsWasmMessage {
+	type: SdsWasmMessageType.GetAggregateResult
+	contextKey: string
+	aggregateType: AggregateType
 	aggregatesDelimiter: string
 	combinationDelimiter: string
-	includeAggregatesData: boolean
 }
 
-export interface SdsWasmGetSensitiveAggregateResultResponse
-	extends SdsWasmResponse {
-	type: SdsWasmMessageType.GetSensitiveAggregateResult
+export interface SdsWasmGetAggregateResultResponse extends SdsWasmResponse {
+	type: SdsWasmMessageType.GetAggregateResult
 	aggregateResult: IAggregateResult
+}
+
+export interface SdsWasmGetGenerateResultMessage extends SdsWasmMessage {
+	type: SdsWasmMessageType.GetGenerateResult
+	contextKey: string
+}
+
+export interface SdsWasmGetGenerateResultResponse extends SdsWasmResponse {
+	type: SdsWasmMessageType.GetGenerateResult
+	generateResult: IGenerateResult
+}
+
+export interface SdsWasmGetEvaluateResultMessage extends SdsWasmMessage {
+	type: SdsWasmMessageType.GetEvaluateResult
+	contextKey: string
+}
+
+export interface SdsWasmGetEvaluateResultResponse extends SdsWasmResponse {
+	type: SdsWasmMessageType.GetEvaluateResult
+	evaluateResult: IEvaluateResult
 }

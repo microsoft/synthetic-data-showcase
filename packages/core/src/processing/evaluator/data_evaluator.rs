@@ -79,7 +79,7 @@ impl Evaluator {
         let _duration_logger = ElapsedDurationLogger::new("leakage count by len calculation");
         let mut result: AggregatedCountByLenMap = AggregatedCountByLenMap::default();
 
-        info!("calculating rare sensitive combination leakages by length");
+        info!("calculating leakage count by length");
 
         for (sensitive_agg, sensitive_count) in sensitive_aggregated_data.aggregates_count.iter() {
             if sensitive_count.count < resolution {
@@ -97,7 +97,41 @@ impl Evaluator {
         result
     }
 
-    // Calculates the total missed counts
+    /// Calculates the leakage percentage grouped by combination length
+    /// (how many attribute combinations exist on the sensitive data and
+    /// appear on the synthetic data with `count < resolution`).
+    /// By design this should be `0`
+    /// # Arguments
+    /// * `sensitive_aggregated_data` - Calculated aggregated data for the sensitive data
+    /// * `synthetic_aggregated_data` - Calculated aggregated data for the synthetic data
+    /// * `resolution` - Reporting resolution used for data synthesis
+    pub fn calc_leakage_percentage_by_len(
+        &self,
+        sensitive_aggregated_data: &AggregatedData,
+        synthetic_aggregated_data: &AggregatedData,
+        resolution: usize,
+    ) -> AggregatedMetricByLenMap {
+        let _duration_logger = ElapsedDurationLogger::new("leakage percentage by len calculation");
+
+        info!("calculating leakage percentage by length");
+
+        let total_by_len = sensitive_aggregated_data.calc_combinations_count_by_len();
+
+        self.calc_leakage_count_by_len(
+            sensitive_aggregated_data,
+            synthetic_aggregated_data,
+            resolution,
+        )
+        .iter()
+        .filter_map(|(l, c)| {
+            total_by_len
+                .get(l)
+                .map(|total_count| (*l, ((*c as f64) / (*total_count as f64)) * 100.0))
+        })
+        .collect::<AggregatedMetricByLenMap>()
+    }
+
+    /// Calculates the total missed counts
     /// (how many attribute combinations exist on the sensitive data that do not
     /// exist on the synthetic data).
     /// # Arguments
@@ -111,7 +145,7 @@ impl Evaluator {
         let _duration_logger = ElapsedDurationLogger::new("missed count calculation");
         let mut missed = 0;
 
-        info!("calculating missed sensitive combinations");
+        info!("calculating missed combinations");
 
         for sensitive_agg in sensitive_aggregated_data.aggregates_count.keys() {
             if !synthetic_aggregated_data
@@ -122,6 +156,32 @@ impl Evaluator {
             }
         }
         missed
+    }
+
+    /// Calculates the total missed percentage
+    /// (how many attribute combinations exist on the sensitive data that do not
+    /// exist on the synthetic data).
+    /// # Arguments
+    /// * `sensitive_aggregated_data` - Calculated aggregated data for the sensitive data
+    /// * `synthetic_aggregated_data` - Calculated aggregated data for the synthetic data
+    pub fn calc_missed_percentage(
+        &self,
+        sensitive_aggregated_data: &AggregatedData,
+        synthetic_aggregated_data: &AggregatedData,
+    ) -> f64 {
+        let _duration_logger = ElapsedDurationLogger::new("missed percentage calculation");
+
+        info!("calculating missed percentage of combinations");
+
+        let total_count = sensitive_aggregated_data.total_number_of_combinations();
+
+        if total_count > 0 {
+            ((self.calc_missed_count(sensitive_aggregated_data, synthetic_aggregated_data) as f64)
+                / (total_count as f64))
+                * 100.0
+        } else {
+            0.0
+        }
     }
 
     /// Calculates the total fabricated counts
@@ -149,6 +209,33 @@ impl Evaluator {
             }
         }
         fabricated
+    }
+
+    /// Calculates the total fabricated percentage
+    /// (how many attribute combinations exist on the synthetic data that do not
+    /// exist on the sensitive data).
+    /// # Arguments
+    /// * `sensitive_aggregated_data` - Calculated aggregated data for the sensitive data
+    /// * `synthetic_aggregated_data` - Calculated aggregated data for the synthetic data
+    pub fn calc_fabricated_percentage(
+        &self,
+        sensitive_aggregated_data: &AggregatedData,
+        synthetic_aggregated_data: &AggregatedData,
+    ) -> f64 {
+        let _duration_logger = ElapsedDurationLogger::new("fabricated percentage calculation");
+
+        info!("calculating fabricated percentage of combinations");
+
+        let total_count = sensitive_aggregated_data.total_number_of_combinations();
+
+        if total_count > 0 {
+            ((self.calc_fabricated_count(sensitive_aggregated_data, synthetic_aggregated_data)
+                as f64)
+                / (total_count as f64))
+                * 100.0
+        } else {
+            0.0
+        }
     }
 
     /// Calculates the fabricated counts grouped by combination length
@@ -379,19 +466,21 @@ impl Evaluator {
         }
     }
 
-    /// Calculates the expansion ratio
+    /// Calculates the record expansion percentage
     /// (number of synthetic records / number of sensitive records)
     /// # Arguments
     /// * `sensitive_aggregated_data` - Calculated aggregated data for the sensitive data
     /// * `synthetic_aggregated_data` - Calculated aggregated data for the synthetic data
-    pub fn calc_expansion_ratio(
+    pub fn calc_record_expansion_percentage(
         &self,
         sensitive_aggregated_data: &AggregatedData,
         synthetic_aggregated_data: &AggregatedData,
     ) -> f64 {
         if sensitive_aggregated_data.data_block.number_of_records() > 0 {
-            (synthetic_aggregated_data.data_block.number_of_records() as f64)
-                / (sensitive_aggregated_data.data_block.number_of_records() as f64)
+            (((synthetic_aggregated_data.data_block.number_of_records() as f64)
+                / (sensitive_aggregated_data.data_block.number_of_records() as f64))
+                - 1.0)
+                * 100.0
         } else {
             0.0
         }

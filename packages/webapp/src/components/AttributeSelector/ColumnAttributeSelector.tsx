@@ -14,6 +14,7 @@ import { useWasmWorkerValue } from '~states'
 import { useMaxCount } from './hooks'
 
 export interface ColumnAttributeSelectorProps {
+	contextKey: string
 	headerName: string
 	columnIndex: number
 	height: string | number
@@ -29,6 +30,7 @@ const AXIS_HEIGHT = 16
 
 export const ColumnAttributeSelector: React.FC<ColumnAttributeSelectorProps> =
 	memo(function ColumnAttributeSelector({
+		contextKey,
 		headerName,
 		columnIndex,
 		height,
@@ -62,7 +64,7 @@ export const ColumnAttributeSelector: React.FC<ColumnAttributeSelectorProps> =
 			if (worker) {
 				setIsLoading(true)
 				worker
-					.attributesIntersectionsByColumn([headerName])
+					.attributesIntersectionsByColumn(contextKey, [headerName])
 					.then(intersections => {
 						if (!isMounted.current || !intersections) {
 							return
@@ -71,7 +73,7 @@ export const ColumnAttributeSelector: React.FC<ColumnAttributeSelectorProps> =
 						setIsLoading(false)
 					})
 			}
-		}, [worker, setIsLoading, setItems, headerName, columnIndex])
+		}, [worker, setIsLoading, setItems, headerName, columnIndex, contextKey])
 
 		useEffect(() => {
 			return () => {

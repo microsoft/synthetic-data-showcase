@@ -1,4 +1,5 @@
 use super::{
+    aggregator::aggregate_result::WasmAggregateResult,
     evaluator::evaluate_result::WasmEvaluateResult, generator::generate_result::WasmGenerateResult,
     navigator::navigate_result::WasmNavigateResult, sds_processor::SDSProcessor,
 };
@@ -20,8 +21,12 @@ pub struct SDSContext {
     generate_result: WasmGenerateResult,
     resolution: usize,
     synthetic_processor: SDSProcessor,
+    sensitive_aggregate_result: WasmAggregateResult,
+    reportable_aggregate_result: WasmAggregateResult,
+    synthetic_aggregate_result: WasmAggregateResult,
     evaluate_result: WasmEvaluateResult,
     navigate_result: WasmNavigateResult,
+    pre_computed_aggregates: bool,
 }
 
 #[wasm_bindgen]
@@ -37,8 +42,12 @@ impl SDSContext {
             generate_result: WasmGenerateResult::default(),
             resolution: 0,
             synthetic_processor: SDSProcessor::default(),
+            sensitive_aggregate_result: WasmAggregateResult::default(),
+            reportable_aggregate_result: WasmAggregateResult::default(),
+            synthetic_aggregate_result: WasmAggregateResult::default(),
             evaluate_result: WasmEvaluateResult::default(),
             navigate_result: WasmNavigateResult::default(),
+            pre_computed_aggregates: false,
         }
     }
 
@@ -56,12 +65,31 @@ impl SDSContext {
     pub fn clear_generate(&mut self) {
         self.generate_result = WasmGenerateResult::default();
         self.resolution = 0;
-        self.synthetic_processor = SDSProcessor::default();
+
+        // if this is true, the sensitive and reportable aggregates
+        // have already been calculated (value-seeded or aggregate-seeded mode)
+        // and need to be cleaned up
+        if self.pre_computed_aggregates {
+            self.sensitive_aggregate_result = WasmAggregateResult::default();
+            self.reportable_aggregate_result = WasmAggregateResult::default();
+        }
+        self.pre_computed_aggregates = false;
+
         self.clear_evaluate()
     }
 
     #[wasm_bindgen(js_name = "clearEvaluate")]
     pub fn clear_evaluate(&mut self) {
+        self.synthetic_processor = SDSProcessor::default();
+
+        // if this is true, the sensitive and reportable aggregates
+        // have already been calculated (value-seeded or aggregate-seeded mode)
+        if !self.pre_computed_aggregates {
+            self.sensitive_aggregate_result = WasmAggregateResult::default();
+            self.reportable_aggregate_result = WasmAggregateResult::default();
+        }
+
+        self.synthetic_aggregate_result = WasmAggregateResult::default();
         self.evaluate_result = WasmEvaluateResult::default();
         self.clear_navigate()
     }
@@ -97,26 +125,220 @@ impl SDSContext {
         Ok(())
     }
 
-    pub fn generate(
+    #[wasm_bindgen(js_name = "generateUnseeded")]
+    pub fn generate_unseeded(
         &mut self,
         cache_max_size: usize,
         resolution: usize,
         empty_value: String,
-        seeded: bool,
         progress_callback: JsReportProgressCallback,
     ) -> JsResult<()> {
-        debug!("generating synthetic data...");
+        debug!("generating synthetic data using unseeded approach...");
 
-        self.generate_result = self.sensitive_processor.generate(
+        self.pre_computed_aggregates = false;
+        self.generate_result = self.sensitive_processor.generate_unseeded(
             cache_max_size,
             resolution,
             empty_value,
-            seeded,
             progress_callback,
         )?;
         self.resolution = resolution;
 
-        debug!("creating synthetic data processor...");
+        self.clear_evaluate();
+        Ok(())
+    }
+
+    #[wasm_bindgen(js_name = "generateRowSeeded")]
+    pub fn generate_row_seeded(
+        &mut self,
+        cache_max_size: usize,
+        resolution: usize,
+        empty_value: String,
+        progress_callback: JsReportProgressCallback,
+    ) -> JsResult<()> {
+        debug!("generating synthetic data using row-seeded approach...");
+
+        self.pre_computed_aggregates = false;
+        self.generate_result = self.sensitive_processor.generate_row_seeded(
+            cache_max_size,
+            resolution,
+            empty_value,
+            progress_callback,
+        )?;
+        self.resolution = resolution;
+
+        self.clear_evaluate();
+        Ok(())
+    }
+
+    #[wasm_bindgen(js_name = "generateValueSeeded")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn generate_value_seeded(
+        &mut self,
+        cache_max_size: usize,
+        resolution: usize,
+        empty_value: String,
+        reporting_length: usize,
+        oversampling_ratio: Option<f64>,
+        oversampling_tries: Option<usize>,
+        aggregates_progress_callback: JsReportProgressCallback,
+        synthesis_progress_callback: JsReportProgressCallback,
+    ) -> JsResult<()> {
+        self.pre_computed_aggregates = true;
+
+        debug!("aggregating sensitive data...");
+
+        self.sensitive_aggregate_result = self
+            .sensitive_processor
+            .aggregate(reporting_length, aggregates_progress_callback)?;
+
+        debug!("calculating reportable aggregate data...");
+
+        self.reportable_aggregate_result = self
+            .sensitive_aggregate_result
+            .protect_with_k_anonymity(resolution);
+
+        debug!("generating synthetic data using value-seeded approach...");
+
+        self.generate_result = self.sensitive_processor.generate_value_seeded(
+            cache_max_size,
+            resolution,
+            empty_value,
+            &self.reportable_aggregate_result,
+            oversampling_ratio,
+            oversampling_tries,
+            synthesis_progress_callback,
+        )?;
+        self.resolution = resolution;
+
+        self.clear_evaluate();
+        Ok(())
+    }
+
+    #[wasm_bindgen(js_name = "generateAggregateSeeded")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn generate_aggregate_seeded(
+        &mut self,
+        cache_max_size: usize,
+        resolution: usize,
+        empty_value: String,
+        reporting_length: usize,
+        use_synthetic_counts: bool,
+        aggregates_progress_callback: JsReportProgressCallback,
+        synthesis_progress_callback: JsReportProgressCallback,
+    ) -> JsResult<()> {
+        self.pre_computed_aggregates = true;
+
+        debug!("aggregating sensitive data...");
+
+        self.sensitive_aggregate_result = self
+            .sensitive_processor
+            .aggregate(reporting_length, aggregates_progress_callback)?;
+
+        debug!("calculating reportable aggregate data...");
+
+        self.reportable_aggregate_result = self
+            .sensitive_aggregate_result
+            .protect_with_k_anonymity(resolution);
+
+        debug!("generating synthetic data using aggregate-seeded approach...");
+
+        self.generate_result = self.sensitive_processor.generate_aggregate_seeded(
+            cache_max_size,
+            resolution,
+            empty_value,
+            &self.reportable_aggregate_result,
+            use_synthetic_counts,
+            synthesis_progress_callback,
+        )?;
+        self.resolution = resolution;
+
+        self.clear_evaluate();
+        Ok(())
+    }
+
+    #[wasm_bindgen(js_name = "generateDp")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn generate_dp(
+        &mut self,
+        cache_max_size: usize,
+        resolution: usize,
+        empty_value: String,
+        reporting_length: usize,
+        percentile_percentage: usize,
+        sensitivity_filter_epsilon: f64,
+        noise_epsilon: f64,
+        noise_delta: f64,
+        use_synthetic_counts: bool,
+        aggregates_progress_callback: JsReportProgressCallback,
+        synthesis_progress_callback: JsReportProgressCallback,
+    ) -> JsResult<()> {
+        self.pre_computed_aggregates = true;
+
+        debug!("aggregating sensitive data...");
+
+        self.sensitive_aggregate_result = self
+            .sensitive_processor
+            .aggregate(reporting_length, aggregates_progress_callback)?;
+
+        debug!("calculating reportable aggregate data with differential privacy...");
+
+        self.reportable_aggregate_result = self.sensitive_aggregate_result.protect_with_dp(
+            percentile_percentage,
+            sensitivity_filter_epsilon,
+            noise_epsilon,
+            noise_delta,
+        )?;
+
+        debug!("generating synthetic data using aggregate-seeded approach...");
+
+        self.generate_result = self.sensitive_processor.generate_aggregate_seeded(
+            cache_max_size,
+            resolution,
+            empty_value,
+            &self.reportable_aggregate_result,
+            use_synthetic_counts,
+            synthesis_progress_callback,
+        )?;
+        self.resolution = resolution;
+
+        self.clear_evaluate();
+        Ok(())
+    }
+
+    pub fn evaluate(
+        &mut self,
+        reporting_length: usize,
+        sensitive_progress_callback: JsReportProgressCallback,
+        synthetic_progress_callback: JsReportProgressCallback,
+    ) -> JsResult<()> {
+        if self.pre_computed_aggregates {
+            if self.sensitive_aggregate_result.reporting_length != reporting_length {
+                return Err(
+                    JsValue::from(
+                        format!(
+                            "reportable aggregates computed with reporting length of {}, trying to evaluate with {}",
+                            self.sensitive_aggregate_result.reporting_length,
+                            reporting_length
+                        )
+                    )
+                );
+            }
+        } else {
+            debug!("aggregating sensitive data...");
+
+            self.sensitive_aggregate_result = self
+                .sensitive_processor
+                .aggregate(reporting_length, sensitive_progress_callback)?;
+
+            debug!("calculating reportable aggregate data...");
+
+            self.reportable_aggregate_result = self
+                .sensitive_aggregate_result
+                .protect_with_k_anonymity(self.resolution);
+        }
+
+        debug!("aggregating synthetic data...");
 
         self.synthetic_processor = SDSProcessor::new(
             &self.generate_result.synthetic_data_to_js(self.delimiter)?,
@@ -125,51 +347,24 @@ impl SDSContext {
             self.sensitive_zeros.clone().unchecked_into(),
             0, // always process all the synthetic data
         )?;
-        self.clear_evaluate();
-        Ok(())
-    }
 
-    pub fn evaluate(
-        &mut self,
-        reporting_length: usize,
-        sensitivity_threshold: usize,
-        sensitive_progress_callback: JsReportProgressCallback,
-        synthetic_progress_callback: JsReportProgressCallback,
-    ) -> JsResult<()> {
-        debug!("aggregating sensitive data...");
-
-        let sensitive_aggregate_result = self.sensitive_processor.aggregate(
-            reporting_length,
-            sensitivity_threshold,
-            sensitive_progress_callback,
-        )?;
-
-        debug!("aggregating synthetic data...");
-
-        let synthetic_aggregate_result = self.synthetic_processor.aggregate(
-            reporting_length,
-            sensitivity_threshold,
-            synthetic_progress_callback,
-        )?;
+        self.synthetic_aggregate_result = self
+            .synthetic_processor
+            .aggregate(reporting_length, synthetic_progress_callback)?;
 
         debug!("evaluating synthetic data based on sensitive data...");
 
         self.evaluate_result = WasmEvaluateResult::from_aggregate_results(
-            sensitive_aggregate_result,
-            synthetic_aggregate_result,
-        );
+            &self.sensitive_aggregate_result,
+            &self.reportable_aggregate_result,
+            &self.synthetic_aggregate_result,
+            self.resolution,
+            reporting_length,
+        )?;
 
         self.clear_navigate();
 
         Ok(())
-    }
-
-    #[wasm_bindgen(js_name = "protectSensitiveAggregatesCount")]
-    pub fn protect_sensitive_aggregates_count(&mut self) {
-        debug!("protecting sensitive aggregates count...");
-
-        self.evaluate_result
-            .protect_sensitive_aggregates_count(self.resolution);
     }
 
     pub fn navigate(&mut self) {
@@ -189,10 +384,8 @@ impl SDSContext {
         &mut self,
         columns: JsHeaderNames,
     ) -> JsResult<JsAttributesIntersectionByColumn> {
-        self.navigate_result.attributes_intersections_by_column(
-            columns,
-            &self.evaluate_result.sensitive_aggregate_result,
-        )
+        self.navigate_result
+            .attributes_intersections_by_column(columns, &self.reportable_aggregate_result)
     }
 
     #[wasm_bindgen(js_name = "generateResultToJs")]
@@ -201,18 +394,8 @@ impl SDSContext {
     }
 
     #[wasm_bindgen(js_name = "evaluateResultToJs")]
-    pub fn evaluate_result_to_js(
-        &self,
-        aggregates_delimiter: char,
-        combination_delimiter: &str,
-        include_aggregates_data: bool,
-    ) -> JsResult<JsEvaluateResult> {
-        self.evaluate_result.to_js(
-            aggregates_delimiter,
-            combination_delimiter,
-            self.resolution,
-            include_aggregates_data,
-        )
+    pub fn evaluate_result_to_js(&self) -> JsResult<JsEvaluateResult> {
+        self.evaluate_result.to_js()
     }
 
     #[wasm_bindgen(js_name = "sensitiveAggregateResultToJs")]
@@ -220,13 +403,26 @@ impl SDSContext {
         &self,
         aggregates_delimiter: char,
         combination_delimiter: &str,
-        include_aggregates_data: bool,
     ) -> JsResult<JsAggregateResult> {
-        self.evaluate_result.sensitive_aggregate_result_to_js(
+        self.sensitive_aggregate_result.to_js(
             aggregates_delimiter,
             combination_delimiter,
             self.resolution,
-            include_aggregates_data,
+            false,
+        )
+    }
+
+    #[wasm_bindgen(js_name = "reportableAggregateResultToJs")]
+    pub fn reportable_aggregate_result_to_js(
+        &self,
+        aggregates_delimiter: char,
+        combination_delimiter: &str,
+    ) -> JsResult<JsAggregateResult> {
+        self.reportable_aggregate_result.to_js(
+            aggregates_delimiter,
+            combination_delimiter,
+            self.resolution,
+            true,
         )
     }
 
@@ -235,13 +431,12 @@ impl SDSContext {
         &self,
         aggregates_delimiter: char,
         combination_delimiter: &str,
-        include_aggregates_data: bool,
     ) -> JsResult<JsAggregateResult> {
-        self.evaluate_result.synthetic_aggregate_result_to_js(
+        self.synthetic_aggregate_result.to_js(
             aggregates_delimiter,
             combination_delimiter,
             self.resolution,
-            include_aggregates_data,
+            false,
         )
     }
 }

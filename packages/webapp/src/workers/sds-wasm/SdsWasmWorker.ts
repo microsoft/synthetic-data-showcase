@@ -7,27 +7,33 @@ import type {
 	IAggregateResult,
 	IAttributesIntersectionByColumn,
 	IEvaluateResult,
+	IGenerateResult,
 	ISelectedAttributesByColumn,
 	ReportProgressCallback,
 } from 'sds-wasm'
 import { v4 } from 'uuid'
 
-import { SynthesisMode } from '~models'
+import type {
+	AggregateType,
+	AllContextsParameters,
+	IContextParameters,
+} from '~models'
 
 import type {
 	SdsWasmAttributesIntersectionsByColumnMessage,
 	SdsWasmAttributesIntersectionsByColumnResponse,
-	SdsWasmClearEvaluateMessage,
-	SdsWasmClearGenerateMessage,
-	SdsWasmClearNavigateMessage,
-	SdsWasmClearSensitiveDataMessage,
+	SdsWasmClearContextsMessage,
 	SdsWasmErrorResponse,
 	SdsWasmEvaluateMessage,
 	SdsWasmEvaluateResponse,
 	SdsWasmGenerateMessage,
 	SdsWasmGenerateResponse,
-	SdsWasmGetSensitiveAggregateResultMessage,
-	SdsWasmGetSensitiveAggregateResultResponse,
+	SdsWasmGetAggregateResultMessage,
+	SdsWasmGetAggregateResultResponse,
+	SdsWasmGetEvaluateResultMessage,
+	SdsWasmGetEvaluateResultResponse,
+	SdsWasmGetGenerateResultMessage,
+	SdsWasmGetGenerateResultResponse,
 	SdsWasmInitMessage,
 	SdsWasmMessage,
 	SdsWasmNavigateMessage,
@@ -99,7 +105,10 @@ export class SdsWasmWorker {
 		return receivePromise
 	}
 
-	public async init(logLevel: string): Promise<boolean> {
+	public async init(
+		logLevel: string,
+		maxContextCacheSize: number,
+	): Promise<boolean> {
 		this._worker = new Worker()
 		this._worker.onmessage = this.responseReceived.bind(this)
 
@@ -107,6 +116,7 @@ export class SdsWasmWorker {
 			id: v4(),
 			type: SdsWasmMessageType.Init,
 			logLevel,
+			maxContextCacheSize,
 			wasmJsPath: (await import('sds-wasm/sds_wasm?url')).default,
 			wasmPath: (await import('sds-wasm/sds_wasm_bg.wasm?url')).default,
 		} as SdsWasmInitMessage)
@@ -114,119 +124,77 @@ export class SdsWasmWorker {
 		return response.type === SdsWasmMessageType.Init
 	}
 
-	public async clearSensitiveData(): Promise<boolean> {
+	public async clearContexts(): Promise<boolean> {
 		const response = await this.execute({
 			id: v4(),
-			type: SdsWasmMessageType.ClearSensitiveData,
-		} as SdsWasmClearSensitiveDataMessage)
+			type: SdsWasmMessageType.ClearContexts,
+		} as SdsWasmClearContextsMessage)
 
-		return response.type === SdsWasmMessageType.ClearSensitiveData
-	}
-
-	public async clearGenerate(): Promise<boolean> {
-		const response = await this.execute({
-			id: v4(),
-			type: SdsWasmMessageType.ClearGenerate,
-		} as SdsWasmClearGenerateMessage)
-
-		return response.type === SdsWasmMessageType.ClearGenerate
-	}
-
-	public async clearEvaluate(): Promise<boolean> {
-		const response = await this.execute({
-			id: v4(),
-			type: SdsWasmMessageType.ClearEvaluate,
-		} as SdsWasmClearEvaluateMessage)
-
-		return response.type === SdsWasmMessageType.ClearEvaluate
-	}
-
-	public async clearNavigate(): Promise<boolean> {
-		const response = await this.execute({
-			id: v4(),
-			type: SdsWasmMessageType.ClearNavigate,
-		} as SdsWasmClearNavigateMessage)
-
-		return response.type === SdsWasmMessageType.ClearNavigate
+		return response.type === SdsWasmMessageType.ClearContexts
 	}
 
 	public async generate(
+		contextKey: string,
 		sensitiveCsvData: string,
-		delimiter: string,
-		useColumns: string[],
-		sensitiveZeros: string[],
-		recordLimit: number,
-		resolution: number,
-		cacheSize: number,
+		contextParameters: IContextParameters,
 		reportProgress?: ReportProgressCallback,
-		emptyValue = '',
-		synthesisMode = SynthesisMode.Seeded,
-	): Promise<string | undefined> {
+	): Promise<AllContextsParameters | undefined> {
 		const response = await this.execute(
 			{
 				id: v4(),
 				type: SdsWasmMessageType.Generate,
+				contextKey,
 				sensitiveCsvData,
-				delimiter,
-				useColumns,
-				sensitiveZeros,
-				recordLimit,
-				resolution,
-				emptyValue,
-				cacheSize,
-				seeded: synthesisMode === SynthesisMode.Seeded,
+				contextParameters,
 			} as SdsWasmGenerateMessage,
 			reportProgress,
 		)
 
 		if (response.type === SdsWasmMessageType.Generate) {
-			return (response as SdsWasmGenerateResponse).syntheticCsvData
+			return (response as SdsWasmGenerateResponse).allContextParameters
 		}
 		return undefined
 	}
 
 	public async evaluate(
+		contextKey: string,
 		reportingLength: number,
-		sensitivityThreshold = 0,
-		aggregatesDelimiter = ',',
-		combinationDelimiter = ';',
-		includeAggregatesData = false,
 		reportProgress?: ReportProgressCallback,
-	): Promise<IEvaluateResult | undefined> {
+	): Promise<AllContextsParameters | undefined> {
 		const response = await this.execute(
 			{
 				id: v4(),
 				type: SdsWasmMessageType.Evaluate,
+				contextKey,
 				reportingLength,
-				sensitivityThreshold,
-				aggregatesDelimiter,
-				combinationDelimiter,
-				includeAggregatesData,
 			} as SdsWasmEvaluateMessage,
 			reportProgress,
 		)
 
 		if (response.type === SdsWasmMessageType.Evaluate) {
-			return (response as SdsWasmEvaluateResponse).evaluateResult
+			return (response as SdsWasmEvaluateResponse).allContextParameters
 		}
 		return undefined
 	}
 
-	public async navigate(): Promise<boolean> {
+	public async navigate(contextKey: string): Promise<boolean> {
 		const response = await this.execute({
 			id: v4(),
 			type: SdsWasmMessageType.Navigate,
+			contextKey,
 		} as SdsWasmNavigateMessage)
 
 		return response.type === SdsWasmMessageType.Navigate
 	}
 
 	public async selectAttributes(
+		contextKey: string,
 		attributes: ISelectedAttributesByColumn,
 	): Promise<boolean> {
 		const response = await this.execute({
 			id: v4(),
 			type: SdsWasmMessageType.SelectAttributes,
+			contextKey,
 			attributes,
 		} as SdsWasmSelectAttributesMessage)
 
@@ -234,11 +202,13 @@ export class SdsWasmWorker {
 	}
 
 	public async attributesIntersectionsByColumn(
+		contextKey: string,
 		columns: HeaderNames,
 	): Promise<IAttributesIntersectionByColumn | undefined> {
 		const response = await this.execute({
 			id: v4(),
 			type: SdsWasmMessageType.AttributesIntersectionsByColumn,
+			contextKey,
 			columns,
 		} as SdsWasmAttributesIntersectionsByColumnMessage)
 
@@ -249,22 +219,53 @@ export class SdsWasmWorker {
 		return undefined
 	}
 
-	public async getSensitiveAggregateResult(
+	public async getAggregateResult(
+		contextKey: string,
+		aggregateType: AggregateType,
 		aggregatesDelimiter = ',',
 		combinationDelimiter = ';',
-		includeAggregatesData = true,
 	): Promise<IAggregateResult | undefined> {
 		const response = await this.execute({
 			id: v4(),
-			type: SdsWasmMessageType.GetSensitiveAggregateResult,
+			type: SdsWasmMessageType.GetAggregateResult,
+			contextKey,
 			aggregatesDelimiter,
 			combinationDelimiter,
-			includeAggregatesData,
-		} as SdsWasmGetSensitiveAggregateResultMessage)
+			aggregateType,
+		} as SdsWasmGetAggregateResultMessage)
 
-		if (response.type === SdsWasmMessageType.GetSensitiveAggregateResult) {
-			return (response as SdsWasmGetSensitiveAggregateResultResponse)
-				.aggregateResult
+		if (response.type === SdsWasmMessageType.GetAggregateResult) {
+			return (response as SdsWasmGetAggregateResultResponse).aggregateResult
+		}
+		return undefined
+	}
+
+	public async getGenerateResult(
+		contextKey: string,
+	): Promise<IGenerateResult | undefined> {
+		const response = await this.execute({
+			id: v4(),
+			type: SdsWasmMessageType.GetGenerateResult,
+			contextKey,
+		} as SdsWasmGetGenerateResultMessage)
+
+		if (response.type === SdsWasmMessageType.GetGenerateResult) {
+			return (response as SdsWasmGetGenerateResultResponse).generateResult
+		}
+		return undefined
+	}
+
+	public async getEvaluateResult(
+		contextKey: string,
+	): Promise<IEvaluateResult | undefined> {
+		const response = await this.execute({
+			id: v4(),
+			type: SdsWasmMessageType.GetEvaluateResult,
+			contextKey,
+		} as SdsWasmGetEvaluateResultMessage)
+
+		if (response.type === SdsWasmMessageType.GetEvaluateResult) {
+			return (response as SdsWasmGetEvaluateResultResponse).evaluateResult
 		}
 		return undefined
 	}

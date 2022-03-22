@@ -4,13 +4,12 @@
  */
 import _ from 'lodash'
 import { useMemo } from 'react'
-import type { IEvaluateResult } from 'sds-wasm'
 
-export function useMetricsByLenLabels(res: IEvaluateResult | null): number[] {
+export function useMetricsByLenLabels(reportingLength?: number | null): number[] {
 	return useMemo(() => {
-		if (!res) {
+		if (!reportingLength) {
 			return []
 		}
-		return _.range(1, Number(res.sensitiveAggregateResult.reportingLength) + 1)
-	}, [res])
+		return _.range(1, Number(reportingLength) + 1)
+	}, [reportingLength])
 }

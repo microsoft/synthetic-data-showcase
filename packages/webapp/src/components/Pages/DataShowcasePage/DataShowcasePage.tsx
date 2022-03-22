@@ -6,7 +6,6 @@ import type { IStackStyles, IStackTokens } from '@fluentui/react'
 import { getTheme, Pivot, PivotItem, Stack } from '@fluentui/react'
 import { memo, useCallback, useEffect } from 'react'
 
-import { DownloadButton } from '~components/controls/DownloadButton'
 import { ProcessingProgress } from '~components/ProcessingProgress'
 import { PipelineStep } from '~models'
 import {
@@ -20,14 +19,12 @@ import { DataEvaluation } from './DataEvaluation'
 import { DataInput } from './DataInput'
 import { DataNavigation } from './DataNavigation'
 import { DataSynthesis } from './DataSynthesis'
-import { useCanRun, useOnGetAllAssetsDownloadInfo } from './hooks'
 
 export const DataShowcasePage: React.FC = memo(function DataShowcasePage() {
 	const [worker, setWorker] = useWasmWorker()
 	const [selectedPipelineStep, setSelectedPipelineStep] =
 		useSelectedPipelineStep()
 	const setIsProcessing = useIsProcessingSetter()
-	const canRun = useCanRun()
 
 	const theme = getTheme()
 
@@ -51,8 +48,6 @@ export const DataShowcasePage: React.FC = memo(function DataShowcasePage() {
 		[setSelectedPipelineStep],
 	)
 
-	const onGetAllAssetsDownloadInfo = useOnGetAllAssetsDownloadInfo()
-
 	let currentTab
 
 	switch (selectedPipelineStep) {
@@ -75,7 +70,10 @@ export const DataShowcasePage: React.FC = memo(function DataShowcasePage() {
 		if (!worker) {
 			setIsProcessing(true)
 			const w = new SdsWasmWorker()
-			w.init(import.meta.env.VITE_SDS_WASM_LOG_LEVEL as string).then(() => {
+			w.init(
+				import.meta.env.VITE_SDS_WASM_LOG_LEVEL as string,
+				Number(import.meta.env.VITE_SDS_CONTEXT_CACHE_SIZE),
+			).then(() => {
 				setWorker(w)
 				setIsProcessing(false)
 			})
@@ -114,12 +112,6 @@ export const DataShowcasePage: React.FC = memo(function DataShowcasePage() {
 						/>
 					</Pivot>
 					<ProcessingProgress />
-					{canRun && (
-						<DownloadButton
-							label="Download all assets"
-							onGetDownloadInfo={onGetAllAssetsDownloadInfo}
-						/>
-					)}
 				</Stack>
 			) : (
 				<></>

@@ -9,7 +9,7 @@ import { SynthesisMode } from '~models'
 
 const state = atom<SynthesisMode>({
 	key: 'synthesis-mode',
-	default: SynthesisMode.Seeded,
+	default: SynthesisMode.RowSeeded,
 })
 
 export function useSynthesisMode(): [

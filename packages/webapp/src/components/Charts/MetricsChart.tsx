@@ -4,12 +4,11 @@
  */
 import { memo } from 'react'
 import { Chart } from 'react-chartjs-2'
-
-import type { IMetrics } from '~models'
+import type { IMetricByKey } from 'sds-wasm'
 
 export interface IMetricsChart {
 	label: string
-	metrics: IMetrics
+	metrics: IMetricByKey
 	type: 'line' | 'bar'
 	max?: number
 	drawYAxisOnChartArea?: boolean
@@ -79,6 +78,11 @@ export const MetricsChart: React.FC<MetricsChartProps> = memo(
 					maintainAspectRatio: false,
 					scales: scales,
 				}}
+				style={
+					{
+						margin: 'auto'
+					}
+				}
 			/>
 		)
 	},

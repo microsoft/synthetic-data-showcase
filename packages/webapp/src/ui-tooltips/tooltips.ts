@@ -20,9 +20,11 @@ import SENSITIVE_FILE from './mds/SENSITIVE_FILE.md?raw'
 import SYNTHESIS_MODE from './mds/SYNTHESIS_MODE.md?raw'
 import SYNTHESIZE from './mds/SYNTHESIZE.md?raw'
 import SYNTHETIC_DATA_CHARTS from './mds/SYNTHETIC_DATA_CHARTS.md?raw'
+import TODO from './mds/TODO.md?raw'
 import UNIQUE_COMBS from './mds/UNIQUE_COMBS.md?raw'
 
 export const tooltips = {
+	todo: fromMarkdownStr(TODO),
 	sensitiveFile: fromMarkdownStr(SENSITIVE_FILE),
 	resolution: fromMarkdownStr(RESOLUTION),
 	recordLimit: fromMarkdownStr(RECORD_LIMIT),

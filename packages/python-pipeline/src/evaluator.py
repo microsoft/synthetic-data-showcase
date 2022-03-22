@@ -250,8 +250,9 @@ class Evaluator:
         )
 
     def _gen_stats_summary(self, src, target):
-        missing_count = self.sds_evaluator.calc_missed_count(src, target)
-        fabricated_count = self.sds_evaluator.calc_fabricated_count(
+        missing_percentage = self.sds_evaluator.calc_missed_percentage(
+            src, target)
+        fabricated_percentage = self.sds_evaluator.calc_fabricated_percentage(
             src, target
         )
         mean_error_by_len = self.sds_evaluator.calc_combinations_mean_abs_error_by_len(
@@ -260,15 +261,14 @@ class Evaluator:
         overall_error = self.sds_evaluator.calc_combinations_mean_abs_error(
             src, target
         )
-        n_src_combinations = src.total_number_of_combinations()
         src_mean_count_by_len = src.calc_combinations_mean_by_len()
         overall_src_mean_count = src.calc_combinations_mean()
 
         summary = [['Metric', 'Value']]
         summary.append(
-            [f'Missing combination %', f'{missing_count * 100.0 / n_src_combinations:.2f} %'])
+            [f'Missing combination %', f'{missing_percentage:.2f} %'])
         summary.append(
-            [f'Fabricated %', f'{fabricated_count * 100.0 / n_src_combinations:.2f} %'])
+            [f'Fabricated %', f'{fabricated_percentage:.2f} %'])
         for l in sorted(mean_error_by_len.keys()):
             summary.append([f'{l}-counts mean value +/- mean error',
                             f'{src_mean_count_by_len[l]:.2f} +/- {mean_error_by_len[l]:.2f}'])
@@ -283,11 +283,12 @@ class Evaluator:
             self.sen_aggregated_data, self.syn_aggregated_data
         )
         mean_proportional_error = self.config['mean_proportional_error']
-        expansion_ratio = self.sds_evaluator.calc_expansion_ratio(
+        record_expansion_percentage = self.sds_evaluator.calc_record_expansion_percentage(
             self.sen_aggregated_data, self.syn_aggregated_data
-        ) - 1.0
+        )
 
-        summary.append(['Expansion Ratio', f'{expansion_ratio * 100.0:.2f} %'])
+        summary.append(
+            ['Expansion Ratio', f'{record_expansion_percentage:.2f} %'])
         summary.append(['Mean Proportional error %',
                         f'{mean_proportional_error * 100.0:.2f} %'])
 
