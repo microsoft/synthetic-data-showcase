@@ -24,7 +24,7 @@ export function getMicrodataMetricsItems(
 		return [
 			{
 				metric: 'Suppressed combinations',
-				tooltip: undefined,
+				tooltip: tooltips.suppressedCombinations,
 				value:
 					aggregateType === AggregateType.Reportable ||
 					aggregateType === AggregateType.Synthetic
@@ -35,7 +35,7 @@ export function getMicrodataMetricsItems(
 			},
 			{
 				metric: 'Fabricated combinations',
-				tooltip: undefined,
+				tooltip: tooltips.fabricatedCombinations,
 				value:
 					aggregateType === AggregateType.Reportable ||
 					aggregateType === AggregateType.Synthetic
@@ -46,7 +46,7 @@ export function getMicrodataMetricsItems(
 			},
 			...Object.keys(stats.originalMeanCombinationsCountByLen ?? {}).map(l => ({
 				metric: `${l}-count mean value +/- Mean error`,
-				tooltip: undefined,
+				tooltip: tooltips.nCountMeanAndError,
 				value: `${
 					stats.originalMeanCombinationsCountByLen[l]
 						.toFixed(precision)
@@ -59,7 +59,7 @@ export function getMicrodataMetricsItems(
 			})),
 			{
 				metric: 'Mean combination count +/- Mean error',
-				tooltip: undefined,
+				tooltip: tooltips.countMeanAndError,
 				value: `${stats.originalMeanCombinationsCount
 					.toFixed(precision)
 					.toString()} +/- ${stats.meanCombinationsCountError
@@ -77,7 +77,7 @@ export function getMicrodataMetricsItems(
 			},
 			{
 				metric: 'Mean proportional error',
-				tooltip: undefined,
+				tooltip: tooltips.meanProportionalError,
 				value:
 					aggregateType === AggregateType.Reportable ||
 					aggregateType === AggregateType.Synthetic

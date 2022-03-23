@@ -238,7 +238,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 					synthesisMode === SynthesisMode.AggregateSeeded ||
 					synthesisMode === SynthesisMode.DP) && (
 					<Stack.Item>
-						<TooltipWrapper tooltip={tooltips.todo} label="Reporting length">
+						<TooltipWrapper tooltip={tooltips.reportingLength} label="Reporting length">
 							<SpinButton
 								labelPosition={Position.top}
 								min={1}
@@ -255,7 +255,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 				{synthesisMode === SynthesisMode.ValueSeeded && (
 					<>
 						<Stack.Item>
-							<TooltipWrapper tooltip={tooltips.todo} label="Oversampling">
+							<TooltipWrapper tooltip={tooltips.oversampling} label="Oversampling">
 								<Dropdown
 									selectedKey={oversamplingType}
 									onChange={handleOversamplingTypeChange}
@@ -271,7 +271,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 							<>
 								<Stack.Item>
 									<TooltipWrapper
-										tooltip={tooltips.todo}
+										tooltip={tooltips.oversamplingRatio}
 										label="Oversampling ratio"
 									>
 										<SpinButton
@@ -288,7 +288,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 
 								<Stack.Item>
 									<TooltipWrapper
-										tooltip={tooltips.todo}
+										tooltip={tooltips.oversamplingTries}
 										label="Oversampling tries"
 									>
 										<SpinButton
@@ -312,7 +312,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 					<>
 						<Stack.Item>
 							<TooltipWrapper
-								tooltip={tooltips.todo}
+								tooltip={tooltips.useSyntheticCounts}
 								label="Use synthetic counts"
 							>
 								<Dropdown
@@ -330,7 +330,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 							<>
 								<Stack.Item>
 									<TooltipWrapper
-										tooltip={tooltips.todo}
+										tooltip={tooltips.percentilePercentage}
 										label="Percentile percentage"
 									>
 										<SpinButton
@@ -348,7 +348,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 
 								<Stack.Item>
 									<TooltipWrapper
-										tooltip={tooltips.todo}
+										tooltip={tooltips.sensitivityFilterEpsilon}
 										label="Sensitivity filter epsilon"
 									>
 										<SpinButton
@@ -364,7 +364,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 								</Stack.Item>
 
 								<Stack.Item>
-									<TooltipWrapper tooltip={tooltips.todo} label="Noise epsilon">
+									<TooltipWrapper tooltip={tooltips.noiseEpsilon} label="Noise epsilon">
 										<SpinButton
 											labelPosition={Position.top}
 											min={0}
@@ -378,7 +378,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 								</Stack.Item>
 
 								<Stack.Item>
-									<TooltipWrapper tooltip={tooltips.todo} label="Noise delta">
+									<TooltipWrapper tooltip={tooltips.noiseDelta} label="Noise delta">
 										<SpinButton
 											labelPosition={Position.top}
 											min={0}
