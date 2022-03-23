@@ -44,8 +44,8 @@ async function generateAggregatesCsv(
 					type: 'text/csv',
 				},
 			),
-			`${c.key}/${AggregateType.Sensitive}_aggregates.csv.csv`,
-			`${c.key}/${AggregateType.Sensitive}_aggregates.csv.csv`,
+			`${c.key}/${AggregateType.Sensitive}_aggregates.csv`,
+			`${c.key}/${AggregateType.Sensitive}_aggregates.csv`,
 		),
 		new FileWithPath(
 			new Blob(
@@ -54,8 +54,8 @@ async function generateAggregatesCsv(
 					type: 'text/csv',
 				},
 			),
-			`${c.key}/${AggregateType.Reportable}_aggregates.csv.csv`,
-			`${c.key}/${AggregateType.Reportable}_aggregates.csv.csv`,
+			`${c.key}/${AggregateType.Reportable}_aggregates.csv`,
+			`${c.key}/${AggregateType.Reportable}_aggregates.csv`,
 		),
 		new FileWithPath(
 			new Blob(
@@ -64,8 +64,8 @@ async function generateAggregatesCsv(
 					type: 'text/csv',
 				},
 			),
-			`${c.key}/${AggregateType.Synthetic}_aggregates.csv.csv`,
-			`${c.key}/${AggregateType.Synthetic}_aggregates.csv.csv`,
+			`${c.key}/${AggregateType.Synthetic}_aggregates.csv`,
+			`${c.key}/${AggregateType.Synthetic}_aggregates.csv`,
 		),
 	]
 }
