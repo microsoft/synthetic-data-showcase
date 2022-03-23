@@ -1,0 +1,1 @@
+Delta used to calculate the scale of the noise that needs to be added to the aggregate counts.

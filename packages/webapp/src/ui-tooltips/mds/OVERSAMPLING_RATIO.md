@@ -1,0 +1,1 @@
+The allowed oversampling proportion for each individual aggregate count. (e.g. `0.1` means the synthetic aggregate counts are allowed to exceeded 10% the count of the reportable ones)
