@@ -44,9 +44,9 @@ import {
 
 const backIcon: IIconProps = { iconName: 'Back' }
 
-const viewHeight = 'calc(100vh - 225px)'
+const viewHeight = 'calc(100vh - 265px)'
 
-const chartHeight = `calc((${viewHeight} / 2) - 20px)`
+const chartHeight = `calc((${viewHeight} / 2) - 25px)`
 
 export type SetSelectedAttributesCallback = (
 	headerIndex: number,
@@ -116,6 +116,10 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 	const subStackTokens: IStackTokens = {
 		childrenGap: theme.spacing.s1,
 	}
+
+	useEffect(() => {
+		onClearSelectedAttributes()
+	}, [selectedContextParameters, onClearSelectedAttributes])
 
 	useEffect(() => {
 		onRunNavigate()
