@@ -2,36 +2,18 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { container, introspect } from '@data-wrangling-components/core'
-import { fromCSV, table } from 'arquero'
-import _ from 'lodash'
+import { container } from '@data-wrangling-components/core'
+import { fromCSV } from 'arquero'
 import type { FC } from 'react'
-import { memo, useCallback, useEffect } from 'react'
+import { memo, useCallback } from 'react'
 import type { FileRejection } from 'react-dropzone'
 
 import { FileDrop } from '~components/FileDrop'
-import { defaultSubjectID } from '~models'
-import {
-	useClearSensitiveData,
-	useFileUploadErrorMessage,
-	useIsProcessingSetter,
-	useNoiseDeltaSetter,
-	usePreparedTable,
-	useRecordLimitSetter,
-	useSensitiveContent,
-	useTables,
-} from '~states'
-import { columnIndexesWithZeros, tableHeaders } from '~utils'
+import { useFileUploadErrorMessage, useTables } from '~states'
 
 export const FileUploader: FC = memo(function FileUploader({ children }) {
 	const [, setFileUploadErrorMessage] = useFileUploadErrorMessage()
 	const [, updateTables] = useTables()
-	const [preparedTable] = usePreparedTable()
-	const [, setSensitiveContent] = useSensitiveContent()
-	const setIsProcessing = useIsProcessingSetter()
-	const clearSensitiveData = useClearSensitiveData()
-	const setRecordLimit = useRecordLimitSetter()
-	const setNoiseDelta = useNoiseDeltaSetter()
 
 	const handleDrop = useCallback(
 		async (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
@@ -57,37 +39,6 @@ export const FileUploader: FC = memo(function FileUploader({ children }) {
 		},
 		[updateTables, setFileUploadErrorMessage],
 	)
-
-	useEffect(() => {
-		async function run() {
-			if (preparedTable !== undefined) {
-				let t = preparedTable.table!
-				setIsProcessing(true)
-				await clearSensitiveData()
-
-				if (!t.column(defaultSubjectID)) {
-					t = table({
-						[defaultSubjectID]: _.range(1, t.totalRows() + 1),
-					}).assign(t)
-				}
-
-				setSensitiveContent({
-					table: t,
-					headers: tableHeaders(t),
-					columnsWithZeros: columnIndexesWithZeros(t),
-					delimiter: ',',
-					metadata: introspect(t, true),
-					subjectId: defaultSubjectID,
-				})
-				setRecordLimit(t.numRows())
-				if (t.numRows() > 0) {
-					setNoiseDelta(1 / (2 * t.numRows()))
-				}
-				setIsProcessing(false)
-			}
-		}
-		void run()
-	}, [preparedTable, setSensitiveContent, setIsProcessing, clearSensitiveData, setRecordLimit, setNoiseDelta])
 
 	return (
 		<FileDrop accept=".csv,.tsv" noClick onDrop={handleDrop}>
