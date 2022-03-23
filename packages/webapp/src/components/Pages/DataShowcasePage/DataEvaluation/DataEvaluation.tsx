@@ -162,6 +162,11 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 	const chartWidth = 550
 
 	useEffect(() => {
+		setLeftSelectedContextParameters(selectedContextParameters)
+		setRightSelectedContextParameters(selectedContextParameters)
+	}, [selectedContextParameters])
+
+	useEffect(() => {
 		leftSelectedContextParametersOnChange()
 	}, [allContextsParameters, leftSelectedContextParameters, leftSelectedContextParametersOnChange])
 

@@ -20,7 +20,7 @@ export function useOnRunEvaluate(
 	const setIsProcessing = useIsProcessingSetter()
 	const setProcessingProgress = useProcessingProgressSetter()
 	const worker = useWasmWorkerValue()
-	const setContextsParameters = useAllContextsParametersSetter()
+	const setAllContextsParameters = useAllContextsParametersSetter()
 	const setSelectedContext = useSelectedContextParametersSetter()
 
 	return useCallback(async () => {
@@ -37,7 +37,7 @@ export function useOnRunEvaluate(
 				},
 			)
 			if (response) {
-				setContextsParameters(response)
+				setAllContextsParameters(response)
 				setSelectedContext(response.find(c => c.key === selectedContextParameters.key))
 			}
 		}
@@ -49,7 +49,7 @@ export function useOnRunEvaluate(
 		setProcessingProgress,
 		worker,
 		reportingLength,
-		setContextsParameters,
+		setAllContextsParameters,
 		setSelectedContext
 	])
 }
