@@ -12,6 +12,7 @@ module.exports = {
 	rules: {
 		'@typescript-eslint/no-explicit-any': 'off',
 		'no-redeclare': 'off',
+		'@typescript-eslint/no-non-null-assertion': 'off',
 		'@typescript-eslint/no-redeclare': ['warn'],
 		'@typescript-eslint/explicit-module-boundary-types': [
 			'warn',

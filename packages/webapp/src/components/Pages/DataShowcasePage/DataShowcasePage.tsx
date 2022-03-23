@@ -6,13 +6,16 @@ import type { IStackStyles, IStackTokens } from '@fluentui/react'
 import { getTheme, Pivot, PivotItem, Stack } from '@fluentui/react'
 import { memo, useCallback, useEffect } from 'react'
 
+import { FileUploadErrorBar } from '~components/FileUploadErrorBar'
 import { ProcessingProgress } from '~components/ProcessingProgress'
 import { PipelineStep } from '~models'
 import {
 	useIsProcessingSetter,
+	usePreparedTable,
 	useSelectedPipelineStep,
+	useSelectedTable,
 	useWasmWorker,
-} from '~states/dataShowcaseContext'
+} from '~states'
 import { SdsWasmWorker } from '~workers/sds-wasm'
 
 import { DataEvaluation } from './DataEvaluation'
@@ -25,6 +28,8 @@ export const DataShowcasePage: React.FC = memo(function DataShowcasePage() {
 	const [selectedPipelineStep, setSelectedPipelineStep] =
 		useSelectedPipelineStep()
 	const setIsProcessing = useIsProcessingSetter()
+	const [selectedTable] = useSelectedTable()
+	const [, setPreparedTable] = usePreparedTable()
 
 	const theme = getTheme()
 
@@ -43,9 +48,10 @@ export const DataShowcasePage: React.FC = memo(function DataShowcasePage() {
 
 	const onTabChange = useCallback(
 		(item?: PivotItem) => {
+			setPreparedTable(selectedTable)
 			setSelectedPipelineStep(item?.props.itemKey ?? PipelineStep.Prepare)
 		},
-		[setSelectedPipelineStep],
+		[setSelectedPipelineStep, setPreparedTable, selectedTable],
 	)
 
 	let currentTab
@@ -117,6 +123,9 @@ export const DataShowcasePage: React.FC = memo(function DataShowcasePage() {
 				<></>
 			)}
 
+			<Stack.Item>
+				<FileUploadErrorBar />
+			</Stack.Item>
 			<Stack.Item>{currentTab}</Stack.Item>
 		</Stack>
 	)
