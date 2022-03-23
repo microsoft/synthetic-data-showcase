@@ -5,8 +5,6 @@
 import { memo, StrictMode } from 'react'
 import { HashRouter } from 'react-router-dom'
 
-import { FileDrop } from '~components/FileDrop'
-
 import { ChartContext } from './ChartContext'
 import { DataContext } from './DataContext'
 import { FileUploader } from './FileUploader'

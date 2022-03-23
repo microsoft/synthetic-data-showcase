@@ -6,9 +6,23 @@ import { useCallback } from 'react'
 import type { IMicrodataStatistics } from 'sds-wasm'
 
 import type { DownloadInfo } from '~components/controls/DownloadButton'
+import type { IMicrodataMetricItem } from '~components/MetricsSummaryTable'
 import { useMicrodataMetricsItems } from '~components/MetricsSummaryTable'
 import type { AggregateType } from '~models'
 import { useWasmWorkerValue } from '~states'
+import type { SdsWasmWorker } from '~workers/sds-wasm'
+
+export function getMetricsSummaryCsv(
+	microdataMetricItems: IMicrodataMetricItem[],
+	delimiter = ',',
+): string {
+	return (
+		`Metric${delimiter}Value\n` +
+		microdataMetricItems
+			.map(item => `${item.metric}${delimiter}${item.value}`)
+			.join('\n')
+	)
+}
 
 export function useOnGetMetricsSummaryCsv(
 	stats: IMicrodataStatistics | undefined,
@@ -18,13 +32,29 @@ export function useOnGetMetricsSummaryCsv(
 	const microdataMetricItems = useMicrodataMetricsItems(stats, aggregateType)
 
 	return useCallback(
-		() =>
-			`Metric${delimiter}Value\n` +
-			microdataMetricItems
-				.map(item => `${item.metric}${delimiter}${item.value}`)
-				.join('\n'),
+		() => getMetricsSummaryCsv(microdataMetricItems, delimiter),
 		[microdataMetricItems, delimiter],
 	)
+}
+
+export function getAnalysisByCountCsv(
+	countLabels: number[],
+	stats: IMicrodataStatistics | undefined,
+	delimiter = ',',
+): string {
+	let csv = `Bin${delimiter}Mean proportional error${delimiter}Mean length of combinations\n`
+
+	if (stats) {
+		csv += countLabels
+			.map(
+				c =>
+					`${c}${delimiter}${
+						stats.meanProportionalErrorByBucket[c] ?? 0
+					}${delimiter}${stats.meanCombinationsLengthByBucket[c] ?? 0}`,
+			)
+			.join('\n')
+	}
+	return csv
 }
 
 export function useOnGetAnalysisByCountCsv(
@@ -32,33 +62,22 @@ export function useOnGetAnalysisByCountCsv(
 	stats: IMicrodataStatistics | undefined,
 	delimiter = ',',
 ): () => string {
-	return useCallback(() => {
-		let csv = `Bin${delimiter}Mean proportional error${delimiter}Mean length of combinations\n`
-
-		if (stats) {
-			csv += countLabels
-				.map(
-					c =>
-						`${c}${delimiter}${
-							stats.meanProportionalErrorByBucket[c] ?? 0
-						}${delimiter}${stats.meanCombinationsLengthByBucket[c] ?? 0}`,
-				)
-				.join('\n')
-		}
-		return csv
-	}, [countLabels, stats, delimiter])
+	return useCallback(
+		() => getAnalysisByCountCsv(countLabels, stats, delimiter),
+		[countLabels, stats, delimiter],
+	)
 }
 
-export function useOnGetAnalysisByLenCsv(
+export function getAnalysisByLenCsv(
 	lenLabels: number[],
 	stats: IMicrodataStatistics | undefined,
 	delimiter = ',',
-): () => string {
-	return useCallback(() => {
-		let csv = `Length${delimiter}Mean combinations count${delimiter}Distinct combinations count${delimiter}Rare combinations count${delimiter}Rare combinations percentage${delimiter}Leakage count${delimiter}Leakage percentage${delimiter}\n`
+): string {
+	let csv = `Length${delimiter}Mean combinations count${delimiter}Distinct combinations count${delimiter}Rare combinations count${delimiter}Rare combinations percentage${delimiter}Leakage count${delimiter}Leakage percentage${delimiter}\n`
 
-		if (stats) {
-			csv += lenLabels.map(
+	if (stats) {
+		csv += lenLabels
+			.map(
 				l =>
 					`${l}${delimiter}${
 						stats.meanCombinationsCountByLen[l] ?? 0
@@ -70,9 +89,39 @@ export function useOnGetAnalysisByLenCsv(
 						stats.leakagePercentageByLen[l] ?? 0
 					}`,
 			)
-		}
-		return csv
-	}, [lenLabels, stats, delimiter])
+			.join('\n')
+	}
+	return csv
+}
+
+export function useOnGetAnalysisByLenCsv(
+	lenLabels: number[],
+	stats: IMicrodataStatistics | undefined,
+	delimiter = ',',
+): () => string {
+	return useCallback(
+		() => getAnalysisByLenCsv(lenLabels, stats, delimiter),
+		[lenLabels, stats, delimiter],
+	)
+}
+
+export async function getAggregatesCsv(
+	worker: SdsWasmWorker | null,
+	contextKey: string | undefined,
+	aggregateType: AggregateType,
+	aggregatesDelimiter = ',',
+	combinationDelimiter = ';',
+): Promise<string> {
+	if (!worker || !contextKey) {
+		return ''
+	}
+	const result = await worker?.getAggregateResult(
+		contextKey,
+		aggregateType,
+		aggregatesDelimiter,
+		combinationDelimiter,
+	)
+	return result?.aggregatesData || ''
 }
 
 export function useOnGetAggregatesCsv(
@@ -84,17 +133,20 @@ export function useOnGetAggregatesCsv(
 	const worker = useWasmWorkerValue()
 
 	return useCallback(async () => {
-		if (!worker || !contextKey) {
-			return ''
-		}
-		const result = await worker?.getAggregateResult(
+		return getAggregatesCsv(
+			worker,
 			contextKey,
 			aggregateType,
 			aggregatesDelimiter,
 			combinationDelimiter,
 		)
-		return result?.aggregatesData || ''
-	}, [worker, contextKey, aggregateType, aggregatesDelimiter, combinationDelimiter])
+	}, [
+		worker,
+		contextKey,
+		aggregateType,
+		aggregatesDelimiter,
+		combinationDelimiter,
+	])
 }
 
 export function useOnGetDownloadInfo(
