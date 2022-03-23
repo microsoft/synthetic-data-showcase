@@ -15,6 +15,7 @@ import {
 	useClearSensitiveData,
 	useFileUploadErrorMessage,
 	useIsProcessingSetter,
+	useNoiseDeltaSetter,
 	usePreparedTable,
 	useRecordLimitSetter,
 	useSensitiveContent,
@@ -30,6 +31,7 @@ export const FileUploader: FC = memo(function FileUploader({ children }) {
 	const setIsProcessing = useIsProcessingSetter()
 	const clearSensitiveData = useClearSensitiveData()
 	const setRecordLimit = useRecordLimitSetter()
+	const setNoiseDelta = useNoiseDeltaSetter()
 
 	const handleDrop = useCallback(
 		async (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
@@ -64,7 +66,9 @@ export const FileUploader: FC = memo(function FileUploader({ children }) {
 				await clearSensitiveData()
 
 				if (!t.column(defaultSubjectID)) {
-					t = table({ RowID: _.range(1, t.totalRows() + 1) }).assign(t)
+					t = table({
+						[defaultSubjectID]: _.range(1, t.totalRows() + 1),
+					}).assign(t)
 				}
 
 				setSensitiveContent({
@@ -76,11 +80,14 @@ export const FileUploader: FC = memo(function FileUploader({ children }) {
 					subjectId: defaultSubjectID,
 				})
 				setRecordLimit(t.numRows())
+				if (t.numRows() > 0) {
+					setNoiseDelta(1 / (2 * t.numRows()))
+				}
 				setIsProcessing(false)
 			}
 		}
 		void run()
-	}, [preparedTable, setSensitiveContent, setIsProcessing, clearSensitiveData, setRecordLimit])
+	}, [preparedTable, setSensitiveContent, setIsProcessing, clearSensitiveData, setRecordLimit, setNoiseDelta])
 
 	return (
 		<FileDrop accept=".csv,.tsv" noClick onDrop={handleDrop}>

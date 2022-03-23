@@ -57,7 +57,7 @@ export const DataInput: React.FC = memo(function DataInput() {
 		<Stack styles={mainStackStyles} tokens={mainStackTokens}>
 			<Stack.Item>
 				<Stack tokens={subStackTokens} horizontal>
-					<Stack.Item align="end">
+					<Stack.Item align="center">
 						<StyledOpen onClick={open}>
 							<Icon iconName="OpenFolderHorizontal" /> Open sensitive data file
 						</StyledOpen>
