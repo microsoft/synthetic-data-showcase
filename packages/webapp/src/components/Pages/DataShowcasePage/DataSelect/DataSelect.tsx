@@ -12,14 +12,12 @@ import { ErrorMessageBar } from '~components/ErrorMessageBar'
 import { useSensitiveContent } from '~states'
 
 import {
-	useOnTableChange,
 	useSensitiveTableCommands,
 	useSubjectIdErrorMessage,
 	useVisibleColumnNames,
 } from './hooks'
 
 export const DataSelect: FC = memo(function DataSelect() {
-	useOnTableChange()
 	const [sensitiveContent, setSensitiveContent] = useSensitiveContent()
 	const subjectIdErrorMessage = useSubjectIdErrorMessage(sensitiveContent)
 

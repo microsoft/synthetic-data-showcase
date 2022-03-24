@@ -25,7 +25,11 @@ import { DataInput } from './DataInput'
 import { DataNavigation } from './DataNavigation'
 import { DataSelect } from './DataSelect'
 import { DataSynthesis } from './DataSynthesis'
-import { useCanRun, useOnGetAllAssetsDownloadInfo } from './hooks'
+import {
+	useCanRun,
+	useOnGetAllAssetsDownloadInfo,
+	useOnTableChange,
+} from './hooks'
 
 export const DataShowcasePage: React.FC = memo(function DataShowcasePage() {
 	const [worker, setWorker] = useWasmWorker()
@@ -40,6 +44,8 @@ export const DataShowcasePage: React.FC = memo(function DataShowcasePage() {
 		useFileUploadErrorMessage()
 
 	const theme = getTheme()
+
+	useOnTableChange()
 
 	const mainStackStyles: IStackStyles = {
 		root: {
