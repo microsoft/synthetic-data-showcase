@@ -52,8 +52,7 @@ def aggregate(config):
     )
 
     aggregated_data = sds_processor.aggregate(
-        reporting_length,
-        0
+        reporting_length
     )
     len_to_combo_count = aggregated_data.calc_combinations_count_by_len()
     len_to_rare_count = aggregated_data.calc_rare_combinations_count_by_len(

@@ -92,8 +92,7 @@ class Evaluator:
             self.record_limit
         )
         self.syn_aggregated_data = self.syn_sds_processor.aggregate(
-            self.reporting_length,
-            0
+            self.reporting_length
         )
 
     def _do_records_analysis(self):

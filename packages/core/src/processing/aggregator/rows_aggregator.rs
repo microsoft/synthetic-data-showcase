@@ -1,5 +1,4 @@
 use super::{
-    record_attrs_selector::RecordAttrsSelector,
     typedefs::{
         AggregatesCountMap, EnumeratedDataBlockRecords, RecordsSensitivity,
         RecordsSensitivityByLen, ALL_SENSITIVITIES_INDEX,
@@ -19,15 +18,10 @@ use std::sync::Mutex;
 
 use crate::{
     data_block::block::DataBlock,
-    utils::{
-        math::calc_n_combinations_range,
-        reporting::{ReportProgress, SendableProgressReporter, SendableProgressReporterRef},
-    },
+    utils::reporting::{ReportProgress, SendableProgressReporter, SendableProgressReporterRef},
 };
 
 pub struct RowsAggregatorResult {
-    pub all_combs_count: f64,
-    pub selected_combs_count: f64,
     pub aggregates_count: AggregatesCountMap,
     pub records_sensitivity_by_len: RecordsSensitivityByLen,
 }
@@ -36,8 +30,6 @@ impl RowsAggregatorResult {
     #[inline]
     pub fn new(total_n_records: usize, reporting_length: usize) -> RowsAggregatorResult {
         RowsAggregatorResult {
-            all_combs_count: 0.0,
-            selected_combs_count: 0.0,
             aggregates_count: AggregatesCountMap::default(),
             records_sensitivity_by_len: RowsAggregatorResult::default_sensitivity_by_len(
                 total_n_records,
@@ -62,25 +54,22 @@ impl RowsAggregatorResult {
     }
 }
 
-pub struct RowsAggregator<'length_range> {
+pub struct RowsAggregator {
     data_block: Arc<DataBlock>,
     enumerated_records: EnumeratedDataBlockRecords,
-    record_attrs_selector: RecordAttrsSelector<'length_range>,
     reporting_length: usize,
 }
 
-impl<'length_range> RowsAggregator<'length_range> {
+impl RowsAggregator {
     #[inline]
     pub fn new(
         data_block: Arc<DataBlock>,
         enumerated_records: EnumeratedDataBlockRecords,
-        record_attrs_selector: RecordAttrsSelector<'length_range>,
         reporting_length: usize,
     ) -> RowsAggregator {
         RowsAggregator {
             data_block,
             enumerated_records,
-            record_attrs_selector,
             reporting_length,
         }
     }
@@ -152,10 +141,6 @@ impl<'length_range> RowsAggregator<'length_range> {
 
         // use drain instead of fold, so we do not duplicate memory
         for mut partial_result in partial_results.drain(..) {
-            // join counts
-            final_result.all_combs_count += partial_result.all_combs_count;
-            final_result.selected_combs_count += partial_result.selected_combs_count;
-
             // join aggregated counts
             for (comb, value) in partial_result.aggregates_count.drain() {
                 let final_count = final_result
@@ -194,21 +179,14 @@ impl<'length_range> RowsAggregator<'length_range> {
             RowsAggregatorResult::new(self.data_block.records.len(), self.reporting_length);
 
         for (record_index, record) in self.enumerated_records.iter() {
-            let mut selected_attrs = self
-                .record_attrs_selector
-                .select_from_record(&record.values);
+            let mut selected_attrs = record.values.clone();
 
             // sort the attributes here, so combinations will be already sorted
             // and we do not need to sort entry by entry on the loop below
             selected_attrs.sort_by_key(|k| k.format_str_using_headers(&self.data_block.headers));
 
-            result.all_combs_count += calc_n_combinations_range(
-                record.values.len(),
-                self.record_attrs_selector.length_range,
-            );
-
-            for l in self.record_attrs_selector.length_range {
-                for mut c in selected_attrs.iter().combinations(*l) {
+            for l in 1..=self.reporting_length {
+                for mut c in selected_attrs.iter().combinations(l) {
                     let comb_len = c.len();
                     let current_count = result
                         .aggregates_count
@@ -221,7 +199,6 @@ impl<'length_range> RowsAggregator<'length_range> {
                     // index 0 means for all lengths
                     result.records_sensitivity_by_len[ALL_SENSITIVITIES_INDEX][*record_index] += 1;
                     result.records_sensitivity_by_len[comb_len][*record_index] += 1;
-                    result.selected_combs_count += 1.0;
                 }
             }
             SendableProgressReporter::update_progress(progress_reporter, 1.0);

@@ -5,10 +5,6 @@ pub mod aggregated_data;
 /// Dataset privacy risk definitions
 pub mod privacy_risk_summary;
 
-/// Module that can the used to suppress attributes from records to
-/// meet a certain sensitivity threshold
-pub mod record_attrs_selector;
-
 /// Defines structures related to records analysis (unique, rare and risky
 /// information)
 pub mod records_analysis_data;

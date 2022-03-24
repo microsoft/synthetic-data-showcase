@@ -93,7 +93,6 @@ impl SDSProcessor {
 
         Ok(WasmAggregateResult::new(Arc::new(aggregator.aggregate(
             reporting_length,
-            0,
             &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
         ))))
     }

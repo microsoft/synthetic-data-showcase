@@ -84,28 +84,19 @@ impl SDSProcessor {
     }
 
     /// Builds the aggregated data for the content
-    /// using the specified `reporting_length` and `sensitivity_threshold`.
+    /// using the specified `reporting_length`.
     /// The result is written to `sensitive_aggregates_path` and `reportable_aggregates_path`.
     /// # Arguments
     /// * `reporting_length` - Maximum length to compute attribute combinations
-    /// * `sensitivity_threshold` - Sensitivity threshold to filter record attributes
     /// (0 means no suppression)
-    pub fn aggregate(
-        &self,
-        reporting_length: usize,
-        sensitivity_threshold: usize,
-    ) -> AggregatedData {
+    pub fn aggregate(&self, reporting_length: usize) -> AggregatedData {
         let mut progress_reporter = if log_enabled!(Debug) {
             Some(LoggerProgressReporter::new(Debug))
         } else {
             None
         };
         let mut aggregator = Aggregator::new(self.data_block.clone());
-        aggregator.aggregate(
-            reporting_length,
-            sensitivity_threshold,
-            &mut progress_reporter,
-        )
+        aggregator.aggregate(reporting_length, &mut progress_reporter)
     }
 
     /// Synthesizes the content using the specified `resolution` and
