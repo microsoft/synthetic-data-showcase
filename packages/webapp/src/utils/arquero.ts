@@ -3,8 +3,9 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { fromCSV, table } from 'arquero'
-import ColumnTable from 'arquero/dist/types/table/column-table'
-import { ICsvContent, ICsvTableHeader } from '~models'
+import type ColumnTable from 'arquero/dist/types/table/column-table'
+
+import type { ICsvContent, ICsvTableHeader } from '~models'
 
 /**
  * Create a table from a set of compute results.

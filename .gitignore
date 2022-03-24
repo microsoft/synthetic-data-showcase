@@ -15,8 +15,8 @@ coverage/
 deploy.zip
 
 # Yarn v2 Gitignores - https://yarnpkg.com/getting-started/qa/#which-files-should-be-gitignored
+.pnp.*
 .yarn/*
-!.yarn/cache
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases
@@ -26,14 +26,8 @@ deploy.zip
 # Sample / typical outputs
 german_credit_showcase/
 credit_config.json
-*data*/
-!DataTransform/
-!DataShowcasePage/
-!DataBinning/
-!data_block/
-!dataShowcaseContext/
-!dataSynthesis/
-*output*/
+packages/lib-python/**/*data*/
+packages/lib-python/**/*output*/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -3,7 +3,9 @@ use sds_core::{
     data_block::{csv_block_creator::CsvDataBlockCreator, data_block_creator::DataBlockCreator},
     processing::{
         aggregator::Aggregator,
-        generator::{Generator, SynthesisMode},
+        generator::{
+            synthesizer::consolidate_parameters::ConsolidateParameters, Generator, SynthesisMode,
+        },
     },
     utils::{reporting::LoggerProgressReporter, threading::set_number_of_threads},
 };
@@ -29,14 +31,42 @@ enum Command {
             default_value = "100000"
         )]
         cache_max_size: usize,
+
         #[structopt(
             long = "mode",
             help = "synthesis mode",
-            possible_values = &["seeded", "unseeded"],
+            possible_values = &["seeded", "unseeded", "from_counts", "from_aggregates"],
             case_insensitive = true,
             default_value = "seeded"
         )]
         mode: SynthesisMode,
+
+        #[structopt(
+            long = "aggregates-json",
+            help = "json file generated on the aggregate step (optional on the \"from_counts\" mode, required on \"from_aggregates\" mode)"
+        )]
+        aggregates_json: Option<String>,
+
+        #[structopt(
+            long = "oversampling-ratio",
+            help = "allowed oversampling ratio used on \"from_counts\" and \"from_aggregates\" modes (0.1 means 10%)",
+            requires = "aggregates-json"
+        )]
+        oversampling_ratio: Option<f64>,
+
+        #[structopt(
+            long = "oversampling-tries",
+            help = "how many times try to resample in case the currently sampled value causes oversampling",
+            requires = "aggregates-json"
+        )]
+        oversampling_tries: Option<usize>,
+
+        #[structopt(
+            long = "use-synthetic-counts",
+            help = "use synthetic aggregates to balance attribute sampling on \"from_aggregates\" mode",
+            requires = "aggregates-json"
+        )]
+        use_synthetic_counts: bool,
     },
     Aggregate {
         #[structopt(long = "aggregates-path", help = "generated aggregates file path")]
@@ -62,15 +92,56 @@ enum Command {
         )]
         not_protect: bool,
 
-        #[structopt(
-            long = "sensitivity-threshold",
-            help = "maximum sensitivity allowed per record, attributes will be randomly suppressed to meet this criteria (0 means no suppression)",
-            default_value = "0"
-        )]
-        sensitivity_threshold: usize,
-
         #[structopt(long = "records-sensitivity-path", help = "records sensitivity path")]
         records_sensitivity_path: Option<String>,
+
+        #[structopt(
+            long = "filter-sensitivities",
+            help = "suppress combination contributions to meet a certain sensitivity criteria",
+            requires_all = &["sensitivities-percentile", "sensitivities-epsilon"]
+        )]
+        filter_sensitivities: bool,
+
+        #[structopt(
+            long = "sensitivities-percentile",
+            help = "percentile used as record sensitivity filter",
+            requires = "filter-sensitivities"
+        )]
+        sensitivities_percentile: Option<usize>,
+
+        #[structopt(
+            long = "sensitivities-epsilon",
+            help = "epsilon used to generate noise used for the sensitivity filter selection",
+            requires = "filter-sensitivities"
+        )]
+        sensitivities_epsilon: Option<f64>,
+
+        #[structopt(
+            long = "add-noise",
+            help = "add gaussian noise to the aggregates",
+            requires_all = &["filter-sensitivities", "noise-epsilon"]
+        )]
+        add_noise: bool,
+
+        #[structopt(
+            long = "noise-epsilon",
+            help = "epsilon used to generate noise that will be added to the aggregate counts",
+            requires = "add-noise"
+        )]
+        noise_epsilon: Option<f64>,
+
+        #[structopt(
+            long = "noise-delta",
+            help = "delta used to generate noise that will be added to the aggregate counts [default: 1/(2 * number of records)]",
+            requires = "add-noise"
+        )]
+        noise_delta: Option<f64>,
+
+        #[structopt(
+            long = "aggregates-json",
+            help = "serialize aggregated data to json file (sensitive)"
+        )]
+        aggregates_json: Option<String>,
     },
 }
 
@@ -153,13 +224,30 @@ fn main() {
                 synthetic_delimiter,
                 cache_max_size,
                 mode,
+                aggregates_json,
+                oversampling_ratio,
+                oversampling_tries,
+                use_synthetic_counts,
             } => {
+                let consolidate_parameters = match ConsolidateParameters::new(
+                    aggregates_json,
+                    oversampling_ratio,
+                    oversampling_tries,
+                    use_synthetic_counts,
+                ) {
+                    Ok(parameters) => parameters,
+                    Err(err) => {
+                        error!("error reading aggregates json file: {}", err);
+                        process::exit(1);
+                    }
+                };
                 let mut generator = Generator::new(data_block);
                 let generated_data = generator.generate(
                     cli.resolution,
                     cache_max_size,
                     String::from(""),
                     mode,
+                    consolidate_parameters,
                     &mut progress_reporter,
                 );
 
@@ -176,16 +264,40 @@ fn main() {
                 aggregates_delimiter,
                 reporting_length,
                 not_protect,
-                sensitivity_threshold,
                 records_sensitivity_path,
+                filter_sensitivities,
+                sensitivities_percentile,
+                sensitivities_epsilon,
+                add_noise,
+                noise_delta,
+                noise_epsilon,
+                aggregates_json,
             } => {
-                let mut aggregator = Aggregator::new(data_block);
-                let mut aggregated_data = aggregator.aggregate(
-                    reporting_length,
-                    sensitivity_threshold,
-                    &mut progress_reporter,
-                );
+                let mut aggregator = Aggregator::new(data_block.clone());
+                let mut aggregated_data =
+                    aggregator.aggregate(reporting_length, &mut progress_reporter);
                 let privacy_risk = aggregated_data.calc_privacy_risk(cli.resolution);
+
+                if filter_sensitivities {
+                    let allowed_sensitivity_by_len = aggregated_data.filter_sensitivities(
+                        sensitivities_percentile.unwrap(),
+                        sensitivities_epsilon.unwrap(),
+                    );
+
+                    if add_noise {
+                        let delta = noise_delta
+                            .unwrap_or(1.0 / (2.0 * (data_block.number_of_records() as f64)));
+
+                        if let Err(err) = aggregated_data.add_gaussian_noise(
+                            noise_epsilon.unwrap(),
+                            delta,
+                            allowed_sensitivity_by_len,
+                        ) {
+                            error!("error applying gaussian noise: {}", err);
+                            process::exit(1);
+                        }
+                    }
+                }
 
                 if !not_protect {
                     aggregated_data.protect_aggregates_count(cli.resolution);
@@ -202,6 +314,13 @@ fn main() {
                 ) {
                     error!("error writing output file: {}", err);
                     process::exit(1);
+                }
+
+                if let Some(json_path) = aggregates_json {
+                    if let Err(err) = aggregated_data.write_to_json(&json_path) {
+                        error!("error writing aggregates json file: {}", err);
+                        process::exit(1);
+                    }
                 }
 
                 if let Some(path) = records_sensitivity_path {

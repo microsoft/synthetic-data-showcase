@@ -91,8 +91,7 @@ impl UnseededSynthesizer {
             if total_size > chunk_size {
                 rows_synthesizers.push(UnseededRowsSynthesizer::new(
                     SynthesizerContext::new(
-                        self.data_block.headers.len(),
-                        self.data_block.records.len(),
+                        self.data_block.clone(),
                         self.resolution,
                         self.cache_max_size,
                     ),
@@ -104,8 +103,7 @@ impl UnseededSynthesizer {
             } else {
                 rows_synthesizers.push(UnseededRowsSynthesizer::new(
                     SynthesizerContext::new(
-                        self.data_block.headers.len(),
-                        self.data_block.records.len(),
+                        self.data_block.clone(),
                         self.resolution,
                         self.cache_max_size,
                     ),

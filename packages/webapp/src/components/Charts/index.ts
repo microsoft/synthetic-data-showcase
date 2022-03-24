@@ -4,5 +4,3 @@
  */
 export * from './AttributeIntersectionValueChart'
 export * from './MetricsChart'
-export * from './SensitiveDataCharts'
-export * from './SyntheticDataCharts'

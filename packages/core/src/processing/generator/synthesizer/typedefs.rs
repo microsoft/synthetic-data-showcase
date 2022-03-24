@@ -1,7 +1,9 @@
 use fnv::{FnvHashMap, FnvHashSet};
-use std::{collections::BTreeSet, sync::Arc};
+use std::{collections::BTreeSet, rc::Rc, sync::Arc};
 
-use crate::data_block::value::DataBlockValue;
+use crate::{
+    data_block::value::DataBlockValue, processing::aggregator::value_combination::ValueCombination,
+};
 
 /// If the data block value were added to the synthesized record, this maps to the
 /// number of rows the resulting attribute combination will be part of
@@ -29,3 +31,9 @@ pub type SynthesizedRecordsSlice = [SynthesizedRecord];
 /// consolidation step for the count to match the a multiple of reporting resolution
 /// (rounded down)
 pub type AvailableAttrsMap = FnvHashMap<Arc<DataBlockValue>, isize>;
+
+/// Raw count for attribute combinations
+pub type RawCombinationsCountMap = FnvHashMap<Rc<ValueCombination>, usize>;
+
+/// Raw combinations set
+pub type RawCombinationsSet = FnvHashSet<Rc<ValueCombination>>;

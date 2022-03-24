@@ -1,11 +1,13 @@
+from doctest import OutputChecker
 import time
 import datetime
 import logging
 import sds
+from os import path
 
 
 def generate(config):
-    """Generates synthetic microdata approximiating the sensitive microdata at sensitive_microdata_path.
+    """Generates synthetic microdata approximating the sensitive microdata at sensitive_microdata_path.
 
     Produces the synthetic_microdata tsv file of synthetic records.
 
@@ -21,15 +23,20 @@ def generate(config):
     sensitive_zeros = config['sensitive_zeros']
     resolution = config['reporting_resolution']
     cache_max_size = config['cache_max_size']
-    seeded = config['seeded']
+    synthesis_mode = config['synthesis_mode']
+    output_dir = config['output_dir']
+    prefix = config['prefix']
+    dp_aggregates = config['dp_aggregates']
+    aggregated_data_json = path.join(
+        output_dir, f'{prefix}_reportable_aggregated_data.json')
+    oversampling_ratio = config['oversampling_ratio']
+    oversampling_tries = config['oversampling_tries']
+    use_synthetic_counts = config['use_synthetic_counts']
 
     logging.info(f'Generate {sensitive_microdata_path}')
     start_time = time.time()
 
-    if seeded:
-        logging.info(f'Generating from seeds')
-    else:
-        logging.info(f'Generating unseeded')
+    logging.info(f'Generating {synthesis_mode}')
 
     sds_processor = sds.SDSProcessor(
         sensitive_microdata_path,
@@ -42,7 +49,15 @@ def generate(config):
         cache_max_size,
         resolution,
         "",
-        seeded
+        synthesis_mode,
+        sds.ConsolidateParameters(
+            aggregated_data_json if (
+                oversampling_ratio or dp_aggregates or synthesis_mode == 'from_aggregates'
+            ) else None,
+            oversampling_ratio,
+            oversampling_tries,
+            use_synthetic_counts
+        )
     )
     generated_data.write_synthetic_data(synthetic_microdata_path, '\t')
     syn_ratio = generated_data.expansion_ratio

@@ -2,12 +2,8 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import {
-	IconButton,
-	IIconProps,
-	ITooltipHostProps,
-	TooltipHost,
-} from '@fluentui/react'
+import type { IIconProps, ITooltipHostProps } from '@fluentui/react'
+import { IconButton, TooltipHost } from '@fluentui/react'
 import { memo, useCallback } from 'react'
 
 export interface InfoTooltipProps {

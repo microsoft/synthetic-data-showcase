@@ -1,4 +1,7 @@
 use super::generated_data::GeneratedData;
+use super::synthesizer::consolidate_parameters::ConsolidateParameters;
+use super::synthesizer::from_aggregates::FromAggregatesSynthesizer;
+use super::synthesizer::from_counts::FromCountsSynthesizer;
 use super::synthesizer::typedefs::SynthesizedRecords;
 use super::synthesizer::unseeded::UnseededSynthesizer;
 use super::SynthesisMode;
@@ -32,6 +35,7 @@ impl Generator {
     /// * `cache_max_size` - Maximum cache size allowed
     /// * `empty_value` - Empty values on the synthetic data will be represented by this
     /// * `mode` - Which mode to perform the data synthesis
+    /// * `consolidate_parameters` - Parameters used for data consolidation
     /// * `progress_reporter` - Will be used to report the processing
     /// progress (`ReportProgress` trait). If `None`, nothing will be reported
     pub fn generate<T>(
@@ -40,6 +44,7 @@ impl Generator {
         cache_max_size: usize,
         empty_value: String,
         mode: SynthesisMode,
+        consolidate_parameters: ConsolidateParameters,
         progress_reporter: &mut Option<T>,
     ) -> GeneratedData
     where
@@ -58,6 +63,18 @@ impl Generator {
                 resolution,
                 cache_max_size,
                 &empty_value_arc,
+                progress_reporter,
+            ),
+            SynthesisMode::FromCounts => self.from_counts_synthesis(
+                resolution,
+                cache_max_size,
+                consolidate_parameters,
+                progress_reporter,
+            ),
+            SynthesisMode::FromAggregates => self.from_aggregates_synthesis(
+                resolution,
+                cache_max_size,
+                consolidate_parameters,
                 progress_reporter,
             ),
         };
@@ -137,6 +154,67 @@ impl Generator {
             resolution,
             cache_max_size,
             empty_value.clone(),
+        );
+        synth.run(progress_reporter)
+    }
+
+    #[inline]
+    pub fn from_counts_synthesis<T>(
+        &self,
+        resolution: usize,
+        cache_max_size: usize,
+        consolidate_parameters: ConsolidateParameters,
+        progress_reporter: &mut Option<T>,
+    ) -> SynthesizedRecords
+    where
+        T: ReportProgress,
+    {
+        let attr_rows_map = self.data_block.calc_attr_rows();
+
+        if consolidate_parameters.oversampling_ratio.is_some() {
+            assert!(
+                !consolidate_parameters
+                    .aggregated_data
+                    .aggregates_count
+                    .is_empty(),
+                "no aggregated data provided"
+            );
+        }
+
+        let mut synth = FromCountsSynthesizer::new(
+            self.data_block.clone(),
+            attr_rows_map,
+            resolution,
+            cache_max_size,
+            consolidate_parameters,
+        );
+        synth.run(progress_reporter)
+    }
+
+    #[inline]
+    pub fn from_aggregates_synthesis<T>(
+        &self,
+        resolution: usize,
+        cache_max_size: usize,
+        consolidate_parameters: ConsolidateParameters,
+        progress_reporter: &mut Option<T>,
+    ) -> SynthesizedRecords
+    where
+        T: ReportProgress,
+    {
+        assert!(
+            !consolidate_parameters
+                .aggregated_data
+                .aggregates_count
+                .is_empty(),
+            "no aggregated data provided"
+        );
+
+        let mut synth = FromAggregatesSynthesizer::new(
+            self.data_block.clone(),
+            resolution,
+            cache_max_size,
+            consolidate_parameters,
         );
         synth.run(progress_reporter)
     }

@@ -2,13 +2,17 @@ use super::{
     privacy_risk_summary::PrivacyRiskSummary,
     records_analysis_data::RecordsAnalysisData,
     typedefs::{
-        AggregatedCountByLenMap, AggregatesCountMap, AggregatesCountStringMap, RecordsByLenMap,
-        RecordsSensitivity,
+        AggregatedCountByLenMap, AggregatedMetricByLenMap, AggregatesCountMap,
+        AggregatesCountStringMap, RecordsByLenMap, RecordsSensitivityByLen,
+        ALL_SENSITIVITIES_INDEX,
     },
 };
+use fnv::FnvHashMap;
 use itertools::Itertools;
-use log::info;
+use log::{info, warn};
+use rand::{prelude::Distribution as rand_dist, thread_rng};
 use serde::{Deserialize, Serialize};
+use statrs::{distribution::Normal, statistics::Distribution};
 use std::{
     io::{BufReader, BufWriter, Error, Write},
     sync::Arc,
@@ -19,20 +23,29 @@ use pyo3::prelude::*;
 
 use crate::{
     data_block::block::DataBlock,
-    processing::aggregator::typedefs::RecordsSet,
+    dp::{
+        aggregated_data_sensitivity_filter::AggregatedDataSensitivityFilter,
+        analytic_gaussian::{DpAnalyticGaussianContinuousCDFScale, DEFAULT_TOLERANCE},
+        stats_error::StatsError,
+        typedefs::AllowedSensitivityByLen,
+    },
+    processing::aggregator::{
+        typedefs::RecordsSet, value_combination::ValueCombination, AggregatedCount,
+    },
     utils::{math::uround_down, time::ElapsedDurationLogger},
 };
 
 /// Aggregated data produced by the Aggregator
 #[cfg_attr(feature = "pyo3", pyclass)]
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct AggregatedData {
     /// Data block from where this aggregated data was generated
     pub data_block: Arc<DataBlock>,
     /// Maps a value combination to its aggregated count
     pub aggregates_count: AggregatesCountMap,
     /// A vector of sensitivities for each record (the vector index is the record index)
-    pub records_sensitivity: RecordsSensitivity,
+    /// grouped by combination length
+    pub records_sensitivity_by_len: RecordsSensitivityByLen,
     /// Maximum length used to compute attribute combinations
     pub reporting_length: usize,
 }
@@ -44,7 +57,7 @@ impl AggregatedData {
         AggregatedData {
             data_block: Arc::new(DataBlock::default()),
             aggregates_count: AggregatesCountMap::default(),
-            records_sensitivity: RecordsSensitivity::default(),
+            records_sensitivity_by_len: RecordsSensitivityByLen::default(),
             reporting_length: 0,
         }
     }
@@ -59,13 +72,13 @@ impl AggregatedData {
     pub fn new(
         data_block: Arc<DataBlock>,
         aggregates_count: AggregatesCountMap,
-        records_sensitivity: RecordsSensitivity,
+        records_sensitivity_by_len: RecordsSensitivityByLen,
         reporting_length: usize,
     ) -> AggregatedData {
         AggregatedData {
             data_block,
             aggregates_count,
-            records_sensitivity,
+            records_sensitivity_by_len,
             reporting_length,
         }
     }
@@ -113,7 +126,7 @@ impl AggregatedData {
     }
 
     #[inline]
-    pub fn _write_aggregates_count<T: Write>(
+    fn _write_aggregates_count<T: Write>(
         &self,
         writer: &mut T,
         aggregates_delimiter: char,
@@ -155,10 +168,56 @@ impl AggregatedData {
         }
         Ok(())
     }
+
+    #[inline]
+    fn gen_records_sensitivity_headers(&self, records_sensitivity_delimiter: char) -> String {
+        let mut headers = format!(
+            "record_index{}record_sensitivity_all_lengths",
+            records_sensitivity_delimiter
+        );
+
+        for l in 1..=self.reporting_length {
+            headers.push_str(&format!(
+                "{}record_sensitivity_length_{}",
+                records_sensitivity_delimiter, l
+            ));
+        }
+        headers.push('\n');
+        headers
+    }
+
+    #[inline]
+    fn gen_records_sensitivity_line(
+        &self,
+        record_index: usize,
+        records_sensitivity_delimiter: char,
+    ) -> String {
+        let mut line = format!(
+            "{}{}{}",
+            record_index,
+            records_sensitivity_delimiter,
+            self.records_sensitivity_by_len[ALL_SENSITIVITIES_INDEX][record_index]
+        );
+
+        for l in 1..=self.reporting_length {
+            line.push_str(&format!(
+                "{}{}",
+                records_sensitivity_delimiter, self.records_sensitivity_by_len[l][record_index]
+            ));
+        }
+        line.push('\n');
+        line
+    }
 }
 
 #[cfg_attr(feature = "pyo3", pymethods)]
 impl AggregatedData {
+    #[inline]
+    /// Total number of distinct combinations
+    pub fn total_number_of_combinations(&self) -> usize {
+        self.aggregates_count.len()
+    }
+
     /// Builds a map from value combinations formatted as string to its aggregated count
     /// This method will clone the data, so its recommended to have its result stored
     /// in a local variable to avoid it being called multiple times
@@ -181,10 +240,175 @@ impl AggregatedData {
 
     #[cfg(feature = "pyo3")]
     /// A vector of sensitivities for each record (the vector index is the record index)
+    /// grouped by combination length
     /// This method will clone the data, so its recommended to have its result stored
     /// in a local variable to avoid it being called multiple times
-    pub fn get_records_sensitivity(&self) -> RecordsSensitivity {
-        self.records_sensitivity.clone()
+    pub fn get_records_sensitivity_by_len(&self) -> RecordsSensitivityByLen {
+        self.records_sensitivity_by_len.clone()
+    }
+
+    /// Removed aggregate counts equals to zero (`0`) from the final result
+    pub fn remove_zero_counts(&mut self) {
+        info!("removing zero counts from aggregates");
+        let _duration_logger = ElapsedDurationLogger::new("remove zero counts");
+
+        // remove 0 counts from response
+        self.aggregates_count.retain(|_, count| count.count > 0);
+    }
+
+    /// Add missing sub combinations which have higher order combinations reported
+    pub fn add_missing_sub_combinations(&mut self) {
+        info!("adding missing sub combinations");
+        let _duration_logger = ElapsedDurationLogger::new("add missing sub combinations");
+        let mut missing_combs = AggregatesCountMap::default();
+
+        for (comb, count) in self.aggregates_count.iter() {
+            for l in 2..comb.len() {
+                for mut sub_comb in comb.iter().combinations(l) {
+                    let value_combination =
+                        ValueCombination::new(sub_comb.drain(..).cloned().collect());
+
+                    if !self.aggregates_count.contains_key(&value_combination) {
+                        let max_count = missing_combs
+                            .entry(Arc::new(value_combination))
+                            .or_insert_with(AggregatedCount::default);
+
+                        (*max_count).count = max_count.count.max(count.count);
+                    }
+                }
+            }
+        }
+
+        for (comb, count) in missing_combs.drain() {
+            self.aggregates_count.insert(comb, count);
+        }
+    }
+
+    /// Normalize noisy combinations, so lower order combinations will always have a bigger
+    /// count than higher order combinations that contains them
+    ///
+    /// For example (this scenario can happen when noise is added):
+    ///     - A:a1;B:b1 -> 25
+    ///     - A:a1;B:b1;C:c1 -> 30
+    ///     - A:a1;B:b1;C:c2 -> 40
+    ///
+    /// Would be normalized to:
+    ///     - A:a1;B:b1 -> 25
+    ///     - A:a1;B:b1;C:c1 -> **25**
+    ///     - A:a1;B:b1;C:c2 -> **25**
+    pub fn normalize_noisy_combinations(&mut self) {
+        info!("normalizing noisy combinations");
+        let _duration_logger = ElapsedDurationLogger::new("normalize noisy combinations");
+        let mut noisy_combs: FnvHashMap<Arc<ValueCombination>, usize> = FnvHashMap::default();
+
+        for (comb, count) in self.aggregates_count.iter() {
+            for l in 1..comb.len() {
+                for mut lower_len_comb in comb.iter().combinations(l) {
+                    let value_combination =
+                        ValueCombination::new(lower_len_comb.drain(..).cloned().collect());
+
+                    if let Some(lower_len_comb_count) =
+                        self.aggregates_count.get(&value_combination)
+                    {
+                        if lower_len_comb_count.count < count.count {
+                            let min_count = noisy_combs
+                                .entry(comb.clone())
+                                .or_insert_with(|| lower_len_comb_count.count);
+
+                            (*min_count) = (*min_count).min(lower_len_comb_count.count);
+                        }
+                    }
+                }
+            }
+        }
+
+        for (comb, count) in noisy_combs.drain() {
+            self.aggregates_count.get_mut(&comb).unwrap().count = count;
+        }
+    }
+
+    /// Filters aggregates counts for each record to ensure that the final sensitivity
+    /// for each record will be `<= percentile_percentage`.
+    /// Returns the maximum allowed sensitivity by combination length.
+    /// # Arguments
+    /// * `percentile_percentage` - percentage used to calculate the percentile that filters sensitivity
+    /// * `epsilon` - epsilon used to generate noise when selecting the `percentile_percentage`-th percentile
+    /// for sensitivity
+    pub fn filter_sensitivities(
+        &mut self,
+        percentile_percentage: usize,
+        epsilon: f64,
+    ) -> AllowedSensitivityByLen {
+        info!(
+            "filtering aggregate counts by record sensitivity with percentile = {} and epsilon = {}",
+            percentile_percentage, epsilon
+        );
+        let _duration_logger = ElapsedDurationLogger::new("filter sensitivities");
+
+        AggregatedDataSensitivityFilter::new(self)
+            .filter_sensitivities(percentile_percentage, epsilon)
+    }
+
+    /// Add gaussian noise to the aggregate counts based on the `allowed_sensitivity_by_len`
+    /// grouped by length.
+    /// # Arguments:
+    /// * `epsilon` - privacy budget used to generate noise (split for all lengths)
+    /// * `delta` - allowed proportion to leak
+    /// * `allowed_sensitivity_by_len` - allowed sensitivities computed by combination length
+    pub fn add_gaussian_noise(
+        &mut self,
+        epsilon: f64,
+        delta: f64,
+        allowed_sensitivity_by_len: AllowedSensitivityByLen,
+    ) -> Result<(), StatsError> {
+        info!(
+            "applying gaussian noise to aggregates using epsilon = {} and delta = {}",
+            epsilon, delta
+        );
+        let _duration_logger = ElapsedDurationLogger::new("add gaussian noise");
+        let mut noise: FnvHashMap<usize, Normal> = FnvHashMap::default();
+        let epsilon_by_length = epsilon / (allowed_sensitivity_by_len.len() as f64);
+
+        // generate the noise normal distribution by length
+        for (length, l1_sensitivity) in allowed_sensitivity_by_len.iter().sorted() {
+            if *l1_sensitivity > 0 {
+                let n = Normal::new_analytic_gaussian(
+                    f64::sqrt(*l1_sensitivity as f64),
+                    epsilon_by_length,
+                    delta,
+                    DEFAULT_TOLERANCE,
+                )?;
+
+                info!(
+                    "for length = {} the calculated sigma for the noise is {:.2} [used privacy budget is {}]",
+                    length,
+                    n.std_dev().unwrap(),
+                    epsilon_by_length
+                );
+                noise.insert(*length, n);
+            } else {
+                warn!(
+                    "combinations of length = {} are being completely removed",
+                    length
+                );
+            }
+        }
+
+        for (comb, count) in self.aggregates_count.iter_mut() {
+            if let Some(n) = noise.get(&comb.len()) {
+                // if it becomes negative, drop the count
+                (*count).count = f64::max(
+                    0.0,
+                    ((count.count as f64) + n.sample(&mut thread_rng())).round(),
+                ) as usize;
+            }
+        }
+
+        self.remove_zero_counts();
+        self.add_missing_sub_combinations();
+        self.normalize_noisy_combinations();
+
+        Ok(())
     }
 
     /// Round the aggregated counts down to the nearest multiple of resolution
@@ -201,8 +425,7 @@ impl AggregatedData {
         for count in self.aggregates_count.values_mut() {
             count.count = uround_down(count.count as f64, resolution as f64);
         }
-        // remove 0 counts from response
-        self.aggregates_count.retain(|_, count| count.count > 0);
+        self.remove_zero_counts()
     }
 
     /// Calculates the records that contain rare combinations grouped by length.
@@ -324,7 +547,34 @@ impl AggregatedData {
         result
     }
 
-    /// Calculates the number of combinations grouped by combination length
+    /// Calculates the percentage of rare combinations grouped by combination length
+    /// # Arguments:
+    /// * `resolution` - Reporting resolution used for data synthesis
+    pub fn calc_rare_combinations_percentage_by_len(
+        &self,
+        resolution: usize,
+    ) -> AggregatedMetricByLenMap {
+        let _duration_logger =
+            ElapsedDurationLogger::new("rare combinations percentage by len calculation");
+
+        info!(
+            "calculating rare combinations percentage by length with resolution {}",
+            resolution
+        );
+
+        let total_by_len = self.calc_combinations_count_by_len();
+
+        self.calc_rare_combinations_count_by_len(resolution)
+            .iter()
+            .filter_map(|(l, c)| {
+                total_by_len
+                    .get(l)
+                    .map(|total_count| (*l, ((*c as f64) / (*total_count as f64)) * 100.0))
+            })
+            .collect::<AggregatedMetricByLenMap>()
+    }
+
+    /// Calculates the number of distinct combinations grouped by combination length
     pub fn calc_combinations_count_by_len(&self) -> AggregatedCountByLenMap {
         let _duration_logger = ElapsedDurationLogger::new("combination count by len calculation");
         let mut result: AggregatedCountByLenMap = AggregatedCountByLenMap::default();
@@ -350,6 +600,42 @@ impl AggregatedData {
             *curr_sum += count.count;
         }
         result
+    }
+
+    /// Calculates the mean of all combination counts grouped by combination length
+    pub fn calc_combinations_mean_by_len(&self) -> AggregatedMetricByLenMap {
+        let _duration_logger = ElapsedDurationLogger::new("combinations mean by len calculation");
+        let mut result = AggregatedMetricByLenMap::default();
+
+        info!("calculating combination counts mean by length");
+
+        let comb_sums = self.calc_combinations_sum_by_len();
+        let comb_counts = self.calc_combinations_count_by_len();
+
+        for (l, s) in comb_sums.iter() {
+            let c = comb_counts.get(l).cloned().unwrap_or(0);
+
+            if c > 0 {
+                result.insert(*l, (*s as f64) / (c as f64));
+            }
+        }
+        result
+    }
+
+    /// Calculates the mean of all combination counts
+    pub fn calc_combinations_mean(&self) -> f64 {
+        let _duration_logger = ElapsedDurationLogger::new("combinations mean calculation");
+
+        info!("calculating combination counts mean");
+
+        let comb_sum: usize = self.calc_combinations_sum_by_len().values().sum();
+        let comb_count: usize = self.calc_combinations_count_by_len().values().sum();
+
+        if comb_count > 0 {
+            (comb_sum as f64) / (comb_count as f64)
+        } else {
+            0.0
+        }
     }
 
     /// Calculates the privacy risk related with data block and the generated
@@ -440,15 +726,14 @@ impl AggregatedData {
         let mut file = std::io::BufWriter::new(std::fs::File::create(records_sensitivity_path)?);
 
         file.write_all(
-            format!(
-                "record_index{}record_sensitivity\n",
-                records_sensitivity_delimiter
-            )
-            .as_bytes(),
+            self.gen_records_sensitivity_headers(records_sensitivity_delimiter)
+                .as_bytes(),
         )?;
-        for (i, sensitivity) in self.records_sensitivity.iter().enumerate() {
+
+        for record_index in 0..self.data_block.records.len() {
             file.write_all(
-                format!("{}{}{}\n", i, records_sensitivity_delimiter, sensitivity).as_bytes(),
+                self.gen_records_sensitivity_line(record_index, records_sensitivity_delimiter)
+                    .as_bytes(),
             )?
         }
         Ok(())

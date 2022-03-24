@@ -2,13 +2,10 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import {
-	IStackTokens,
-	ProgressIndicator,
-	Stack,
-	useTheme,
-} from '@fluentui/react'
+import type { IStackTokens } from '@fluentui/react'
+import { ProgressIndicator, Stack, useTheme } from '@fluentui/react'
 import { memo } from 'react'
+
 import { useIsProcessingValue, useProcessingProgressValue } from '~states'
 
 export const ProcessingProgress: React.FC = memo(function ProcessingProgress() {

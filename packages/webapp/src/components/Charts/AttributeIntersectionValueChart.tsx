@@ -6,7 +6,8 @@ import type { Plugin } from 'chart.js'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
 import { memo, useCallback } from 'react'
 import { Bar } from 'react-chartjs-2'
-import { IAttributesIntersection } from 'sds-wasm'
+import type { IAttributesIntersection } from 'sds-wasm'
+
 import {
 	useActualBarConfig,
 	useDataLabelsConfig,

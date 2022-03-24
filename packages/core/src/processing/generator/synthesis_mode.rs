@@ -5,6 +5,8 @@ use std::{fmt::Display, str::FromStr};
 pub enum SynthesisMode {
     Seeded,
     Unseeded,
+    FromCounts,
+    FromAggregates,
 }
 
 impl FromStr for SynthesisMode {
@@ -14,7 +16,9 @@ impl FromStr for SynthesisMode {
         match mode.to_lowercase().as_str() {
             "seeded" => Ok(SynthesisMode::Seeded),
             "unseeded" => Ok(SynthesisMode::Unseeded),
-            _ => Err("invalid mode, should be seeded or unseeded"),
+            "from_counts" => Ok(SynthesisMode::FromCounts),
+            "from_aggregates" => Ok(SynthesisMode::FromAggregates),
+            _ => Err("invalid mode, should be seeded, unseeded, from_counts or from_aggregates"),
         }
     }
 }
@@ -24,6 +28,8 @@ impl Display for SynthesisMode {
         match self {
             SynthesisMode::Seeded => Ok(write!(f, "seeded")?),
             SynthesisMode::Unseeded => Ok(write!(f, "unseeded")?),
+            SynthesisMode::FromCounts => Ok(write!(f, "from_counts")?),
+            SynthesisMode::FromAggregates => Ok(write!(f, "from_aggregates")?),
         }
     }
 }

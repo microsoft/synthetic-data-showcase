@@ -2,9 +2,11 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { TableMetadata } from '@data-wrangling-components/core'
+import type { TableMetadata } from '@data-wrangling-components/core'
 import { table } from 'arquero'
-import ColumnTable from 'arquero/dist/types/table/column-table'
+import type ColumnTable from 'arquero/dist/types/table/column-table'
+
+import type { IContextParameters } from '~models'
 
 export const defaultSubjectID = 'RowID'
 
@@ -20,6 +22,7 @@ export interface ICsvContent {
 	columnsWithZeros?: number[]
 	delimiter: string
 	table: ColumnTable
+	contextParameters?: IContextParameters
 	metadata?: TableMetadata
 	subjectId?: string
 }
@@ -29,5 +32,6 @@ export const defaultCsvContent: ICsvContent = {
 	columnsWithZeros: undefined,
 	delimiter: ',',
 	table: table({}),
+	contextParameters: undefined,
 	subjectId: defaultSubjectID,
 }

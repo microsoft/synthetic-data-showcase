@@ -32,6 +32,13 @@ def aggregate(config):
     prefix = config['prefix']
     sensitive_aggregated_data_json = path.join(
         output_dir, f'{prefix}_sensitive_aggregated_data.json')
+    reportable_aggregated_data_json = path.join(
+        output_dir, f'{prefix}_reportable_aggregated_data.json')
+    dp_aggregates = config['dp_aggregates']
+    sensitivities_epsilon = config['sensitivities_epsilon']
+    sensitivities_percentile = config['sensitivities_percentile']
+    noise_epsilon = config['noise_epsilon']
+    noise_delta = config['noise_delta']
 
     logging.info(f'Aggregate {sensitive_microdata_path}')
     start_time = time.time()
@@ -45,8 +52,7 @@ def aggregate(config):
     )
 
     aggregated_data = sds_processor.aggregate(
-        reporting_length,
-        0
+        reporting_length
     )
     len_to_combo_count = aggregated_data.calc_combinations_count_by_len()
     len_to_rare_count = aggregated_data.calc_rare_combinations_count_by_len(
@@ -59,10 +65,24 @@ def aggregate(config):
         reporting_resolution,
         False
     )
-
     aggregated_data.write_to_json(sensitive_aggregated_data_json)
 
-    aggregated_data.protect_aggregates_count(reporting_resolution)
+    if dp_aggregates:
+        allowed_sensitivity_by_len = aggregated_data.filter_sensitivities(
+            sensitivities_percentile,
+            sensitivities_epsilon
+        )
+
+        if not noise_delta:
+            noise_delta = 1 / (2 * sds_processor.number_of_records())
+
+        aggregated_data.add_gaussian_noise(
+            noise_epsilon,
+            noise_delta,
+            allowed_sensitivity_by_len
+        )
+    else:
+        aggregated_data.protect_aggregates_count(reporting_resolution)
 
     aggregated_data.write_aggregates_count(
         reportable_aggregates_path,
@@ -71,6 +91,7 @@ def aggregate(config):
         reporting_resolution,
         True
     )
+    aggregated_data.write_to_json(reportable_aggregated_data_json)
 
     leakage_tsv = path.join(
         output_dir, f'{prefix}_sensitive_rare_by_length.tsv')

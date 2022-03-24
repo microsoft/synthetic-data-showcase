@@ -3,14 +3,14 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import React, { lazy, memo } from 'react'
-import { Routes as Switch, Route, Navigate } from 'react-router-dom'
+import { Navigate, Route, Routes as Switch } from 'react-router-dom'
+
 import { Pages } from './Pages'
 
 const DataShowcasePageLazy = lazy(
-	() =>
-		/* webpackChunkName: "EvaluationPage" */ import(
-			'~components/Pages/DataShowcasePage'
-		),
+	async () =>
+		/* webpackChunkName: "EvaluationPage" */
+		await import('~components/Pages/DataShowcasePage'),
 )
 
 export const Routes: React.FC = memo(function Routes() {

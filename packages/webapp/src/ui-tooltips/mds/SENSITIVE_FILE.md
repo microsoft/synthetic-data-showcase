@@ -4,7 +4,7 @@ Select the sensitive data file containing the microdata. The data should be a co
 
 For that data to be processed the microdata provided as input should be deidentified, i.e., a table in which each row contains all data (but no personally-identifiable information, PII) relating to an individual.
 
-Single-valued attributes (e.g., gender) are represented as columns of categorical variables whose values are shared by multiple rows. Any continuous numeric variables (e.g., age) should be quantized in advance (e.g., into age ranges) to ensure there are sufficient instances of each value. For such task, there is an utility under **`Edit column`** when the table is loaded, this will allow columns to be organized into bins, binarized and also have its values recoded in place if necessary.
+Single-valued attributes (e.g., gender) are represented as columns of categorical variables whose values are shared by multiple rows. Any continuous numeric variables (e.g., age) should be quantized in advance (e.g., into age ranges) to ensure there are sufficient instances of each value. For such task, **`Steps`** could be added after the table is loaded, these will allow columns to be organized into bins, binarized, have its values recoded in place if necessary, amongst other verbs that could be applied.
 
 Multi-valued attributes (e.g., interests) are represented as multiple columns of binary variables (integer values of `0` and `1`) indicating the different values of that attribute (e.g., food, sports, politics).
 

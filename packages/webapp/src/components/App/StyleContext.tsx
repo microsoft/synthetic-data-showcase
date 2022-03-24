@@ -27,6 +27,13 @@ export const StyleContext: React.FC = memo(function StyleContext({ children }) {
 })
 
 const GlobalStyle = createGlobalStyle`
+	html {
+		box-sizing: border-box;
+	}
+	*, *:before, *:after {
+		box-sizing: inherit;
+	}
+
 	body {
 		height: 100vh;
 		margin: 0;

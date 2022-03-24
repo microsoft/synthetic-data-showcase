@@ -2,15 +2,18 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import { useCallback } from 'react'
+import type { SetterOrUpdater } from 'recoil'
 import {
 	atom,
-	SetterOrUpdater,
-	useRecoilState,
 	useRecoilValue,
 	useResetRecoilState,
 	useSetRecoilState,
 } from 'recoil'
-import { defaultCsvContent, ICsvContent } from '~models/csv'
+
+import type { ICsvContent } from '~models/csv'
+import { defaultCsvContent } from '~models/csv'
+import { useClearContexts } from '~states'
 
 const state = atom<ICsvContent>({
 	key: 'sensitive-content',
@@ -22,7 +25,7 @@ export function useSensitiveContent(): [
 	ICsvContent,
 	SetterOrUpdater<ICsvContent>,
 ] {
-	return useRecoilState(state)
+	return [useSensitiveContentValue(), useSensitiveContentSetter()]
 }
 
 export function useSensitiveContentValue(): ICsvContent {
@@ -30,9 +33,22 @@ export function useSensitiveContentValue(): ICsvContent {
 }
 
 export function useSensitiveContentSetter(): SetterOrUpdater<ICsvContent> {
-	return useSetRecoilState(state)
+	const clearContexts = useClearContexts()
+	const setter = useSetRecoilState(state)
+	return useCallback(
+		async newValue => {
+			await clearContexts()
+			setter(newValue)
+		},
+		[clearContexts, setter],
+	)
 }
 
 export function useResetSensitiveContent(): () => void {
-	return useResetRecoilState(state)
+	const clearContexts = useClearContexts()
+	const resetter = useResetRecoilState(state)
+	return useCallback(async () => {
+		await clearContexts()
+		resetter()
+	}, [clearContexts, resetter])
 }

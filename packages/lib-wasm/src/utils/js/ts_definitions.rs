@@ -2,78 +2,66 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(typescript_custom_section)]
 const TS_APPEND_CONTENT: &'static str = r#"
-export type ReportProgressCallback = (progress: number) => void;
+export type ReportProgressCallback = (progress: number) => void
 
-export type HeaderNames = string[];
+export type HeaderNames = string[]
 
 export interface IGenerateResult {
-  expansionRatio: number;
-  syntheticData: string;
+  expansionRatio: number
+  syntheticData: string
 }
 
-export interface IPrivacyRiskSummary {
-  totalNumberOfRecords: number
-  totalNumberOfCombinations: number
-  recordsWithUniqueCombinationsCount: number
-  recordsWithRareCombinationsCount: number
-  uniqueCombinationsCount: number
-  rareCombinationsCount: number
-  recordsWithUniqueCombinationsProportion: number
-  recordsWithRareCombinationsProportion: number
-  uniqueCombinationsProportion: number
-  rareCombinationsProportion: number
-}
-
-export interface IAggregateCountByLen {
+export interface IMetricByKey {
   [length: number]: number
 }
 
 export interface IAggregateResult {
-  reportingLength: number;
-  aggregatesData?: string;
-  rareCombinationsCountByLen: IAggregateCountByLen;
-  combinationsCountByLen: IAggregateCountByLen;
-  combinationsSumByLen: IAggregateCountByLen;
-  privacyRisk: IPrivacyRiskSummary;
+  reportingLength: number
+  aggregatesData?: string
 }
 
-export interface IPreservationByCountBucket {
-  size: number;
-  preservationSum: number;
-  lengthSum: number;
-  combinationCountSum: number;
-}
-
-export interface IPreservationByCountBuckets {
-  [bucket_index: number]: IPreservationByCountBucket;
-}
-
-export interface IPreservationByCount {
-  buckets: IPreservationByCountBuckets;
-  combinationLoss: number;
+export interface IMicrodataStatistics {
+  suppressedCombinationsPercentage: number
+  fabricatedCombinationsPercentage: number
+  originalMeanCombinationsCount: number
+  originalMeanCombinationsCountByLen: IMetricByKey
+  meanCombinationsCountError: number
+  meanCombinationsCountErrorByLen: IMetricByKey
+  meanProportionalError: number
+  meanProportionalErrorByBucket: IMetricByKey
+  meanCombinationsLengthByBucket: IMetricByKey
+  meanCombinationsCountByLen: IMetricByKey
+  distinctCombinationsCountByLen: IMetricByKey
+  rareCombinationsCountByLen: IMetricByKey
+  rareCombinationsPercentageByLen: IMetricByKey
+  leakageCountByLen: IMetricByKey
+  leakagePercentageByLen: IMetricByKey
+  recordsWithUniqueCombinationsPercentage: number
+  recordsWithRareCombinationsPercentage: number
+  uniqueCombinationsPercentage: number
+  rareCombinationsPercentage: number
+  recordExpansionPercentage: number
 }
 
 export interface IEvaluateResult {
-  sensitiveAggregateResult: IAggregateResult;
-  syntheticAggregateResult: IAggregateResult;
-  leakageCountByLen: IAggregateCountByLen;
-  fabricatedCountByLen: IAggregateCountByLen;
-  preservationByCount: IPreservationByCount;
-  recordExpansion: number;
+  reportingLength: usize
+  aggregateCountsStats: IMicrodataStatistics
+  sensitiveDataStats: IMicrodataStatistics
+  syntheticDataStats: IMicrodataStatistics
 }
 
 export interface ISelectedAttributesByColumn {
-  [columnIndex: number]: Set<string>;
+  [columnIndex: number]: Set<string>
 }
 
 export interface IAttributesIntersection {
-  value: string;
-  estimatedCount: number;
-  actualCount?: number;
+  value: string
+  estimatedCount: number
+  actualCount?: number
 }
 
 export interface IAttributesIntersectionByColumn {
-  [columnIndex: number]: IAttributesIntersection[];
+  [columnIndex: number]: IAttributesIntersection[]
 }"#;
 
 #[wasm_bindgen]
@@ -87,23 +75,14 @@ extern "C" {
     #[wasm_bindgen(typescript_type = "IGenerateResult")]
     pub type JsGenerateResult;
 
-    #[wasm_bindgen(typescript_type = "IPrivacyRiskSummary")]
-    pub type JsPrivacyRiskSummary;
-
-    #[wasm_bindgen(typescript_type = "IAggregateCountByLen")]
-    pub type JsAggregateCountByLen;
+    #[wasm_bindgen(typescript_type = "IMetricByKey")]
+    pub type JsMetricByKey;
 
     #[wasm_bindgen(typescript_type = "IAggregateResult")]
     pub type JsAggregateResult;
 
-    #[wasm_bindgen(typescript_type = "IPreservationByCountBucket")]
-    pub type JsPreservationByCountBucket;
-
-    #[wasm_bindgen(typescript_type = "IPreservationByCountBuckets")]
-    pub type JsPreservationByCountBuckets;
-
-    #[wasm_bindgen(typescript_type = "IPreservationByCount")]
-    pub type JsPreservationByCount;
+    #[wasm_bindgen(typescript_type = "IMicrodataStatistics")]
+    pub type JsMicrodataStatistics;
 
     #[wasm_bindgen(typescript_type = "IEvaluateResult")]
     pub type JsEvaluateResult;

@@ -2,9 +2,10 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import 'chart.js/auto'
+
 import { useThematic } from '@thematic/react'
 import { Chart } from 'chart.js'
-import 'chart.js/auto'
 import { merge } from 'lodash'
 import { memo, useEffect } from 'react'
 

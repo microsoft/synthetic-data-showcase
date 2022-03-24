@@ -2,38 +2,50 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import {
-	getTheme,
-	IStackStyles,
-	IStackTokens,
-	Pivot,
-	PivotItem,
-	Stack,
-} from '@fluentui/react'
+import type { IStackStyles, IStackTokens } from '@fluentui/react'
+import { getTheme, Pivot, PivotItem, Stack } from '@fluentui/react'
 import { memo, useCallback, useEffect } from 'react'
+
+import { DownloadButton } from '~components/controls/DownloadButton'
+import { ErrorMessageBar } from '~components/ErrorMessageBar'
+import { ProcessingProgress } from '~components/ProcessingProgress'
+import { PipelineStep } from '~models'
+import {
+	useFileUploadErrorMessage,
+	useIsProcessingSetter,
+	usePreparedTable,
+	useSelectedPipelineStep,
+	useSelectedTable,
+	useWasmWorker,
+} from '~states'
+import { SdsWasmWorker } from '~workers/sds-wasm'
+
 import { DataEvaluation } from './DataEvaluation'
 import { DataInput } from './DataInput'
 import { DataNavigation } from './DataNavigation'
+import { DataSelect } from './DataSelect'
 import { DataSynthesis } from './DataSynthesis'
-import { useCanRun, useOnGetAllAssetsDownloadInfo } from './hooks'
-import { ProcessingProgress } from '~components/ProcessingProgress'
-import { DownloadButton } from '~components/controls/DownloadButton'
-import { PipelineStep } from '~models'
 import {
-	useIsProcessingSetter,
-	useSelectedPipelineStep,
-	useWasmWorker,
-} from '~states/dataShowcaseContext'
-import { SdsWasmWorker } from '~workers/sds-wasm'
+	useCanRun,
+	useOnGetAllAssetsDownloadInfo,
+	useOnTableChange,
+} from './hooks'
 
 export const DataShowcasePage: React.FC = memo(function DataShowcasePage() {
 	const [worker, setWorker] = useWasmWorker()
 	const [selectedPipelineStep, setSelectedPipelineStep] =
 		useSelectedPipelineStep()
 	const setIsProcessing = useIsProcessingSetter()
+	const [selectedTable] = useSelectedTable()
+	const [, setPreparedTable] = usePreparedTable()
 	const canRun = useCanRun()
+	const onGetAllAssetsDownloadInfo = useOnGetAllAssetsDownloadInfo()
+	const [fileUploadErrorMessage, setFileUploadErrorMessage] =
+		useFileUploadErrorMessage()
 
 	const theme = getTheme()
+
+	useOnTableChange()
 
 	const mainStackStyles: IStackStyles = {
 		root: {
@@ -50,18 +62,20 @@ export const DataShowcasePage: React.FC = memo(function DataShowcasePage() {
 
 	const onTabChange = useCallback(
 		(item?: PivotItem) => {
+			setPreparedTable(selectedTable)
 			setSelectedPipelineStep(item?.props.itemKey ?? PipelineStep.Prepare)
 		},
-		[setSelectedPipelineStep],
+		[setSelectedPipelineStep, setPreparedTable, selectedTable],
 	)
-
-	const onGetAllAssetsDownloadInfo = useOnGetAllAssetsDownloadInfo()
 
 	let currentTab
 
 	switch (selectedPipelineStep) {
 		case PipelineStep.Prepare:
 			currentTab = <DataInput />
+			break
+		case PipelineStep.Select:
+			currentTab = <DataSelect />
 			break
 		case PipelineStep.Synthesize:
 			currentTab = <DataSynthesis />
@@ -79,7 +93,10 @@ export const DataShowcasePage: React.FC = memo(function DataShowcasePage() {
 		if (!worker) {
 			setIsProcessing(true)
 			const w = new SdsWasmWorker()
-			w.init(import.meta.env.VITE_SDS_WASM_LOG_LEVEL as string).then(() => {
+			w.init(
+				import.meta.env.VITE_SDS_WASM_LOG_LEVEL as string,
+				Number(import.meta.env.VITE_SDS_CONTEXT_CACHE_SIZE),
+			).then(() => {
 				setWorker(w)
 				setIsProcessing(false)
 			})
@@ -103,6 +120,10 @@ export const DataShowcasePage: React.FC = memo(function DataShowcasePage() {
 						<PivotItem
 							headerText={PipelineStep.Prepare}
 							itemKey={PipelineStep.Prepare}
+						/>
+						<PivotItem
+							headerText={PipelineStep.Select}
+							itemKey={PipelineStep.Select}
 						/>
 						<PivotItem
 							headerText={PipelineStep.Synthesize}
@@ -129,6 +150,12 @@ export const DataShowcasePage: React.FC = memo(function DataShowcasePage() {
 				<></>
 			)}
 
+			<Stack.Item>
+				<ErrorMessageBar
+					message={fileUploadErrorMessage}
+					onDismiss={() => setFileUploadErrorMessage(undefined)}
+				/>
+			</Stack.Item>
 			<Stack.Item>{currentTab}</Stack.Item>
 		</Stack>
 	)

@@ -31,9 +31,8 @@ The pipeline is controlled via a json config file containing a variety of parame
     "reporting_resolution": 10,
     "reporting_length": 5,
 
-    "seeded": true,
+    "synthesis_mode": "seeded",
     "parallel_jobs": 8,
-    "memory_limit_pct": 95,
     "cache_max_size": 100000,
     "output_dir": "./vices_output",
     "prefix": "vices",
@@ -79,7 +78,7 @@ The `reporting_length` determines the maximum length of attribute combination fo
 
 ## Synthetic data generation
 
-The `seeded` parameter indicates whether synthetic records should be seeded with a corresponding sensitive record (`true`) or generated in an unseeded way by randomly sampling joint attribute distributions (`false`). Seeded synthesis is faster and better preserves statistics for visual analytics, but unseeded synthesis creates longer records of more uniform length that may better preserve structure for machine learning.
+The `synthesis_mode` parameter indicates whether synthetic records should be seeded with a corresponding sensitive record (`seeded`) or generated in an unseeded way by randomly sampling joint attribute distributions (`unseeded`). Seeded synthesis is faster and better preserves statistics for visual analytics, but unseeded synthesis creates longer records of more uniform length that may better preserve structure for machine learning.
 
 Seeded synthesis proceeds by sampling attributes from a sensitive record until the addition of further attributes would create a rare combination based on the `reporting_resolution`. These privacy-preserving subsets of sensitive records are collected for output as synthetic records. The unused attributes of each seed are also collected, with further output records synthesized from these (without replacement) until all sensitive attributes are accounted for in a synthetic record.
 
@@ -91,7 +90,7 @@ Synthetic records are sorted by number of non-empty attribute values prior to ou
 
 The `parallel_jobs` parameter specifies the extent of parallel processing (e.g., based on the number of available processor cores). For local processing, this should be set to the number of available CPU cores. For faster processing of larger and more complex datasets, use of a virtual machine with multiple cores is recommended.
 
-Also for unseeded generation, the `memory_limit_pct` parameter sets the percentage utilization of system memory at which synthetic data generation will stop adding computed counts to a cache. On the other hand, for seeded generation the `cache-max-size` parameter sets the size of the cache used to store attribute combination counts during the synthesis process. The higher the value, the more memory will be used. The default value is `100000` which is generally a good balance between performance and memory usage, but this can be tuned depending on the input dataset.
+The `cache_max_size` parameter sets the size of the cache used to store attribute combination counts during the synthesis process. The higher the value, the more memory will be used. The default value is `100000` which is generally a good balance between performance and memory usage, but this can be tuned depending on the input dataset.
 
 Output files are saved to the `output_dir` directory and prefixed with the `prefix` string. The json config file used to generate the outputs is also copied to this directory as a record of the parameters used, and should therefore be stored outside `output_dir`.
 

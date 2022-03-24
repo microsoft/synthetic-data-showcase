@@ -7,7 +7,6 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 use crate::data_block::block::DataBlock;
-use crate::processing::aggregator::record_attrs_selector::RecordAttrsSelector;
 use crate::utils::math::calc_percentage;
 use crate::utils::reporting::ReportProgress;
 use crate::utils::threading::get_number_of_threads;
@@ -60,14 +59,12 @@ impl Aggregator {
     /// Aggregates the data block and returns the aggregated data back
     /// # Arguments
     /// * `reporting_length` - Calculate combinations from 1 up to `reporting_length`
-    /// * `sensitivity_threshold` - Sensitivity threshold to filter record attributes
     /// (0 means no suppression)
     /// * `progress_reporter` - Will be used to report the processing
     /// progress (`ReportProgress` trait). If `None`, nothing will be reported
     pub fn aggregate<T>(
         &mut self,
         reporting_length: usize,
-        sensitivity_threshold: usize,
         progress_reporter: &mut Option<T>,
     ) -> AggregatedData
     where
@@ -76,18 +73,19 @@ impl Aggregator {
         let _duration_logger = ElapsedDurationLogger::new("data aggregation");
         let normalized_reporting_length =
             self.data_block.normalize_reporting_length(reporting_length);
-        let length_range = (1..=normalized_reporting_length).collect::<Vec<usize>>();
         let total_n_records = self.data_block.records.len();
         let total_n_records_f64 = total_n_records as f64;
 
         info!(
-            "aggregating data with reporting length = {}, sensitivity_threshold = {} and {} thread(s)",
-            normalized_reporting_length, sensitivity_threshold, get_number_of_threads()
+            "aggregating data with reporting length = {} and {} thread(s)",
+            normalized_reporting_length,
+            get_number_of_threads()
         );
 
         let result = RowsAggregator::aggregate_all(
             total_n_records,
-            &mut self.build_rows_aggregators(&length_range, sensitivity_threshold),
+            normalized_reporting_length,
+            &mut self.build_rows_aggregators(normalized_reporting_length),
             progress_reporter,
         );
 
@@ -101,25 +99,17 @@ impl Aggregator {
             "data aggregated resulting in {} distinct combinations...",
             result.aggregates_count.len()
         );
-        info!(
-            "suppression ratio of aggregates is {:.2}%",
-            (1.0 - (result.selected_combs_count as f64 / result.all_combs_count as f64)) * 100.0
-        );
 
         AggregatedData::new(
             self.data_block.clone(),
             result.aggregates_count,
-            result.records_sensitivity,
+            result.records_sensitivity_by_len,
             normalized_reporting_length,
         )
     }
 
     #[inline]
-    fn build_rows_aggregators<'length_range>(
-        &self,
-        length_range: &'length_range [usize],
-        sensitivity_threshold: usize,
-    ) -> Vec<RowsAggregator<'length_range>> {
+    fn build_rows_aggregators(&self, reporting_length: usize) -> Vec<RowsAggregator> {
         if self.data_block.records.is_empty() {
             return Vec::default();
         }
@@ -127,7 +117,6 @@ impl Aggregator {
         let chunk_size = ((self.data_block.records.len() as f64) / (get_number_of_threads() as f64))
             .ceil() as usize;
         let mut rows_aggregators: Vec<RowsAggregator> = Vec::default();
-        let attr_rows_map = Arc::new(self.data_block.calc_attr_rows());
 
         for c in &self
             .data_block
@@ -140,11 +129,7 @@ impl Aggregator {
             rows_aggregators.push(RowsAggregator::new(
                 self.data_block.clone(),
                 c.collect(),
-                RecordAttrsSelector::new(
-                    length_range,
-                    sensitivity_threshold,
-                    attr_rows_map.clone(),
-                ),
+                reporting_length,
             ))
         }
         rows_aggregators

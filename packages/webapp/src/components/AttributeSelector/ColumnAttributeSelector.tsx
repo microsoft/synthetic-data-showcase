@@ -2,16 +2,19 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { Stack, Label, Spinner } from '@fluentui/react'
+import { Label, Spinner, Stack } from '@fluentui/react'
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
-import { IAttributesIntersection } from 'sds-wasm'
-import { useMaxCount } from './hooks'
+import type { IAttributesIntersection } from 'sds-wasm'
+
 import { AttributeIntersectionValueChart } from '~components/Charts/AttributeIntersectionValueChart'
 import { useStopPropagation } from '~components/Charts/hooks'
-import { SetSelectedAttributesCallback } from '~components/Pages/DataShowcasePage/DataNavigation'
+import type { SetSelectedAttributesCallback } from '~components/Pages/DataShowcasePage/DataNavigation'
 import { useWasmWorkerValue } from '~states'
 
+import { useMaxCount } from './hooks'
+
 export interface ColumnAttributeSelectorProps {
+	contextKey: string
 	headerName: string
 	columnIndex: number
 	height: string | number
@@ -27,6 +30,7 @@ const AXIS_HEIGHT = 16
 
 export const ColumnAttributeSelector: React.FC<ColumnAttributeSelectorProps> =
 	memo(function ColumnAttributeSelector({
+		contextKey,
 		headerName,
 		columnIndex,
 		height,
@@ -60,7 +64,7 @@ export const ColumnAttributeSelector: React.FC<ColumnAttributeSelectorProps> =
 			if (worker) {
 				setIsLoading(true)
 				worker
-					.attributesIntersectionsByColumn([headerName])
+					.attributesIntersectionsByColumn(contextKey, [headerName])
 					.then(intersections => {
 						if (!isMounted.current || !intersections) {
 							return
@@ -69,7 +73,7 @@ export const ColumnAttributeSelector: React.FC<ColumnAttributeSelectorProps> =
 						setIsLoading(false)
 					})
 			}
-		}, [worker, setIsLoading, setItems, headerName, columnIndex])
+		}, [worker, setIsLoading, setItems, headerName, columnIndex, contextKey])
 
 		useEffect(() => {
 			return () => {

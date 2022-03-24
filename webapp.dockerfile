@@ -24,15 +24,16 @@ COPY . .
 RUN cd packages/lib-wasm && wasm-pack build --release --target web --out-dir ../../target/wasm
 
 # --- compile application from typescript ---
-FROM node:14 as app-builder
+FROM node:16 as app-builder
 
 WORKDIR /usr/src/sds
 
 # copy from rust build
 COPY --from=wasm-builder /usr/src/sds ./
 
-# setting sds wasm log level
+# setting sds env vars
 ENV VITE_SDS_WASM_LOG_LEVEL=warn
+ENV VITE_SDS_CONTEXT_CACHE_SIZE=4
 
 # install dependencies and build
 RUN yarn install && yarn build:

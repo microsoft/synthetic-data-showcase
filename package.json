@@ -3,13 +3,17 @@
 	"private": true,
 	"license": "MIT",
 	"scripts": {
+		"postinstall": "husky install",
 		"clean:": "yarn workspaces foreach -pv run clean",
 		"build:": "yarn workspaces foreach -ivt run build",
 		"start:": "yarn workspaces foreach -piv run start",
-		"lint:": "essex lint --fix --strict",
+		"lint:check": "eslint \"./packages/*/src/**/*.{js,jsx,ts,tsx}\"",
+		"lint": "eslint --fix \"./packages/*/src/**/*.{js,jsx,ts,tsx}\"",
+		"format:check": "prettier --check \"./packages/*/src/**/*.{js,jsx,ts,tsx}\"",
+		"format": "prettier --write \"./packages/*/src/**/*.{js,jsx,ts,tsx}\"",
 		"build:lib-wasm": "cd packages/lib-wasm && wasm-pack build --release --target web --out-dir ../../target/wasm",
-		"prettify:": "essex prettify",
-		"rebuild-all": "cargo clean && run-s clean: && cargo build --release && run-s build:lib-wasm && yarn install && run-s build:"
+		"rebuild-all": "cargo clean && run-s clean: && cargo build --release && run-s build:lib-wasm && yarn install && run-s build:",
+		"git:precommit": "lint-staged"
 	},
 	"prettier": "@essex/prettier-config",
 	"devDependencies": {
@@ -17,26 +21,26 @@
 		"@babel/preset-env": "^7.16.11",
 		"@babel/preset-react": "^7.16.7",
 		"@babel/preset-typescript": "^7.16.7",
-		"@essex/eslint-config": "^19.0.2",
-		"@essex/eslint-plugin": "^19.0.2",
-		"@essex/jest-config": "^19.0.2",
+		"@essex/eslint-config": "^20.3.1",
+		"@essex/eslint-plugin": "^20.3.2",
+		"@essex/jest-config": "^21.0.8",
 		"@essex/prettier-config": "^18.0.2",
-		"@essex/scripts": "^19.0.6",
+		"@essex/scripts": "^20.5.2",
 		"@types/eslint": "^8.4.1",
 		"@types/prettier": "^2.4.3",
-		"@typescript-eslint/eslint-plugin": "^5.10.2",
-		"@typescript-eslint/parser": "^5.10.2",
-		"eslint": "^8.8.0",
+		"@typescript-eslint/eslint-plugin": "^5.15.0",
+		"@typescript-eslint/parser": "^5.15.0",
+		"eslint": "^8.11.0",
 		"eslint-import-resolver-node": "^0.3.6",
 		"husky": "^7.0.4",
 		"jest": "^27.4.7",
 		"lint-staged": "^12.3.3",
-		"npm-run-all": "^4.1.5",
 		"prettier": "^2.5.1",
 		"typescript": "4.4.3"
 	},
 	"workspaces": [
-		"packages/webapp"
+		"packages/webapp",
+		"target/wasm"
 	],
-	"packageManager": "yarn@3.0.2"
+	"packageManager": "yarn@3.2.0"
 }

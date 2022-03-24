@@ -3,14 +3,18 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { useMemo } from 'react'
-import { IEvaluateResult } from 'sds-wasm'
+import type { IMetricByKey } from 'sds-wasm'
+
+export function getMetricsByCountLabels(
+	metricsByKey?: IMetricByKey | null,
+): number[] {
+	return Object.keys(metricsByKey ?? {})
+		.reverse()
+		.map(bin => Number(bin))
+}
 
 export function useMetricsByCountLabels(
-	res?: IEvaluateResult | null,
+	metricsByKey?: IMetricByKey | null,
 ): number[] {
-	return useMemo(() => {
-		return Object.keys(res?.preservationByCount.buckets ?? {})
-			.reverse()
-			.map(bin => Number(bin))
-	}, [res])
+	return useMemo(() => getMetricsByCountLabels(metricsByKey), [metricsByKey])
 }

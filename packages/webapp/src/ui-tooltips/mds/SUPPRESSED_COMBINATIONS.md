@@ -1,0 +1,1 @@
+Percentage of attribute combinations that exist on the sensitive microdata, but were suppressed on the reportable or synthetic data (analysis done up to the defined **`analysis length`**).
