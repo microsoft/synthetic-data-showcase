@@ -4,5 +4,4 @@
  */
 export * from './commands'
 export * from './useIsSubjectIdValid'
-export * from './useOnTableChange'
 export * from './useSensitiveTableCommands'
