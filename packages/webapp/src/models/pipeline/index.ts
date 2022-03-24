@@ -4,6 +4,7 @@
  */
 export enum PipelineStep {
 	Prepare = 'Prepare',
+	Select = 'Select',
 	Synthesize = 'Synthesize',
 	Evaluate = 'Evaluate',
 	Navigate = 'Navigate',

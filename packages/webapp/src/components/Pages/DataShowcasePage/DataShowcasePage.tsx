@@ -7,10 +7,11 @@ import { getTheme, Pivot, PivotItem, Stack } from '@fluentui/react'
 import { memo, useCallback, useEffect } from 'react'
 
 import { DownloadButton } from '~components/controls/DownloadButton'
-import { FileUploadErrorBar } from '~components/FileUploadErrorBar'
+import { ErrorMessageBar } from '~components/ErrorMessageBar'
 import { ProcessingProgress } from '~components/ProcessingProgress'
 import { PipelineStep } from '~models'
 import {
+	useFileUploadErrorMessage,
 	useIsProcessingSetter,
 	usePreparedTable,
 	useSelectedPipelineStep,
@@ -22,6 +23,7 @@ import { SdsWasmWorker } from '~workers/sds-wasm'
 import { DataEvaluation } from './DataEvaluation'
 import { DataInput } from './DataInput'
 import { DataNavigation } from './DataNavigation'
+import { DataSelect } from './DataSelect'
 import { DataSynthesis } from './DataSynthesis'
 import { useCanRun, useOnGetAllAssetsDownloadInfo } from './hooks'
 
@@ -34,6 +36,8 @@ export const DataShowcasePage: React.FC = memo(function DataShowcasePage() {
 	const [, setPreparedTable] = usePreparedTable()
 	const canRun = useCanRun()
 	const onGetAllAssetsDownloadInfo = useOnGetAllAssetsDownloadInfo()
+	const [fileUploadErrorMessage, setFileUploadErrorMessage] =
+		useFileUploadErrorMessage()
 
 	const theme = getTheme()
 
@@ -63,6 +67,9 @@ export const DataShowcasePage: React.FC = memo(function DataShowcasePage() {
 	switch (selectedPipelineStep) {
 		case PipelineStep.Prepare:
 			currentTab = <DataInput />
+			break
+		case PipelineStep.Select:
+			currentTab = <DataSelect />
 			break
 		case PipelineStep.Synthesize:
 			currentTab = <DataSynthesis />
@@ -109,6 +116,10 @@ export const DataShowcasePage: React.FC = memo(function DataShowcasePage() {
 							itemKey={PipelineStep.Prepare}
 						/>
 						<PivotItem
+							headerText={PipelineStep.Select}
+							itemKey={PipelineStep.Select}
+						/>
+						<PivotItem
 							headerText={PipelineStep.Synthesize}
 							itemKey={PipelineStep.Synthesize}
 						/>
@@ -134,7 +145,10 @@ export const DataShowcasePage: React.FC = memo(function DataShowcasePage() {
 			)}
 
 			<Stack.Item>
-				<FileUploadErrorBar />
+				<ErrorMessageBar
+					message={fileUploadErrorMessage}
+					onDismiss={() => setFileUploadErrorMessage(undefined)}
+				/>
 			</Stack.Item>
 			<Stack.Item>{currentTab}</Stack.Item>
 		</Stack>

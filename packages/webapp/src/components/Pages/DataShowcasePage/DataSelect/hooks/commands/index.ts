@@ -3,7 +3,6 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 export * from './useColumnsWithZeros'
-export * from './useEditColumnCommand'
 export * from './useOnSensitiveZeroCheckChange'
 export * from './useOnUseColumnCheckToggle'
 export * from './useSensitiveZerosCommand'

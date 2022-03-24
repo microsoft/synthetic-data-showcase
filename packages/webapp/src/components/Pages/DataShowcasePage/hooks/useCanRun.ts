@@ -6,7 +6,7 @@ import { useMemo } from 'react'
 
 import { useIsProcessingValue, useSensitiveContentValue } from '~states'
 
-import { useIsSubjectIdValid } from '../DataInput/hooks'
+import { useIsSubjectIdValid } from '../DataSelect/hooks'
 
 export function useCanRun(): boolean {
 	const content = useSensitiveContentValue()
