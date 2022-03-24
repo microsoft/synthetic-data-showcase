@@ -92,13 +92,6 @@ enum Command {
         )]
         not_protect: bool,
 
-        #[structopt(
-            long = "sensitivity-threshold",
-            help = "maximum sensitivity allowed per record, attributes will be randomly suppressed to meet this criteria (0 means no suppression)",
-            default_value = "0"
-        )]
-        sensitivity_threshold: usize,
-
         #[structopt(long = "records-sensitivity-path", help = "records sensitivity path")]
         records_sensitivity_path: Option<String>,
 
@@ -271,7 +264,6 @@ fn main() {
                 aggregates_delimiter,
                 reporting_length,
                 not_protect,
-                sensitivity_threshold,
                 records_sensitivity_path,
                 filter_sensitivities,
                 sensitivities_percentile,
@@ -282,11 +274,8 @@ fn main() {
                 aggregates_json,
             } => {
                 let mut aggregator = Aggregator::new(data_block.clone());
-                let mut aggregated_data = aggregator.aggregate(
-                    reporting_length,
-                    sensitivity_threshold,
-                    &mut progress_reporter,
-                );
+                let mut aggregated_data =
+                    aggregator.aggregate(reporting_length, &mut progress_reporter);
                 let privacy_risk = aggregated_data.calc_privacy_risk(cli.resolution);
 
                 if filter_sensitivities {
