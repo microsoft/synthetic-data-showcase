@@ -119,7 +119,7 @@ enum Command {
         #[structopt(
             long = "add-noise",
             help = "add gaussian noise to the aggregates",
-            requires_all = &["filter-sensitivities", "noise-epsilon"]
+            requires_all = &["noise-epsilon"]
         )]
         add_noise: bool,
 
@@ -277,6 +277,8 @@ fn main() {
                 let mut aggregated_data =
                     aggregator.aggregate(reporting_length, &mut progress_reporter);
                 let privacy_risk = aggregated_data.calc_privacy_risk(cli.resolution);
+                let delta =
+                    noise_delta.unwrap_or(1.0 / (2.0 * (data_block.number_of_records() as f64)));
 
                 if filter_sensitivities {
                     let allowed_sensitivity_by_len = aggregated_data.filter_sensitivities(
@@ -285,9 +287,6 @@ fn main() {
                     );
 
                     if add_noise {
-                        let delta = noise_delta
-                            .unwrap_or(1.0 / (2.0 * (data_block.number_of_records() as f64)));
-
                         if let Err(err) = aggregated_data.add_gaussian_noise(
                             noise_epsilon.unwrap(),
                             delta,
@@ -296,6 +295,15 @@ fn main() {
                             error!("error applying gaussian noise: {}", err);
                             process::exit(1);
                         }
+                    }
+                } else if add_noise {
+                    if let Err(err) = aggregated_data.make_aggregates_noisy(
+                        noise_epsilon.unwrap(),
+                        delta,
+                        cli.resolution as f64,
+                    ) {
+                        error!("error making aggregates noisy: {}", err);
+                        process::exit(1);
                     }
                 }
 

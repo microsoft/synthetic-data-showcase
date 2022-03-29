@@ -6,6 +6,10 @@ pub mod aggregated_data_sensitivity_filter;
 /// normal distributions using the Analytic Gaussian Mechanism
 pub mod analytic_gaussian;
 
+/// Defines a wrapper for aggregate counts to make them
+/// differential private
+pub mod noise_aggregator;
+
 /// Functions and structures to perform DP selection
 /// for a vector of integers using percentiles
 pub mod percentile;

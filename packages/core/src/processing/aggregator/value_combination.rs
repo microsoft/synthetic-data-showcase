@@ -71,6 +71,14 @@ impl ValueCombination {
         ValueCombination::ref_set_contains_other(&self.build_ref_set(), other)
     }
 
+    /// Checks whether there is any value for `column_index``in the combination
+    #[inline]
+    pub fn contains_column(&self, column_index: usize) -> bool {
+        self.combination
+            .iter()
+            .any(|attr| attr.column_index == column_index)
+    }
+
     /// Checks whether `other` is part of `value_set` or not
     #[inline]
     pub fn ref_set_contains_other(

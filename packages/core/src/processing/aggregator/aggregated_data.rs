@@ -26,6 +26,7 @@ use crate::{
     dp::{
         aggregated_data_sensitivity_filter::AggregatedDataSensitivityFilter,
         analytic_gaussian::{DpAnalyticGaussianContinuousCDFScale, DEFAULT_TOLERANCE},
+        noise_aggregator::NoiseAggregator,
         stats_error::StatsError,
         typedefs::AllowedSensitivityByLen,
     },
@@ -347,6 +348,34 @@ impl AggregatedData {
 
         AggregatedDataSensitivityFilter::new(self)
             .filter_sensitivities(percentile_percentage, epsilon)
+    }
+
+    /// Add gaussian noise to the aggregates, also fabricating and suppressing
+    /// combinations to ensure the final result will be differential private
+    /// # Arguments
+    /// * `epsilon` - privacy budget used to generate noise (split for all lengths)
+    /// * `delta` - allowed proportion to leak
+    /// * `threshold` - threshold to suppress a combination if its noisy count is smaller than it
+    /// for sensitivity
+    pub fn make_aggregates_noisy(
+        &mut self,
+        epsilon: f64,
+        delta: f64,
+        threshold: f64,
+    ) -> Result<(), StatsError> {
+        info!(
+            "making aggregates noisy with epsilon = {}, delta = {} and threshold = {}",
+            epsilon, delta, threshold
+        );
+        let _duration_logger = ElapsedDurationLogger::new("make aggregates noisy");
+
+        NoiseAggregator::new(self).make_aggregates_noisy(epsilon, delta, threshold)?;
+
+        self.remove_zero_counts();
+        self.add_missing_sub_combinations();
+        self.normalize_noisy_combinations();
+
+        Ok(())
     }
 
     /// Add gaussian noise to the aggregate counts based on the `allowed_sensitivity_by_len`
