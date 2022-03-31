@@ -3,6 +3,7 @@
 use data_processor::SDSProcessor;
 use pyo3::prelude::*;
 use sds_core::{
+    dp::sensitivity_filter_parameters,
     processing::{
         aggregator::aggregated_data, evaluator, generator::synthesizer::consolidate_parameters,
     },
@@ -23,5 +24,6 @@ fn sds(py: Python, m: &PyModule) -> PyResult<()> {
     aggregated_data::register(py, m)?;
     evaluator::register(py, m)?;
     consolidate_parameters::register(py, m)?;
+    sensitivity_filter_parameters::register(py, m)?;
     Ok(())
 }
