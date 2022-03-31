@@ -1,12 +1,18 @@
 use super::*;
 use crate::{
-    data_block::{csv_block_creator::CsvDataBlockCreator, data_block_creator::DataBlockCreator},
-    processing::aggregator::Aggregator,
+    data_block::{
+        csv_block_creator::CsvDataBlockCreator, data_block_creator::DataBlockCreator,
+        value::DataBlockValue,
+    },
+    dp::typedefs::{CombinationsCountMap, CombinationsCountMapByLen},
+    processing::aggregator::{
+        aggregated_data::AggregatedData, value_combination::ValueCombination, Aggregator,
+    },
     utils::reporting::LoggerProgressReporter,
 };
 use csv::ReaderBuilder;
 use fnv::FnvHashMap;
-use std::{hash::Hash, io::Cursor};
+use std::{hash::Hash, io::Cursor, sync::Arc};
 
 const CSV_DATA: &str = "A,B,C,D
 a1,b1,c1,d1
@@ -212,10 +218,8 @@ pub fn validate_gen_all_current_aggregates_with_removed_combs() {
 
     noisy_aggregates_by_len.insert(
         3,
-        NoiseAggregator {
-            aggregated_data: &mut aggregated_data,
-        }
-        .gen_all_current_aggregates(&noisy_aggregates_by_len, 3),
+        NoiseAggregator::new(&mut aggregated_data)
+            .gen_all_current_aggregates(&noisy_aggregates_by_len, 3),
     );
     // a1;b1;d2, a2;b2;c1 and a2;b2;d1 won't get removed because
     // they do not exist on the sensitive data

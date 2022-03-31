@@ -1,6 +1,6 @@
 use super::{
-    stats_error::StatsError,
-    typedefs::{CombinationsCountMap, CombinationsCountMapByLen},
+    sensitivity_filter::SensitivityFilter,
+    sensitivity_filter_parameters::SensitivityFilterParameters, threshold_type::ThresholdType,
 };
 use fnv::FnvHashSet;
 use log::{debug, info, warn};
@@ -10,7 +10,11 @@ use std::sync::Arc;
 
 use crate::{
     data_block::value::DataBlockValue,
-    dp::analytic_gaussian::{DpAnalyticGaussianContinuousCDFScale, DEFAULT_TOLERANCE},
+    dp::{
+        analytic_gaussian::{DpAnalyticGaussianContinuousCDFScale, DEFAULT_TOLERANCE},
+        stats_error::StatsError,
+        typedefs::{CombinationsByRecord, CombinationsCountMap, CombinationsCountMapByLen},
+    },
     processing::aggregator::{
         aggregated_data::AggregatedData,
         typedefs::{
@@ -25,10 +29,29 @@ use crate::{
 /// and provide ways do add noise to the aggregates
 /// using differential privacy
 pub struct NoiseAggregator<'aggregated_data> {
+    combs_by_record: CombinationsByRecord,
     aggregated_data: &'aggregated_data mut AggregatedData,
 }
 
 impl<'aggregated_data> NoiseAggregator<'aggregated_data> {
+    #[inline]
+    fn split_privacy_budget(
+        &self,
+        sensitivity_filter_params: Option<SensitivityFilterParameters>,
+    ) -> Option<SensitivityFilterParameters> {
+        if self.aggregated_data.reporting_length > 1 {
+            // split the privacy budget between the 2, 3...reporting length counts
+            sensitivity_filter_params.map(|params| {
+                SensitivityFilterParameters::new(
+                    params.percentile_percentage,
+                    params.epsilon / ((self.aggregated_data.reporting_length - 1) as f64),
+                )
+            })
+        } else {
+            sensitivity_filter_params
+        }
+    }
+
     #[inline]
     fn get_distinct_attributes(
         aggregates: &CombinationsCountMap,
@@ -124,11 +147,13 @@ impl<'aggregated_data> NoiseAggregator<'aggregated_data> {
         delta: f64,
         l1_sensitivity: f64,
         aggregates: &mut CombinationsCountMap,
-    ) -> Result<(), StatsError> {
+    ) -> Result<f64, StatsError> {
         info!(
             "applying gaussian noise to aggregates with length = {} using epsilon = {}, delta = {}, l1_sensitivity = {}",
             comb_len, epsilon, delta, l1_sensitivity
         );
+
+        let mut sigma = 0.0;
 
         if l1_sensitivity > 0.0 {
             let noise = Normal::new_analytic_gaussian(
@@ -138,16 +163,18 @@ impl<'aggregated_data> NoiseAggregator<'aggregated_data> {
                 DEFAULT_TOLERANCE,
             )?;
 
+            sigma = noise.std_dev().unwrap();
+
             info!(
                 "for length = {} the calculated sigma for the noise is {:.2} [used privacy budget is {}]",
                 comb_len,
-                noise.std_dev().unwrap(),
+                sigma,
                 epsilon
             );
 
             // sample and add the noise
             for (_comb, count) in aggregates.iter_mut() {
-                (*count) = ((*count as f64) + noise.sample(&mut thread_rng())).round();
+                (*count) = ((*count) + noise.sample(&mut thread_rng())).round();
             }
 
             info!("noise added to {}-counts", comb_len);
@@ -158,7 +185,7 @@ impl<'aggregated_data> NoiseAggregator<'aggregated_data> {
             );
         }
 
-        Ok(())
+        Ok(sigma)
     }
 
     #[inline]
@@ -220,6 +247,8 @@ impl<'aggregated_data> NoiseAggregator<'aggregated_data> {
                     self.aggregated_data.records_sensitivity_by_len[ALL_SENSITIVITIES_INDEX]
                         [*record_index] -= 1;
                 }
+                // clear this, so it won't affect the sensitivity filtering
+                (*count).contained_in_records.clear();
             }
         }
     }
@@ -230,12 +259,22 @@ impl<'aggregated_data> NoiseAggregator<'aggregated_data> {
     }
 
     #[inline]
-    fn get_max_sensitivity(&self, comb_len: usize) -> usize {
+    fn filter_and_get_sensitivity_for_len(
+        &mut self,
+        comb_len: usize,
+        sensitivity_filter_params: &Option<SensitivityFilterParameters>,
+    ) -> f64 {
+        if comb_len > 1 {
+            if let Some(params) = sensitivity_filter_params {
+                return SensitivityFilter::new(&self.combs_by_record, self.aggregated_data)
+                    .filter_sensitivities_for_len(comb_len, params) as f64;
+            }
+        }
         self.aggregated_data
             .records_sensitivity_by_len
             .get(comb_len)
             .map(|rs| rs.iter().max().cloned().unwrap_or(0))
-            .unwrap_or(0)
+            .unwrap_or(0) as f64
     }
 
     #[inline]
@@ -253,6 +292,20 @@ impl<'aggregated_data> NoiseAggregator<'aggregated_data> {
             }
         }
     }
+
+    #[inline]
+    fn make_combinations_by_record(aggregated_data: &AggregatedData) -> CombinationsByRecord {
+        let mut combs_by_record: CombinationsByRecord = CombinationsByRecord::new();
+
+        combs_by_record.resize_with(aggregated_data.data_block.number_of_records(), Vec::default);
+
+        for (comb, count) in aggregated_data.aggregates_count.iter() {
+            for record_index in count.contained_in_records.iter() {
+                combs_by_record[*record_index].push(comb.clone());
+            }
+        }
+        combs_by_record
+    }
 }
 
 impl<'aggregated_data> NoiseAggregator<'aggregated_data> {
@@ -261,13 +314,10 @@ impl<'aggregated_data> NoiseAggregator<'aggregated_data> {
     pub fn new(
         aggregated_data: &'aggregated_data mut AggregatedData,
     ) -> NoiseAggregator<'aggregated_data> {
-        // assert there are no zero counts, those will
-        // be used to indicate combinations that should be remove
-        assert!(aggregated_data
-            .aggregates_count
-            .values()
-            .all(|count| count.count > 0));
-        NoiseAggregator { aggregated_data }
+        NoiseAggregator {
+            combs_by_record: NoiseAggregator::make_combinations_by_record(aggregated_data),
+            aggregated_data,
+        }
     }
 
     /// Add gaussian noise to the aggregates, also fabricating and suppressing
@@ -275,35 +325,46 @@ impl<'aggregated_data> NoiseAggregator<'aggregated_data> {
     /// # Arguments
     /// * `epsilon` - privacy budget used to generate noise (split for all lengths)
     /// * `delta` - allowed proportion to leak
-    /// * `threshold` - threshold to suppress a combination if its noisy count is smaller than it
-    /// for sensitivity
+    /// * `threshold_type` - either `Fixed` or `Adaptive`
+    /// * `threshold_value` - threshold to suppress a combination if its noisy count is smaller than it
+    /// (if `threshold_type` is `Fixed`, the used threshold will be the provided value,
+    /// otherwise it will be `gaussian_std_per_combination_length * threshold_value`)
+    /// * `sensitivity_filter_params` - `None` if no sensitivity filtering should be applied, otherwise
+    /// the parameters that should be used
     pub fn make_aggregates_noisy(
         &mut self,
         epsilon: f64,
         delta: f64,
-        threshold: f64,
+        threshold_type: ThresholdType,
+        threshold_value: f64,
+        sensitivity_filter_params: Option<SensitivityFilterParameters>,
     ) -> Result<(), StatsError> {
         let mut noisy_aggregates_by_len = CombinationsCountMapByLen::default();
         let epsilon_by_length = epsilon / (self.aggregated_data.reporting_length as f64);
+        let params = self.split_privacy_budget(sensitivity_filter_params);
 
         for l in 1..=self.aggregated_data.reporting_length {
             let mut all_current_aggregates =
                 self.gen_all_current_aggregates(&noisy_aggregates_by_len, l);
-
-            let max_sensitivity = self.get_max_sensitivity(l) as f64;
+            let max_sensitivity = self.filter_and_get_sensitivity_for_len(l, &params);
 
             debug!(
                 "maximum sensitivity for {}-counts is {:.2}",
                 l, max_sensitivity
             );
 
-            NoiseAggregator::add_gaussian_noise(
+            let sigma = NoiseAggregator::add_gaussian_noise(
                 l,
                 epsilon_by_length,
                 delta,
                 max_sensitivity,
                 &mut all_current_aggregates,
             )?;
+
+            let threshold = match threshold_type {
+                ThresholdType::Fixed => threshold_value,
+                ThresholdType::Adaptive => sigma * threshold_value,
+            };
 
             let combs_to_remove =
                 NoiseAggregator::get_combs_to_remove(&all_current_aggregates, threshold);

@@ -1,5 +1,6 @@
 use js_sys::{Object, Reflect::set};
 use sds_core::{
+    dp::sensitivity_filter_parameters::SensitivityFilterParameters,
     processing::aggregator::aggregated_data::AggregatedData, utils::time::ElapsedDurationLogger,
 };
 use std::{ops::Deref, sync::Arc};
@@ -104,11 +105,18 @@ impl WasmAggregateResult {
         noise_delta: f64,
     ) -> JsResult<WasmAggregateResult> {
         let mut new_aggregated_data = (*self.aggregated_data).clone();
-        let allowed_sensitivity_by_len = new_aggregated_data
-            .filter_sensitivities(percentile_percentage, sensitivity_filter_epsilon);
 
+        // TODO: propagate all parameters to API
         new_aggregated_data
-            .add_gaussian_noise(noise_epsilon, noise_delta, allowed_sensitivity_by_len)
+            .make_aggregates_noisy_adaptive_threshold(
+                noise_epsilon,
+                noise_delta,
+                2.0,
+                Some(SensitivityFilterParameters::new(
+                    percentile_percentage,
+                    sensitivity_filter_epsilon,
+                )),
+            )
             .map_err(|err| JsValue::from(err.to_string()))?;
 
         Ok(WasmAggregateResult::new(Arc::new(new_aggregated_data)))
