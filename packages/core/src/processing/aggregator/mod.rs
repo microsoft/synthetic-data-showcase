@@ -1,9 +1,11 @@
+mod aggregated_count;
+
+/// Defines the result of data aggregation for each combination
+pub use aggregated_count::AggregatedCount;
+
 /// Module to represent aggregated data and provide
 /// some methods/utilities for information extracted from it
 pub mod aggregated_data;
-
-/// Dataset privacy risk definitions
-pub mod privacy_risk_summary;
 
 /// Defines structures related to records analysis (unique, rare and risky
 /// information)
@@ -18,6 +20,8 @@ pub mod value_combination;
 
 mod data_aggregator;
 
-pub use data_aggregator::{AggregatedCount, Aggregator};
+/// Data aggregator that takes an input data block
+/// and compute its aggregates
+pub use data_aggregator::Aggregator;
 
 mod rows_aggregator;

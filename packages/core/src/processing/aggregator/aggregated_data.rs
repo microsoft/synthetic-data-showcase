@@ -1,5 +1,4 @@
 use super::{
-    privacy_risk_summary::PrivacyRiskSummary,
     records_analysis_data::RecordsAnalysisData,
     typedefs::{
         AggregatedCountByLenMap, AggregatedMetricByLenMap, AggregatesCountMap,
@@ -115,7 +114,9 @@ impl AggregatedData {
 
     #[inline]
     fn _read_from_json(file_path: &str) -> Result<AggregatedData, Error> {
-        let _duration_logger = ElapsedDurationLogger::new("aggregated count json read");
+        info!("reading file: {}", file_path);
+
+        let _duration_logger = ElapsedDurationLogger::new("read from json");
 
         Ok(serde_json::from_reader(BufReader::new(
             std::fs::File::open(file_path)?,
@@ -216,7 +217,7 @@ impl AggregatedData {
     /// otherwise it will be `gaussian_std_per_combination_length * threshold_value`)
     /// * `sensitivity_filter_params` - `None` if no sensitivity filtering should be applied, otherwise
     /// the parameters that should be used
-    pub fn make_aggregates_noisy(
+    pub fn protect_with_dp(
         &mut self,
         epsilon: f64,
         delta: f64,
@@ -225,10 +226,10 @@ impl AggregatedData {
         sensitivity_filter_params: Option<SensitivityFilterParameters>,
     ) -> Result<(), StatsError> {
         info!(
-            "making aggregates noisy with epsilon = {}, delta = {}, threshold type = {} and threshold value = {}",
+            "protecting aggregates with DP: epsilon = {}, delta = {}, threshold type = {} and threshold value = {}",
             epsilon, delta, threshold_type, threshold_value
         );
-        let _duration_logger = ElapsedDurationLogger::new("make aggregates noisy");
+        let _duration_logger = ElapsedDurationLogger::new("protect with DP");
 
         NoiseAggregator::new(self).make_aggregates_noisy(
             epsilon,
@@ -239,7 +240,7 @@ impl AggregatedData {
         )?;
 
         self.remove_zero_counts();
-        self.add_missing_sub_combinations();
+        self.add_missing_parent_combinations();
         self.normalize_noisy_combinations();
 
         Ok(())
@@ -250,7 +251,7 @@ impl AggregatedData {
 impl AggregatedData {
     #[inline]
     /// Total number of distinct combinations
-    pub fn total_number_of_combinations(&self) -> usize {
+    pub fn number_of_distinct_combinations(&self) -> usize {
         self.aggregates_count.len()
     }
 
@@ -259,10 +260,7 @@ impl AggregatedData {
     /// in a local variable to avoid it being called multiple times
     /// # Arguments:
     /// * `combination_delimiter` - Delimiter used to join combinations
-    pub fn get_formatted_aggregates_count(
-        &self,
-        combination_delimiter: &str,
-    ) -> AggregatesCountStringMap {
+    pub fn aggregates_count_as_str(&self, combination_delimiter: &str) -> AggregatesCountStringMap {
         self.aggregates_count
             .iter()
             .map(|(key, value)| {
@@ -292,10 +290,10 @@ impl AggregatedData {
         self.aggregates_count.retain(|_, count| count.count > 0);
     }
 
-    /// Add missing sub combinations which have higher order combinations reported
-    pub fn add_missing_sub_combinations(&mut self) {
-        info!("adding missing sub combinations");
-        let _duration_logger = ElapsedDurationLogger::new("add missing sub combinations");
+    /// Add missing parent combinations which have higher order combinations reported
+    pub fn add_missing_parent_combinations(&mut self) {
+        info!("adding missing parent combinations");
+        let _duration_logger = ElapsedDurationLogger::new("add missing parent combinations");
         let mut missing_combs = AggregatesCountMap::default();
 
         for (comb, count) in self.aggregates_count.iter() {
@@ -372,14 +370,14 @@ impl AggregatedData {
     /// * `threshold` - threshold to suppress a combination if its noisy count is smaller than it
     /// * `sensitivity_filter_params` - `None` if no sensitivity filtering should be applied, otherwise
     /// the parameters that should be used
-    pub fn make_aggregates_noisy_fixed_threshold(
+    pub fn protect_with_dp_fixed_threshold(
         &mut self,
         epsilon: f64,
         delta: f64,
         threshold: f64,
         sensitivity_filter_params: Option<SensitivityFilterParameters>,
     ) -> Result<(), StatsError> {
-        self.make_aggregates_noisy(
+        self.protect_with_dp(
             epsilon,
             delta,
             ThresholdType::Fixed,
@@ -397,14 +395,14 @@ impl AggregatedData {
     /// * `threshold_ratio` - threshold will be `gaussian_std_per_combination_length * threshold_ratio`
     /// * `sensitivity_filter_params` - `None` if no sensitivity filtering should be applied, otherwise
     /// the parameters that should be used
-    pub fn make_aggregates_noisy_adaptive_threshold(
+    pub fn protect_with_dp_adaptive_threshold(
         &mut self,
         epsilon: f64,
         delta: f64,
         threshold_ratio: f64,
         sensitivity_filter_params: Option<SensitivityFilterParameters>,
     ) -> Result<(), StatsError> {
-        self.make_aggregates_noisy(
+        self.protect_with_dp(
             epsilon,
             delta,
             ThresholdType::Adaptive,
@@ -414,15 +412,16 @@ impl AggregatedData {
     }
 
     /// Round the aggregated counts down to the nearest multiple of resolution
+    /// and remove combinations rounded to a zero count.
+    /// (protecting aggregates with k-anon)
     /// # Arguments:
     /// * `resolution` - Reporting resolution used for data synthesis
-    pub fn protect_aggregates_count(&mut self, resolution: usize) {
-        let _duration_logger = ElapsedDurationLogger::new("aggregates count protect");
-
+    pub fn protect_with_k_anonymity(&mut self, resolution: usize) {
         info!(
-            "protecting aggregates counts with resolution {}",
+            "protecting aggregates with k-anonymity: resolution {}",
             resolution
         );
+        let _duration_logger = ElapsedDurationLogger::new("protect with k-anonymity");
 
         for count in self.aggregates_count.values_mut() {
             count.count = uround_down(count.count as f64, resolution as f64);
@@ -436,28 +435,113 @@ impl AggregatedData {
     /// in this.
     /// # Arguments:
     /// * `resolution` - Reporting resolution used for data synthesis
-    pub fn calc_all_rare_combinations_records_by_len(&self, resolution: usize) -> RecordsByLenMap {
-        let _duration_logger =
-            ElapsedDurationLogger::new("all rare combinations records by len calculation");
-        let mut rare_records_by_len: RecordsByLenMap = RecordsByLenMap::default();
+    pub fn calc_records_with_rare_combinations_by_len(&self, resolution: usize) -> RecordsByLenMap {
+        let mut records_with_rare_combs_by_len: RecordsByLenMap = RecordsByLenMap::default();
 
         for (agg, count) in self.aggregates_count.iter() {
             if count.count < resolution {
-                rare_records_by_len
+                records_with_rare_combs_by_len
                     .entry(agg.len())
                     .or_insert_with(RecordsSet::default)
                     .extend(&count.contained_in_records);
             }
         }
-        rare_records_by_len
+        records_with_rare_combs_by_len
+    }
+
+    /// Calculates the number of records that contain rare combinations.
+    /// # Arguments:
+    /// * `resolution` - Reporting resolution used for data synthesis
+    pub fn calc_number_of_records_with_rare_combinations(&self, resolution: usize) -> usize {
+        let mut rare_records: RecordsSet = RecordsSet::default();
+
+        for (_l, records) in self
+            .calc_records_with_rare_combinations_by_len(resolution)
+            .drain()
+        {
+            rare_records.extend(records);
+        }
+        rare_records.len()
+    }
+
+    /// Calculates the percentage of records that contain rare combinations.
+    /// # Arguments:
+    /// * `resolution` - Reporting resolution used for data synthesis
+    pub fn calc_percentage_of_records_with_rare_combinations(&self, resolution: usize) -> f64 {
+        let n_records = self.data_block.number_of_records();
+
+        if n_records > 0 {
+            ((self.calc_number_of_records_with_rare_combinations(resolution) as f64)
+                / (n_records as f64))
+                * 100.0
+        } else {
+            0.0
+        }
+    }
+
+    /// Calculates the number of rare combinations grouped by combination length
+    /// # Arguments:
+    /// * `resolution` - Reporting resolution used for data synthesis
+    pub fn calc_number_of_rare_combinations_by_len(
+        &self,
+        resolution: usize,
+    ) -> AggregatedCountByLenMap {
+        let mut result: AggregatedCountByLenMap = AggregatedCountByLenMap::default();
+
+        for (agg, count) in self.aggregates_count.iter() {
+            if count.count < resolution {
+                let curr_count = result.entry(agg.len()).or_insert(0);
+                *curr_count += 1;
+            }
+        }
+        result
+    }
+
+    /// Calculates the total number of rare combinations
+    /// # Arguments:
+    /// * `resolution` - Reporting resolution used for data synthesis
+    pub fn calc_number_of_rare_combinations(&self, resolution: usize) -> usize {
+        self.calc_number_of_rare_combinations_by_len(resolution)
+            .values()
+            .sum()
+    }
+
+    /// Calculates the percentage of rare combinations grouped by combination length
+    /// # Arguments:
+    /// * `resolution` - Reporting resolution used for data synthesis
+    pub fn calc_percentage_of_rare_combinations_by_len(
+        &self,
+        resolution: usize,
+    ) -> AggregatedMetricByLenMap {
+        let total_by_len = self.calc_total_number_of_combinations_by_len();
+
+        self.calc_number_of_rare_combinations_by_len(resolution)
+            .iter()
+            .filter_map(|(l, c)| {
+                total_by_len
+                    .get(l)
+                    .map(|total_count| (*l, ((*c as f64) / (*total_count as f64)) * 100.0))
+            })
+            .collect::<AggregatedMetricByLenMap>()
+    }
+
+    /// Calculates the total percentage of rare combinations
+    /// # Arguments:
+    /// * `resolution` - Reporting resolution used for data synthesis
+    pub fn calc_percentage_of_rare_combinations(&self, resolution: usize) -> f64 {
+        let total = self.number_of_distinct_combinations();
+
+        if total > 0 {
+            ((self.calc_number_of_rare_combinations(resolution) as f64) / (total as f64)) * 100.0
+        } else {
+            0.0
+        }
     }
 
     /// Calculates the records that contain unique combinations grouped by length.
     /// This might contain duplicated records on different lengths if the record
-    /// contains more than one unique combination.
-    pub fn calc_all_unique_combinations_records_by_len(&self) -> RecordsByLenMap {
-        let _duration_logger =
-            ElapsedDurationLogger::new("all unique combinations records by len calculation");
+    /// contains more than one unique combination
+    pub fn calc_records_with_unique_combinations_by_len(&self) -> RecordsByLenMap {
         let mut unique_records_by_len: RecordsByLenMap = RecordsByLenMap::default();
 
         for (agg, count) in self.aggregates_count.iter() {
@@ -471,6 +555,73 @@ impl AggregatedData {
         unique_records_by_len
     }
 
+    /// Calculates the number of records that contain unique combinations
+    pub fn calc_number_of_records_with_unique_combinations(&self) -> usize {
+        let mut unique_records: RecordsSet = RecordsSet::default();
+
+        for (_l, records) in self.calc_records_with_unique_combinations_by_len().drain() {
+            unique_records.extend(records);
+        }
+        unique_records.len()
+    }
+
+    /// Calculates the percentage of records that contain unique combinations
+    pub fn calc_percentage_of_records_with_unique_combinations(&self) -> f64 {
+        let n_records = self.data_block.number_of_records();
+
+        if n_records > 0 {
+            ((self.calc_number_of_records_with_unique_combinations() as f64) / (n_records as f64))
+                * 100.0
+        } else {
+            0.0
+        }
+    }
+
+    /// Calculates the number of unique combinations grouped by combination length
+    pub fn calc_number_of_unique_combinations_by_len(&self) -> AggregatedCountByLenMap {
+        let mut result: AggregatedCountByLenMap = AggregatedCountByLenMap::default();
+
+        for (agg, count) in self.aggregates_count.iter() {
+            if count.count == 1 {
+                let curr_count = result.entry(agg.len()).or_insert(0);
+                *curr_count += 1;
+            }
+        }
+        result
+    }
+
+    /// Calculates the total number of unique combinations
+    pub fn calc_number_of_unique_combinations(&self) -> usize {
+        self.calc_number_of_unique_combinations_by_len()
+            .values()
+            .sum()
+    }
+
+    /// Calculates the percentage of unique combinations grouped by combination length
+    pub fn calc_percentage_of_unique_combinations_by_len(&self) -> AggregatedMetricByLenMap {
+        let total_by_len = self.calc_total_number_of_combinations_by_len();
+
+        self.calc_number_of_unique_combinations_by_len()
+            .iter()
+            .filter_map(|(l, c)| {
+                total_by_len
+                    .get(l)
+                    .map(|total_count| (*l, ((*c as f64) / (*total_count as f64)) * 100.0))
+            })
+            .collect::<AggregatedMetricByLenMap>()
+    }
+
+    /// Calculates the total percentage of unique combinations
+    pub fn calc_percentage_of_unique_combinations(&self) -> f64 {
+        let total = self.number_of_distinct_combinations();
+
+        if total > 0 {
+            ((self.calc_number_of_unique_combinations() as f64) / (total as f64)) * 100.0
+        } else {
+            0.0
+        }
+    }
+
     /// Calculate the records that contain unique and rare combinations grouped by length.
     /// A tuple with the `(unique, rare)` is returned.
     /// Both returned maps are ensured to only contain the records on the shortest length,
@@ -479,24 +630,31 @@ impl AggregatedData {
     /// be present on the rare map, only on the unique one.
     /// # Arguments:
     /// * `resolution` - Reporting resolution used for data synthesis
-    pub fn calc_unique_rare_combinations_records_by_len(
+    pub fn calc_records_with_unique_rare_combinations_by_len(
         &self,
         resolution: usize,
     ) -> (RecordsByLenMap, RecordsByLenMap) {
-        let _duration_logger =
-            ElapsedDurationLogger::new("unique/rare combinations records by len calculation");
-        let mut unique_records_by_len = self.calc_all_unique_combinations_records_by_len();
-        let mut rare_records_by_len = self.calc_all_rare_combinations_records_by_len(resolution);
+        let mut records_with_unique_combs_by_len =
+            self.calc_records_with_unique_combinations_by_len();
+        let mut records_with_rare_combs_by_len =
+            self.calc_records_with_rare_combinations_by_len(resolution);
 
-        AggregatedData::keep_records_only_on_shortest_len(&mut unique_records_by_len);
-        AggregatedData::keep_records_only_on_shortest_len(&mut rare_records_by_len);
+        AggregatedData::keep_records_only_on_shortest_len(&mut records_with_unique_combs_by_len);
+        AggregatedData::keep_records_only_on_shortest_len(&mut records_with_rare_combs_by_len);
 
         // remove records with unique combinations from the rare map
-        rare_records_by_len.values_mut().for_each(|records| {
-            records.retain(|r| !AggregatedData::records_by_len_contains(&unique_records_by_len, r));
-        });
+        records_with_rare_combs_by_len
+            .values_mut()
+            .for_each(|records| {
+                records.retain(|r| {
+                    !AggregatedData::records_by_len_contains(&records_with_unique_combs_by_len, r)
+                });
+            });
 
-        (unique_records_by_len, rare_records_by_len)
+        (
+            records_with_unique_combs_by_len,
+            records_with_rare_combs_by_len,
+        )
     }
 
     /// Perform the records analysis and returns the data containing
@@ -510,13 +668,12 @@ impl AggregatedData {
         resolution: usize,
         protect: bool,
     ) -> RecordsAnalysisData {
-        let _duration_logger = ElapsedDurationLogger::new("records analysis by len");
-        let (unique_records_by_len, rare_records_by_len) =
-            self.calc_unique_rare_combinations_records_by_len(resolution);
+        let (records_with_unique_combs_by_len, records_with_rare_combs_by_len) =
+            self.calc_records_with_unique_rare_combinations_by_len(resolution);
 
-        RecordsAnalysisData::from_unique_rare_combinations_records_by_len(
-            &unique_records_by_len,
-            &rare_records_by_len,
+        RecordsAnalysisData::from_records_with_unique_rare_combinations_by_len(
+            &records_with_unique_combs_by_len,
+            &records_with_rare_combs_by_len,
             self.data_block.records.len(),
             self.reporting_length,
             resolution,
@@ -524,64 +681,9 @@ impl AggregatedData {
         )
     }
 
-    /// Calculates the number of rare combinations grouped by combination length
-    /// # Arguments:
-    /// * `resolution` - Reporting resolution used for data synthesis
-    pub fn calc_rare_combinations_count_by_len(
-        &self,
-        resolution: usize,
-    ) -> AggregatedCountByLenMap {
-        let _duration_logger =
-            ElapsedDurationLogger::new("rare combinations count by len calculation");
-        let mut result: AggregatedCountByLenMap = AggregatedCountByLenMap::default();
-
-        info!(
-            "calculating rare combinations counts by length with resolution {}",
-            resolution
-        );
-
-        for (agg, count) in self.aggregates_count.iter() {
-            if count.count < resolution {
-                let curr_count = result.entry(agg.len()).or_insert(0);
-                *curr_count += 1;
-            }
-        }
-        result
-    }
-
-    /// Calculates the percentage of rare combinations grouped by combination length
-    /// # Arguments:
-    /// * `resolution` - Reporting resolution used for data synthesis
-    pub fn calc_rare_combinations_percentage_by_len(
-        &self,
-        resolution: usize,
-    ) -> AggregatedMetricByLenMap {
-        let _duration_logger =
-            ElapsedDurationLogger::new("rare combinations percentage by len calculation");
-
-        info!(
-            "calculating rare combinations percentage by length with resolution {}",
-            resolution
-        );
-
-        let total_by_len = self.calc_combinations_count_by_len();
-
-        self.calc_rare_combinations_count_by_len(resolution)
-            .iter()
-            .filter_map(|(l, c)| {
-                total_by_len
-                    .get(l)
-                    .map(|total_count| (*l, ((*c as f64) / (*total_count as f64)) * 100.0))
-            })
-            .collect::<AggregatedMetricByLenMap>()
-    }
-
     /// Calculates the number of distinct combinations grouped by combination length
-    pub fn calc_combinations_count_by_len(&self) -> AggregatedCountByLenMap {
-        let _duration_logger = ElapsedDurationLogger::new("combination count by len calculation");
+    pub fn calc_total_number_of_combinations_by_len(&self) -> AggregatedCountByLenMap {
         let mut result: AggregatedCountByLenMap = AggregatedCountByLenMap::default();
-
-        info!("calculating combination counts by length");
 
         for agg in self.aggregates_count.keys() {
             let curr_count = result.entry(agg.len()).or_insert(0);
@@ -591,11 +693,8 @@ impl AggregatedData {
     }
 
     /// Calculates the sum of all combination counts grouped by combination length
-    pub fn calc_combinations_sum_by_len(&self) -> AggregatedCountByLenMap {
-        let _duration_logger = ElapsedDurationLogger::new("combinations sum by len calculation");
+    pub fn calc_combinations_count_sum_by_len(&self) -> AggregatedCountByLenMap {
         let mut result: AggregatedCountByLenMap = AggregatedCountByLenMap::default();
-
-        info!("calculating combination counts sums by length");
 
         for (agg, count) in self.aggregates_count.iter() {
             let curr_sum = result.entry(agg.len()).or_insert(0);
@@ -605,14 +704,10 @@ impl AggregatedData {
     }
 
     /// Calculates the mean of all combination counts grouped by combination length
-    pub fn calc_combinations_mean_by_len(&self) -> AggregatedMetricByLenMap {
-        let _duration_logger = ElapsedDurationLogger::new("combinations mean by len calculation");
+    pub fn calc_combinations_count_mean_by_len(&self) -> AggregatedMetricByLenMap {
         let mut result = AggregatedMetricByLenMap::default();
-
-        info!("calculating combination counts mean by length");
-
-        let comb_sums = self.calc_combinations_sum_by_len();
-        let comb_counts = self.calc_combinations_count_by_len();
+        let comb_sums = self.calc_combinations_count_sum_by_len();
+        let comb_counts = self.calc_total_number_of_combinations_by_len();
 
         for (l, s) in comb_sums.iter() {
             let c = comb_counts.get(l).cloned().unwrap_or(0);
@@ -625,35 +720,18 @@ impl AggregatedData {
     }
 
     /// Calculates the mean of all combination counts
-    pub fn calc_combinations_mean(&self) -> f64 {
-        let _duration_logger = ElapsedDurationLogger::new("combinations mean calculation");
-
-        info!("calculating combination counts mean");
-
-        let comb_sum: usize = self.calc_combinations_sum_by_len().values().sum();
-        let comb_count: usize = self.calc_combinations_count_by_len().values().sum();
+    pub fn calc_combinations_count_mean(&self) -> f64 {
+        let comb_sum: usize = self.calc_combinations_count_sum_by_len().values().sum();
+        let comb_count: usize = self
+            .calc_total_number_of_combinations_by_len()
+            .values()
+            .sum();
 
         if comb_count > 0 {
             (comb_sum as f64) / (comb_count as f64)
         } else {
             0.0
         }
-    }
-
-    /// Calculates the privacy risk related with data block and the generated
-    /// aggregates counts
-    /// # Arguments:
-    /// * `resolution` - Reporting resolution used for data synthesis
-    pub fn calc_privacy_risk(&self, resolution: usize) -> PrivacyRiskSummary {
-        let _duration_logger = ElapsedDurationLogger::new("privacy risk calculation");
-
-        info!("calculating privacy risk...");
-
-        PrivacyRiskSummary::from_aggregates_count(
-            self.data_block.records.len(),
-            &self.aggregates_count,
-            resolution,
-        )
     }
 
     /// Writes the aggregates counts to the file system in a csv/tsv like format
@@ -672,9 +750,9 @@ impl AggregatedData {
         resolution: usize,
         protected: bool,
     ) -> Result<(), Error> {
-        let _duration_logger = ElapsedDurationLogger::new("write aggregates count");
-
         info!("writing file {}", aggregates_path);
+
+        let _duration_logger = ElapsedDurationLogger::new("write aggregates count");
 
         self._write_aggregates_count(
             &mut std::io::BufWriter::new(std::fs::File::create(aggregates_path)?),
@@ -721,9 +799,9 @@ impl AggregatedData {
         records_sensitivity_path: &str,
         records_sensitivity_delimiter: char,
     ) -> Result<(), Error> {
-        let _duration_logger = ElapsedDurationLogger::new("write records sensitivity");
+        info!("writing file: {}", records_sensitivity_path);
 
-        info!("writing file {}", records_sensitivity_path);
+        let _duration_logger = ElapsedDurationLogger::new("write records sensitivity");
 
         let mut file = std::io::BufWriter::new(std::fs::File::create(records_sensitivity_path)?);
 
@@ -745,7 +823,9 @@ impl AggregatedData {
     /// # Arguments:
     /// * `file_path` - File path to be written
     pub fn write_to_json(&self, file_path: &str) -> Result<(), Error> {
-        let _duration_logger = ElapsedDurationLogger::new("aggregated count json write");
+        info!("writing file: {}", file_path);
+
+        let _duration_logger = ElapsedDurationLogger::new("write to json");
 
         Ok(serde_json::to_writer(
             BufWriter::new(std::fs::File::create(file_path)?),

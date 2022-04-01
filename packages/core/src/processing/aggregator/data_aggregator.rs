@@ -1,9 +1,7 @@
 use super::aggregated_data::AggregatedData;
 use super::rows_aggregator::RowsAggregator;
-use super::typedefs::RecordsSet;
 use itertools::Itertools;
 use log::info;
-use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 use crate::data_block::block::DataBlock;
@@ -11,36 +9,6 @@ use crate::utils::math::calc_percentage;
 use crate::utils::reporting::ReportProgress;
 use crate::utils::threading::get_number_of_threads;
 use crate::utils::time::ElapsedDurationLogger;
-
-#[cfg(feature = "pyo3")]
-use pyo3::prelude::*;
-
-/// Result of data aggregation for each combination
-#[cfg_attr(feature = "pyo3", pyclass)]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AggregatedCount {
-    /// How many times the combination appears on the records
-    pub count: usize,
-    /// Which records this combinations is part of
-    pub contained_in_records: RecordsSet,
-}
-
-#[cfg(feature = "pyo3")]
-#[cfg_attr(feature = "pyo3", pymethods)]
-impl AggregatedCount {
-    /// How many times the combination appears on the records
-    #[getter]
-    fn count(&self) -> usize {
-        self.count
-    }
-
-    /// Which records this combinations is part of
-    /// This method will clone the data, so its recommended to have its result stored
-    /// in a local variable to avoid it being called multiple times
-    fn get_contained_in_records(&self) -> RecordsSet {
-        self.contained_in_records.clone()
-    }
-}
 
 /// Process a data block to produced aggregated data
 pub struct Aggregator {
@@ -73,7 +41,7 @@ impl Aggregator {
         let _duration_logger = ElapsedDurationLogger::new("data aggregation");
         let normalized_reporting_length =
             self.data_block.normalize_reporting_length(reporting_length);
-        let total_n_records = self.data_block.records.len();
+        let total_n_records = self.data_block.number_of_records();
         let total_n_records_f64 = total_n_records as f64;
 
         info!(

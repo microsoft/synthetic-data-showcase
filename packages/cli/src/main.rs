@@ -1,4 +1,4 @@
-use log::{error, info, log_enabled, trace, Level::Debug};
+use log::{error, log_enabled, trace, Level::Debug};
 use sds_core::{
     data_block::{csv_block_creator::CsvDataBlockCreator, data_block_creator::DataBlockCreator},
     dp::{
@@ -297,7 +297,6 @@ fn main() {
                 let mut aggregator = Aggregator::new(data_block.clone());
                 let mut aggregated_data =
                     aggregator.aggregate(reporting_length, &mut progress_reporter);
-                let privacy_risk = aggregated_data.calc_privacy_risk(cli.resolution);
                 let delta =
                     noise_delta.unwrap_or(1.0 / (2.0 * (data_block.number_of_records() as f64)));
 
@@ -311,7 +310,7 @@ fn main() {
                         None
                     };
 
-                    if let Err(err) = aggregated_data.make_aggregates_noisy(
+                    if let Err(err) = aggregated_data.protect_with_dp(
                         noise_epsilon.unwrap(),
                         delta,
                         noise_threshold_type,
@@ -322,10 +321,8 @@ fn main() {
                         process::exit(1);
                     }
                 } else if !not_protect {
-                    aggregated_data.protect_aggregates_count(cli.resolution);
+                    aggregated_data.protect_with_k_anonymity(cli.resolution);
                 }
-
-                info!("Calculated privacy risk is: {:#?}", privacy_risk);
 
                 if let Err(err) = aggregated_data.write_aggregates_count(
                     &aggregates_path,

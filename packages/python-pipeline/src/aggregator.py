@@ -57,8 +57,8 @@ def aggregate(config):
     aggregated_data = sds_processor.aggregate(
         reporting_length
     )
-    len_to_combo_count = aggregated_data.calc_combinations_count_by_len()
-    len_to_rare_count = aggregated_data.calc_rare_combinations_count_by_len(
+    len_to_combo_count = aggregated_data.calc_total_number_of_combinations_by_len()
+    len_to_rare_count = aggregated_data.calc_number_of_rare_combinations_by_len(
         reporting_resolution)
 
     aggregated_data.write_aggregates_count(
@@ -78,14 +78,14 @@ def aggregate(config):
             noise_delta = 1 / (2 * sds_processor.number_of_records())
 
         if noise_threshold_type == 'fixed':
-            aggregated_data.make_aggregates_noisy_fixed_threshold(
+            aggregated_data.protect_with_dp_fixed_threshold(
                 noise_epsilon,
                 noise_delta,
                 noise_threshold_value,
                 sensitivity_filter_params
             )
         elif noise_threshold_type == 'adaptive':
-            aggregated_data.make_aggregates_noisy_adaptive_threshold(
+            aggregated_data.protect_with_dp_adaptive_threshold(
                 noise_epsilon,
                 noise_delta,
                 noise_threshold_value,
@@ -95,7 +95,7 @@ def aggregate(config):
             raise ValueError(
                 f'invalid noise_threshold_type = "{noise_threshold_type}"')
     else:
-        aggregated_data.protect_aggregates_count(reporting_resolution)
+        aggregated_data.protect_with_k_anonymity(reporting_resolution)
 
     aggregated_data.write_aggregates_count(
         reportable_aggregates_path,

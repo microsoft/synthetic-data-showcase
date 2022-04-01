@@ -81,9 +81,9 @@ export const DataEvaluationInfo: React.FC<DataEvaluationInfoProps> = memo(
 						labels={countLabels}
 						leftChart={{
 							label: 'Mean length of combinations',
-							metrics: stats.meanCombinationsLengthByBucket,
+							metrics: stats.meanCombinationLengthByBucket,
 							type: 'bar',
-							max: microdataMaxStats.meanCombinationsLengthByBucket,
+							max: microdataMaxStats.meanCombinationLengthByBucket,
 						}}
 						height={chartHeight}
 						width={chartWidth}
@@ -94,9 +94,9 @@ export const DataEvaluationInfo: React.FC<DataEvaluationInfoProps> = memo(
 						labels={lenLabels}
 						leftChart={{
 							label: 'Mean combinations count by length',
-							metrics: stats.meanCombinationsCountByLen,
+							metrics: stats.combinationsCountMeanByLen,
 							type: 'bar',
-							max: microdataMaxStats.meanCombinationsCountByLen,
+							max: microdataMaxStats.combinationsCountMeanByLen,
 						}}
 						height={chartHeight}
 						width={chartWidth}
@@ -107,9 +107,9 @@ export const DataEvaluationInfo: React.FC<DataEvaluationInfoProps> = memo(
 						labels={lenLabels}
 						leftChart={{
 							label: 'Distinct combinations count by length',
-							metrics: stats.distinctCombinationsCountByLen,
+							metrics: stats.totalNumberOfCombinationsByLen,
 							type: 'bar',
-							max: microdataMaxStats.distinctCombinationsCountByLen,
+							max: microdataMaxStats.totalNumberOfCombinationsByLen,
 						}}
 						height={chartHeight}
 						width={chartWidth}
@@ -120,9 +120,9 @@ export const DataEvaluationInfo: React.FC<DataEvaluationInfoProps> = memo(
 						labels={lenLabels}
 						leftChart={{
 							label: 'Rare combinations count by length',
-							metrics: stats.rareCombinationsCountByLen,
+							metrics: stats.numberOfRareCombinationsByLen,
 							type: 'bar',
-							max: microdataMaxStats.rareCombinationsCountByLen,
+							max: microdataMaxStats.numberOfRareCombinationsByLen,
 						}}
 						height={chartHeight}
 						width={chartWidth}
@@ -133,9 +133,9 @@ export const DataEvaluationInfo: React.FC<DataEvaluationInfoProps> = memo(
 						labels={lenLabels}
 						leftChart={{
 							label: 'Rare combinations percentage by length',
-							metrics: stats.rareCombinationsPercentageByLen,
+							metrics: stats.percentageOfRareCombinationsByLen,
 							type: 'bar',
-							max: microdataMaxStats.rareCombinationsPercentageByLen,
+							max: microdataMaxStats.percentageOfRareCombinationsByLen,
 						}}
 						height={chartHeight}
 						width={chartWidth}

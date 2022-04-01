@@ -1,6 +1,5 @@
 use super::{
-    data_aggregator::AggregatedCount, records_analysis_data::RecordsAnalysis,
-    value_combination::ValueCombination,
+    records_analysis_data::RecordsAnalysis, value_combination::ValueCombination, AggregatedCount,
 };
 use fnv::{FnvHashMap, FnvHashSet};
 use std::sync::Arc;
