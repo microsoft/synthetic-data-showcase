@@ -146,8 +146,10 @@ impl Generator {
     where
         T: ReportProgress,
     {
-        let attr_rows_map_by_column =
-            Arc::new(self.data_block.calc_attr_rows_by_column(empty_value));
+        let attr_rows_map_by_column = Arc::new(
+            self.data_block
+                .calc_attr_rows_by_column_with_empty_values(empty_value),
+        );
         let mut synth = UnseededSynthesizer::new(
             self.data_block.clone(),
             attr_rows_map_by_column,

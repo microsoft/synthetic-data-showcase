@@ -183,7 +183,7 @@ impl RowsAggregator {
 
             // sort the attributes here, so combinations will be already sorted
             // and we do not need to sort entry by entry on the loop below
-            selected_attrs.sort_by_key(|k| k.format_str_using_headers(&self.data_block.headers));
+            selected_attrs.sort_by_key(|k| k.as_str_using_headers(&self.data_block.headers));
 
             for l in 1..=self.reporting_length {
                 for mut c in selected_attrs.iter().combinations(l) {

@@ -1,74 +1,27 @@
-use super::*;
-use crate::{
-    data_block::{
-        csv_block_creator::CsvDataBlockCreator, data_block_creator::DataBlockCreator,
-        value::DataBlockValue,
-    },
-    dp::typedefs::{CombinationsCountMap, CombinationsCountMapByLen},
-    processing::aggregator::{
-        aggregated_data::AggregatedData, value_combination::ValueCombination, Aggregator,
-    },
-    utils::reporting::LoggerProgressReporter,
+use sds_core::{
+    dp::{noise_aggregator::NoiseAggregator, typedefs::CombinationsCountMapByLen},
+    processing::aggregator::aggregated_data::AggregatedData,
 };
-use csv::ReaderBuilder;
-use fnv::FnvHashMap;
-use std::{hash::Hash, io::Cursor, sync::Arc};
 
-const CSV_DATA: &str = "A,B,C,D
-a1,b1,c1,d1
-a2,b2,,d2
-a1,,c1,";
+use crate::utils::{
+    assert_map_equals, gen_aggregated_data, gen_combinations_count_map, gen_value_combination,
+    read_test_data_block,
+};
 
-fn generate_aggregated_data() -> AggregatedData {
-    let reporting_length = 3;
-    let mut progress_reporter: Option<LoggerProgressReporter> = None;
+const DELIMITER: u8 = b',';
 
-    Aggregator::new(
-        CsvDataBlockCreator::create(
-            Ok(ReaderBuilder::new()
-                .delimiter(b',')
-                .from_reader(Cursor::new(CSV_DATA))),
-            &[],
-            &[],
-            0,
-        )
-        .unwrap(),
+const TEST_FILE_PATH: &str = "test_noise_aggregator.csv";
+
+fn get_aggregated_data() -> AggregatedData {
+    gen_aggregated_data(
+        read_test_data_block(TEST_FILE_PATH, DELIMITER, &[], &[], 0),
+        3,
     )
-    .aggregate(reporting_length, &mut progress_reporter)
-}
-
-fn assert_map_equals<K: Hash + Eq, V: PartialEq>(a: &FnvHashMap<K, V>, b: &FnvHashMap<K, V>) {
-    assert!(
-        a.len() == b.len()
-            && a.iter()
-                .all(|(k, v)| b.contains_key(k) && *b.get(k).unwrap() == *v)
-    );
-}
-
-fn gen_value_combination(value_str: &str) -> Arc<ValueCombination> {
-    Arc::new(ValueCombination::new(
-        value_str
-            .split(';')
-            .map(|attr| {
-                Arc::new(DataBlockValue::new(
-                    (attr.chars().next().unwrap() as usize) - ('a' as usize),
-                    Arc::new(String::from(attr)),
-                ))
-            })
-            .collect(),
-    ))
-}
-
-fn gen_combinations_count_map(tuples: &[(&str, f64)]) -> CombinationsCountMap {
-    tuples
-        .iter()
-        .map(|(value_str, count)| (gen_value_combination(value_str), *count))
-        .collect()
 }
 
 #[test]
 pub fn validate_gen_all_current_aggregates() {
-    let mut aggregated_data = generate_aggregated_data();
+    let mut aggregated_data = get_aggregated_data();
     let na = NoiseAggregator::new(&mut aggregated_data);
     let mut noisy_aggregates_by_len = CombinationsCountMapByLen::default();
 
@@ -150,7 +103,7 @@ pub fn validate_gen_all_current_aggregates() {
 
 #[test]
 pub fn validate_gen_all_current_aggregates_with_removed_combs() {
-    let mut aggregated_data = generate_aggregated_data();
+    let mut aggregated_data = get_aggregated_data();
     let mut noisy_aggregates_by_len = CombinationsCountMapByLen::default();
 
     noisy_aggregates_by_len.insert(
@@ -176,13 +129,13 @@ pub fn validate_gen_all_current_aggregates_with_removed_combs() {
         let mut na = NoiseAggregator::new(&mut aggregated_data);
 
         na.decrement_record_sensitivity_and_set_count_to_zero(&[
-            &(*gen_value_combination("a1;b1")),
-            &(*gen_value_combination("a2;b2")),
+            &gen_value_combination("a1;b1"),
+            &gen_value_combination("a2;b2"),
         ]);
         // call it twice to test if the sensitivity will only get decremented once
         na.decrement_record_sensitivity_and_set_count_to_zero(&[
-            &(*gen_value_combination("a1;b1")),
-            &(*gen_value_combination("a2;b2")),
+            &gen_value_combination("a1;b1"),
+            &gen_value_combination("a2;b2"),
         ]);
         noisy_aggregates_by_len.insert(
             2,

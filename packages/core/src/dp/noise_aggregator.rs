@@ -128,19 +128,6 @@ impl<'aggregated_data> NoiseAggregator<'aggregated_data> {
     }
 
     #[inline]
-    fn gen_all_current_aggregates(
-        &self,
-        noisy_aggregates_by_len: &CombinationsCountMapByLen,
-        current_comb_len: usize,
-    ) -> CombinationsCountMap {
-        if let Some(previous_aggregates) = noisy_aggregates_by_len.get(&(current_comb_len - 1)) {
-            self.gen_all_current_aggregates_based_on_previous(previous_aggregates)
-        } else {
-            self.gen_all_current_aggregates_based_on_single_attributes()
-        }
-    }
-
-    #[inline]
     fn add_gaussian_noise(
         comb_len: usize,
         epsilon: f64,
@@ -218,42 +205,6 @@ impl<'aggregated_data> NoiseAggregator<'aggregated_data> {
     }
 
     #[inline]
-    fn decrement_record_sensitivity_and_set_count_to_zero(
-        &mut self,
-        combs_to_remove: &[&ValueCombination],
-    ) {
-        let existing_combs_to_remove: Vec<&&ValueCombination> = combs_to_remove
-            .iter()
-            .filter(|comb| self.aggregated_data.aggregates_count.contains_key(**comb))
-            .collect();
-
-        debug!(
-            "existing combs to remove are {} out of {}",
-            existing_combs_to_remove.len(),
-            combs_to_remove.len()
-        );
-
-        for (comb, count) in self.aggregated_data.aggregates_count.iter_mut() {
-            if NoiseAggregator::was_comb_not_removed_and_contains_comb_to_be_removed(
-                &comb.build_ref_set(),
-                count,
-                &existing_combs_to_remove,
-            ) {
-                // set the combination count as zero to indicate it should not be used
-                (*count).count = 0;
-                // decrement the sensitivity of all records that contains this combination
-                for record_index in count.contained_in_records.iter() {
-                    self.aggregated_data.records_sensitivity_by_len[comb.len()][*record_index] -= 1;
-                    self.aggregated_data.records_sensitivity_by_len[ALL_SENSITIVITIES_INDEX]
-                        [*record_index] -= 1;
-                }
-                // clear this, so it won't affect the sensitivity filtering
-                (*count).contained_in_records.clear();
-            }
-        }
-    }
-
-    #[inline]
     fn remove_combs_based_on_threshold(aggregates: &mut CombinationsCountMap, threshold: f64) {
         aggregates.retain(|_comb, count| *count >= threshold);
     }
@@ -317,6 +268,60 @@ impl<'aggregated_data> NoiseAggregator<'aggregated_data> {
         NoiseAggregator {
             combs_by_record: NoiseAggregator::make_combinations_by_record(aggregated_data),
             aggregated_data,
+        }
+    }
+
+    /// Generates the `current_comb_len`-counts. These will be the cross
+    /// product `noisy_aggregates_by_len[current_comb_len - 1] x distinct_attributes(noisy_aggregates_by_len[current_comb_len - 1])`:
+    /// - Combinations that do not exist in the `aggregated_data` will be added with a `0` count.
+    /// - Combinations that have a `0` count in `aggregated_data` will not be added.
+    pub fn gen_all_current_aggregates(
+        &self,
+        noisy_aggregates_by_len: &CombinationsCountMapByLen,
+        current_comb_len: usize,
+    ) -> CombinationsCountMap {
+        if let Some(previous_aggregates) = noisy_aggregates_by_len.get(&(current_comb_len - 1)) {
+            self.gen_all_current_aggregates_based_on_previous(previous_aggregates)
+        } else {
+            self.gen_all_current_aggregates_based_on_single_attributes()
+        }
+    }
+
+    /// For all the combinations in `aggregated_data` that contains any
+    /// `combs_to_remove`, set its count on `aggregated_data` to `0`, and remove
+    /// its contribution to the record sensitivities
+    pub fn decrement_record_sensitivity_and_set_count_to_zero(
+        &mut self,
+        combs_to_remove: &[&ValueCombination],
+    ) {
+        let existing_combs_to_remove: Vec<&&ValueCombination> = combs_to_remove
+            .iter()
+            .filter(|comb| self.aggregated_data.aggregates_count.contains_key(**comb))
+            .collect();
+
+        debug!(
+            "existing combs to remove are {} out of {}",
+            existing_combs_to_remove.len(),
+            combs_to_remove.len()
+        );
+
+        for (comb, count) in self.aggregated_data.aggregates_count.iter_mut() {
+            if NoiseAggregator::was_comb_not_removed_and_contains_comb_to_be_removed(
+                &comb.build_ref_set(),
+                count,
+                &existing_combs_to_remove,
+            ) {
+                // set the combination count as zero to indicate it should not be used
+                (*count).count = 0;
+                // decrement the sensitivity of all records that contains this combination
+                for record_index in count.contained_in_records.iter() {
+                    self.aggregated_data.records_sensitivity_by_len[comb.len()][*record_index] -= 1;
+                    self.aggregated_data.records_sensitivity_by_len[ALL_SENSITIVITIES_INDEX]
+                        [*record_index] -= 1;
+                }
+                // clear this, so it won't affect the sensitivity filtering
+                (*count).contained_in_records.clear();
+            }
         }
     }
 
@@ -392,6 +397,3 @@ impl<'aggregated_data> NoiseAggregator<'aggregated_data> {
         Ok(())
     }
 }
-
-#[cfg(test)]
-mod tests;

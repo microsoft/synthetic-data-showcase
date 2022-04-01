@@ -155,8 +155,7 @@ impl AggregatedData {
             writer.write_all(
                 format!(
                     "{}{}{}\n",
-                    aggregate
-                        .format_str_using_headers(&self.data_block.headers, combination_delimiter),
+                    aggregate.as_str_using_headers(&self.data_block.headers, combination_delimiter),
                     aggregates_delimiter,
                     self.aggregates_count[aggregate].count
                 )
@@ -268,7 +267,7 @@ impl AggregatedData {
             .iter()
             .map(|(key, value)| {
                 (
-                    key.format_str_using_headers(&self.data_block.headers, combination_delimiter),
+                    key.as_str_using_headers(&self.data_block.headers, combination_delimiter),
                     value.clone(),
                 )
             })

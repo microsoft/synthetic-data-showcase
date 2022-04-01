@@ -97,7 +97,7 @@ impl WasmNavigateResult {
             .flat_map(|values| values.iter().cloned())
             .collect();
 
-        combination.sort_by_key(|k| k.format_str_using_headers(&self.synthetic_data_block.headers));
+        combination.sort_by_key(|k| k.as_str_using_headers(&self.synthetic_data_block.headers));
 
         sensitive_aggregate_result
             .aggregates_count
@@ -144,7 +144,7 @@ impl WasmNavigateResult {
             synthetic_processor.data_block.clone(),
             synthetic_processor
                 .data_block
-                .calc_attr_rows_with_no_empty_values(),
+                .calc_attr_rows_by_column_with_no_empty_values(),
             WasmSelectedAttributesByColumn::default(),
             AttributeRows::default(),
             (0..synthetic_processor.data_block.number_of_records()).collect(),

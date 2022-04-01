@@ -80,7 +80,6 @@ impl WasmMicrodataStatistics {
             original_mean_combinations_count_by_len: calc_original_mean_combinations_count_by_len(
                 original_aggregate_result,
             ),
-
             mean_combinations_count_error: calc_mean_combinations_count_error(
                 original_aggregate_result,
                 aggregate_result,

@@ -112,7 +112,7 @@ impl RareCombinationsComparisonData {
 
         for (agg, count) in synthetic_aggregated_data.aggregates_count.iter() {
             if count.count < resolution {
-                let combination_str = agg.format_str_using_headers(
+                let combination_str = agg.as_str_using_headers(
                     &synthetic_aggregated_data.data_block.headers,
                     combination_delimiter,
                 );

@@ -19,7 +19,7 @@ use pyo3::prelude::*;
 /// The goal of this is to allow data processing to handle with memory references
 /// to the data block instead of copying data around
 #[cfg_attr(feature = "pyo3", pyclass)]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq)]
 pub struct DataBlock {
     /// Vector of strings representing the data headers
     pub headers: DataBlockHeaders,
@@ -71,10 +71,10 @@ impl DataBlock {
         attr_rows
     }
 
-    // Calculates the rows where each value on the data records is present
+    /// Calculates the rows where each value on the data records is present
     /// grouped by column index.
     #[inline]
-    pub fn calc_attr_rows_with_no_empty_values(&self) -> AttributeRowsByColumnMap {
+    pub fn calc_attr_rows_by_column_with_no_empty_values(&self) -> AttributeRowsByColumnMap {
         let mut attr_rows_by_column: AttributeRowsByColumnMap = AttributeRowsByColumnMap::default();
 
         for (i, r) in self.records.iter().enumerate() {
@@ -96,7 +96,10 @@ impl DataBlock {
     /// # Arguments
     /// * `empty_value` - Empty values on the final synthetic data will be represented by this
     #[inline]
-    pub fn calc_attr_rows_by_column(&self, empty_value: &Arc<String>) -> AttributeRowsByColumnMap {
+    pub fn calc_attr_rows_by_column_with_empty_values(
+        &self,
+        empty_value: &Arc<String>,
+    ) -> AttributeRowsByColumnMap {
         let mut attr_rows_by_column: FnvHashMap<
             usize,
             FnvHashMap<Arc<DataBlockValue>, RecordsSet>,
@@ -127,7 +130,7 @@ impl DataBlock {
                     .entry(value.clone())
                     .or_insert_with(RecordsSet::default)
                     .insert(i);
-                // it's now used being used, so we make sure to remove this from the column empty records
+                // it's now being used, so we make sure to remove this from the column empty records
                 current_attr_rows
                     .entry(Arc::new(DataBlockValue::new(
                         value.column_index,
