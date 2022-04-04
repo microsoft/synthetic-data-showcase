@@ -1,27 +1,17 @@
-/// Module defining data synthesis purely from aggregate counts
-/// (useful in the differential privacy context)
-/// (consolidate and suppression only)
-pub mod aggregate_seeded;
-
-/// Module defining the row-seeded synthesis process
-pub mod row_seeded;
-
-/// Module defining the unseeded synthesis process
-pub mod unseeded;
-
-/// Module defining data synthesis purely from counts
-/// (consolidate and suppression only)
-pub mod value_seeded;
-
-/// Consolidate process input parameters definitions
-pub mod consolidate_parameters;
-
-/// Type definitions related to the synthesis process
-pub mod typedefs;
-
-/// Module defining the cache used during the synthesis process
-pub mod cache;
-
+mod aggregate_seeded;
 mod attribute_rows_sampler;
-
+mod cache;
+mod consolidate_parameters;
+mod row_seeded;
 mod traits;
+mod typedefs;
+mod unseeded;
+mod value_seeded;
+
+pub use aggregate_seeded::*;
+pub use cache::*;
+pub use consolidate_parameters::*;
+pub use row_seeded::*;
+pub use typedefs::*;
+pub use unseeded::*;
+pub use value_seeded::*;

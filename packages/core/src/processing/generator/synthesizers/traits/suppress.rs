@@ -5,7 +5,7 @@ use rand::{prelude::SliceRandom, thread_rng};
 use std::sync::Arc;
 
 use crate::{
-    data_block::value::DataBlockValue,
+    data_block::DataBlockValue,
     processing::generator::synthesizers::typedefs::{SynthesizedRecord, SynthesizedRecords},
     utils::{math::iround_down, reporting::ReportProgress, time::ElapsedDurationLogger},
 };

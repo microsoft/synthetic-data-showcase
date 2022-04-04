@@ -1,12 +1,11 @@
 use super::{
-    aggregator::aggregate_result::WasmAggregateResult,
-    evaluator::evaluate_result::WasmEvaluateResult, generator::generate_result::WasmGenerateResult,
-    navigator::navigate_result::WasmNavigateResult, sds_processor::SDSProcessor,
+    aggregator::WasmAggregateResult, evaluator::WasmEvaluateResult, generator::WasmGenerateResult,
+    navigator::WasmNavigateResult, sds_processor::SDSProcessor,
 };
 use log::debug;
 use wasm_bindgen::{prelude::*, JsCast};
 
-use crate::utils::js::ts_definitions::{
+use crate::utils::js::{
     JsAggregateResult, JsAttributesIntersectionByColumn, JsEvaluateResult, JsGenerateResult,
     JsHeaderNames, JsReportProgressCallback, JsResult, JsSelectedAttributesByColumn,
 };

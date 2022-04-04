@@ -1,29 +1,23 @@
-/// Defines a wrapper for aggregate counts to make them
-/// differential private
-pub mod noise_aggregator;
-
-/// Defines functions and structures to create
-/// normal distributions using the Analytic Gaussian Mechanism
-pub mod analytic_gaussian;
-
-/// Parameter definitions for sensitivity filtering
-pub mod sensitivity_filter_parameters;
-
-/// Defines a wrapper to filter aggregate counts by sensitivity
-/// using differential privacy
+mod analytic_gaussian;
+mod noise_aggregator;
+mod percentile;
 mod sensitivity_filter;
+mod sensitivity_filter_parameters;
+mod stats_error;
+mod threshold_type;
+mod typedefs;
 
-/// Functions and structures to perform DP selection
-/// for a vector of integers using percentiles
-pub mod percentile;
+#[cfg(feature = "pyo3")]
+mod register_pyo3;
 
-/// Defines stats error for handling statistics
-/// that are easier to bind to other languages
-pub mod stats_error;
+pub use analytic_gaussian::*;
+pub use noise_aggregator::*;
+pub use percentile::*;
+pub use sensitivity_filter::*;
+pub use sensitivity_filter_parameters::*;
+pub use stats_error::*;
+pub use threshold_type::*;
+pub use typedefs::*;
 
-/// Defines possible thresholds types to use while
-/// adding noise to the aggregates
-pub mod threshold_type;
-
-/// Useful type definitions to process differential privacy
-pub mod typedefs;
+#[cfg(feature = "pyo3")]
+pub use register_pyo3::*;

@@ -1,7 +1,7 @@
 use fnv::FnvHashMap;
 use std::sync::Arc;
 
-use crate::processing::aggregator::value_combination::ValueCombination;
+use crate::processing::aggregator::ValueCombination;
 
 /// Maps the record index to the combinations that should
 /// have its contribution removed

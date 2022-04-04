@@ -1,6 +1,4 @@
-use sds_core::{
-    data_block::value::DataBlockValue, processing::aggregator::value_combination::ValueCombination,
-};
+use sds_core::{data_block::DataBlockValue, processing::aggregator::ValueCombination};
 use std::sync::Arc;
 
 #[test]

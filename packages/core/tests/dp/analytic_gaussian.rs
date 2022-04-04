@@ -1,4 +1,4 @@
-use sds_core::dp::analytic_gaussian::{DpAnalyticGaussianContinuousCDFScale, DEFAULT_TOLERANCE};
+use sds_core::dp::{DpAnalyticGaussianContinuousCDFScale, DEFAULT_TOLERANCE};
 use statrs::distribution::Normal;
 
 #[test]

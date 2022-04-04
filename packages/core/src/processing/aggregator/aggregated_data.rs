@@ -19,12 +19,8 @@ use std::{
 use pyo3::prelude::*;
 
 use crate::{
-    data_block::block::DataBlock,
-    dp::{
-        noise_aggregator::NoiseAggregator,
-        sensitivity_filter_parameters::SensitivityFilterParameters, stats_error::StatsError,
-        threshold_type::ThresholdType,
-    },
+    data_block::DataBlock,
+    dp::{NoiseAggregator, SensitivityFilterParameters, StatsError, ThresholdType},
     processing::aggregator::{
         typedefs::RecordsSet, value_combination::ValueCombination, AggregatedCount,
     },
@@ -849,10 +845,4 @@ impl AggregatedData {
     pub fn read_from_json(file_path: &str) -> Result<AggregatedData, Error> {
         AggregatedData::_read_from_json(file_path)
     }
-}
-
-#[cfg(feature = "pyo3")]
-pub fn register(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_class::<AggregatedData>()?;
-    Ok(())
 }

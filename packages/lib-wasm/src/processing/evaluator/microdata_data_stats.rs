@@ -1,9 +1,9 @@
 use crate::{
-    processing::aggregator::aggregate_result::WasmAggregateResult,
-    utils::js::ts_definitions::{JsMicrodataStatistics, JsResult},
+    processing::aggregator::WasmAggregateResult,
+    utils::js::{JsMicrodataStatistics, JsResult},
 };
 use sds_core::processing::{
-    aggregator::typedefs::{AggregatedCountByLenMap, AggregatedMetricByLenMap},
+    aggregator::{AggregatedCountByLenMap, AggregatedMetricByLenMap},
     evaluator::Evaluator,
 };
 use serde::Serialize;

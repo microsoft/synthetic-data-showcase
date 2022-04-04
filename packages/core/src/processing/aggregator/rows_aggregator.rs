@@ -17,7 +17,7 @@ use rayon::prelude::*;
 use std::sync::Mutex;
 
 use crate::{
-    data_block::block::DataBlock,
+    data_block::DataBlock,
     utils::reporting::{ReportProgress, SendableProgressReporter, SendableProgressReporterRef},
 };
 

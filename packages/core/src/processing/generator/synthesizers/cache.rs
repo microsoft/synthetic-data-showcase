@@ -3,7 +3,7 @@ use fnv::FnvBuildHasher;
 use lru::LruCache;
 use std::sync::Arc;
 
-use crate::data_block::{typedefs::CsvRecordRef, value::DataBlockValue};
+use crate::data_block::{CsvRecordRef, DataBlockValue};
 
 /// Represents a key that will be stored in the cache.
 /// (`columns[{column_index}] = `value` if value exists,

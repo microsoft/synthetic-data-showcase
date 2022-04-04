@@ -1,9 +1,7 @@
 use fnv::{FnvHashMap, FnvHashSet};
 use std::{collections::BTreeSet, rc::Rc, sync::Arc};
 
-use crate::{
-    data_block::value::DataBlockValue, processing::aggregator::value_combination::ValueCombination,
-};
+use crate::{data_block::DataBlockValue, processing::aggregator::ValueCombination};
 
 /// If the data block value were added to the synthesized record, this maps to the
 /// number of rows the resulting attribute combination will be part of

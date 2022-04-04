@@ -9,10 +9,7 @@ use crate::{
         percentile::DpPercentile,
         typedefs::{CombinationsByRecord, CombinationsToRemoveByRecord},
     },
-    processing::aggregator::{
-        aggregated_data::AggregatedData, typedefs::ALL_SENSITIVITIES_INDEX,
-        value_combination::ValueCombination,
-    },
+    processing::aggregator::{AggregatedData, ValueCombination, ALL_SENSITIVITIES_INDEX},
 };
 
 /// Structure that takes a reference to the aggregated data

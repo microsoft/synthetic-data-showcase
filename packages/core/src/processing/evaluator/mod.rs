@@ -1,23 +1,19 @@
-/// Module defining routines to calculate preservation by count
-pub mod preservation_by_count;
-
-/// Module defining routines to calculate preservation by length
-pub mod preservation_by_length;
-
-/// Module defining a bucket used to calculate preservation by count
-/// and length
-pub mod preservation_bucket;
-
-/// Defines structures related to rare combination comparisons
-/// between the synthetic and sensitive datasets
-pub mod rare_combinations_comparison_data;
-
-/// Type definitions related to the evaluation process
-pub mod typedefs;
-
 mod data_evaluator;
-
-pub use data_evaluator::Evaluator;
+mod preservation_bucket;
+mod preservation_by_count;
+mod preservation_by_length;
+mod rare_combinations_comparison_data;
+mod typedefs;
 
 #[cfg(feature = "pyo3")]
-pub use data_evaluator::register;
+mod register_pyo3;
+
+pub use data_evaluator::*;
+pub use preservation_bucket::*;
+pub use preservation_by_count::*;
+pub use preservation_by_length::*;
+pub use rare_combinations_comparison_data::*;
+pub use typedefs::*;
+
+#[cfg(feature = "pyo3")]
+pub use register_pyo3::*;

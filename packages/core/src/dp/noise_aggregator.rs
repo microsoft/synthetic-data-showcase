@@ -9,19 +9,15 @@ use statrs::{distribution::Normal, statistics::Distribution};
 use std::sync::Arc;
 
 use crate::{
-    data_block::value::DataBlockValue,
+    data_block::DataBlockValue,
     dp::{
         analytic_gaussian::{DpAnalyticGaussianContinuousCDFScale, DEFAULT_TOLERANCE},
         stats_error::StatsError,
         typedefs::{CombinationsByRecord, CombinationsCountMap, CombinationsCountMapByLen},
     },
     processing::aggregator::{
-        aggregated_data::AggregatedData,
-        typedefs::{
-            AggregatesCountMap, RecordsSet, ValueCombinationRefSet, ALL_SENSITIVITIES_INDEX,
-        },
-        value_combination::ValueCombination,
-        AggregatedCount,
+        AggregatedCount, AggregatedData, AggregatesCountMap, RecordsSet, ValueCombination,
+        ValueCombinationRefSet, ALL_SENSITIVITIES_INDEX,
     },
 };
 

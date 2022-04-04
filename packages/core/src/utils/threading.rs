@@ -28,7 +28,7 @@ pub fn set_number_of_threads(n: usize) {
 }
 
 #[cfg(feature = "pyo3")]
-pub fn register(_py: Python, m: &PyModule) -> PyResult<()> {
+pub fn register_pyo3(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(set_number_of_threads, m)?)?;
     Ok(())
 }

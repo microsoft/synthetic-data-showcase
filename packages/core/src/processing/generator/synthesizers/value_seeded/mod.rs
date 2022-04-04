@@ -1,13 +1,9 @@
 use std::sync::Arc;
 
 use crate::{
-    data_block::{
-        block::DataBlock,
-        typedefs::{AttributeRowsMap, DataBlockHeaders},
-        value::DataBlockValue,
-    },
+    data_block::{AttributeRowsMap, DataBlock, DataBlockHeaders, DataBlockValue},
     processing::{
-        aggregator::value_combination::ValueCombination,
+        aggregator::ValueCombination,
         generator::synthesizers::{
             attribute_rows_sampler::AttributeRowsSampler,
             cache::SynthesizerCache,

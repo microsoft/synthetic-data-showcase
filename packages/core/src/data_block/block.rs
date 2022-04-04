@@ -10,7 +10,7 @@ use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-use crate::{processing::aggregator::typedefs::RecordsSet, utils::math::uround_down};
+use crate::{processing::aggregator::RecordsSet, utils::math::uround_down};
 
 #[cfg(feature = "pyo3")]
 use pyo3::prelude::*;

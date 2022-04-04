@@ -1,17 +1,17 @@
 use super::generated_data::GeneratedData;
-use super::synthesizers::consolidate_parameters::ConsolidateParameters;
-use super::synthesizers::row_seeded::SeededSynthesizer;
-use super::synthesizers::typedefs::SynthesizedRecords;
-use super::synthesizers::unseeded::UnseededSynthesizer;
-use super::synthesizers::value_seeded::FromCountsSynthesizer;
+use super::synthesizers::ConsolidateParameters;
+use super::synthesizers::FromCountsSynthesizer;
+use super::synthesizers::SeededSynthesizer;
+use super::synthesizers::SynthesizedRecords;
+use super::synthesizers::UnseededSynthesizer;
 use super::SynthesisMode;
 use log::info;
 use std::sync::Arc;
 
-use crate::data_block::block::DataBlock;
-use crate::data_block::typedefs::RawSyntheticData;
-use crate::processing::generator::synthesizers::aggregate_seeded::FromAggregatesSynthesizer;
-use crate::processing::generator::synthesizers::cache::SynthesizerCacheKey;
+use crate::data_block::DataBlock;
+use crate::data_block::RawSyntheticData;
+use crate::processing::generator::synthesizers::FromAggregatesSynthesizer;
+use crate::processing::generator::synthesizers::SynthesizerCacheKey;
 use crate::utils::reporting::ReportProgress;
 use crate::utils::time::ElapsedDurationLogger;
 

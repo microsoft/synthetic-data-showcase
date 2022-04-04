@@ -6,8 +6,7 @@ use serde::{
 use std::{fmt::Display, marker::PhantomData, ops::Deref, str::FromStr, sync::Arc};
 
 use crate::data_block::{
-    typedefs::{DataBlockHeaders, DataBlockHeadersSlice},
-    value::{DataBlockValue, ParseDataBlockValueError},
+    DataBlockHeaders, DataBlockHeadersSlice, DataBlockValue, ParseDataBlockValueError,
 };
 
 /// Delimiter between attributes that form a value combination

@@ -4,21 +4,18 @@ use super::{
 };
 use sds_core::{
     data_block::{
-        block::DataBlock,
-        typedefs::{
-            AttributeRows, AttributeRowsByColumnMap, AttributeRowsMap, ColumnIndexByName, CsvRecord,
-        },
-        value::DataBlockValue,
+        AttributeRows, AttributeRowsByColumnMap, AttributeRowsMap, ColumnIndexByName, CsvRecord,
+        DataBlock, DataBlockValue,
     },
-    processing::aggregator::value_combination::ValueCombination,
+    processing::aggregator::ValueCombination,
     utils::collections::ordered_vec_intersection,
 };
 use std::{cmp::Reverse, convert::TryFrom, sync::Arc};
 use wasm_bindgen::prelude::*;
 
 use crate::{
-    processing::{aggregator::aggregate_result::WasmAggregateResult, sds_processor::SDSProcessor},
-    utils::js::ts_definitions::{
+    processing::{aggregator::WasmAggregateResult, sds_processor::SDSProcessor},
+    utils::js::{
         JsAttributesIntersectionByColumn, JsHeaderNames, JsResult, JsSelectedAttributesByColumn,
     },
 };

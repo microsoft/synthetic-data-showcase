@@ -1,4 +1,4 @@
-use sds_core::data_block::{typedefs::DataBlockHeaders, value::DataBlockValue};
+use sds_core::data_block::{DataBlockHeaders, DataBlockValue};
 use std::{str::FromStr, sync::Arc};
 
 fn get_headers() -> DataBlockHeaders {

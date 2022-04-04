@@ -9,10 +9,7 @@ use std::{
 use pyo3::prelude::*;
 
 use crate::{
-    processing::aggregator::{
-        typedefs::{AggregatedMetricByLenMap, AggregatesCountMap},
-        value_combination::ValueCombination,
-    },
+    processing::aggregator::{AggregatedMetricByLenMap, AggregatesCountMap, ValueCombination},
     utils::time::ElapsedDurationLogger,
 };
 

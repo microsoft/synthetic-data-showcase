@@ -4,9 +4,9 @@ use log::info;
 use std::{rc::Rc, sync::Arc};
 
 use crate::{
-    data_block::value::DataBlockValue,
+    data_block::DataBlockValue,
     processing::{
-        aggregator::value_combination::ValueCombination,
+        aggregator::ValueCombination,
         generator::synthesizers::{
             consolidate_parameters::ConsolidateParameters,
             typedefs::{

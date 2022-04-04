@@ -3,7 +3,7 @@ use std::{io::Error, sync::Arc};
 #[cfg(feature = "pyo3")]
 use pyo3::prelude::*;
 
-use crate::processing::aggregator::aggregated_data::AggregatedData;
+use crate::processing::aggregator::AggregatedData;
 
 /// Define the parameters needed for data consolidation
 #[derive(Clone)]
@@ -84,10 +84,4 @@ impl Default for ConsolidateParameters {
             use_synthetic_counts: false,
         }
     }
-}
-
-#[cfg(feature = "pyo3")]
-pub fn register(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_class::<ConsolidateParameters>()?;
-    Ok(())
 }

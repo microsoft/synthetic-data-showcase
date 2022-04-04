@@ -6,9 +6,9 @@ use std::sync::Arc;
 #[cfg(feature = "pyo3")]
 use pyo3::prelude::*;
 
-use crate::processing::aggregator::aggregated_data::AggregatedData;
-use crate::processing::aggregator::typedefs::{AggregatedCountByLenMap, AggregatedMetricByLenMap};
-use crate::processing::aggregator::value_combination::ValueCombination;
+use crate::processing::aggregator::{
+    AggregatedCountByLenMap, AggregatedData, AggregatedMetricByLenMap, ValueCombination,
+};
 use crate::processing::evaluator::preservation_bucket::PreservationBucket;
 use crate::processing::evaluator::preservation_by_length::PreservationByLengthBuckets;
 
@@ -414,10 +414,4 @@ impl Evaluator {
             0.0
         }
     }
-}
-
-#[cfg(feature = "pyo3")]
-pub fn register(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_class::<Evaluator>()?;
-    Ok(())
 }

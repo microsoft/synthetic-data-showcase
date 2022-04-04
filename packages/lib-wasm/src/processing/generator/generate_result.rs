@@ -1,11 +1,9 @@
 use js_sys::{Object, Reflect::set};
-use sds_core::{
-    processing::generator::generated_data::GeneratedData, utils::time::ElapsedDurationLogger,
-};
+use sds_core::{processing::generator::GeneratedData, utils::time::ElapsedDurationLogger};
 use std::ops::{Deref, DerefMut};
 use wasm_bindgen::{prelude::*, JsCast};
 
-use crate::utils::js::ts_definitions::{JsGenerateResult, JsResult};
+use crate::utils::js::{JsGenerateResult, JsResult};
 
 #[wasm_bindgen]
 pub struct WasmGenerateResult {

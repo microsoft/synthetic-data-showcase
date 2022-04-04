@@ -1,15 +1,10 @@
 use csv::ReaderBuilder;
 use fnv::FnvHashMap;
 use sds_core::{
-    data_block::{
-        block::DataBlock, csv_block_creator::CsvDataBlockCreator,
-        data_block_creator::DataBlockCreator, value::DataBlockValue,
-    },
-    dp::typedefs::CombinationsCountMap,
+    data_block::{CsvDataBlockCreator, DataBlock, DataBlockCreator, DataBlockValue},
+    dp::CombinationsCountMap,
     processing::aggregator::{
-        aggregated_data::AggregatedData,
-        value_combination::{ValueCombination, COMBINATIONS_DELIMITER},
-        Aggregator,
+        AggregatedData, Aggregator, ValueCombination, COMBINATIONS_DELIMITER,
     },
     utils::reporting::LoggerProgressReporter,
 };

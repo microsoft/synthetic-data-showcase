@@ -4,7 +4,7 @@ use super::{
 use fnv::{FnvHashMap, FnvHashSet};
 use std::sync::Arc;
 
-use crate::data_block::{record::DataBlockRecord, value::DataBlockValue};
+use crate::data_block::{DataBlockRecord, DataBlockValue};
 
 /// Set of records where the key is the record index starting in 0
 pub type RecordsSet = FnvHashSet<usize>;

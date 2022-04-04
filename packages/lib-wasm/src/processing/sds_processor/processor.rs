@@ -1,15 +1,10 @@
 use csv::ReaderBuilder;
 use js_sys::Function;
 use sds_core::{
-    data_block::{
-        block::DataBlock, csv_block_creator::CsvDataBlockCreator,
-        data_block_creator::DataBlockCreator, typedefs::CsvRecord,
-    },
+    data_block::{CsvDataBlockCreator, CsvRecord, DataBlock, DataBlockCreator},
     processing::{
         aggregator::Aggregator,
-        generator::{
-            synthesizers::consolidate_parameters::ConsolidateParameters, Generator, SynthesisMode,
-        },
+        generator::{ConsolidateParameters, Generator, SynthesisMode},
     },
     utils::time::ElapsedDurationLogger,
 };
@@ -18,13 +13,10 @@ use std::{convert::TryFrom, io::Cursor};
 use wasm_bindgen::{prelude::*, JsCast};
 
 use crate::{
-    utils::js::js_progress_reporter::JsProgressReporter,
+    utils::js::JsProgressReporter,
     {
-        processing::{
-            aggregator::aggregate_result::WasmAggregateResult,
-            generator::generate_result::WasmGenerateResult,
-        },
-        utils::js::ts_definitions::{JsHeaderNames, JsReportProgressCallback},
+        processing::{aggregator::WasmAggregateResult, generator::WasmGenerateResult},
+        utils::js::{JsHeaderNames, JsReportProgressCallback},
     },
 };
 

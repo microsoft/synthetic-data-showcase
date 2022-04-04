@@ -2,9 +2,9 @@ use itertools::Itertools;
 use std::sync::Arc;
 
 use crate::{
-    data_block::{block::DataBlock, typedefs::DataBlockHeaders, value::DataBlockValue},
+    data_block::{DataBlock, DataBlockHeaders, DataBlockValue},
     processing::{
-        aggregator::value_combination::ValueCombination,
+        aggregator::ValueCombination,
         generator::synthesizers::{
             consolidate_parameters::ConsolidateParameters,
             traits::{Consolidate, ConsolidateContext, Suppress, SynthesisData},

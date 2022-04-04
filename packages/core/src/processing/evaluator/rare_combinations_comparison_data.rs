@@ -4,8 +4,8 @@ use std::io::{Error, Write};
 use pyo3::prelude::*;
 
 use crate::{
-    data_block::typedefs::CombinationsComparisons,
-    processing::aggregator::aggregated_data::AggregatedData, utils::math::uround_down,
+    data_block::CombinationsComparisons, processing::aggregator::AggregatedData,
+    utils::math::uround_down,
 };
 
 #[cfg_attr(feature = "pyo3", pyclass)]

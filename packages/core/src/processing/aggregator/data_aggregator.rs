@@ -4,7 +4,7 @@ use itertools::Itertools;
 use log::info;
 use std::sync::Arc;
 
-use crate::data_block::block::DataBlock;
+use crate::data_block::DataBlock;
 use crate::utils::math::calc_percentage;
 use crate::utils::reporting::ReportProgress;
 use crate::utils::threading::get_number_of_threads;

@@ -1,6 +1,6 @@
 use sds_core::{
-    dp::{noise_aggregator::NoiseAggregator, typedefs::CombinationsCountMapByLen},
-    processing::aggregator::aggregated_data::AggregatedData,
+    dp::{CombinationsCountMapByLen, NoiseAggregator},
+    processing::aggregator::AggregatedData,
 };
 
 use crate::utils::{

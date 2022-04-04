@@ -1,14 +1,14 @@
 use std::sync::Arc;
 
 use crate::{
-    data_block::typedefs::AttributeRowsMap,
+    data_block::{AttributeRowsMap, DataBlockRecord, DataBlockRecords},
     processing::generator::{
         synthesizers::attribute_rows_sampler::AttributeRowsSampler,
         synthesizers::typedefs::{
             NotAllowedAttrSet, SynthesizedRecord, SynthesizedRecords, SynthesizerSeed,
         },
     },
-    utils::reporting::{SendableProgressReporter, SendableProgressReporterRef},
+    utils::reporting::{ReportProgress, SendableProgressReporter, SendableProgressReporterRef},
 };
 
 #[cfg(feature = "rayon")]
@@ -16,11 +16,6 @@ use rayon::prelude::*;
 
 #[cfg(feature = "rayon")]
 use std::sync::Mutex;
-
-use crate::{
-    data_block::{record::DataBlockRecord, typedefs::DataBlockRecords},
-    utils::reporting::ReportProgress,
-};
 
 pub struct SeededRowsSynthesizer {
     pub sampler: AttributeRowsSampler,

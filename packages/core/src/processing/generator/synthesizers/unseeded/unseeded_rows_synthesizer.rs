@@ -3,14 +3,11 @@ use std::sync::Arc;
 
 use crate::{
     data_block::{
-        block::DataBlock,
-        typedefs::{
-            AttributeRows, AttributeRowsByColumnMap, AttributeRowsRefMap, AttributeRowsSlice,
-        },
-        value::DataBlockValue,
+        AttributeRows, AttributeRowsByColumnMap, AttributeRowsRefMap, AttributeRowsSlice,
+        DataBlock, DataBlockValue,
     },
     processing::{
-        aggregator::typedefs::RecordsSet,
+        aggregator::RecordsSet,
         generator::synthesizers::{
             cache::{SynthesizerCache, SynthesizerCacheKey},
             typedefs::{AttributeCountMap, SynthesizedRecord, SynthesizedRecords},

@@ -2,16 +2,10 @@ use csv::ReaderBuilder;
 use log::{log_enabled, Level::Debug};
 use pyo3::{exceptions::PyValueError, prelude::*};
 use sds_core::{
-    data_block::{
-        block::DataBlock, csv_block_creator::CsvDataBlockCreator, csv_io_error::CsvIOError,
-        data_block_creator::DataBlockCreator,
-    },
+    data_block::{CsvDataBlockCreator, CsvIOError, DataBlock, DataBlockCreator},
     processing::{
-        aggregator::{aggregated_data::AggregatedData, Aggregator},
-        generator::{
-            generated_data::GeneratedData,
-            synthesizers::consolidate_parameters::ConsolidateParameters, Generator, SynthesisMode,
-        },
+        aggregator::{AggregatedData, Aggregator},
+        generator::{ConsolidateParameters, GeneratedData, Generator, SynthesisMode},
     },
     utils::reporting::LoggerProgressReporter,
 };

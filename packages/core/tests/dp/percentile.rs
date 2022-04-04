@@ -1,5 +1,5 @@
 use itertools::Itertools;
-use sds_core::dp::percentile::DpPercentile;
+use sds_core::dp::DpPercentile;
 
 #[test]
 pub fn validate_quality_score_iter() {

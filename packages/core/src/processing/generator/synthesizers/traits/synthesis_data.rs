@@ -1,6 +1,5 @@
 use crate::{
-    data_block::typedefs::DataBlockHeaders,
-    processing::generator::synthesizers::typedefs::AttributeCountMap,
+    data_block::DataBlockHeaders, processing::generator::synthesizers::typedefs::AttributeCountMap,
 };
 
 pub trait SynthesisData {

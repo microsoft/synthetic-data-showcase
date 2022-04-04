@@ -5,7 +5,7 @@ use std::sync::Arc;
 use unseeded_rows_synthesizer::UnseededRowsSynthesizer;
 
 use crate::{
-    data_block::{block::DataBlock, typedefs::AttributeRowsByColumnMap},
+    data_block::{AttributeRowsByColumnMap, DataBlock},
     processing::generator::synthesizers::{cache::SynthesizerCache, typedefs::SynthesizedRecords},
     utils::{
         math::calc_percentage, reporting::ReportProgress, threading::get_number_of_threads,

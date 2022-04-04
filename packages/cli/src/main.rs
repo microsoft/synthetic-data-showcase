@@ -1,14 +1,10 @@
 use log::{error, log_enabled, trace, Level::Debug};
 use sds_core::{
-    data_block::{csv_block_creator::CsvDataBlockCreator, data_block_creator::DataBlockCreator},
-    dp::{
-        sensitivity_filter_parameters::SensitivityFilterParameters, threshold_type::ThresholdType,
-    },
+    data_block::{CsvDataBlockCreator, DataBlockCreator},
+    dp::{SensitivityFilterParameters, ThresholdType},
     processing::{
         aggregator::Aggregator,
-        generator::{
-            synthesizers::consolidate_parameters::ConsolidateParameters, Generator, SynthesisMode,
-        },
+        generator::{ConsolidateParameters, Generator, SynthesisMode},
     },
     utils::{reporting::LoggerProgressReporter, threading::set_number_of_threads},
 };

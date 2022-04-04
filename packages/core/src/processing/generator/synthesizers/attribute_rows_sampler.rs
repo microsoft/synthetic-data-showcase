@@ -4,9 +4,9 @@ use super::typedefs::{
 };
 use std::sync::Arc;
 
-use crate::data_block::block::DataBlock;
-use crate::data_block::typedefs::{AttributeRows, AttributeRowsMap, AttributeRowsSlice};
-use crate::data_block::value::DataBlockValue;
+use crate::data_block::{
+    AttributeRows, AttributeRowsMap, AttributeRowsSlice, DataBlock, DataBlockValue,
+};
 use crate::utils::collections::{ordered_vec_intersection, sample_weighted};
 
 /// Attributes rows samples. This will sample records from a seed,

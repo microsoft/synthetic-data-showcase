@@ -1,4 +1,4 @@
-use sds_core::data_block::value::DataBlockValue;
+use sds_core::data_block::DataBlockValue;
 use std::{str::FromStr, sync::Arc};
 
 use crate::utils::{assert_map_equals, read_test_data_block};
