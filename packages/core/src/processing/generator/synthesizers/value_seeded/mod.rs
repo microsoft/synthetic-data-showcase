@@ -1,20 +1,24 @@
-use super::{
-    attribute_rows_sampler::AttributeRowsSampler,
-    cache::SynthesizerCache,
-    consolidate::{Consolidate, ConsolidateContext},
-    consolidate_parameters::ConsolidateParameters,
-    suppress::Suppress,
-    synthesis_data::SynthesisData,
-    typedefs::{
-        AttributeCountMap, AvailableAttrsMap, NotAllowedAttrSet, SynthesizedRecord,
-        SynthesizedRecords, SynthesizedRecordsSlice,
-    },
-};
 use std::sync::Arc;
 
 use crate::{
-    data_block::{block::DataBlock, typedefs::AttributeRowsMap, value::DataBlockValue},
-    processing::aggregator::value_combination::ValueCombination,
+    data_block::{
+        block::DataBlock,
+        typedefs::{AttributeRowsMap, DataBlockHeaders},
+        value::DataBlockValue,
+    },
+    processing::{
+        aggregator::value_combination::ValueCombination,
+        generator::synthesizers::{
+            attribute_rows_sampler::AttributeRowsSampler,
+            cache::SynthesizerCache,
+            consolidate_parameters::ConsolidateParameters,
+            traits::{Consolidate, ConsolidateContext, Suppress, SynthesisData},
+            typedefs::{
+                AttributeCountMap, AvailableAttrsMap, NotAllowedAttrSet, SynthesizedRecord,
+                SynthesizedRecords, SynthesizedRecordsSlice,
+            },
+        },
+    },
     utils::{math::calc_percentage, reporting::ReportProgress},
 };
 
@@ -110,8 +114,8 @@ impl FromCountsSynthesizer {
 
 impl SynthesisData for FromCountsSynthesizer {
     #[inline]
-    fn get_data_block(&self) -> &DataBlock {
-        &self.data_block
+    fn get_headers(&self) -> &DataBlockHeaders {
+        &self.data_block.headers
     }
 
     #[inline]

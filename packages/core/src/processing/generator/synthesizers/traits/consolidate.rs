@@ -1,11 +1,4 @@
-use super::{
-    consolidate_parameters::ConsolidateParameters,
-    synthesis_data::SynthesisData,
-    typedefs::{
-        AvailableAttrsMap, NotAllowedAttrSet, RawCombinationsSet, SynthesizedRecord,
-        SynthesizedRecords, SynthesizedRecordsSlice,
-    },
-};
+use super::synthesis_data::SynthesisData;
 use itertools::Itertools;
 use log::info;
 use std::{rc::Rc, sync::Arc};
@@ -14,7 +7,13 @@ use crate::{
     data_block::value::DataBlockValue,
     processing::{
         aggregator::value_combination::ValueCombination,
-        generator::synthesizer::typedefs::{RawCombinationsCountMap, SynthesizerSeed},
+        generator::synthesizers::{
+            consolidate_parameters::ConsolidateParameters,
+            typedefs::{
+                AvailableAttrsMap, NotAllowedAttrSet, RawCombinationsCountMap, RawCombinationsSet,
+                SynthesizedRecord, SynthesizedRecords, SynthesizedRecordsSlice, SynthesizerSeed,
+            },
+        },
     },
     utils::{math::iround_down, reporting::ReportProgress, time::ElapsedDurationLogger},
 };
@@ -93,7 +92,7 @@ pub trait Consolidate: SynthesisData {
         let mut local_synthetic_counts = RawCombinationsCountMap::default();
 
         // add the new sampled value to the combination
-        current_comb.extend(value.clone(), &self.get_data_block().headers);
+        current_comb.extend(value.clone(), self.get_headers());
 
         if parameters.use_synthetic_counts || parameters.oversampling_ratio.is_some() {
             // process all combinations lengths up the reporting length

@@ -10,7 +10,7 @@ use sds_core::{
         aggregator::{aggregated_data::AggregatedData, Aggregator},
         generator::{
             generated_data::GeneratedData,
-            synthesizer::consolidate_parameters::ConsolidateParameters, Generator, SynthesisMode,
+            synthesizers::consolidate_parameters::ConsolidateParameters, Generator, SynthesisMode,
         },
     },
     utils::reporting::LoggerProgressReporter,

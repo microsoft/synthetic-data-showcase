@@ -1,23 +1,29 @@
-use super::{
-    attribute_rows_sampler::AttributeRowsSampler,
-    cache::SynthesizerCache,
-    consolidate::{Consolidate, ConsolidateContext},
-    consolidate_parameters::ConsolidateParameters,
-    seeded_rows_synthesizer::SeededRowsSynthesizer,
-    suppress::Suppress,
-    synthesis_data::SynthesisData,
-    typedefs::{
-        AttributeCountMap, AvailableAttrsMap, NotAllowedAttrSet, SynthesizedRecord,
-        SynthesizedRecords, SynthesizedRecordsSlice,
-    },
-};
+mod seeded_rows_synthesizer;
+
 use itertools::{izip, Itertools};
 use log::info;
+use seeded_rows_synthesizer::SeededRowsSynthesizer;
 use std::sync::Arc;
 
 use crate::{
-    data_block::{block::DataBlock, typedefs::AttributeRowsMap, value::DataBlockValue},
-    processing::aggregator::value_combination::ValueCombination,
+    data_block::{
+        block::DataBlock,
+        typedefs::{AttributeRowsMap, DataBlockHeaders},
+        value::DataBlockValue,
+    },
+    processing::{
+        aggregator::value_combination::ValueCombination,
+        generator::synthesizers::{
+            attribute_rows_sampler::AttributeRowsSampler,
+            cache::SynthesizerCache,
+            consolidate_parameters::ConsolidateParameters,
+            traits::{Consolidate, ConsolidateContext, Suppress, SynthesisData},
+            typedefs::{
+                AttributeCountMap, AvailableAttrsMap, NotAllowedAttrSet, SynthesizedRecord,
+                SynthesizedRecords, SynthesizedRecordsSlice,
+            },
+        },
+    },
     utils::{
         math::calc_percentage, reporting::ReportProgress, threading::get_number_of_threads,
         time::ElapsedDurationLogger,
@@ -189,8 +195,8 @@ impl SeededSynthesizer {
 
 impl SynthesisData for SeededSynthesizer {
     #[inline]
-    fn get_data_block(&self) -> &DataBlock {
-        &self.data_block
+    fn get_headers(&self) -> &DataBlockHeaders {
+        &self.data_block.headers
     }
 
     #[inline]
@@ -215,10 +221,9 @@ impl Consolidate for SeededSynthesizer {
 
         // go through the pairs (original_record, synthesized_record) and count how many
         // attributes were not used
-        for (original_record, synthesized_record) in izip!(
-            self.get_data_block().records.iter(),
-            synthesized_records.iter()
-        ) {
+        for (original_record, synthesized_record) in
+            izip!(self.data_block.records.iter(), synthesized_records.iter())
+        {
             for d in original_record.values.iter() {
                 if !synthesized_record.contains(d) {
                     let attr = available_attrs.entry(d.clone()).or_insert(0);

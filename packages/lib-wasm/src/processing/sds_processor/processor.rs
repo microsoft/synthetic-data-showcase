@@ -8,7 +8,7 @@ use sds_core::{
     processing::{
         aggregator::Aggregator,
         generator::{
-            synthesizer::consolidate_parameters::ConsolidateParameters, Generator, SynthesisMode,
+            synthesizers::consolidate_parameters::ConsolidateParameters, Generator, SynthesisMode,
         },
     },
     utils::time::ElapsedDurationLogger,

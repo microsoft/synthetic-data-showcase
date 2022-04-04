@@ -1,4 +1,4 @@
-use super::{synthesis_data::SynthesisData, typedefs::SynthesizedRecords};
+use super::SynthesisData;
 use fnv::FnvHashMap;
 use log::info;
 use rand::{prelude::SliceRandom, thread_rng};
@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use crate::{
     data_block::value::DataBlockValue,
-    processing::generator::synthesizer::typedefs::SynthesizedRecord,
+    processing::generator::synthesizers::typedefs::{SynthesizedRecord, SynthesizedRecords},
     utils::{math::iround_down, reporting::ReportProgress, time::ElapsedDurationLogger},
 };
 

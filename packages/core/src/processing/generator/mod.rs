@@ -1,5 +1,5 @@
 /// Module defining the data synthesis process
-pub mod synthesizer;
+pub mod synthesizers;
 
 mod synthesis_mode;
 

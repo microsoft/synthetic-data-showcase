@@ -1,7 +1,6 @@
-use super::{
-    cache::{SynthesizerCache, SynthesizerCacheKey},
-    typedefs::{AttributeCountMap, SynthesizedRecord, SynthesizedRecords},
-};
+use rand::{prelude::SliceRandom, thread_rng};
+use std::sync::Arc;
+
 use crate::{
     data_block::{
         block::DataBlock,
@@ -10,14 +9,18 @@ use crate::{
         },
         value::DataBlockValue,
     },
-    processing::aggregator::typedefs::RecordsSet,
+    processing::{
+        aggregator::typedefs::RecordsSet,
+        generator::synthesizers::{
+            cache::{SynthesizerCache, SynthesizerCacheKey},
+            typedefs::{AttributeCountMap, SynthesizedRecord, SynthesizedRecords},
+        },
+    },
     utils::{
         collections::{ordered_vec_intersection, sample_weighted},
         reporting::{SendableProgressReporter, SendableProgressReporterRef},
     },
 };
-use rand::{prelude::SliceRandom, thread_rng};
-use std::sync::Arc;
 
 #[cfg(feature = "rayon")]
 use rayon::prelude::*;

@@ -1,12 +1,12 @@
-use super::{
-    cache::SynthesizerCache, typedefs::SynthesizedRecords,
-    unseeded_rows_synthesizer::UnseededRowsSynthesizer,
-};
+mod unseeded_rows_synthesizer;
+
 use log::info;
 use std::sync::Arc;
+use unseeded_rows_synthesizer::UnseededRowsSynthesizer;
 
 use crate::{
     data_block::{block::DataBlock, typedefs::AttributeRowsByColumnMap},
+    processing::generator::synthesizers::{cache::SynthesizerCache, typedefs::SynthesizedRecords},
     utils::{
         math::calc_percentage, reporting::ReportProgress, threading::get_number_of_threads,
         time::ElapsedDurationLogger,

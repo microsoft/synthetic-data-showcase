@@ -1,19 +1,19 @@
-use super::{
-    consolidate::{Consolidate, ConsolidateContext},
-    consolidate_parameters::ConsolidateParameters,
-    suppress::Suppress,
-    synthesis_data::SynthesisData,
-    typedefs::{
-        AttributeCountMap, AvailableAttrsMap, NotAllowedAttrSet, SynthesizedRecord,
-        SynthesizedRecords, SynthesizedRecordsSlice,
-    },
-};
 use itertools::Itertools;
 use std::sync::Arc;
 
 use crate::{
-    data_block::{block::DataBlock, value::DataBlockValue},
-    processing::aggregator::value_combination::ValueCombination,
+    data_block::{block::DataBlock, typedefs::DataBlockHeaders, value::DataBlockValue},
+    processing::{
+        aggregator::value_combination::ValueCombination,
+        generator::synthesizers::{
+            consolidate_parameters::ConsolidateParameters,
+            traits::{Consolidate, ConsolidateContext, Suppress, SynthesisData},
+            typedefs::{
+                AttributeCountMap, AvailableAttrsMap, NotAllowedAttrSet, SynthesizedRecord,
+                SynthesizedRecords, SynthesizedRecordsSlice,
+            },
+        },
+    },
     utils::{collections::sample_weighted, math::calc_percentage, reporting::ReportProgress},
 };
 
@@ -101,8 +101,8 @@ impl FromAggregatesSynthesizer {
 
 impl SynthesisData for FromAggregatesSynthesizer {
     #[inline]
-    fn get_data_block(&self) -> &DataBlock {
-        &self.data_block
+    fn get_headers(&self) -> &DataBlockHeaders {
+        &self.data_block.headers
     }
 
     #[inline]

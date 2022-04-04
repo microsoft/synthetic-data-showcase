@@ -5,7 +5,7 @@ use pyo3::prelude::*;
 use sds_core::{
     dp::sensitivity_filter_parameters,
     processing::{
-        aggregator::aggregated_data, evaluator, generator::synthesizer::consolidate_parameters,
+        aggregator::aggregated_data, evaluator, generator::synthesizers::consolidate_parameters,
     },
     utils::threading,
 };

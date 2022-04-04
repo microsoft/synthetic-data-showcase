@@ -1,12 +1,15 @@
-use super::{
-    attribute_rows_sampler::AttributeRowsSampler,
-    typedefs::{NotAllowedAttrSet, SynthesizedRecord, SynthesizedRecords, SynthesizerSeed},
-};
+use std::sync::Arc;
+
 use crate::{
     data_block::typedefs::AttributeRowsMap,
+    processing::generator::{
+        synthesizers::attribute_rows_sampler::AttributeRowsSampler,
+        synthesizers::typedefs::{
+            NotAllowedAttrSet, SynthesizedRecord, SynthesizedRecords, SynthesizerSeed,
+        },
+    },
     utils::reporting::{SendableProgressReporter, SendableProgressReporterRef},
 };
-use std::sync::Arc;
 
 #[cfg(feature = "rayon")]
 use rayon::prelude::*;
