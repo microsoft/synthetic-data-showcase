@@ -9,12 +9,13 @@ use super::{
         SynthesizedRecords, SynthesizedRecordsSlice,
     },
 };
+use itertools::Itertools;
 use std::sync::Arc;
 
 use crate::{
     data_block::{block::DataBlock, value::DataBlockValue},
     processing::aggregator::value_combination::ValueCombination,
-    utils::{math::calc_percentage, reporting::ReportProgress},
+    utils::{collections::sample_weighted, math::calc_percentage, reporting::ReportProgress},
 };
 
 /// Represents all the information required to perform the synthesis from aggregates
@@ -155,19 +156,82 @@ impl Consolidate for FromAggregatesSynthesizer {
     #[inline]
     fn sample_next_attr(
         &self,
-        synthesizer_context: &mut SynthesizerContext,
+        _synthesizer_context: &mut SynthesizerContext,
         consolidate_context: &ConsolidateContext,
         last_processed: &ValueCombination,
         synthesized_record: &SynthesizedRecord,
         not_allowed_attr_set: &NotAllowedAttrSet,
     ) -> Option<Arc<DataBlockValue>> {
-        synthesizer_context.sample_next_attr_from_aggregates(
-            consolidate_context,
-            last_processed,
-            synthesized_record,
-            not_allowed_attr_set,
-            &self.consolidate_parameters,
-        )
+        let counts: AttributeCountMap = consolidate_context
+            .available_attrs
+            .iter()
+            .filter_map(|(attr, count)| {
+                if *count > 0
+                    && !synthesized_record.contains(attr)
+                    && !not_allowed_attr_set.contains(attr)
+                {
+                    // find the minimum value between the new record
+                    // length and the combination length
+                    let combination_length = usize::min(
+                        synthesized_record.len() + 1,
+                        self.consolidate_parameters.aggregated_data.reporting_length,
+                    );
+                    let mut current_comb = last_processed.clone();
+                    let mut sensitive_count = 0;
+
+                    current_comb.extend(attr.clone(), &self.data_block.headers);
+
+                    // check if the combinations
+                    // from this record are valid according
+                    // to the resolution
+                    for mut comb in current_comb.iter().combinations(combination_length) {
+                        let value_combination =
+                            ValueCombination::new(comb.drain(..).cloned().collect());
+
+                        if let Some(local_count) = self
+                            .consolidate_parameters
+                            .aggregated_data
+                            .aggregates_count
+                            .get(&value_combination)
+                        {
+                            if self.consolidate_parameters.use_synthetic_counts {
+                                let synthetic_count = consolidate_context
+                                    .synthetic_counts
+                                    .get(&value_combination)
+                                    .unwrap_or(&0);
+
+                                if *synthetic_count == 0 {
+                                    // burst contribution if the combination has not
+                                    // been used just yet
+                                    sensitive_count += 2 * self.data_block.number_of_records();
+                                } else {
+                                    if *synthetic_count > local_count.count {
+                                        return None;
+                                    }
+
+                                    // get the aggregate count
+                                    // that will be used in the weighted sampling
+                                    // and remove the count already synthesized
+                                    sensitive_count += local_count.count - synthetic_count;
+                                }
+                            } else {
+                                // get the aggregate count
+                                // that will be used in the weighted sampling
+                                sensitive_count += local_count.count;
+                            }
+                        } else {
+                            return None;
+                        }
+                    }
+
+                    Some((attr.clone(), sensitive_count))
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        sample_weighted(&counts)
     }
 
     #[inline]

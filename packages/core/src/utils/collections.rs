@@ -1,3 +1,6 @@
+use fnv::FnvHashMap;
+use itertools::Itertools;
+use rand::Rng;
 use std::cmp::Ordering;
 use std::hash::Hash;
 
@@ -49,4 +52,35 @@ where
     let mut cloned: Vec<T> = src.to_vec();
     cloned.sort_by_key(f);
     cloned
+}
+
+/// Samples a key from the map using its count
+/// (the higher the count the greater the chance for the
+/// key to be selected).
+/// Returns `None` if all the counts are 0 or the map is empty
+/// # Arguments
+/// * `counts` - Maps a key to its count for sampling
+#[inline]
+pub fn sample_weighted<K>(counts: &FnvHashMap<K, usize>) -> Option<K>
+where
+    K: Clone,
+{
+    let mut res: Option<K> = None;
+    let total: usize = counts.values().sum();
+
+    if total != 0 {
+        let random = rand::thread_rng().gen_range(1..=total);
+        let mut current_sum: usize = 0;
+
+        for (value, count) in counts.iter().sorted_by_key(|(_, c)| **c) {
+            if *count > 0 {
+                current_sum += count;
+                res = Some(value.clone());
+                if current_sum >= random {
+                    break;
+                }
+            }
+        }
+    }
+    res
 }

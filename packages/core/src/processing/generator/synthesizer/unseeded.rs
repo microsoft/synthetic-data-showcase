@@ -1,5 +1,5 @@
 use super::{
-    context::SynthesizerContext, typedefs::SynthesizedRecords,
+    cache::SynthesizerCache, typedefs::SynthesizedRecords,
     unseeded_rows_synthesizer::UnseededRowsSynthesizer,
 };
 use log::info;
@@ -90,11 +90,9 @@ impl UnseededSynthesizer {
         loop {
             if total_size > chunk_size {
                 rows_synthesizers.push(UnseededRowsSynthesizer::new(
-                    SynthesizerContext::new(
-                        self.data_block.clone(),
-                        self.resolution,
-                        self.cache_max_size,
-                    ),
+                    SynthesizerCache::new(self.cache_max_size),
+                    self.data_block.clone(),
+                    self.resolution,
                     chunk_size,
                     self.attr_rows_map_by_column.clone(),
                     self.empty_value.clone(),
@@ -102,11 +100,9 @@ impl UnseededSynthesizer {
                 total_size -= chunk_size;
             } else {
                 rows_synthesizers.push(UnseededRowsSynthesizer::new(
-                    SynthesizerContext::new(
-                        self.data_block.clone(),
-                        self.resolution,
-                        self.cache_max_size,
-                    ),
+                    SynthesizerCache::new(self.cache_max_size),
+                    self.data_block.clone(),
+                    self.resolution,
                     total_size,
                     self.attr_rows_map_by_column.clone(),
                     self.empty_value.clone(),

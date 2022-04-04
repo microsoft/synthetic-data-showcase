@@ -1,22 +1,13 @@
 use super::cache::{SynthesizerCache, SynthesizerCacheKey};
-use super::consolidate::ConsolidateContext;
-use super::consolidate_parameters::ConsolidateParameters;
 use super::typedefs::{
     AttributeCountMap, NotAllowedAttrSet, SynthesizedRecord, SynthesizerSeedSlice,
 };
-use itertools::Itertools;
-use rand::Rng;
 use std::sync::Arc;
 
 use crate::data_block::block::DataBlock;
-use crate::data_block::typedefs::{
-    AttributeRows, AttributeRowsByColumnMap, AttributeRowsMap, AttributeRowsRefMap,
-    AttributeRowsSlice,
-};
+use crate::data_block::typedefs::{AttributeRows, AttributeRowsMap, AttributeRowsSlice};
 use crate::data_block::value::DataBlockValue;
-use crate::processing::aggregator::typedefs::RecordsSet;
-use crate::processing::aggregator::value_combination::ValueCombination;
-use crate::utils::collections::ordered_vec_intersection;
+use crate::utils::collections::{ordered_vec_intersection, sample_weighted};
 
 /// Represents a synthesis context, containing the information
 /// required to synthesize new records
@@ -26,8 +17,6 @@ pub struct SynthesizerContext {
     pub headers_len: usize,
     /// Number of records in the data block
     pub records_len: usize,
-    /// Reference to the original data block
-    data_block: Arc<DataBlock>,
     /// Cache used to store the rows where value combinations occurs
     cache: SynthesizerCache<Arc<AttributeRows>>,
     /// Reporting resolution used for data synthesis
@@ -49,37 +38,9 @@ impl SynthesizerContext {
         SynthesizerContext {
             headers_len: data_block.headers.len(),
             records_len: data_block.records.len(),
-            data_block,
             cache: SynthesizerCache::new(cache_max_size),
             resolution,
         }
-    }
-
-    /// Samples an attribute based on its count
-    /// (the higher the count the greater the chance for the
-    /// attribute to be selected).
-    /// Returns `None` if all the counts are 0 or the map is empty
-    /// # Arguments
-    /// * `counts` - Maps an attribute to its count for sampling
-    pub fn sample_from_attr_counts(counts: &AttributeCountMap) -> Option<Arc<DataBlockValue>> {
-        let mut res: Option<Arc<DataBlockValue>> = None;
-        let total: usize = counts.values().sum();
-
-        if total != 0 {
-            let random = rand::thread_rng().gen_range(1..=total);
-            let mut current_sum: usize = 0;
-
-            for (value, count) in counts.iter().sorted_by_key(|(_, c)| **c) {
-                if *count > 0 {
-                    current_sum += count;
-                    res = Some(value.clone());
-                    if current_sum >= random {
-                        break;
-                    }
-                }
-            }
-        }
-        res
     }
 
     /// Samples the next attribute from the `current_seed` record.
@@ -102,165 +63,7 @@ impl SynthesizerContext {
             not_allowed_attr_set,
             attr_rows_map,
         );
-        SynthesizerContext::sample_from_attr_counts(&counts)
-    }
-
-    /// Samples the next attribute from the `aggregated_data` using
-    /// information about the `available_attrs` and currently `synthesized_record`
-    /// Returns `None` if nothing more can be sampled.
-    /// # Arguments
-    /// * `last_processed` - Value combinations processed so far,
-    /// related to the `synthesized_record`
-    /// * `synthesized_record` - Record synthesized so far
-    /// * `headers` - Data block headers used to create value combinations
-    /// * `available_attrs` - Currently available attributes to sample from
-    /// * `not_allowed_attr_set` - Attributes not allowed to be sampled
-    /// * `aggregated_data` - Aggregated data with the aggregate counts used
-    /// to infer the next sample
-    pub fn sample_next_attr_from_aggregates(
-        &mut self,
-        consolidate_context: &ConsolidateContext,
-        last_processed: &ValueCombination,
-        synthesized_record: &SynthesizedRecord,
-        not_allowed_attr_set: &NotAllowedAttrSet,
-        consolidate_parameters: &ConsolidateParameters,
-    ) -> Option<Arc<DataBlockValue>> {
-        let counts: AttributeCountMap = consolidate_context
-            .available_attrs
-            .iter()
-            .filter_map(|(attr, count)| {
-                if *count > 0
-                    && !synthesized_record.contains(attr)
-                    && !not_allowed_attr_set.contains(attr)
-                {
-                    // find the minimum value between the new record
-                    // length and the combination length
-                    let combination_length = usize::min(
-                        synthesized_record.len() + 1,
-                        consolidate_parameters.aggregated_data.reporting_length,
-                    );
-                    let mut current_comb = last_processed.clone();
-                    let mut sensitive_count = 0;
-
-                    current_comb.extend(attr.clone(), &self.data_block.headers);
-
-                    // check if the combinations
-                    // from this record are valid according
-                    // to the resolution
-                    for mut comb in current_comb.iter().combinations(combination_length) {
-                        let value_combination =
-                            ValueCombination::new(comb.drain(..).cloned().collect());
-
-                        if let Some(local_count) = consolidate_parameters
-                            .aggregated_data
-                            .aggregates_count
-                            .get(&value_combination)
-                        {
-                            if consolidate_parameters.use_synthetic_counts {
-                                let synthetic_count = consolidate_context
-                                    .synthetic_counts
-                                    .get(&value_combination)
-                                    .unwrap_or(&0);
-
-                                if *synthetic_count == 0 {
-                                    // burst contribution if the combination has not
-                                    // been used just yet
-                                    sensitive_count += 2 * self.records_len;
-                                } else {
-                                    if *synthetic_count > local_count.count {
-                                        return None;
-                                    }
-
-                                    // get the aggregate count
-                                    // that will be used in the weighted sampling
-                                    // and remove the count already synthesized
-                                    sensitive_count += local_count.count - synthetic_count;
-                                }
-                            } else {
-                                // get the aggregate count
-                                // that will be used in the weighted sampling
-                                sensitive_count += local_count.count;
-                            }
-                        } else {
-                            return None;
-                        }
-                    }
-
-                    Some((attr.clone(), sensitive_count))
-                } else {
-                    None
-                }
-            })
-            .collect();
-
-        SynthesizerContext::sample_from_attr_counts(&counts)
-    }
-
-    /// Samples the next attribute from the column at `column_index`.
-    /// Returns a tuple with
-    /// (intersection of `current_attrs_rows` and rows that sampled value appear, sampled value)
-    /// # Arguments
-    /// * `synthesized_record` - Record synthesized so far
-    /// * `column_index` - Index of the column to sample from
-    /// * `attr_rows_map_by_column` - Maps the column index -> data block value -> rows where the value appear
-    /// * `current_attrs_rows` - Rows where the so far sampled combination appear
-    /// * `empty_value` - Empty values on the synthetic data will be represented by this
-    pub fn sample_next_attr_from_column(
-        &mut self,
-        synthesized_record: &SynthesizedRecord,
-        column_index: usize,
-        attr_rows_map_by_column: &AttributeRowsByColumnMap,
-        current_attrs_rows: &AttributeRowsSlice,
-        empty_value: &Arc<String>,
-    ) -> Option<(Arc<AttributeRows>, Arc<DataBlockValue>)> {
-        let cache_key = SynthesizerCacheKey::new(self.headers_len, synthesized_record);
-        let empty_block_value = Arc::new(DataBlockValue::new(column_index, empty_value.clone()));
-        let mut values_to_sample: AttributeRowsRefMap = AttributeRowsRefMap::default();
-        let mut counts = AttributeCountMap::default();
-
-        // calculate the row intersections for each value in the column
-        for (value, rows) in attr_rows_map_by_column[&column_index].iter() {
-            let new_cache_key = cache_key.new_with_value(value);
-            let rows_intersection = match self.cache.get(&new_cache_key) {
-                Some(cached_value) => cached_value.clone(),
-                None => {
-                    let intersection = Arc::new(ordered_vec_intersection(current_attrs_rows, rows));
-                    self.cache.insert(new_cache_key, intersection.clone());
-                    intersection
-                }
-            };
-            values_to_sample.insert(value.clone(), rows_intersection);
-        }
-
-        // store the rows with empty values
-        let mut rows_with_empty_values: RecordsSet = values_to_sample[&empty_block_value]
-            .iter()
-            .cloned()
-            .collect();
-
-        for (value, rows) in values_to_sample.iter() {
-            if rows.len() < self.resolution {
-                // if the combination containing the attribute appears in less
-                // than resolution rows, we can't use it so we tag it as an empty value
-                rows_with_empty_values.extend(rows.iter());
-            } else if **value != *empty_block_value {
-                // if we can use the combination containing the attribute
-                // gather its count for sampling
-                counts.insert(value.clone(), rows.len());
-            }
-        }
-
-        // if there are empty values that can be sampled, add them for sampling
-        if !rows_with_empty_values.is_empty() {
-            counts.insert(empty_block_value, rows_with_empty_values.len());
-        }
-
-        Self::sample_from_attr_counts(&counts).map(|sampled_value| {
-            (
-                values_to_sample.remove(&sampled_value).unwrap(),
-                sampled_value,
-            )
-        })
+        sample_weighted(&counts)
     }
 
     fn calc_current_attrs_rows(
