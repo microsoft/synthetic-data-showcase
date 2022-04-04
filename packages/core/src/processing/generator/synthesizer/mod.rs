@@ -4,8 +4,9 @@ pub mod cache;
 /// Consolidate process input parameters definitions
 pub mod consolidate_parameters;
 
-/// Module defining the context used for data synthesis
-pub mod context;
+/// Module defining a sampler that respect the
+/// original attribute row distributions
+pub mod attribute_rows_sampler;
 
 /// Module defining the seeded synthesis process
 pub mod seeded;

@@ -9,10 +9,9 @@ use crate::data_block::typedefs::{AttributeRows, AttributeRowsMap, AttributeRows
 use crate::data_block::value::DataBlockValue;
 use crate::utils::collections::{ordered_vec_intersection, sample_weighted};
 
-/// Represents a synthesis context, containing the information
-/// required to synthesize new records
-/// (common to seeded and unseeded synthesis)
-pub struct SynthesizerContext {
+/// Attributes rows samples. This will sample records from a seed,
+/// respecting the attribute rows ids distributions
+pub struct AttributeRowsSampler {
     /// Number of headers in the data block
     pub headers_len: usize,
     /// Number of records in the data block
@@ -23,24 +22,30 @@ pub struct SynthesizerContext {
     resolution: usize,
 }
 
-impl SynthesizerContext {
-    /// Returns a new SynthesizerContext
+impl AttributeRowsSampler {
+    /// Returns a new AttributeRowsSampler
     /// # Arguments
     /// * `data_block` - Reference to the original data block
     /// * `resolution` - Reporting resolution used for data synthesis
-    /// * `cache_max_size` - Maximum cache size allowed
+    /// * `cache` - Cache to store attribute intersections and speedup the processing
     #[inline]
     pub fn new(
         data_block: Arc<DataBlock>,
         resolution: usize,
-        cache_max_size: usize,
-    ) -> SynthesizerContext {
-        SynthesizerContext {
+        cache: SynthesizerCache<Arc<AttributeRows>>,
+    ) -> AttributeRowsSampler {
+        AttributeRowsSampler {
             headers_len: data_block.headers.len(),
             records_len: data_block.records.len(),
-            cache: SynthesizerCache::new(cache_max_size),
+            cache,
             resolution,
         }
+    }
+
+    /// Clears the content of the cache
+    #[inline]
+    pub fn clear_cache(&mut self) {
+        self.cache.clear();
     }
 
     /// Samples the next attribute from the `current_seed` record.
@@ -50,6 +55,7 @@ impl SynthesizerContext {
     /// * `current_seed` - Current seed/record used for sampling
     /// * `not_allowed_attr_set` - Attributes not allowed to be sampled
     /// * `attr_rows_map` - Maps a data block value to all the rows where it occurs
+    #[inline]
     pub fn sample_next_attr_from_seed(
         &mut self,
         synthesized_record: &SynthesizedRecord,
@@ -66,6 +72,7 @@ impl SynthesizerContext {
         sample_weighted(&counts)
     }
 
+    #[inline]
     fn calc_current_attrs_rows(
         &mut self,
         cache_key: &SynthesizerCacheKey,
@@ -98,6 +105,7 @@ impl SynthesizerContext {
         }
     }
 
+    #[inline]
     fn gen_attr_count_map(
         &mut self,
         cache_key: &SynthesizerCacheKey,
@@ -135,6 +143,7 @@ impl SynthesizerContext {
         attr_count_map
     }
 
+    #[inline]
     fn calc_next_attr_count(
         &mut self,
         synthesized_record: &SynthesizedRecord,

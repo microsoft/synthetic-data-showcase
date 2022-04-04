@@ -73,7 +73,6 @@ impl Generator {
             ),
             SynthesisMode::FromAggregates => self.from_aggregates_synthesis(
                 resolution,
-                cache_max_size,
                 consolidate_parameters,
                 progress_reporter,
             ),
@@ -197,7 +196,6 @@ impl Generator {
     pub fn from_aggregates_synthesis<T>(
         &self,
         resolution: usize,
-        cache_max_size: usize,
         consolidate_parameters: ConsolidateParameters,
         progress_reporter: &mut Option<T>,
     ) -> SynthesizedRecords
@@ -215,7 +213,6 @@ impl Generator {
         let mut synth = FromAggregatesSynthesizer::new(
             self.data_block.clone(),
             resolution,
-            cache_max_size,
             consolidate_parameters,
         );
         synth.run(progress_reporter)

@@ -1,7 +1,8 @@
 use super::{
+    attribute_rows_sampler::AttributeRowsSampler,
+    cache::SynthesizerCache,
     consolidate::{Consolidate, ConsolidateContext},
     consolidate_parameters::ConsolidateParameters,
-    context::SynthesizerContext,
     seeded_rows_synthesizer::SeededRowsSynthesizer,
     suppress::Suppress,
     synthesis_data::SynthesisData,
@@ -35,6 +36,8 @@ pub struct SeededSynthesizer {
     resolution: usize,
     /// Maximum cache size allowed
     cache_max_size: usize,
+    /// Sampler that keeps the attribute rows distributions
+    consolidate_sampler: AttributeRowsSampler,
     /// Percentage already completed on the row synthesis step
     synthesize_percentage: f64,
     /// Percentage already completed on the consolidation step
@@ -57,6 +60,12 @@ impl SeededSynthesizer {
         resolution: usize,
         cache_max_size: usize,
     ) -> SeededSynthesizer {
+        let consolidate_sampler = AttributeRowsSampler::new(
+            data_block.clone(),
+            resolution,
+            SynthesizerCache::new(cache_max_size),
+        );
+
         SeededSynthesizer {
             data_block,
             single_attr_counts: attr_rows_map
@@ -66,6 +75,7 @@ impl SeededSynthesizer {
             attr_rows_map,
             resolution,
             cache_max_size,
+            consolidate_sampler,
             synthesize_percentage: 0.0,
             consolidate_percentage: 0.0,
             suppress_percentage: 0.0,
@@ -95,11 +105,11 @@ impl SeededSynthesizer {
                 &mut rows_synthesizers,
                 progress_reporter,
             );
+
+            self.consolidate_sampler.clear_cache();
             self.consolidate(
                 &mut synthesized_records,
                 progress_reporter,
-                // use the first context to leverage already cached intersections
-                &mut rows_synthesizers[0].context,
                 ConsolidateParameters::default(),
             );
             self.suppress(&mut synthesized_records, progress_reporter);
@@ -115,10 +125,10 @@ impl SeededSynthesizer {
 
         for c in &self.data_block.records.iter().chunks(chunk_size) {
             rows_synthesizers.push(SeededRowsSynthesizer::new(
-                SynthesizerContext::new(
+                AttributeRowsSampler::new(
                     self.data_block.clone(),
                     self.resolution,
-                    self.cache_max_size,
+                    SynthesizerCache::new(self.cache_max_size),
                 ),
                 c.cloned().collect(),
                 self.attr_rows_map.clone(),
@@ -179,7 +189,7 @@ impl SeededSynthesizer {
 
 impl SynthesisData for SeededSynthesizer {
     #[inline]
-    fn get_data_block(&self) -> &Arc<DataBlock> {
+    fn get_data_block(&self) -> &DataBlock {
         &self.data_block
     }
 
@@ -221,14 +231,13 @@ impl Consolidate for SeededSynthesizer {
 
     #[inline]
     fn sample_next_attr(
-        &self,
-        synthesizer_context: &mut SynthesizerContext,
+        &mut self,
         consolidate_context: &ConsolidateContext,
         _last_processed: &ValueCombination,
         synthesized_record: &SynthesizedRecord,
         not_allowed_attr_set: &NotAllowedAttrSet,
     ) -> Option<Arc<DataBlockValue>> {
-        synthesizer_context.sample_next_attr_from_seed(
+        self.consolidate_sampler.sample_next_attr_from_seed(
             synthesized_record,
             &consolidate_context.current_seed,
             not_allowed_attr_set,

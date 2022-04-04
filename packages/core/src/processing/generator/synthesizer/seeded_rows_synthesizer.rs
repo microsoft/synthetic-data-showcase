@@ -1,5 +1,5 @@
 use super::{
-    context::SynthesizerContext,
+    attribute_rows_sampler::AttributeRowsSampler,
     typedefs::{NotAllowedAttrSet, SynthesizedRecord, SynthesizedRecords, SynthesizerSeed},
 };
 use crate::{
@@ -20,7 +20,7 @@ use crate::{
 };
 
 pub struct SeededRowsSynthesizer {
-    pub context: SynthesizerContext,
+    pub sampler: AttributeRowsSampler,
     pub records: DataBlockRecords,
     pub attr_rows_map: Arc<AttributeRowsMap>,
 }
@@ -28,12 +28,12 @@ pub struct SeededRowsSynthesizer {
 impl SeededRowsSynthesizer {
     #[inline]
     pub fn new(
-        context: SynthesizerContext,
+        sampler: AttributeRowsSampler,
         records: DataBlockRecords,
         attr_rows_map: Arc<AttributeRowsMap>,
     ) -> SeededRowsSynthesizer {
         SeededRowsSynthesizer {
-            context,
+            sampler,
             records,
             attr_rows_map,
         }
@@ -108,7 +108,7 @@ impl SeededRowsSynthesizer {
         let not_allowed_attr_set = NotAllowedAttrSet::default();
 
         loop {
-            let next = self.context.sample_next_attr_from_seed(
+            let next = self.sampler.sample_next_attr_from_seed(
                 &synthesized_record,
                 current_seed,
                 &not_allowed_attr_set,

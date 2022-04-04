@@ -1,7 +1,8 @@
 use super::{
+    attribute_rows_sampler::AttributeRowsSampler,
+    cache::SynthesizerCache,
     consolidate::{Consolidate, ConsolidateContext},
     consolidate_parameters::ConsolidateParameters,
-    context::SynthesizerContext,
     suppress::Suppress,
     synthesis_data::SynthesisData,
     typedefs::{
@@ -27,10 +28,10 @@ pub struct FromCountsSynthesizer {
     single_attr_counts: AttributeCountMap,
     /// Reporting resolution used for data synthesis
     resolution: usize,
-    /// Maximum cache size allowed
-    cache_max_size: usize,
-    // Parameters used for data consolidation
+    /// Parameters used for data consolidation
     consolidate_parameters: ConsolidateParameters,
+    /// Sampler that keeps the attribute rows distributions
+    consolidate_sampler: AttributeRowsSampler,
     /// Percentage already completed on the consolidation step
     consolidate_percentage: f64,
     /// Percentage already completed on the suppression step
@@ -53,6 +54,12 @@ impl FromCountsSynthesizer {
         cache_max_size: usize,
         consolidate_parameters: ConsolidateParameters,
     ) -> FromCountsSynthesizer {
+        let consolidate_sampler = AttributeRowsSampler::new(
+            data_block.clone(),
+            resolution,
+            SynthesizerCache::new(cache_max_size),
+        );
+
         FromCountsSynthesizer {
             data_block,
             single_attr_counts: attr_rows_map
@@ -61,7 +68,7 @@ impl FromCountsSynthesizer {
                 .collect(),
             attr_rows_map,
             resolution,
-            cache_max_size,
+            consolidate_sampler,
             consolidate_parameters,
             consolidate_percentage: 0.0,
             suppress_percentage: 0.0,
@@ -81,19 +88,13 @@ impl FromCountsSynthesizer {
         let mut synthesized_records: SynthesizedRecords = SynthesizedRecords::new();
 
         if !self.data_block.records.is_empty() {
-            let mut context = SynthesizerContext::new(
-                self.data_block.clone(),
-                self.resolution,
-                self.cache_max_size,
-            );
-
             self.consolidate_percentage = 0.0;
             self.suppress_percentage = 0.0;
+            self.consolidate_sampler.clear_cache();
 
             self.consolidate(
                 &mut synthesized_records,
                 progress_reporter,
-                &mut context,
                 self.consolidate_parameters.clone(),
             );
             self.suppress(&mut synthesized_records, progress_reporter);
@@ -109,7 +110,7 @@ impl FromCountsSynthesizer {
 
 impl SynthesisData for FromCountsSynthesizer {
     #[inline]
-    fn get_data_block(&self) -> &Arc<DataBlock> {
+    fn get_data_block(&self) -> &DataBlock {
         &self.data_block
     }
 
@@ -160,14 +161,13 @@ impl Consolidate for FromCountsSynthesizer {
 
     #[inline]
     fn sample_next_attr(
-        &self,
-        synthesizer_context: &mut SynthesizerContext,
+        &mut self,
         consolidate_context: &ConsolidateContext,
         _last_processed: &ValueCombination,
         synthesized_record: &SynthesizedRecord,
         not_allowed_attr_set: &NotAllowedAttrSet,
     ) -> Option<Arc<DataBlockValue>> {
-        synthesizer_context.sample_next_attr_from_seed(
+        self.consolidate_sampler.sample_next_attr_from_seed(
             synthesized_record,
             &consolidate_context.current_seed,
             not_allowed_attr_set,

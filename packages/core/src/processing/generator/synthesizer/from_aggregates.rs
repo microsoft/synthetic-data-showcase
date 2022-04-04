@@ -1,7 +1,6 @@
 use super::{
     consolidate::{Consolidate, ConsolidateContext},
     consolidate_parameters::ConsolidateParameters,
-    context::SynthesizerContext,
     suppress::Suppress,
     synthesis_data::SynthesisData,
     typedefs::{
@@ -25,8 +24,6 @@ pub struct FromAggregatesSynthesizer {
     data_block: Arc<DataBlock>,
     /// Reporting resolution used for data synthesis
     resolution: usize,
-    /// Maximum cache size allowed
-    cache_max_size: usize,
     /// Parameters used for data consolidation
     consolidate_parameters: ConsolidateParameters,
     /// Cached single attribute counts
@@ -42,19 +39,16 @@ impl FromAggregatesSynthesizer {
     /// # Arguments
     /// * `data_block` - Sensitive data to be synthesized
     /// * `resolution` - Reporting resolution used for data synthesis
-    /// * `cache_max_size` - Maximum cache size allowed
     /// * `consolidate_parameters` - Parameters used for data consolidation
     #[inline]
     pub fn new(
         data_block: Arc<DataBlock>,
         resolution: usize,
-        cache_max_size: usize,
         consolidate_parameters: ConsolidateParameters,
     ) -> FromAggregatesSynthesizer {
         FromAggregatesSynthesizer {
             data_block,
             resolution,
-            cache_max_size,
             single_attr_counts: consolidate_parameters
                 .aggregated_data
                 .aggregates_count
@@ -86,19 +80,12 @@ impl FromAggregatesSynthesizer {
         let mut synthesized_records: SynthesizedRecords = SynthesizedRecords::new();
 
         if !self.data_block.records.is_empty() {
-            let mut context = SynthesizerContext::new(
-                self.data_block.clone(),
-                self.resolution,
-                self.cache_max_size,
-            );
-
             self.consolidate_percentage = 0.0;
             self.suppress_percentage = 0.0;
 
             self.consolidate(
                 &mut synthesized_records,
                 progress_reporter,
-                &mut context,
                 self.consolidate_parameters.clone(),
             );
             self.suppress(&mut synthesized_records, progress_reporter);
@@ -114,7 +101,7 @@ impl FromAggregatesSynthesizer {
 
 impl SynthesisData for FromAggregatesSynthesizer {
     #[inline]
-    fn get_data_block(&self) -> &Arc<DataBlock> {
+    fn get_data_block(&self) -> &DataBlock {
         &self.data_block
     }
 
@@ -155,8 +142,7 @@ impl Consolidate for FromAggregatesSynthesizer {
 
     #[inline]
     fn sample_next_attr(
-        &self,
-        _synthesizer_context: &mut SynthesizerContext,
+        &mut self,
         consolidate_context: &ConsolidateContext,
         last_processed: &ValueCombination,
         synthesized_record: &SynthesizedRecord,

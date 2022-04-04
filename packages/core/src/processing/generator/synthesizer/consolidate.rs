@@ -1,6 +1,5 @@
 use super::{
     consolidate_parameters::ConsolidateParameters,
-    context::SynthesizerContext,
     synthesis_data::SynthesisData,
     typedefs::{
         AvailableAttrsMap, NotAllowedAttrSet, RawCombinationsSet, SynthesizedRecord,
@@ -152,8 +151,7 @@ pub trait Consolidate: SynthesisData {
 
     #[inline]
     fn consolidate_record(
-        &self,
-        synthesizer_context: &mut SynthesizerContext,
+        &mut self,
         consolidate_context: &mut ConsolidateContext,
         parameters: &ConsolidateParameters,
     ) -> SynthesizedRecord {
@@ -167,7 +165,6 @@ pub trait Consolidate: SynthesisData {
 
         loop {
             let next = self.sample_next_attr(
-                synthesizer_context,
                 consolidate_context,
                 &last_processed,
                 &synthesized_record,
@@ -212,7 +209,6 @@ pub trait Consolidate: SynthesisData {
         &mut self,
         synthesized_records: &mut SynthesizedRecords,
         progress_reporter: &mut Option<T>,
-        synthesizer_context: &mut SynthesizerContext,
         parameters: ConsolidateParameters,
     ) where
         T: ReportProgress,
@@ -234,11 +230,8 @@ pub trait Consolidate: SynthesisData {
 
         while !consolidate_context.available_attrs.is_empty() {
             self.update_consolidate_progress(n_processed, total_f64, progress_reporter);
-            synthesized_records.push(self.consolidate_record(
-                synthesizer_context,
-                &mut consolidate_context,
-                &parameters,
-            ));
+            synthesized_records
+                .push(self.consolidate_record(&mut consolidate_context, &parameters));
             n_processed =
                 (total - consolidate_context.available_attrs.values().sum::<isize>()) as usize;
         }
@@ -251,8 +244,7 @@ pub trait Consolidate: SynthesisData {
     ) -> AvailableAttrsMap;
 
     fn sample_next_attr(
-        &self,
-        synthesizer_context: &mut SynthesizerContext,
+        &mut self,
         consolidate_context: &ConsolidateContext,
         last_processed: &ValueCombination,
         synthesized_record: &SynthesizedRecord,

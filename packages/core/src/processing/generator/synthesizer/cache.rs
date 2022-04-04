@@ -105,4 +105,10 @@ impl<T> SynthesizerCache<T> {
     pub fn insert(&mut self, key: SynthesizerCacheKey, value: T) -> Option<T> {
         self.cache.put(key, value)
     }
+
+    /// Clears the content of the cache
+    #[inline]
+    pub fn clear(&mut self) {
+        self.cache.clear();
+    }
 }
