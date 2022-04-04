@@ -78,12 +78,14 @@ def runForConfig(config):
 
     # differential privacy
     config['dp_aggregates'] = config.get('dp_aggregates', False)
-    config['sensitivities_epsilon'] = config.get(
-        'sensitivities_epsilon', None)
+    config['filter_sensitivities'] = config.get('filter_sensitivities', False)
+    config['sensitivities_epsilon'] = config.get('sensitivities_epsilon', None)
     config['sensitivities_percentile'] = config.get(
         'sensitivities_percentile', None)
     config['noise_epsilon'] = config.get('noise_epsilon', None)
     config['noise_delta'] = config.get('noise_delta', None)
+    config['noise_threshold_type'] = config.get('noise_threshold_type', None)
+    config['noise_threshold_value'] = config.get('noise_threshold_value', None)
 
     # parameters affecting the representation and interpretation of values
     config['sensitive_zeros'] = config.get('sensitive_zeros', [])

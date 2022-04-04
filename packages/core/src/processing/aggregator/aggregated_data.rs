@@ -9,10 +9,8 @@ use super::{
 };
 use fnv::FnvHashMap;
 use itertools::Itertools;
-use log::{info, warn};
-use rand::{prelude::Distribution as rand_dist, thread_rng};
+use log::info;
 use serde::{Deserialize, Serialize};
-use statrs::{distribution::Normal, statistics::Distribution};
 use std::{
     io::{BufReader, BufWriter, Error, Write},
     sync::Arc,
@@ -24,10 +22,9 @@ use pyo3::prelude::*;
 use crate::{
     data_block::block::DataBlock,
     dp::{
-        aggregated_data_sensitivity_filter::AggregatedDataSensitivityFilter,
-        analytic_gaussian::{DpAnalyticGaussianContinuousCDFScale, DEFAULT_TOLERANCE},
-        stats_error::StatsError,
-        typedefs::AllowedSensitivityByLen,
+        noise_aggregator::NoiseAggregator,
+        sensitivity_filter_parameters::SensitivityFilterParameters, stats_error::StatsError,
+        threshold_type::ThresholdType,
     },
     processing::aggregator::{
         typedefs::RecordsSet, value_combination::ValueCombination, AggregatedCount,
@@ -208,6 +205,46 @@ impl AggregatedData {
         line.push('\n');
         line
     }
+
+    /// Add gaussian noise to the aggregates, also fabricating and suppressing
+    /// combinations to ensure the final result will be differential private
+    /// # Arguments
+    /// * `epsilon` - privacy budget used to generate noise (split for all lengths)
+    /// * `delta` - allowed proportion to leak
+    /// * `threshold_type` - either `Fixed` or `Adaptive`
+    /// * `threshold_value` - threshold to suppress a combination if its noisy count is smaller than it
+    /// (if `threshold_type` is `Fixed`, the used threshold will be the provided value,
+    /// otherwise it will be `gaussian_std_per_combination_length * threshold_value`)
+    /// * `sensitivity_filter_params` - `None` if no sensitivity filtering should be applied, otherwise
+    /// the parameters that should be used
+    pub fn make_aggregates_noisy(
+        &mut self,
+        epsilon: f64,
+        delta: f64,
+        threshold_type: ThresholdType,
+        threshold_value: f64,
+        sensitivity_filter_params: Option<SensitivityFilterParameters>,
+    ) -> Result<(), StatsError> {
+        info!(
+            "making aggregates noisy with epsilon = {}, delta = {}, threshold type = {} and threshold value = {}",
+            epsilon, delta, threshold_type, threshold_value
+        );
+        let _duration_logger = ElapsedDurationLogger::new("make aggregates noisy");
+
+        NoiseAggregator::new(self).make_aggregates_noisy(
+            epsilon,
+            delta,
+            threshold_type,
+            threshold_value,
+            sensitivity_filter_params,
+        )?;
+
+        self.remove_zero_counts();
+        self.add_missing_sub_combinations();
+        self.normalize_noisy_combinations();
+
+        Ok(())
+    }
 }
 
 #[cfg_attr(feature = "pyo3", pymethods)]
@@ -327,88 +364,54 @@ impl AggregatedData {
         }
     }
 
-    /// Filters aggregates counts for each record to ensure that the final sensitivity
-    /// for each record will be `<= percentile_percentage`.
-    /// Returns the maximum allowed sensitivity by combination length.
+    /// Add gaussian noise to the aggregates, also fabricating and suppressing
+    /// combinations to ensure the final result will be differential private
+    /// (with fixed threshold for combination counts)
     /// # Arguments
-    /// * `percentile_percentage` - percentage used to calculate the percentile that filters sensitivity
-    /// * `epsilon` - epsilon used to generate noise when selecting the `percentile_percentage`-th percentile
-    /// for sensitivity
-    pub fn filter_sensitivities(
-        &mut self,
-        percentile_percentage: usize,
-        epsilon: f64,
-    ) -> AllowedSensitivityByLen {
-        info!(
-            "filtering aggregate counts by record sensitivity with percentile = {} and epsilon = {}",
-            percentile_percentage, epsilon
-        );
-        let _duration_logger = ElapsedDurationLogger::new("filter sensitivities");
-
-        AggregatedDataSensitivityFilter::new(self)
-            .filter_sensitivities(percentile_percentage, epsilon)
-    }
-
-    /// Add gaussian noise to the aggregate counts based on the `allowed_sensitivity_by_len`
-    /// grouped by length.
-    /// # Arguments:
     /// * `epsilon` - privacy budget used to generate noise (split for all lengths)
     /// * `delta` - allowed proportion to leak
-    /// * `allowed_sensitivity_by_len` - allowed sensitivities computed by combination length
-    pub fn add_gaussian_noise(
+    /// * `threshold` - threshold to suppress a combination if its noisy count is smaller than it
+    /// * `sensitivity_filter_params` - `None` if no sensitivity filtering should be applied, otherwise
+    /// the parameters that should be used
+    pub fn make_aggregates_noisy_fixed_threshold(
         &mut self,
         epsilon: f64,
         delta: f64,
-        allowed_sensitivity_by_len: AllowedSensitivityByLen,
+        threshold: f64,
+        sensitivity_filter_params: Option<SensitivityFilterParameters>,
     ) -> Result<(), StatsError> {
-        info!(
-            "applying gaussian noise to aggregates using epsilon = {} and delta = {}",
-            epsilon, delta
-        );
-        let _duration_logger = ElapsedDurationLogger::new("add gaussian noise");
-        let mut noise: FnvHashMap<usize, Normal> = FnvHashMap::default();
-        let epsilon_by_length = epsilon / (allowed_sensitivity_by_len.len() as f64);
+        self.make_aggregates_noisy(
+            epsilon,
+            delta,
+            ThresholdType::Fixed,
+            threshold,
+            sensitivity_filter_params,
+        )
+    }
 
-        // generate the noise normal distribution by length
-        for (length, l1_sensitivity) in allowed_sensitivity_by_len.iter().sorted() {
-            if *l1_sensitivity > 0 {
-                let n = Normal::new_analytic_gaussian(
-                    f64::sqrt(*l1_sensitivity as f64),
-                    epsilon_by_length,
-                    delta,
-                    DEFAULT_TOLERANCE,
-                )?;
-
-                info!(
-                    "for length = {} the calculated sigma for the noise is {:.2} [used privacy budget is {}]",
-                    length,
-                    n.std_dev().unwrap(),
-                    epsilon_by_length
-                );
-                noise.insert(*length, n);
-            } else {
-                warn!(
-                    "combinations of length = {} are being completely removed",
-                    length
-                );
-            }
-        }
-
-        for (comb, count) in self.aggregates_count.iter_mut() {
-            if let Some(n) = noise.get(&comb.len()) {
-                // if it becomes negative, drop the count
-                (*count).count = f64::max(
-                    0.0,
-                    ((count.count as f64) + n.sample(&mut thread_rng())).round(),
-                ) as usize;
-            }
-        }
-
-        self.remove_zero_counts();
-        self.add_missing_sub_combinations();
-        self.normalize_noisy_combinations();
-
-        Ok(())
+    /// Add gaussian noise to the aggregates, also fabricating and suppressing
+    /// combinations to ensure the final result will be differential private
+    /// (with adaptive threshold for combination counts)
+    /// # Arguments
+    /// * `epsilon` - privacy budget used to generate noise (split for all lengths)
+    /// * `delta` - allowed proportion to leak
+    /// * `threshold_ratio` - threshold will be `gaussian_std_per_combination_length * threshold_ratio`
+    /// * `sensitivity_filter_params` - `None` if no sensitivity filtering should be applied, otherwise
+    /// the parameters that should be used
+    pub fn make_aggregates_noisy_adaptive_threshold(
+        &mut self,
+        epsilon: f64,
+        delta: f64,
+        threshold_ratio: f64,
+        sensitivity_filter_params: Option<SensitivityFilterParameters>,
+    ) -> Result<(), StatsError> {
+        self.make_aggregates_noisy(
+            epsilon,
+            delta,
+            ThresholdType::Adaptive,
+            threshold_ratio,
+            sensitivity_filter_params,
+        )
     }
 
     /// Round the aggregated counts down to the nearest multiple of resolution

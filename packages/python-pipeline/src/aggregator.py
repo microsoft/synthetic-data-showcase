@@ -35,10 +35,13 @@ def aggregate(config):
     reportable_aggregated_data_json = path.join(
         output_dir, f'{prefix}_reportable_aggregated_data.json')
     dp_aggregates = config['dp_aggregates']
+    filter_sensitivities = config['filter_sensitivities']
     sensitivities_epsilon = config['sensitivities_epsilon']
     sensitivities_percentile = config['sensitivities_percentile']
     noise_epsilon = config['noise_epsilon']
     noise_delta = config['noise_delta']
+    noise_threshold_type = config['noise_threshold_type']
+    noise_threshold_value = config['noise_threshold_value']
 
     logging.info(f'Aggregate {sensitive_microdata_path}')
     start_time = time.time()
@@ -68,19 +71,29 @@ def aggregate(config):
     aggregated_data.write_to_json(sensitive_aggregated_data_json)
 
     if dp_aggregates:
-        allowed_sensitivity_by_len = aggregated_data.filter_sensitivities(
-            sensitivities_percentile,
-            sensitivities_epsilon
-        )
+        sensitivity_filter_params = sds.SensitivityFilterParameters(
+            sensitivities_percentile, sensitivities_epsilon) if filter_sensitivities else None
 
         if not noise_delta:
             noise_delta = 1 / (2 * sds_processor.number_of_records())
 
-        aggregated_data.add_gaussian_noise(
-            noise_epsilon,
-            noise_delta,
-            allowed_sensitivity_by_len
-        )
+        if noise_threshold_type == 'fixed':
+            aggregated_data.make_aggregates_noisy_fixed_threshold(
+                noise_epsilon,
+                noise_delta,
+                noise_threshold_value,
+                sensitivity_filter_params
+            )
+        elif noise_threshold_type == 'adaptive':
+            aggregated_data.make_aggregates_noisy_adaptive_threshold(
+                noise_epsilon,
+                noise_delta,
+                noise_threshold_value,
+                sensitivity_filter_params
+            )
+        else:
+            raise ValueError(
+                f'invalid noise_threshold_type = "{noise_threshold_type}"')
     else:
         aggregated_data.protect_aggregates_count(reporting_resolution)
 

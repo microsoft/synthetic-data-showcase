@@ -14,3 +14,10 @@ pub type AllowedSensitivityByLen = FnvHashMap<usize, usize>;
 /// Maps the record index to the initial combinations
 /// generated from the record
 pub type CombinationsByRecord = Vec<Vec<Arc<ValueCombination>>>;
+
+/// Maps a value combination to its count
+pub type CombinationsCountMap = FnvHashMap<Arc<ValueCombination>, f64>;
+
+/// Maps a value combination to its count but grouped by combination
+/// length
+pub type CombinationsCountMapByLen = FnvHashMap<usize, CombinationsCountMap>;

@@ -1,6 +1,9 @@
 use log::{error, info, log_enabled, trace, Level::Debug};
 use sds_core::{
     data_block::{csv_block_creator::CsvDataBlockCreator, data_block_creator::DataBlockCreator},
+    dp::{
+        sensitivity_filter_parameters::SensitivityFilterParameters, threshold_type::ThresholdType,
+    },
     processing::{
         aggregator::Aggregator,
         generator::{
@@ -49,14 +52,14 @@ enum Command {
 
         #[structopt(
             long = "oversampling-ratio",
-            help = "allowed oversampling ratio used on \"from_counts\" and \"from_aggregates\" modes (0.1 means 10%)",
+            help = "allowed oversampling ratio used on \"from_counts\" mode (0.1 means 10%)",
             requires = "aggregates-json"
         )]
         oversampling_ratio: Option<f64>,
 
         #[structopt(
             long = "oversampling-tries",
-            help = "how many times try to resample in case the currently sampled value causes oversampling",
+            help = "how many times try to resample in case the currently sampled value causes oversampling (\"from_counts\" mode)",
             requires = "aggregates-json"
         )]
         oversampling_tries: Option<usize>,
@@ -88,7 +91,7 @@ enum Command {
 
         #[structopt(
             long = "not-protect",
-            help = "do not protect the aggregates counts by rounding down to the nearest multiple of resolution"
+            help = "do not protect the aggregates counts by rounding down to the nearest multiple of resolution (if noise is not being added)"
         )]
         not_protect: bool,
 
@@ -98,7 +101,7 @@ enum Command {
         #[structopt(
             long = "filter-sensitivities",
             help = "suppress combination contributions to meet a certain sensitivity criteria",
-            requires_all = &["sensitivities-percentile", "sensitivities-epsilon"]
+            requires_all = &["sensitivities-percentile", "sensitivities-epsilon", "add-noise"]
         )]
         filter_sensitivities: bool,
 
@@ -111,7 +114,7 @@ enum Command {
 
         #[structopt(
             long = "sensitivities-epsilon",
-            help = "epsilon used to generate noise used for the sensitivity filter selection",
+            help = "epsilon used to generate noise during sensitivity filter selection",
             requires = "filter-sensitivities"
         )]
         sensitivities_epsilon: Option<f64>,
@@ -119,7 +122,7 @@ enum Command {
         #[structopt(
             long = "add-noise",
             help = "add gaussian noise to the aggregates",
-            requires_all = &["filter-sensitivities", "noise-epsilon"]
+            requires_all = &["noise-epsilon", "noise-threshold-type", "noise-threshold-value"]
         )]
         add_noise: bool,
 
@@ -136,6 +139,22 @@ enum Command {
             requires = "add-noise"
         )]
         noise_delta: Option<f64>,
+
+        #[structopt(
+            long = "noise-threshold-type",
+            help = "threshold type, could be fixed or adaptive",
+            possible_values = &["fixed", "adaptive"],
+            case_insensitive = true,
+            default_value = "fixed",
+        )]
+        noise_threshold_type: ThresholdType,
+
+        #[structopt(
+            long = "noise-threshold-value",
+            help = "value used as the count threshold filter (meaning will change based on \"noise-threshold-type\")",
+            requires = "add-noise"
+        )]
+        noise_threshold_value: Option<f64>,
 
         #[structopt(
             long = "aggregates-json",
@@ -164,7 +183,7 @@ struct Cli {
 
     #[structopt(
         long = "resolution",
-        help = "minimum threshold to build the synthetic microdata"
+        help = "minimum threshold to build/evaluate synthetic microdata"
     )]
     resolution: usize,
 
@@ -271,35 +290,38 @@ fn main() {
                 add_noise,
                 noise_delta,
                 noise_epsilon,
+                noise_threshold_type,
+                noise_threshold_value,
                 aggregates_json,
             } => {
                 let mut aggregator = Aggregator::new(data_block.clone());
                 let mut aggregated_data =
                     aggregator.aggregate(reporting_length, &mut progress_reporter);
                 let privacy_risk = aggregated_data.calc_privacy_risk(cli.resolution);
+                let delta =
+                    noise_delta.unwrap_or(1.0 / (2.0 * (data_block.number_of_records() as f64)));
 
-                if filter_sensitivities {
-                    let allowed_sensitivity_by_len = aggregated_data.filter_sensitivities(
-                        sensitivities_percentile.unwrap(),
-                        sensitivities_epsilon.unwrap(),
-                    );
+                if add_noise {
+                    let sensitivity_filter_params = if filter_sensitivities {
+                        Some(SensitivityFilterParameters::new(
+                            sensitivities_percentile.unwrap(),
+                            sensitivities_epsilon.unwrap(),
+                        ))
+                    } else {
+                        None
+                    };
 
-                    if add_noise {
-                        let delta = noise_delta
-                            .unwrap_or(1.0 / (2.0 * (data_block.number_of_records() as f64)));
-
-                        if let Err(err) = aggregated_data.add_gaussian_noise(
-                            noise_epsilon.unwrap(),
-                            delta,
-                            allowed_sensitivity_by_len,
-                        ) {
-                            error!("error applying gaussian noise: {}", err);
-                            process::exit(1);
-                        }
+                    if let Err(err) = aggregated_data.make_aggregates_noisy(
+                        noise_epsilon.unwrap(),
+                        delta,
+                        noise_threshold_type,
+                        noise_threshold_value.unwrap(),
+                        sensitivity_filter_params,
+                    ) {
+                        error!("error making aggregates noisy: {}", err);
+                        process::exit(1);
                     }
-                }
-
-                if !not_protect {
+                } else if !not_protect {
                     aggregated_data.protect_aggregates_count(cli.resolution);
                 }
 
@@ -310,7 +332,7 @@ fn main() {
                     aggregates_delimiter.chars().next().unwrap(),
                     ";",
                     cli.resolution,
-                    !not_protect,
+                    !not_protect || add_noise,
                 ) {
                     error!("error writing output file: {}", err);
                     process::exit(1);
