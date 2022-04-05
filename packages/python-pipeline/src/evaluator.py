@@ -69,12 +69,7 @@ class Evaluator:
         self.sen_aggregated_data = sds.AggregatedData.read_from_json(
             self.sensitive_aggregated_data_json
         )
-        self.sen_sds_processor = sds.SDSProcessor.from_aggregated_data(
-            self.sen_aggregated_data
-        )
-        self.reporting_length = self.sen_sds_processor.normalize_reporting_length(
-            self.reporting_length
-        )
+        self.reporting_length = self.sen_aggregated_data.reporting_length
 
     def _load_reportable_aggregates(self):
         logging.info('Loading reportable aggregates...')
@@ -116,7 +111,7 @@ class Evaluator:
 
     def _write_parameters(self):
         logging.info('Writing evaluation parameters...')
-        total_sen = self.sen_sds_processor.protected_number_of_records(
+        total_sen = self.sen_aggregated_data.number_of_records_protected_with_k_anonymity(
             self.reporting_resolution
         )
         with open(self.parameters_tsv, 'w') as f:

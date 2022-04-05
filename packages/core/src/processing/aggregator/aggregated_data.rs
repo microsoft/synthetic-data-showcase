@@ -19,7 +19,7 @@ use std::{
 use pyo3::prelude::*;
 
 use crate::{
-    data_block::DataBlock,
+    data_block::DataBlockHeaders,
     dp::{NoiseAggregator, SensitivityFilterParameters, StatsError, ThresholdType},
     processing::aggregator::{
         typedefs::RecordsSet, value_combination::ValueCombination, AggregatedCount,
@@ -31,8 +31,10 @@ use crate::{
 #[cfg_attr(feature = "pyo3", pyclass)]
 #[derive(Serialize, Deserialize, Clone)]
 pub struct AggregatedData {
-    /// Data block from where this aggregated data was generated
-    pub data_block: Arc<DataBlock>,
+    /// Vector of strings representing the data headers
+    pub headers: DataBlockHeaders,
+    /// Number of records present on the original data
+    pub number_of_records: usize,
     /// Maps a value combination to its aggregated count
     pub aggregates_count: AggregatesCountMap,
     /// A vector of sensitivities for each record (the vector index is the record index)
@@ -47,7 +49,8 @@ impl AggregatedData {
     #[inline]
     pub fn default() -> AggregatedData {
         AggregatedData {
-            data_block: Arc::new(DataBlock::default()),
+            headers: DataBlockHeaders::default(),
+            number_of_records: 0,
             aggregates_count: AggregatesCountMap::default(),
             records_sensitivity_by_len: RecordsSensitivityByLen::default(),
             reporting_length: 0,
@@ -56,19 +59,22 @@ impl AggregatedData {
 
     /// Creates a new AggregatedData struct
     /// # Arguments:
-    /// * `data_block` - Data block with the original data
+    /// * `headers` - Vector of strings representing the data headers
+    /// * `number_of_records` - Number of records present on the original data
     /// * `aggregates_count` - Computed aggregates count map
     /// * `records_sensitivity` - Computed sensitivity for the records
     /// * `reporting_length` - Maximum length used to compute attribute combinations
     #[inline]
     pub fn new(
-        data_block: Arc<DataBlock>,
+        headers: DataBlockHeaders,
+        number_of_records: usize,
         aggregates_count: AggregatesCountMap,
         records_sensitivity_by_len: RecordsSensitivityByLen,
         reporting_length: usize,
     ) -> AggregatedData {
         AggregatedData {
-            data_block,
+            headers,
+            number_of_records,
             aggregates_count,
             records_sensitivity_by_len,
             reporting_length,
@@ -144,7 +150,7 @@ impl AggregatedData {
             format!(
                 "selections{}{}\n",
                 aggregates_delimiter,
-                uround_down(self.data_block.records.len() as f64, resolution as f64)
+                uround_down(self.number_of_records as f64, resolution as f64)
             )
             .as_bytes(),
         )?;
@@ -152,7 +158,7 @@ impl AggregatedData {
             writer.write_all(
                 format!(
                     "{}{}{}\n",
-                    aggregate.as_str_using_headers(&self.data_block.headers, combination_delimiter),
+                    aggregate.as_str_using_headers(&self.headers, combination_delimiter),
                     aggregates_delimiter,
                     self.aggregates_count[aggregate].count
                 )
@@ -245,6 +251,26 @@ impl AggregatedData {
 
 #[cfg_attr(feature = "pyo3", pymethods)]
 impl AggregatedData {
+    #[cfg(feature = "pyo3")]
+    #[getter]
+    /// Returns the number of records
+    pub fn number_of_records(&self) -> usize {
+        self.number_of_records
+    }
+
+    #[cfg(feature = "pyo3")]
+    #[getter]
+    /// Returns the reporting length
+    pub fn reporting_length(&self) -> usize {
+        self.reporting_length
+    }
+
+    #[inline]
+    /// Returns the number of records on the data block protected by `resolution`
+    pub fn number_of_records_protected_with_k_anonymity(&self, resolution: usize) -> usize {
+        uround_down(self.number_of_records as f64, resolution as f64)
+    }
+
     #[inline]
     /// Total number of distinct combinations
     pub fn number_of_distinct_combinations(&self) -> usize {
@@ -261,7 +287,7 @@ impl AggregatedData {
             .iter()
             .map(|(key, value)| {
                 (
-                    key.as_str_using_headers(&self.data_block.headers, combination_delimiter),
+                    key.as_str_using_headers(&self.headers, combination_delimiter),
                     value.clone(),
                 )
             })
@@ -464,11 +490,9 @@ impl AggregatedData {
     /// # Arguments:
     /// * `resolution` - Reporting resolution used for data synthesis
     pub fn calc_percentage_of_records_with_rare_combinations(&self, resolution: usize) -> f64 {
-        let n_records = self.data_block.number_of_records();
-
-        if n_records > 0 {
+        if self.number_of_records > 0 {
             ((self.calc_number_of_records_with_rare_combinations(resolution) as f64)
-                / (n_records as f64))
+                / (self.number_of_records as f64))
                 * 100.0
         } else {
             0.0
@@ -563,10 +587,9 @@ impl AggregatedData {
 
     /// Calculates the percentage of records that contain unique combinations
     pub fn calc_percentage_of_records_with_unique_combinations(&self) -> f64 {
-        let n_records = self.data_block.number_of_records();
-
-        if n_records > 0 {
-            ((self.calc_number_of_records_with_unique_combinations() as f64) / (n_records as f64))
+        if self.number_of_records > 0 {
+            ((self.calc_number_of_records_with_unique_combinations() as f64)
+                / (self.number_of_records as f64))
                 * 100.0
         } else {
             0.0
@@ -670,7 +693,7 @@ impl AggregatedData {
         RecordsAnalysisData::from_records_with_unique_rare_combinations_by_len(
             &records_with_unique_combs_by_len,
             &records_with_rare_combs_by_len,
-            self.data_block.records.len(),
+            self.number_of_records,
             self.reporting_length,
             resolution,
             protect,
@@ -806,7 +829,7 @@ impl AggregatedData {
                 .as_bytes(),
         )?;
 
-        for record_index in 0..self.data_block.records.len() {
+        for record_index in 0..self.number_of_records {
             file.write_all(
                 self.gen_records_sensitivity_line(record_index, records_sensitivity_delimiter)
                     .as_bytes(),

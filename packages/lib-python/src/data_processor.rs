@@ -48,33 +48,10 @@ impl SDSProcessor {
         }
     }
 
-    #[staticmethod]
-    /// Load the SDS Processor for the data block linked to `aggregated_data`
-    pub fn from_aggregated_data(aggregated_data: &AggregatedData) -> SDSProcessor {
-        SDSProcessor {
-            data_block: aggregated_data.data_block.clone(),
-        }
-    }
-
     #[inline]
     /// Returns the number of records on the data block
     pub fn number_of_records(&self) -> usize {
         self.data_block.number_of_records()
-    }
-
-    #[inline]
-    /// Returns the number of records on the data block protected by `resolution`
-    pub fn protected_number_of_records(&self, resolution: usize) -> usize {
-        self.data_block.protected_number_of_records(resolution)
-    }
-
-    #[inline]
-    /// Normalizes the reporting length based on the number of selected headers.
-    /// Returns the normalized value
-    /// # Arguments
-    /// * `reporting_length` - Reporting length to be normalized (0 means use all columns)
-    pub fn normalize_reporting_length(&self, reporting_length: usize) -> usize {
-        self.data_block.normalize_reporting_length(reporting_length)
     }
 
     /// Builds the aggregated data for the content

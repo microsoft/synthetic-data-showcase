@@ -86,7 +86,7 @@ impl<'combs_by_record, 'aggregated_data> SensitivityFilter<'combs_by_record, 'ag
     ) -> CombinationsToRemoveByRecord {
         let mut combs_to_remove_by_record = CombinationsToRemoveByRecord::default();
 
-        for record_index in 0..self.aggregated_data.data_block.number_of_records() {
+        for record_index in 0..self.aggregated_data.number_of_records {
             let current_sensitivity =
                 self.aggregated_data.records_sensitivity_by_len[length][record_index];
 

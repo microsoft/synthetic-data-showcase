@@ -83,7 +83,7 @@ impl<'aggregated_data> NoiseAggregator<'aggregated_data> {
                     } else {
                         let mut new_comb = (**comb).clone();
 
-                        new_comb.extend((*attr).clone(), &self.aggregated_data.data_block.headers);
+                        new_comb.extend((*attr).clone(), &self.aggregated_data.headers);
 
                         let count_opt = self.aggregated_data.aggregates_count.get(&new_comb);
 
@@ -244,7 +244,7 @@ impl<'aggregated_data> NoiseAggregator<'aggregated_data> {
     fn make_combinations_by_record(aggregated_data: &AggregatedData) -> CombinationsByRecord {
         let mut combs_by_record: CombinationsByRecord = CombinationsByRecord::new();
 
-        combs_by_record.resize_with(aggregated_data.data_block.number_of_records(), Vec::default);
+        combs_by_record.resize_with(aggregated_data.number_of_records, Vec::default);
 
         for (comb, count) in aggregated_data.aggregates_count.iter() {
             for record_index in count.contained_in_records.iter() {

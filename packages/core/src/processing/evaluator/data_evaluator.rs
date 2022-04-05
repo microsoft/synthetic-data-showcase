@@ -405,9 +405,9 @@ impl Evaluator {
         sensitive_aggregated_data: &AggregatedData,
         synthetic_aggregated_data: &AggregatedData,
     ) -> f64 {
-        if sensitive_aggregated_data.data_block.number_of_records() > 0 {
-            (((synthetic_aggregated_data.data_block.number_of_records() as f64)
-                / (sensitive_aggregated_data.data_block.number_of_records() as f64))
+        if sensitive_aggregated_data.number_of_records > 0 {
+            (((synthetic_aggregated_data.number_of_records as f64)
+                / (sensitive_aggregated_data.number_of_records as f64))
                 - 1.0)
                 * 100.0
         } else {
