@@ -76,7 +76,7 @@ impl SDSProcessor {
     /// * `cache_max_size` - Maximum cache size used during the synthesis process
     /// * `resolution` - Reporting resolution to be used
     /// * `empty_value` - Empty values on the synthetic data will be represented by this
-    /// * `synthesis_mode` - Which mode to perform the data synthesis ("seeded", "unseeded", "from_counts" or "from_aggregates")
+    /// * `synthesis_mode` - Which mode to perform the data synthesis ("row_seeded", "unseeded", "value_seeded" or "aggregate_seeded")
     // * `consolidate_parameters` - Parameters used for data consolidation
     pub fn generate(
         &self,

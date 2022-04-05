@@ -127,7 +127,7 @@ impl SDSProcessor {
             resolution,
             cache_max_size,
             empty_value,
-            SynthesisMode::Seeded,
+            SynthesisMode::RowSeeded,
             ConsolidateParameters::default(),
             &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
         )))
@@ -153,7 +153,7 @@ impl SDSProcessor {
             resolution,
             cache_max_size,
             empty_value,
-            SynthesisMode::FromCounts,
+            SynthesisMode::ValueSeeded,
             ConsolidateParameters {
                 aggregated_data: aggregated_result.aggregated_data.clone(),
                 oversampling_ratio,
@@ -174,7 +174,8 @@ impl SDSProcessor {
         use_synthetic_counts: bool,
         progress_callback: JsReportProgressCallback,
     ) -> Result<WasmGenerateResult, JsValue> {
-        let _duration_logger = ElapsedDurationLogger::new(String::from("generation value seeded"));
+        let _duration_logger =
+            ElapsedDurationLogger::new(String::from("generation aggregate seeded"));
         let js_callback: Function = progress_callback.dyn_into()?;
         let mut generator = Generator::new(self.data_block.clone());
 
@@ -182,7 +183,7 @@ impl SDSProcessor {
             resolution,
             cache_max_size,
             empty_value,
-            SynthesisMode::FromAggregates,
+            SynthesisMode::AggregateSeeded,
             ConsolidateParameters {
                 aggregated_data: aggregated_result.aggregated_data.clone(),
                 oversampling_ratio: None,

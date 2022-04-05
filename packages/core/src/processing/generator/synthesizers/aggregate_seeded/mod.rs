@@ -17,9 +17,9 @@ use crate::{
     utils::{collections::sample_weighted, math::calc_percentage, reporting::ReportProgress},
 };
 
-/// Represents all the information required to perform the synthesis from aggregates
-/// (useful in the differential privacy context)
-pub struct FromAggregatesSynthesizer {
+/// Represents all the information required to perform aggregated
+/// seeded synthesis
+pub struct AggregateSeededSynthesizer {
     /// Reference to the original data block
     data_block: Arc<DataBlock>,
     /// Reporting resolution used for data synthesis
@@ -34,8 +34,8 @@ pub struct FromAggregatesSynthesizer {
     suppress_percentage: f64,
 }
 
-impl FromAggregatesSynthesizer {
-    /// Returns a new FromAggregatesSynthesizer
+impl AggregateSeededSynthesizer {
+    /// Returns a new AggregateSeededSynthesizer
     /// # Arguments
     /// * `data_block` - Sensitive data to be synthesized
     /// * `resolution` - Reporting resolution used for data synthesis
@@ -45,8 +45,8 @@ impl FromAggregatesSynthesizer {
         data_block: Arc<DataBlock>,
         resolution: usize,
         consolidate_parameters: ConsolidateParameters,
-    ) -> FromAggregatesSynthesizer {
-        FromAggregatesSynthesizer {
+    ) -> AggregateSeededSynthesizer {
+        AggregateSeededSynthesizer {
             data_block,
             resolution,
             single_attr_counts: consolidate_parameters
@@ -99,7 +99,7 @@ impl FromAggregatesSynthesizer {
     }
 }
 
-impl SynthesisData for FromAggregatesSynthesizer {
+impl SynthesisData for AggregateSeededSynthesizer {
     #[inline]
     fn get_headers(&self) -> &DataBlockHeaders {
         &self.data_block.headers
@@ -118,7 +118,7 @@ impl SynthesisData for FromAggregatesSynthesizer {
     }
 }
 
-impl Consolidate for FromAggregatesSynthesizer {
+impl Consolidate for AggregateSeededSynthesizer {
     #[inline]
     fn get_not_used_attrs(
         &self,
@@ -236,7 +236,7 @@ impl Consolidate for FromAggregatesSynthesizer {
     }
 }
 
-impl Suppress for FromAggregatesSynthesizer {
+impl Suppress for AggregateSeededSynthesizer {
     #[inline]
     fn update_suppress_progress<T>(
         &mut self,

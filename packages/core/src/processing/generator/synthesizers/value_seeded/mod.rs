@@ -18,8 +18,8 @@ use crate::{
     utils::{math::calc_percentage, reporting::ReportProgress},
 };
 
-/// Represents all the information required to perform the synthesis from counts
-pub struct FromCountsSynthesizer {
+/// Represents all the information required to perform the value seeded synthesis
+pub struct ValueSeededSynthesizer {
     /// Reference to the original data block
     data_block: Arc<DataBlock>,
     /// Maps a data block value to all the rows where it occurs
@@ -38,8 +38,8 @@ pub struct FromCountsSynthesizer {
     suppress_percentage: f64,
 }
 
-impl FromCountsSynthesizer {
-    /// Returns a new FromCountsSynthesizer
+impl ValueSeededSynthesizer {
+    /// Returns a new ValueSeededSynthesizer
     /// # Arguments
     /// * `data_block` - Sensitive data to be synthesized
     /// * `attr_rows_map` - Maps a data block value to all the rows where it occurs
@@ -53,14 +53,14 @@ impl FromCountsSynthesizer {
         resolution: usize,
         cache_max_size: usize,
         consolidate_parameters: ConsolidateParameters,
-    ) -> FromCountsSynthesizer {
+    ) -> ValueSeededSynthesizer {
         let consolidate_sampler = AttributeRowsSampler::new(
             data_block.clone(),
             resolution,
             SynthesizerCache::new(cache_max_size),
         );
 
-        FromCountsSynthesizer {
+        ValueSeededSynthesizer {
             data_block,
             single_attr_counts: attr_rows_map
                 .iter()
@@ -108,7 +108,7 @@ impl FromCountsSynthesizer {
     }
 }
 
-impl SynthesisData for FromCountsSynthesizer {
+impl SynthesisData for ValueSeededSynthesizer {
     #[inline]
     fn get_headers(&self) -> &DataBlockHeaders {
         &self.data_block.headers
@@ -127,7 +127,7 @@ impl SynthesisData for FromCountsSynthesizer {
     }
 }
 
-impl Consolidate for FromCountsSynthesizer {
+impl Consolidate for ValueSeededSynthesizer {
     #[inline]
     fn get_not_used_attrs(
         &self,
@@ -191,7 +191,7 @@ impl Consolidate for FromCountsSynthesizer {
     }
 }
 
-impl Suppress for FromCountsSynthesizer {
+impl Suppress for ValueSeededSynthesizer {
     #[inline]
     fn update_suppress_progress<T>(
         &mut self,

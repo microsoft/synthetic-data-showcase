@@ -26,8 +26,8 @@ use crate::{
     },
 };
 
-/// Represents all the information required to perform the seeded data synthesis
-pub struct SeededSynthesizer {
+/// Represents all the information required to perform the row seeded synthesis
+pub struct RowSeededSynthesizer {
     /// Reference to the original data block
     data_block: Arc<DataBlock>,
     /// Maps a data block value to all the rows where it occurs
@@ -48,8 +48,8 @@ pub struct SeededSynthesizer {
     suppress_percentage: f64,
 }
 
-impl SeededSynthesizer {
-    /// Returns a new SeededSynthesizer
+impl RowSeededSynthesizer {
+    /// Returns a new RowSeededSynthesizer
     /// # Arguments
     /// * `data_block` - Sensitive data to be synthesized
     /// * `attr_rows_map` - Maps a data block value to all the rows where it occurs
@@ -61,14 +61,14 @@ impl SeededSynthesizer {
         attr_rows_map: Arc<AttributeRowsMap>,
         resolution: usize,
         cache_max_size: usize,
-    ) -> SeededSynthesizer {
+    ) -> RowSeededSynthesizer {
         let consolidate_sampler = AttributeRowsSampler::new(
             data_block.clone(),
             resolution,
             SynthesizerCache::new(cache_max_size),
         );
 
-        SeededSynthesizer {
+        RowSeededSynthesizer {
             data_block,
             single_attr_counts: attr_rows_map
                 .iter()
@@ -189,7 +189,7 @@ impl SeededSynthesizer {
     }
 }
 
-impl SynthesisData for SeededSynthesizer {
+impl SynthesisData for RowSeededSynthesizer {
     #[inline]
     fn get_headers(&self) -> &DataBlockHeaders {
         &self.data_block.headers
@@ -207,7 +207,7 @@ impl SynthesisData for SeededSynthesizer {
     }
 }
 
-impl Consolidate for SeededSynthesizer {
+impl Consolidate for RowSeededSynthesizer {
     #[inline]
     fn get_not_used_attrs(
         &self,
@@ -262,7 +262,7 @@ impl Consolidate for SeededSynthesizer {
     }
 }
 
-impl Suppress for SeededSynthesizer {
+impl Suppress for RowSeededSynthesizer {
     #[inline]
     fn update_suppress_progress<T>(
         &mut self,

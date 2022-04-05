@@ -1,16 +1,16 @@
 use super::generated_data::GeneratedData;
 use super::synthesizers::ConsolidateParameters;
-use super::synthesizers::FromCountsSynthesizer;
-use super::synthesizers::SeededSynthesizer;
+use super::synthesizers::RowSeededSynthesizer;
 use super::synthesizers::SynthesizedRecords;
 use super::synthesizers::UnseededSynthesizer;
+use super::synthesizers::ValueSeededSynthesizer;
 use super::SynthesisMode;
 use log::info;
 use std::sync::Arc;
 
 use crate::data_block::DataBlock;
 use crate::data_block::RawSyntheticData;
-use crate::processing::generator::synthesizers::FromAggregatesSynthesizer;
+use crate::processing::generator::synthesizers::AggregateSeededSynthesizer;
 use crate::processing::generator::synthesizers::SynthesizerCacheKey;
 use crate::utils::reporting::ReportProgress;
 use crate::utils::time::ElapsedDurationLogger;
@@ -56,8 +56,8 @@ impl Generator {
         info!("starting {} generation...", mode);
 
         let synthesized_records = match mode {
-            SynthesisMode::Seeded => {
-                self.seeded_synthesis(resolution, cache_max_size, progress_reporter)
+            SynthesisMode::RowSeeded => {
+                self.row_seeded_synthesis(resolution, cache_max_size, progress_reporter)
             }
             SynthesisMode::Unseeded => self.unseeded_synthesis(
                 resolution,
@@ -65,13 +65,13 @@ impl Generator {
                 &empty_value_arc,
                 progress_reporter,
             ),
-            SynthesisMode::FromCounts => self.from_counts_synthesis(
+            SynthesisMode::ValueSeeded => self.value_seeded_synthesis(
                 resolution,
                 cache_max_size,
                 consolidate_parameters,
                 progress_reporter,
             ),
-            SynthesisMode::FromAggregates => self.from_aggregates_synthesis(
+            SynthesisMode::AggregateSeeded => self.aggregate_seeded_synthesis(
                 resolution,
                 consolidate_parameters,
                 progress_reporter,
@@ -115,7 +115,7 @@ impl Generator {
     }
 
     #[inline]
-    fn seeded_synthesis<T>(
+    fn row_seeded_synthesis<T>(
         &self,
         resolution: usize,
         cache_max_size: usize,
@@ -125,7 +125,7 @@ impl Generator {
         T: ReportProgress,
     {
         let attr_rows_map = Arc::new(self.data_block.calc_attr_rows());
-        let mut synth = SeededSynthesizer::new(
+        let mut synth = RowSeededSynthesizer::new(
             self.data_block.clone(),
             attr_rows_map,
             resolution,
@@ -160,7 +160,7 @@ impl Generator {
     }
 
     #[inline]
-    pub fn from_counts_synthesis<T>(
+    pub fn value_seeded_synthesis<T>(
         &self,
         resolution: usize,
         cache_max_size: usize,
@@ -182,7 +182,7 @@ impl Generator {
             );
         }
 
-        let mut synth = FromCountsSynthesizer::new(
+        let mut synth = ValueSeededSynthesizer::new(
             self.data_block.clone(),
             attr_rows_map,
             resolution,
@@ -193,7 +193,7 @@ impl Generator {
     }
 
     #[inline]
-    pub fn from_aggregates_synthesis<T>(
+    pub fn aggregate_seeded_synthesis<T>(
         &self,
         resolution: usize,
         consolidate_parameters: ConsolidateParameters,
@@ -210,7 +210,7 @@ impl Generator {
             "no aggregated data provided"
         );
 
-        let mut synth = FromAggregatesSynthesizer::new(
+        let mut synth = AggregateSeededSynthesizer::new(
             self.data_block.clone(),
             resolution,
             consolidate_parameters,

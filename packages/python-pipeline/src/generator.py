@@ -52,7 +52,7 @@ def generate(config):
         synthesis_mode,
         sds.ConsolidateParameters(
             aggregated_data_json if (
-                oversampling_ratio or dp_aggregates or synthesis_mode == 'from_aggregates'
+                oversampling_ratio or dp_aggregates or synthesis_mode == 'aggregate_seeded'
             ) else None,
             oversampling_ratio,
             oversampling_tries,

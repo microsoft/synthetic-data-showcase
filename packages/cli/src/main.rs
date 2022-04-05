@@ -34,35 +34,35 @@ enum Command {
         #[structopt(
             long = "mode",
             help = "synthesis mode",
-            possible_values = &["seeded", "unseeded", "from_counts", "from_aggregates"],
+            possible_values = &["row_seeded", "unseeded", "value_seeded", "aggregate_seeded"],
             case_insensitive = true,
-            default_value = "seeded"
+            default_value = "row_seeded"
         )]
         mode: SynthesisMode,
 
         #[structopt(
             long = "aggregates-json",
-            help = "json file generated on the aggregate step (optional on the \"from_counts\" mode, required on \"from_aggregates\" mode)"
+            help = "json file generated on the aggregate step (optional on the \"value_seeded\" mode, required on \"aggregate_seeded\" mode)"
         )]
         aggregates_json: Option<String>,
 
         #[structopt(
             long = "oversampling-ratio",
-            help = "allowed oversampling ratio used on \"from_counts\" mode (0.1 means 10%)",
+            help = "allowed oversampling ratio used on \"value_seeded\" mode (0.1 means 10%)",
             requires = "aggregates-json"
         )]
         oversampling_ratio: Option<f64>,
 
         #[structopt(
             long = "oversampling-tries",
-            help = "how many times try to resample in case the currently sampled value causes oversampling (\"from_counts\" mode)",
+            help = "how many times try to resample in case the currently sampled value causes oversampling (\"value_seeded\" mode)",
             requires = "aggregates-json"
         )]
         oversampling_tries: Option<usize>,
 
         #[structopt(
             long = "use-synthetic-counts",
-            help = "use synthetic aggregates to balance attribute sampling on \"from_aggregates\" mode",
+            help = "use synthetic aggregates to balance attribute sampling on \"aggregate_seeded\" mode",
             requires = "aggregates-json"
         )]
         use_synthetic_counts: bool,

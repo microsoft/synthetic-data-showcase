@@ -9,22 +9,22 @@ use crate::processing::aggregator::AggregatedData;
 #[derive(Clone)]
 #[cfg_attr(feature = "pyo3", pyclass)]
 pub struct ConsolidateParameters {
-    /// Aggregated data used to avoid oversampling ("from_counts" and "from_aggregates" mode)
+    /// Aggregated data used to avoid oversampling ("value_seeded" and "aggregate_seeded" mode)
     pub aggregated_data: Arc<AggregatedData>,
-    /// Ratio of oversampling allowed for each L from 1 up ("from_counts" and "from_aggregates" mode)
+    /// Ratio of oversampling allowed for each L from 1 up ("value_seeded" mode)
     pub oversampling_ratio: Option<f64>,
     /// How many times should we try to resample if the sampled attribute leads to oversampling
     pub oversampling_tries: Option<usize>,
     /// Whether or not the synthetic counts should be used to
-    /// control the sampling process from aggregates
+    /// control the sampling process aggregate seeded
     pub use_synthetic_counts: bool,
 }
 
 impl ConsolidateParameters {
     /// Returns a new ConsolidateParameters
     /// # Arguments
-    /// * `aggregated_data_path` - Aggregated data used to avoid oversampling ("from_counts" and "from_aggregates" mode)
-    /// * `oversampling_ratio` - Ratio of oversampling allowed for each L from 1 up ("from_counts" and "from_aggregates" mode)
+    /// * `aggregated_data_path` - Aggregated data used to avoid oversampling/control synthetic counts ("value_seeded" and "aggregate_seeded" mode)
+    /// * `oversampling_ratio` - Ratio of oversampling allowed for each L from 1 up ("value_seeded" mode)
     /// * `oversampling_ratio` - How many times should we try to resample if the sampled attribute leads to oversampling
     /// * `use_synthetic_counts` - Whether or not the synthetic counts should be used to
     /// control the sampling process from aggregates
@@ -53,8 +53,8 @@ impl ConsolidateParameters {
 impl ConsolidateParameters {
     /// Returns a new ConsolidateParameters
     /// # Arguments
-    /// * `aggregated_data_path` - Aggregated data used to avoid oversampling ("from_counts" and "from_aggregates" mode)
-    /// * `oversampling_ratio` - Ratio of oversampling allowed for each L from 1 up ("from_counts" and "from_aggregates" mode)
+    /// * `aggregated_data_path` - Aggregated data used to avoid oversampling/control synthetic counts ("value_seeded" and "aggregate_seeded" mode)
+    /// * `oversampling_ratio` - Ratio of oversampling allowed for each L from 1 up ("value_seeded" mode)
     /// * `oversampling_ratio` - How many times should we try to resample if the sampled attribute leads to oversampling
     /// * `use_synthetic_counts` - Whether or not the synthetic counts should be used to
     /// control the sampling process from aggregates
