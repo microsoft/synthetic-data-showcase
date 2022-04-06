@@ -85,11 +85,14 @@ def runForConfig(config):
     config['noise_epsilon'] = config.get('noise_epsilon', None)
     config['noise_delta'] = config.get('noise_delta', None)
     config['noise_threshold_type'] = config.get('noise_threshold_type', None)
+    if config['noise_threshold_type'] != None:
+        config['noise_threshold_type'] = config['noise_threshold_type'].lower()
     config['noise_threshold_value'] = config.get('noise_threshold_value', None)
 
     # parameters affecting the representation and interpretation of values
     config['sensitive_zeros'] = config.get('sensitive_zeros', [])
-    config['synthesis_mode'] = config.get('synthesis_mode', 'seeded')
+    config['synthesis_mode'] = config.get(
+        'synthesis_mode', 'row_seeded').lower()
     config['oversampling_ratio'] = config.get('oversampling_ratio', None)
     config['oversampling_tries'] = config.get('oversampling_tries', None)
     config['use_synthetic_counts'] = config.get(

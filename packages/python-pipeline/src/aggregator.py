@@ -93,7 +93,7 @@ def aggregate(config):
             )
         else:
             raise ValueError(
-                f'invalid noise_threshold_type = "{noise_threshold_type}"')
+                f'invalid noise_threshold_type: "{noise_threshold_type}"')
     else:
         aggregated_data.protect_with_k_anonymity(reporting_resolution)
 

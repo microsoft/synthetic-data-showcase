@@ -45,20 +45,44 @@ def generate(config):
         sensitive_zeros,
         max(record_limit, 0)
     )
-    generated_data = sds_processor.generate(
-        cache_max_size,
-        resolution,
-        "",
-        synthesis_mode,
-        sds.ConsolidateParameters(
-            aggregated_data_json if (
-                oversampling_ratio or dp_aggregates or synthesis_mode == 'aggregate_seeded'
-            ) else None,
-            oversampling_ratio,
-            oversampling_tries,
-            use_synthetic_counts
+
+    if synthesis_mode == 'unseeded':
+        generated_data = sds_processor.generate_unseeded(
+            resolution,
+            cache_max_size,
+            "",
         )
-    )
+    elif synthesis_mode == 'row_seeded':
+        generated_data = sds_processor.generate_row_seeded(
+            resolution,
+            cache_max_size,
+            "",
+        )
+    elif synthesis_mode == 'value_seeded':
+        if oversampling_ratio != None:
+            oversampling_parameters = sds.OversamplingParameters(
+                sds.AggregatedData.read_from_json(aggregated_data_json),
+                oversampling_ratio,
+                oversampling_tries
+            )
+        else:
+            oversampling_parameters = None
+
+        generated_data = sds_processor.generate_value_seeded(
+            resolution,
+            cache_max_size,
+            "",
+            oversampling_parameters
+        )
+    elif synthesis_mode == 'aggregate_seeded':
+        generated_data = sds_processor.generate_aggregate_seeded(
+            "",
+            sds.AggregatedData.read_from_json(aggregated_data_json),
+            use_synthetic_counts,
+        )
+    else:
+        raise ValueError(f'invalid synthesis mode: {synthesis_mode}')
+
     generated_data.write_synthetic_data(synthetic_microdata_path, '\t')
     syn_ratio = generated_data.expansion_ratio
 
