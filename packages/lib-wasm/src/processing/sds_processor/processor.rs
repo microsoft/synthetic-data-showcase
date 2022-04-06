@@ -4,7 +4,7 @@ use sds_core::{
     data_block::{CsvDataBlockCreator, CsvRecord, DataBlock, DataBlockCreator},
     processing::{
         aggregator::Aggregator,
-        generator::{ConsolidateParameters, Generator, SynthesisMode},
+        generator::{Generator, OversamplingParameters},
     },
     utils::time::ElapsedDurationLogger,
 };
@@ -99,14 +99,13 @@ impl SDSProcessor {
     ) -> Result<WasmGenerateResult, JsValue> {
         let _duration_logger = ElapsedDurationLogger::new(String::from("generation unseeded"));
         let js_callback: Function = progress_callback.dyn_into()?;
-        let mut generator = Generator::new(self.data_block.clone());
+        let generator = Generator::default();
 
-        Ok(WasmGenerateResult::new(generator.generate(
+        Ok(WasmGenerateResult::new(generator.generate_unseeded(
+            &self.data_block,
             resolution,
             cache_max_size,
-            empty_value,
-            SynthesisMode::Unseeded,
-            ConsolidateParameters::default(),
+            &empty_value,
             &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
         )))
     }
@@ -121,14 +120,13 @@ impl SDSProcessor {
     ) -> Result<WasmGenerateResult, JsValue> {
         let _duration_logger = ElapsedDurationLogger::new(String::from("generation row seeded"));
         let js_callback: Function = progress_callback.dyn_into()?;
-        let mut generator = Generator::new(self.data_block.clone());
+        let generator = Generator::default();
 
-        Ok(WasmGenerateResult::new(generator.generate(
+        Ok(WasmGenerateResult::new(generator.generate_row_seeded(
+            &self.data_block,
             resolution,
             cache_max_size,
-            empty_value,
-            SynthesisMode::RowSeeded,
-            ConsolidateParameters::default(),
+            &empty_value,
             &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
         )))
     }
@@ -147,19 +145,18 @@ impl SDSProcessor {
     ) -> Result<WasmGenerateResult, JsValue> {
         let _duration_logger = ElapsedDurationLogger::new(String::from("generation value seeded"));
         let js_callback: Function = progress_callback.dyn_into()?;
-        let mut generator = Generator::new(self.data_block.clone());
+        let generator = Generator::default();
 
-        Ok(WasmGenerateResult::new(generator.generate(
+        Ok(WasmGenerateResult::new(generator.generate_value_seeded(
+            &self.data_block,
             resolution,
             cache_max_size,
-            empty_value,
-            SynthesisMode::ValueSeeded,
-            ConsolidateParameters {
+            &empty_value,
+            oversampling_ratio.map(|_| OversamplingParameters {
                 aggregated_data: aggregated_result.aggregated_data.clone(),
                 oversampling_ratio,
                 oversampling_tries,
-                use_synthetic_counts: false,
-            },
+            }),
             &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
         )))
     }
@@ -167,8 +164,6 @@ impl SDSProcessor {
     #[wasm_bindgen(js_name = "generateAggregateSeeded")]
     pub fn generate_aggregate_seeded(
         &self,
-        cache_max_size: usize,
-        resolution: usize,
         empty_value: String,
         aggregated_result: &WasmAggregateResult,
         use_synthetic_counts: bool,
@@ -177,20 +172,15 @@ impl SDSProcessor {
         let _duration_logger =
             ElapsedDurationLogger::new(String::from("generation aggregate seeded"));
         let js_callback: Function = progress_callback.dyn_into()?;
-        let mut generator = Generator::new(self.data_block.clone());
+        let generator = Generator::default();
 
-        Ok(WasmGenerateResult::new(generator.generate(
-            resolution,
-            cache_max_size,
-            empty_value,
-            SynthesisMode::AggregateSeeded,
-            ConsolidateParameters {
-                aggregated_data: aggregated_result.aggregated_data.clone(),
-                oversampling_ratio: None,
-                oversampling_tries: None,
+        Ok(WasmGenerateResult::new(
+            generator.generate_aggregate_seeded(
+                &empty_value,
+                aggregated_result.aggregated_data.clone(),
                 use_synthetic_counts,
-            },
-            &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
-        )))
+                &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
+            ),
+        ))
     }
 }

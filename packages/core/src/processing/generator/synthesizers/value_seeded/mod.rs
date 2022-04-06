@@ -1,3 +1,4 @@
+use super::OversamplingParameters;
 use std::sync::Arc;
 
 use crate::{
@@ -45,14 +46,15 @@ impl ValueSeededSynthesizer {
     /// * `attr_rows_map` - Maps a data block value to all the rows where it occurs
     /// * `resolution` - Reporting resolution used for data synthesis
     /// * `cache_max_size` - Maximum cache size allowed
-    /// * `consolidate_parameters` - Parameters used for data consolidation
+    /// * `oversampling_parameters` - Parameters used to control oversampling
+    /// (if `None`, oversampling will be unlimited)
     #[inline]
     pub fn new(
         data_block: Arc<DataBlock>,
         attr_rows_map: AttributeRowsMap,
         resolution: usize,
         cache_max_size: usize,
-        consolidate_parameters: ConsolidateParameters,
+        oversampling_parameters: Option<OversamplingParameters>,
     ) -> ValueSeededSynthesizer {
         let consolidate_sampler = AttributeRowsSampler::new(
             data_block.clone(),
@@ -69,7 +71,16 @@ impl ValueSeededSynthesizer {
             attr_rows_map,
             resolution,
             consolidate_sampler,
-            consolidate_parameters,
+            consolidate_parameters: oversampling_parameters
+                .map(|params| {
+                    ConsolidateParameters::new(
+                        params.aggregated_data,
+                        params.oversampling_ratio,
+                        params.oversampling_tries,
+                        false,
+                    )
+                })
+                .unwrap_or_default(),
             consolidate_percentage: 0.0,
             suppress_percentage: 0.0,
         }

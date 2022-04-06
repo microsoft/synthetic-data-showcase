@@ -2,9 +2,9 @@ use itertools::Itertools;
 use std::sync::Arc;
 
 use crate::{
-    data_block::{DataBlock, DataBlockHeaders, DataBlockValue},
+    data_block::{DataBlockHeaders, DataBlockValue},
     processing::{
-        aggregator::ValueCombination,
+        aggregator::{AggregatedData, ValueCombination},
         generator::synthesizers::{
             consolidate_parameters::ConsolidateParameters,
             traits::{Consolidate, ConsolidateContext, Suppress, SynthesisData},
@@ -20,10 +20,6 @@ use crate::{
 /// Represents all the information required to perform aggregated
 /// seeded synthesis
 pub struct AggregateSeededSynthesizer {
-    /// Reference to the original data block
-    data_block: Arc<DataBlock>,
-    /// Reporting resolution used for data synthesis
-    resolution: usize,
     /// Parameters used for data consolidation
     consolidate_parameters: ConsolidateParameters,
     /// Cached single attribute counts
@@ -37,20 +33,16 @@ pub struct AggregateSeededSynthesizer {
 impl AggregateSeededSynthesizer {
     /// Returns a new AggregateSeededSynthesizer
     /// # Arguments
-    /// * `data_block` - Sensitive data to be synthesized
-    /// * `resolution` - Reporting resolution used for data synthesis
-    /// * `consolidate_parameters` - Parameters used for data consolidation
+    /// * `aggregated_data` - Aggregated data to synthesize from
+    /// * `use_synthetic_counts` - Whether synthetic counts should be used to balance
+    /// the sampling process or not
     #[inline]
     pub fn new(
-        data_block: Arc<DataBlock>,
-        resolution: usize,
-        consolidate_parameters: ConsolidateParameters,
+        aggregated_data: Arc<AggregatedData>,
+        use_synthetic_counts: bool,
     ) -> AggregateSeededSynthesizer {
         AggregateSeededSynthesizer {
-            data_block,
-            resolution,
-            single_attr_counts: consolidate_parameters
-                .aggregated_data
+            single_attr_counts: aggregated_data
                 .aggregates_count
                 .iter()
                 .filter_map(|(attr, count)| {
@@ -61,7 +53,12 @@ impl AggregateSeededSynthesizer {
                     }
                 })
                 .collect(),
-            consolidate_parameters,
+            consolidate_parameters: ConsolidateParameters::new(
+                aggregated_data,
+                None,
+                None,
+                use_synthetic_counts,
+            ),
             consolidate_percentage: 0.0,
             suppress_percentage: 0.0,
         }
@@ -79,7 +76,12 @@ impl AggregateSeededSynthesizer {
     {
         let mut synthesized_records: SynthesizedRecords = SynthesizedRecords::new();
 
-        if !self.data_block.records.is_empty() {
+        if self
+            .consolidate_parameters
+            .aggregated_data
+            .number_of_records
+            > 0
+        {
             self.consolidate_percentage = 0.0;
             self.suppress_percentage = 0.0;
 
@@ -102,7 +104,7 @@ impl AggregateSeededSynthesizer {
 impl SynthesisData for AggregateSeededSynthesizer {
     #[inline]
     fn get_headers(&self) -> &DataBlockHeaders {
-        &self.data_block.headers
+        &self.consolidate_parameters.aggregated_data.headers
     }
 
     #[inline]
@@ -114,7 +116,9 @@ impl SynthesisData for AggregateSeededSynthesizer {
 
     #[inline]
     fn get_resolution(&self) -> usize {
-        self.resolution
+        // when synthesizing from aggregates, those
+        // are supposed to have their counts protected in advance
+        1
     }
 }
 
@@ -165,7 +169,10 @@ impl Consolidate for AggregateSeededSynthesizer {
                     let mut current_comb = last_processed.clone();
                     let mut sensitive_count = 0;
 
-                    current_comb.extend(attr.clone(), &self.data_block.headers);
+                    current_comb.extend(
+                        attr.clone(),
+                        &self.consolidate_parameters.aggregated_data.headers,
+                    );
 
                     // check if the combinations
                     // from this record are valid according
@@ -189,7 +196,10 @@ impl Consolidate for AggregateSeededSynthesizer {
                                 if *synthetic_count == 0 {
                                     // burst contribution if the combination has not
                                     // been used just yet
-                                    sensitive_count += 2 * self.data_block.number_of_records();
+                                    sensitive_count += 2 * self
+                                        .consolidate_parameters
+                                        .aggregated_data
+                                        .number_of_records;
                                 } else {
                                     if *synthetic_count > local_count.count {
                                         return None;

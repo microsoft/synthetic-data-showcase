@@ -3,12 +3,12 @@ use sds_core::{
     data_block::{CsvDataBlockCreator, DataBlockCreator},
     dp::{SensitivityFilterParameters, ThresholdType},
     processing::{
-        aggregator::Aggregator,
-        generator::{ConsolidateParameters, Generator, SynthesisMode},
+        aggregator::{AggregatedData, Aggregator},
+        generator::{Generator, OversamplingParameters},
     },
     utils::{reporting::LoggerProgressReporter, threading::set_number_of_threads},
 };
-use std::process;
+use std::{process, sync::Arc};
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
@@ -38,7 +38,7 @@ enum Command {
             case_insensitive = true,
             default_value = "row_seeded"
         )]
-        mode: SynthesisMode,
+        mode: String,
 
         #[structopt(
             long = "aggregates-json",
@@ -244,27 +244,70 @@ fn main() {
                 oversampling_tries,
                 use_synthetic_counts,
             } => {
-                let consolidate_parameters = match ConsolidateParameters::new(
-                    aggregates_json,
-                    oversampling_ratio,
-                    oversampling_tries,
-                    use_synthetic_counts,
-                ) {
-                    Ok(parameters) => parameters,
-                    Err(err) => {
-                        error!("error reading aggregates json file: {}", err);
+                let aggregated_data = aggregates_json.map(|json_path| {
+                    match AggregatedData::read_from_json(&json_path) {
+                        Ok(data) => Arc::new(data),
+                        Err(err) => {
+                            error!("error reading aggregates json file: {}", err);
+                            process::exit(1);
+                        }
+                    }
+                });
+
+                if (oversampling_ratio.is_some()
+                    || oversampling_tries.is_some()
+                    || mode == "aggregate_seeded")
+                    && aggregated_data.is_none()
+                {
+                    error!("aggregates json file should be provided");
+                    process::exit(1);
+                }
+
+                let oversampling_parameters =
+                    if oversampling_ratio.is_some() || oversampling_tries.is_some() {
+                        Some(OversamplingParameters::new(
+                            aggregated_data.clone().unwrap(),
+                            oversampling_ratio,
+                            oversampling_tries,
+                        ))
+                    } else {
+                        None
+                    };
+                let generator = Generator::default();
+                let generated_data = match mode.as_str() {
+                    "unseeded" => generator.generate_unseeded(
+                        &data_block,
+                        cli.resolution,
+                        cache_max_size,
+                        "",
+                        &mut progress_reporter,
+                    ),
+                    "row_seeded" => generator.generate_row_seeded(
+                        &data_block,
+                        cli.resolution,
+                        cache_max_size,
+                        "",
+                        &mut progress_reporter,
+                    ),
+                    "value_seeded" => generator.generate_value_seeded(
+                        &data_block,
+                        cli.resolution,
+                        cache_max_size,
+                        "",
+                        oversampling_parameters,
+                        &mut progress_reporter,
+                    ),
+                    "aggregate_seeded" => generator.generate_aggregate_seeded(
+                        "",
+                        aggregated_data.unwrap(),
+                        use_synthetic_counts,
+                        &mut progress_reporter,
+                    ),
+                    _ => {
+                        error!("invalid mode");
                         process::exit(1);
                     }
                 };
-                let mut generator = Generator::new(data_block);
-                let generated_data = generator.generate(
-                    cli.resolution,
-                    cache_max_size,
-                    String::from(""),
-                    mode,
-                    consolidate_parameters,
-                    &mut progress_reporter,
-                );
 
                 if let Err(err) = generated_data.write_synthetic_data(
                     &synthetic_path,

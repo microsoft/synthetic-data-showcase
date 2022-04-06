@@ -218,7 +218,6 @@ impl SDSContext {
     #[allow(clippy::too_many_arguments)]
     pub fn generate_aggregate_seeded(
         &mut self,
-        cache_max_size: usize,
         resolution: usize,
         empty_value: String,
         reporting_length: usize,
@@ -243,8 +242,6 @@ impl SDSContext {
         debug!("generating synthetic data using aggregate-seeded approach...");
 
         self.generate_result = self.sensitive_processor.generate_aggregate_seeded(
-            cache_max_size,
-            resolution,
             empty_value,
             &self.reportable_aggregate_result,
             use_synthetic_counts,
@@ -260,7 +257,6 @@ impl SDSContext {
     #[allow(clippy::too_many_arguments)]
     pub fn generate_dp(
         &mut self,
-        cache_max_size: usize,
         resolution: usize,
         empty_value: String,
         reporting_length: usize,
@@ -292,8 +288,6 @@ impl SDSContext {
         debug!("generating synthetic data using aggregate-seeded approach...");
 
         self.generate_result = self.sensitive_processor.generate_aggregate_seeded(
-            cache_max_size,
-            resolution,
             empty_value,
             &self.reportable_aggregate_result,
             use_synthetic_counts,

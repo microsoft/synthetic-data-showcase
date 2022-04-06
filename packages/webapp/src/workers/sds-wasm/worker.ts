@@ -156,12 +156,10 @@ async function handleGenerate(
 			break
 		case SynthesisMode.AggregateSeeded:
 			context.generateAggregateSeeded(
-				message.contextParameters.cacheSize,
 				message.contextParameters.resolution,
 				message.contextParameters.emptyValue,
 				message.contextParameters.reportingLength,
-				message.contextParameters.useSyntheticCounts ===
-					UseSyntheticCounts.Yes,
+				message.contextParameters.useSyntheticCounts === UseSyntheticCounts.Yes,
 				p => {
 					postProgress(message.id, 0.5 * p)
 				},
@@ -172,7 +170,6 @@ async function handleGenerate(
 			break
 		case SynthesisMode.DP:
 			context.generateDp(
-				message.contextParameters.cacheSize,
 				message.contextParameters.resolution,
 				message.contextParameters.emptyValue,
 				message.contextParameters.reportingLength,
@@ -180,8 +177,7 @@ async function handleGenerate(
 				message.contextParameters.sensitivityFilterEpsilon,
 				message.contextParameters.noiseEpsilon,
 				message.contextParameters.noiseDelta,
-				message.contextParameters.useSyntheticCounts ===
-					UseSyntheticCounts.Yes,
+				message.contextParameters.useSyntheticCounts === UseSyntheticCounts.Yes,
 				p => {
 					postProgress(message.id, 0.5 * p)
 				},
