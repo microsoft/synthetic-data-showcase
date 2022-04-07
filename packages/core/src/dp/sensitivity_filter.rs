@@ -9,10 +9,7 @@ use crate::{
         percentile::DpPercentile,
         typedefs::{CombinationsByRecord, CombinationsToRemoveByRecord},
     },
-    processing::aggregator::{
-        aggregated_data::AggregatedData, typedefs::ALL_SENSITIVITIES_INDEX,
-        value_combination::ValueCombination,
-    },
+    processing::aggregator::{AggregatedData, ValueCombination, ALL_SENSITIVITIES_INDEX},
 };
 
 /// Structure that takes a reference to the aggregated data
@@ -89,7 +86,7 @@ impl<'combs_by_record, 'aggregated_data> SensitivityFilter<'combs_by_record, 'ag
     ) -> CombinationsToRemoveByRecord {
         let mut combs_to_remove_by_record = CombinationsToRemoveByRecord::default();
 
-        for record_index in 0..self.aggregated_data.data_block.number_of_records() {
+        for record_index in 0..self.aggregated_data.number_of_records {
             let current_sensitivity =
                 self.aggregated_data.records_sensitivity_by_len[length][record_index];
 

@@ -1,18 +1,14 @@
-use log::{error, info, log_enabled, trace, Level::Debug};
+use log::{error, log_enabled, trace, Level::Debug};
 use sds_core::{
-    data_block::{csv_block_creator::CsvDataBlockCreator, data_block_creator::DataBlockCreator},
-    dp::{
-        sensitivity_filter_parameters::SensitivityFilterParameters, threshold_type::ThresholdType,
-    },
+    data_block::{CsvDataBlockCreator, DataBlockCreator},
+    dp::{SensitivityFilterParameters, ThresholdType},
     processing::{
-        aggregator::Aggregator,
-        generator::{
-            synthesizer::consolidate_parameters::ConsolidateParameters, Generator, SynthesisMode,
-        },
+        aggregator::{AggregatedData, Aggregator},
+        generator::{Generator, OversamplingParameters},
     },
     utils::{reporting::LoggerProgressReporter, threading::set_number_of_threads},
 };
-use std::process;
+use std::{process, sync::Arc};
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
@@ -38,35 +34,35 @@ enum Command {
         #[structopt(
             long = "mode",
             help = "synthesis mode",
-            possible_values = &["seeded", "unseeded", "from_counts", "from_aggregates"],
+            possible_values = &["row_seeded", "unseeded", "value_seeded", "aggregate_seeded"],
             case_insensitive = true,
-            default_value = "seeded"
+            default_value = "row_seeded"
         )]
-        mode: SynthesisMode,
+        mode: String,
 
         #[structopt(
             long = "aggregates-json",
-            help = "json file generated on the aggregate step (optional on the \"from_counts\" mode, required on \"from_aggregates\" mode)"
+            help = "json file generated on the aggregate step (optional on the \"value_seeded\" mode, required on \"aggregate_seeded\" mode)"
         )]
         aggregates_json: Option<String>,
 
         #[structopt(
             long = "oversampling-ratio",
-            help = "allowed oversampling ratio used on \"from_counts\" mode (0.1 means 10%)",
+            help = "allowed oversampling ratio used on \"value_seeded\" mode (0.1 means 10%)",
             requires = "aggregates-json"
         )]
         oversampling_ratio: Option<f64>,
 
         #[structopt(
             long = "oversampling-tries",
-            help = "how many times try to resample in case the currently sampled value causes oversampling (\"from_counts\" mode)",
+            help = "how many times try to resample in case the currently sampled value causes oversampling (\"value_seeded\" mode)",
             requires = "aggregates-json"
         )]
         oversampling_tries: Option<usize>,
 
         #[structopt(
             long = "use-synthetic-counts",
-            help = "use synthetic aggregates to balance attribute sampling on \"from_aggregates\" mode",
+            help = "use synthetic aggregates to balance attribute sampling on \"aggregate_seeded\" mode",
             requires = "aggregates-json"
         )]
         use_synthetic_counts: bool,
@@ -248,27 +244,70 @@ fn main() {
                 oversampling_tries,
                 use_synthetic_counts,
             } => {
-                let consolidate_parameters = match ConsolidateParameters::new(
-                    aggregates_json,
-                    oversampling_ratio,
-                    oversampling_tries,
-                    use_synthetic_counts,
-                ) {
-                    Ok(parameters) => parameters,
-                    Err(err) => {
-                        error!("error reading aggregates json file: {}", err);
+                let aggregated_data = aggregates_json.map(|json_path| {
+                    match AggregatedData::read_from_json(&json_path) {
+                        Ok(data) => Arc::new(data),
+                        Err(err) => {
+                            error!("error reading aggregates json file: {}", err);
+                            process::exit(1);
+                        }
+                    }
+                });
+
+                if (oversampling_ratio.is_some()
+                    || oversampling_tries.is_some()
+                    || mode == "aggregate_seeded")
+                    && aggregated_data.is_none()
+                {
+                    error!("aggregates json file should be provided");
+                    process::exit(1);
+                }
+
+                let oversampling_parameters =
+                    if oversampling_ratio.is_some() || oversampling_tries.is_some() {
+                        Some(OversamplingParameters::new(
+                            aggregated_data.clone().unwrap(),
+                            oversampling_ratio,
+                            oversampling_tries,
+                        ))
+                    } else {
+                        None
+                    };
+                let generator = Generator::default();
+                let generated_data = match mode.as_str() {
+                    "unseeded" => generator.generate_unseeded(
+                        &data_block,
+                        cli.resolution,
+                        cache_max_size,
+                        "",
+                        &mut progress_reporter,
+                    ),
+                    "row_seeded" => generator.generate_row_seeded(
+                        &data_block,
+                        cli.resolution,
+                        cache_max_size,
+                        "",
+                        &mut progress_reporter,
+                    ),
+                    "value_seeded" => generator.generate_value_seeded(
+                        &data_block,
+                        cli.resolution,
+                        cache_max_size,
+                        "",
+                        oversampling_parameters,
+                        &mut progress_reporter,
+                    ),
+                    "aggregate_seeded" => generator.generate_aggregate_seeded(
+                        "",
+                        aggregated_data.unwrap(),
+                        use_synthetic_counts,
+                        &mut progress_reporter,
+                    ),
+                    _ => {
+                        error!("invalid mode");
                         process::exit(1);
                     }
                 };
-                let mut generator = Generator::new(data_block);
-                let generated_data = generator.generate(
-                    cli.resolution,
-                    cache_max_size,
-                    String::from(""),
-                    mode,
-                    consolidate_parameters,
-                    &mut progress_reporter,
-                );
 
                 if let Err(err) = generated_data.write_synthetic_data(
                     &synthetic_path,
@@ -297,7 +336,6 @@ fn main() {
                 let mut aggregator = Aggregator::new(data_block.clone());
                 let mut aggregated_data =
                     aggregator.aggregate(reporting_length, &mut progress_reporter);
-                let privacy_risk = aggregated_data.calc_privacy_risk(cli.resolution);
                 let delta =
                     noise_delta.unwrap_or(1.0 / (2.0 * (data_block.number_of_records() as f64)));
 
@@ -311,7 +349,7 @@ fn main() {
                         None
                     };
 
-                    if let Err(err) = aggregated_data.make_aggregates_noisy(
+                    if let Err(err) = aggregated_data.protect_with_dp(
                         noise_epsilon.unwrap(),
                         delta,
                         noise_threshold_type,
@@ -322,10 +360,8 @@ fn main() {
                         process::exit(1);
                     }
                 } else if !not_protect {
-                    aggregated_data.protect_aggregates_count(cli.resolution);
+                    aggregated_data.protect_with_k_anonymity(cli.resolution);
                 }
-
-                info!("Calculated privacy risk is: {:#?}", privacy_risk);
 
                 if let Err(err) = aggregated_data.write_aggregates_count(
                     &aggregates_path,

@@ -1,1 +1,3 @@
-pub mod aggregate_result;
+mod aggregate_result;
+
+pub use aggregate_result::*;

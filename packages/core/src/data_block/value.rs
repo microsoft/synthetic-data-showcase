@@ -1,6 +1,10 @@
 use super::typedefs::DataBlockHeadersSlice;
 use serde::{Deserialize, Serialize};
-use std::{fmt::Display, str::FromStr, sync::Arc};
+use std::{
+    fmt::{Display, Formatter},
+    str::FromStr,
+    sync::Arc,
+};
 
 const VALUE_DELIMITER: char = ':';
 
@@ -33,7 +37,7 @@ impl DataBlockValue {
     /// * `headers` - data block headers
     /// * `value` - value to be formatted
     #[inline]
-    pub fn format_str_using_headers(&self, headers: &DataBlockHeadersSlice) -> String {
+    pub fn as_str_using_headers(&self, headers: &DataBlockHeadersSlice) -> String {
         format!(
             "{}{}{}",
             headers[self.column_index], VALUE_DELIMITER, self.value
@@ -41,8 +45,20 @@ impl DataBlockValue {
     }
 }
 
+impl Display for DataBlockValue {
+    /// Formats the DataBlockValue as a string
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        Ok(write!(
+            f,
+            "{}{}{}",
+            self.column_index, VALUE_DELIMITER, self.value
+        )?)
+    }
+}
+
 /// Error that can happen when parsing a data block from
 /// a string
+#[derive(Debug)]
 pub struct ParseDataBlockValueError {
     error_message: String,
 }
@@ -56,7 +72,7 @@ impl ParseDataBlockValueError {
 }
 
 impl Display for ParseDataBlockValueError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.error_message)
     }
 }
@@ -79,12 +95,5 @@ impl FromStr for DataBlockValue {
                 VALUE_DELIMITER
             )))
         }
-    }
-}
-
-impl Display for DataBlockValue {
-    /// Formats the DataBlockValue as a string
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        Ok(write!(f, "{}:{}", self.column_index, self.value)?)
     }
 }

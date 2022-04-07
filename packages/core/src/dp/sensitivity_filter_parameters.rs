@@ -40,9 +40,3 @@ impl SensitivityFilterParameters {
         }
     }
 }
-
-#[cfg(feature = "pyo3")]
-pub fn register(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_class::<SensitivityFilterParameters>()?;
-    Ok(())
-}

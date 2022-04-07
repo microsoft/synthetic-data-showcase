@@ -9,10 +9,7 @@ use std::{
 use pyo3::prelude::*;
 
 use crate::{
-    processing::aggregator::{
-        typedefs::{AggregatedMetricByLenMap, AggregatesCountMap},
-        value_combination::ValueCombination,
-    },
+    processing::aggregator::{AggregatedMetricByLenMap, AggregatesCountMap, ValueCombination},
     utils::time::ElapsedDurationLogger,
 };
 
@@ -91,28 +88,6 @@ impl PreservationByCountBuckets {
         self.iter()
             .map(|(bucket_max, b)| (*bucket_max, b.get_mean_combination_length()))
             .collect::<AggregatedMetricByLenMap>()
-    }
-
-    /// Calculates the combination loss for the calculated bucket preservation information
-    /// (`combination_loss = avg(1 - bucket_preservation_sum / bucket_size) for all buckets`)
-    pub fn calc_combination_loss(&self) -> f64 {
-        let _duration_logger = ElapsedDurationLogger::new("combination loss calculation");
-
-        if !self.buckets_map.is_empty() {
-            self.buckets_map
-                .values()
-                .map(|b| {
-                    if b.size > 0 {
-                        1.0 - (b.preservation_sum / (b.size as f64))
-                    } else {
-                        0.0
-                    }
-                })
-                .sum::<f64>()
-                / (self.buckets_map.len() as f64)
-        } else {
-            0.0
-        }
     }
 
     /// Gets the mean proportional error between all buckets

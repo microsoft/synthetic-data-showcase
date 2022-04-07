@@ -91,7 +91,7 @@ C:c2	6
 B:b2;F:1	2
 ```
 
-On the other hand, running `sds-cli --sensitive-path example.csv --sensitive-delimiter , --resolution 2 --n-threads 1 generate --synthetic-path synthetic.tsv --mode seeded` would produce a similar output to:
+On the other hand, running `sds-cli --sensitive-path example.csv --sensitive-delimiter , --resolution 2 --n-threads 1 generate --synthetic-path synthetic.tsv --mode row_seeded` would produce a similar output to:
 
 ```tsv
 A	B	C	F	G	D

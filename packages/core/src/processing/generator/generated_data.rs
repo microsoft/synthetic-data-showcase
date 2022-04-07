@@ -6,10 +6,10 @@ use std::io::Write;
 use pyo3::prelude::*;
 
 #[cfg(feature = "pyo3")]
-use crate::data_block::typedefs::CsvRecord;
+use crate::data_block::CsvRecord;
 
 use crate::{
-    data_block::{csv_io_error::CsvIOError, typedefs::RawSyntheticData},
+    data_block::{CsvIOError, RawSyntheticData},
     utils::time::ElapsedDurationLogger,
 };
 

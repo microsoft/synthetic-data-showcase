@@ -6,13 +6,13 @@ use serde::{
 use std::{fmt::Display, marker::PhantomData, ops::Deref, str::FromStr, sync::Arc};
 
 use crate::data_block::{
-    typedefs::{DataBlockHeaders, DataBlockHeadersSlice},
-    value::{DataBlockValue, ParseDataBlockValueError},
+    DataBlockHeaders, DataBlockHeadersSlice, DataBlockValue, ParseDataBlockValueError,
 };
 
-const COMBINATIONS_DELIMITER: char = ';';
+/// Delimiter between attributes that form a value combination
+pub const COMBINATIONS_DELIMITER: char = ';';
 
-#[derive(Eq, PartialEq, Hash, Clone)]
+#[derive(Eq, PartialEq, Hash, Clone, Debug)]
 /// Wraps a vector of data block values representing a value
 /// combination (sorted by `{header_name}:{block_value}`)
 pub struct ValueCombination {
@@ -42,7 +42,7 @@ impl ValueCombination {
     /// * `headers` - Data block headers
     /// * `combination_delimiter` - Delimiter used to join combinations
     #[inline]
-    pub fn format_str_using_headers(
+    pub fn as_str_using_headers(
         &self,
         headers: &DataBlockHeadersSlice,
         combination_delimiter: &str,
@@ -50,11 +50,11 @@ impl ValueCombination {
         let mut str = String::default();
 
         if let Some(comb) = self.combination.get(0) {
-            str.push_str(&comb.format_str_using_headers(headers));
+            str.push_str(&comb.as_str_using_headers(headers));
         }
         for comb in self.combination.iter().skip(1) {
             str += combination_delimiter;
-            str.push_str(&comb.format_str_using_headers(headers));
+            str.push_str(&comb.as_str_using_headers(headers));
         }
         str
     }
@@ -96,7 +96,7 @@ impl ValueCombination {
     pub fn extend(&mut self, value: Arc<DataBlockValue>, headers: &DataBlockHeaders) {
         self.combination.push(value);
         self.combination
-            .sort_by_key(|k| k.format_str_using_headers(headers));
+            .sort_by_key(|k| k.as_str_using_headers(headers));
     }
 }
 
@@ -177,63 +177,5 @@ impl<'de> Deserialize<'de> for ValueCombination {
         D: serde::Deserializer<'de>,
     {
         deserializer.deserialize_string(ValueCombinationVisitor::new())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    pub fn validate_contains_comb() {
-        assert!(
-            !ValueCombination::new(vec![]).contains_comb(&ValueCombination::new(vec![Arc::new(
-                DataBlockValue::new(0, Arc::new("a1".into()))
-            )]))
-        );
-        assert!(ValueCombination::new(vec![Arc::new(DataBlockValue::new(
-            0,
-            Arc::new("a1".into())
-        ))])
-        .contains_comb(&ValueCombination::new(vec![Arc::new(DataBlockValue::new(
-            0,
-            Arc::new("a1".into())
-        ))])));
-        assert!(!ValueCombination::new(vec![Arc::new(DataBlockValue::new(
-            0,
-            Arc::new("a1".into())
-        ))])
-        .contains_comb(&ValueCombination::new(vec![Arc::new(DataBlockValue::new(
-            1,
-            Arc::new("a1".into())
-        ))])));
-        assert!(ValueCombination::new(vec![
-            Arc::new(DataBlockValue::new(0, Arc::new("a1".into()))),
-            Arc::new(DataBlockValue::new(1, Arc::new("b1".into()))),
-            Arc::new(DataBlockValue::new(2, Arc::new("c1".into()))),
-            Arc::new(DataBlockValue::new(3, Arc::new("d1".into()))),
-            Arc::new(DataBlockValue::new(4, Arc::new("e1".into()))),
-            Arc::new(DataBlockValue::new(5, Arc::new("f1".into()))),
-        ])
-        .contains_comb(&ValueCombination::new(vec![
-            Arc::new(DataBlockValue::new(1, Arc::new("b1".into()))),
-            Arc::new(DataBlockValue::new(3, Arc::new("d1".into()))),
-            Arc::new(DataBlockValue::new(4, Arc::new("e1".into()))),
-            Arc::new(DataBlockValue::new(5, Arc::new("f1".into()))),
-        ])));
-        assert!(!ValueCombination::new(vec![
-            Arc::new(DataBlockValue::new(0, Arc::new("a1".into()))),
-            Arc::new(DataBlockValue::new(1, Arc::new("b1".into()))),
-            Arc::new(DataBlockValue::new(2, Arc::new("c1".into()))),
-            Arc::new(DataBlockValue::new(3, Arc::new("d1".into()))),
-            Arc::new(DataBlockValue::new(4, Arc::new("e1".into()))),
-            Arc::new(DataBlockValue::new(5, Arc::new("f1".into()))),
-        ])
-        .contains_comb(&ValueCombination::new(vec![
-            Arc::new(DataBlockValue::new(1, Arc::new("b1".into()))),
-            Arc::new(DataBlockValue::new(3, Arc::new("d1".into()))),
-            Arc::new(DataBlockValue::new(4, Arc::new("e1".into()))),
-            Arc::new(DataBlockValue::new(5, Arc::new("f2".into()))),
-        ])));
     }
 }

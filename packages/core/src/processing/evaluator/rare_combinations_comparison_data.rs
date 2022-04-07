@@ -4,8 +4,8 @@ use std::io::{Error, Write};
 use pyo3::prelude::*;
 
 use crate::{
-    data_block::typedefs::CombinationsComparisons,
-    processing::aggregator::aggregated_data::AggregatedData, utils::math::uround_down,
+    data_block::CombinationsComparisons, processing::aggregator::AggregatedData,
+    utils::math::uround_down,
 };
 
 #[cfg_attr(feature = "pyo3", pyclass)]
@@ -112,8 +112,8 @@ impl RareCombinationsComparisonData {
 
         for (agg, count) in synthetic_aggregated_data.aggregates_count.iter() {
             if count.count < resolution {
-                let combination_str = agg.format_str_using_headers(
-                    &synthetic_aggregated_data.data_block.headers,
+                let combination_str = agg.as_str_using_headers(
+                    &synthetic_aggregated_data.headers,
                     combination_delimiter,
                 );
                 let mut sensitive_count = sensitive_aggregated_data

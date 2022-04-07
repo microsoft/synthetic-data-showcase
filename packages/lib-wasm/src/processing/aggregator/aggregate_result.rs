@@ -1,12 +1,12 @@
 use js_sys::{Object, Reflect::set};
 use sds_core::{
-    dp::sensitivity_filter_parameters::SensitivityFilterParameters,
-    processing::aggregator::aggregated_data::AggregatedData, utils::time::ElapsedDurationLogger,
+    dp::SensitivityFilterParameters, processing::aggregator::AggregatedData,
+    utils::time::ElapsedDurationLogger,
 };
 use std::{ops::Deref, sync::Arc};
 use wasm_bindgen::{prelude::*, JsCast};
 
-use crate::utils::js::ts_definitions::{JsAggregateResult, JsResult};
+use crate::utils::js::{JsAggregateResult, JsResult};
 
 #[wasm_bindgen]
 #[derive(Clone)]
@@ -91,7 +91,7 @@ impl WasmAggregateResult {
     pub fn protect_with_k_anonymity(&mut self, resolution: usize) -> WasmAggregateResult {
         let mut new_aggregated_data = (*self.aggregated_data).clone();
 
-        new_aggregated_data.protect_aggregates_count(resolution);
+        new_aggregated_data.protect_with_k_anonymity(resolution);
 
         WasmAggregateResult::new(Arc::new(new_aggregated_data))
     }
@@ -108,7 +108,7 @@ impl WasmAggregateResult {
 
         // TODO: propagate all parameters to API
         new_aggregated_data
-            .make_aggregates_noisy_adaptive_threshold(
+            .protect_with_dp_adaptive_threshold(
                 noise_epsilon,
                 noise_delta,
                 2.0,

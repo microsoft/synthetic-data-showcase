@@ -8,9 +8,7 @@ use std::{
 #[cfg(feature = "pyo3")]
 use pyo3::prelude::*;
 
-use crate::processing::aggregator::{
-    typedefs::AggregatesCountMap, value_combination::ValueCombination,
-};
+use crate::processing::aggregator::{AggregatesCountMap, ValueCombination};
 
 #[cfg_attr(feature = "pyo3", pyclass)]
 /// Wrapping to store the preservation buckets grouped
