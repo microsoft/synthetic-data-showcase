@@ -3,6 +3,7 @@ use super::{
     sensitivity_filter_parameters::SensitivityFilterParameters, threshold_type::ThresholdType,
 };
 use fnv::FnvHashSet;
+use itertools::Itertools;
 use log::{debug, info, warn};
 use rand::{prelude::Distribution as rand_dist, thread_rng};
 use statrs::{distribution::Normal, statistics::Distribution};
@@ -36,11 +37,11 @@ impl<'aggregated_data> NoiseAggregator<'aggregated_data> {
         sensitivity_filter_params: Option<SensitivityFilterParameters>,
     ) -> Option<SensitivityFilterParameters> {
         if self.aggregated_data.reporting_length > 1 {
-            // split the privacy budget between the 2, 3...reporting length counts
+            // split the privacy budget between the 1, 2, 3...reporting length counts
             sensitivity_filter_params.map(|params| {
                 SensitivityFilterParameters::new(
                     params.percentile_percentage,
-                    params.epsilon / ((self.aggregated_data.reporting_length - 1) as f64),
+                    params.epsilon / (self.aggregated_data.reporting_length as f64),
                 )
             })
         } else {
@@ -66,8 +67,26 @@ impl<'aggregated_data> NoiseAggregator<'aggregated_data> {
     }
 
     #[inline]
+    fn is_combination_valid(
+        noisy_aggregates_by_len: &CombinationsCountMapByLen,
+        comb: &ValueCombination,
+    ) -> bool {
+        for l in 2..comb.len() {
+            for mut sub_comb in comb.iter().combinations(l) {
+                if !noisy_aggregates_by_len[&l].contains_key(&ValueCombination::new(
+                    sub_comb.drain(..).cloned().collect(),
+                )) {
+                    return false;
+                }
+            }
+        }
+        true
+    }
+
+    #[inline]
     fn gen_all_current_aggregates_based_on_previous(
         &self,
+        noisy_aggregates_by_len: &CombinationsCountMapByLen,
         previous_aggregates: &CombinationsCountMap,
     ) -> CombinationsCountMap {
         // try to combine the previous combinations with the distinct attributes
@@ -85,18 +104,25 @@ impl<'aggregated_data> NoiseAggregator<'aggregated_data> {
 
                         new_comb.extend((*attr).clone(), &self.aggregated_data.headers);
 
-                        let count_opt = self.aggregated_data.aggregates_count.get(&new_comb);
+                        if NoiseAggregator::is_combination_valid(noisy_aggregates_by_len, &new_comb)
+                        {
+                            let count_opt = self.aggregated_data.aggregates_count.get(&new_comb);
 
-                        if let Some(count) = count_opt {
-                            if NoiseAggregator::was_count_not_removed(count) {
-                                Some((Arc::new(new_comb), count.count as f64))
+                            if let Some(count) = count_opt {
+                                if NoiseAggregator::was_count_not_removed(count) {
+                                    Some((Arc::new(new_comb), count.count as f64))
+                                } else {
+                                    None
+                                }
                             } else {
-                                None
+                                // this aggregate does not exist on the real data,
+                                // let's give it a change of being sampled
+                                Some((Arc::new(new_comb), 0.0))
                             }
                         } else {
-                            // this aggregate does not exist on the real data,
-                            // let's give it a change of being sampled
-                            Some((Arc::new(new_comb), 0.0))
+                            // a sub combination of this is not present
+                            // on the noisy_aggregates_by_len, so we can't use it
+                            None
                         }
                     }
                 })
@@ -211,12 +237,11 @@ impl<'aggregated_data> NoiseAggregator<'aggregated_data> {
         comb_len: usize,
         sensitivity_filter_params: &Option<SensitivityFilterParameters>,
     ) -> f64 {
-        if comb_len > 1 {
-            if let Some(params) = sensitivity_filter_params {
-                return SensitivityFilter::new(&self.combs_by_record, self.aggregated_data)
-                    .filter_sensitivities_for_len(comb_len, params) as f64;
-            }
+        if let Some(params) = sensitivity_filter_params {
+            return SensitivityFilter::new(&self.combs_by_record, self.aggregated_data)
+                .filter_sensitivities_for_len(comb_len, params) as f64;
         }
+
         self.aggregated_data
             .records_sensitivity_by_len
             .get(comb_len)
@@ -277,7 +302,10 @@ impl<'aggregated_data> NoiseAggregator<'aggregated_data> {
         current_comb_len: usize,
     ) -> CombinationsCountMap {
         if let Some(previous_aggregates) = noisy_aggregates_by_len.get(&(current_comb_len - 1)) {
-            self.gen_all_current_aggregates_based_on_previous(previous_aggregates)
+            self.gen_all_current_aggregates_based_on_previous(
+                noisy_aggregates_by_len,
+                previous_aggregates,
+            )
         } else {
             self.gen_all_current_aggregates_based_on_single_attributes()
         }

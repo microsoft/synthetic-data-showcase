@@ -1,11 +1,11 @@
-use fnv::FnvHashMap;
+use fnv::{FnvHashMap, FnvHashSet};
 use std::sync::Arc;
 
 use crate::processing::aggregator::ValueCombination;
 
 /// Maps the record index to the combinations that should
 /// have its contribution removed
-pub type CombinationsToRemoveByRecord = FnvHashMap<usize, Vec<Arc<ValueCombination>>>;
+pub type CombinationsToRemoveByRecord = FnvHashMap<usize, FnvHashSet<Arc<ValueCombination>>>;
 
 /// Maps the combination length to the allowed sensitivity for each
 /// length

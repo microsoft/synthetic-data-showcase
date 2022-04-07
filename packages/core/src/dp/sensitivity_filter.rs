@@ -1,5 +1,5 @@
 use super::sensitivity_filter_parameters::SensitivityFilterParameters;
-use itertools::Itertools;
+use fnv::FnvHashSet;
 use log::info;
 use rand::{prelude::IteratorRandom, thread_rng};
 use std::sync::Arc;
@@ -28,7 +28,6 @@ impl<'combs_by_record, 'aggregated_data> SensitivityFilter<'combs_by_record, 'ag
     ) {
         for (record_index, combs_to_remove) in combs_to_remove_by_record.iter() {
             for value in &self.combs_by_record[*record_index] {
-                let value_set = value.build_ref_set();
                 let count = self
                     .aggregated_data
                     .aggregates_count
@@ -38,9 +37,7 @@ impl<'combs_by_record, 'aggregated_data> SensitivityFilter<'combs_by_record, 'ag
                 // this combination might have already been removed from the record on previous
                 // iterations, so we double check it is still in the contained_in_records set
                 if count.contained_in_records.contains(record_index)
-                    && combs_to_remove
-                        .iter()
-                        .any(|c| ValueCombination::ref_set_contains_other(&value_set, c))
+                    && combs_to_remove.contains(value)
                 {
                     count.count -= 1;
                     count.contained_in_records.remove(record_index);
@@ -59,7 +56,7 @@ impl<'combs_by_record, 'aggregated_data> SensitivityFilter<'combs_by_record, 'ag
         n_to_remove: usize,
         record_index: usize,
         length: usize,
-    ) -> Vec<Arc<ValueCombination>> {
+    ) -> FnvHashSet<Arc<ValueCombination>> {
         self.combs_by_record[record_index]
             .iter()
             .filter(|comb| {
@@ -75,7 +72,7 @@ impl<'combs_by_record, 'aggregated_data> SensitivityFilter<'combs_by_record, 'ag
             .choose_multiple(&mut thread_rng(), n_to_remove)
             .iter()
             .map(|comb| (**comb).clone())
-            .collect_vec()
+            .collect()
     }
 
     #[inline]
@@ -162,10 +159,8 @@ impl<'combs_by_record, 'aggregated_data> SensitivityFilter<'combs_by_record, 'ag
             self.remove_combs_contributions_for_records(&combs_to_remove_by_record);
         }
 
-        let updated_sensitivity = self.get_sensitivity_for_length(length);
+        assert!(self.get_sensitivity_for_length(length) <= allowed_sensitivity);
 
-        assert!(updated_sensitivity <= allowed_sensitivity);
-
-        updated_sensitivity
+        allowed_sensitivity
     }
 }
