@@ -10,6 +10,10 @@ pub enum ThresholdType {
     /// standard deviation (which them will be used as value to filter
     /// combinations based on their counts)
     Adaptive,
+    /// The threshold value will be the maximum fabrication percentage
+    /// allowed by combination length
+    /// (comparison done with the original aggregates)
+    MaxFabrication,
 }
 
 impl FromStr for ThresholdType {
@@ -19,7 +23,8 @@ impl FromStr for ThresholdType {
         match mode.to_lowercase().as_str() {
             "fixed" => Ok(ThresholdType::Fixed),
             "adaptive" => Ok(ThresholdType::Adaptive),
-            _ => Err("invalid mode, should be fixed or adaptive"),
+            "max_fabrication" => Ok(ThresholdType::MaxFabrication),
+            _ => Err("invalid mode, should be fixed, adaptive or max_fabrication"),
         }
     }
 }
@@ -29,6 +34,7 @@ impl Display for ThresholdType {
         match self {
             ThresholdType::Fixed => Ok(write!(f, "fixed")?),
             ThresholdType::Adaptive => Ok(write!(f, "adaptive")?),
+            ThresholdType::MaxFabrication => Ok(write!(f, "max_fabrication")?),
         }
     }
 }

@@ -91,6 +91,13 @@ def aggregate(config):
                 noise_threshold_value,
                 sensitivity_filter_params
             )
+        elif noise_threshold_type == 'max_fabrication':
+            aggregated_data.protect_with_dp_max_fabrication_threshold(
+                noise_epsilon,
+                noise_delta,
+                noise_threshold_value,
+                sensitivity_filter_params
+            )
         else:
             raise ValueError(
                 f'invalid noise_threshold_type: "{noise_threshold_type}"')

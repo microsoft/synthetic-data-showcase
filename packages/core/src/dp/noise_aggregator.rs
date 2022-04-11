@@ -17,8 +17,8 @@ use crate::{
         typedefs::{CombinationsByRecord, CombinationsCountMap, CombinationsCountMapByLen},
     },
     processing::aggregator::{
-        AggregatedCount, AggregatedData, AggregatesCountMap, RecordsSet, ValueCombination,
-        ValueCombinationRefSet, ALL_SENSITIVITIES_INDEX,
+        AggregatedCount, AggregatedData, RecordsSet, ValueCombination, ValueCombinationRefSet,
+        ALL_SENSITIVITIES_INDEX,
     },
 };
 
@@ -63,7 +63,7 @@ impl<'aggregated_data> NoiseAggregator<'aggregated_data> {
 
     #[inline]
     fn was_count_not_removed(count: &AggregatedCount) -> bool {
-        count.count > 0
+        !count.contained_in_records.is_empty()
     }
 
     #[inline]
@@ -220,7 +220,7 @@ impl<'aggregated_data> NoiseAggregator<'aggregated_data> {
         count: &AggregatedCount,
         combs_to_remove: &[&&ValueCombination],
     ) -> bool {
-        (*count).count > 0
+        NoiseAggregator::was_count_not_removed(count)
             && combs_to_remove
                 .iter()
                 .any(|c| ValueCombination::ref_set_contains_other(comb_ref_set, c))
@@ -250,8 +250,45 @@ impl<'aggregated_data> NoiseAggregator<'aggregated_data> {
     }
 
     #[inline]
+    fn calc_threshold(
+        &self,
+        total_number_of_combinations_on_length: f64,
+        all_current_aggregates: &CombinationsCountMap,
+        threshold_type: &ThresholdType,
+        threshold_value: f64,
+        sigma: f64,
+    ) -> f64 {
+        match threshold_type {
+            ThresholdType::Fixed => threshold_value,
+            ThresholdType::Adaptive => sigma * threshold_value,
+            ThresholdType::MaxFabrication => {
+                let fabricated = all_current_aggregates
+                    .iter()
+                    .filter_map(|(comb, count)| {
+                        if !self.aggregated_data.aggregates_count.contains_key(comb) && *count > 0.0
+                        {
+                            Some(*count)
+                        } else {
+                            None
+                        }
+                    })
+                    .sorted_by(|a, b| a.partial_cmp(b).unwrap())
+                    .collect_vec();
+                let max_allowed_fabricated_count =
+                    (total_number_of_combinations_on_length * threshold_value).round() as usize;
+
+                if fabricated.len() > max_allowed_fabricated_count {
+                    fabricated[fabricated.len() - max_allowed_fabricated_count - 1].floor() + 1.0
+                } else {
+                    *fabricated.first().unwrap_or(&1.0)
+                }
+            }
+        }
+    }
+
+    #[inline]
     fn replace_aggregates_count(&mut self, mut noisy_aggregates_by_len: CombinationsCountMapByLen) {
-        self.aggregated_data.aggregates_count = AggregatesCountMap::default();
+        self.aggregated_data.aggregates_count.clear();
         for (_l, mut aggregates) in noisy_aggregates_by_len.drain() {
             for (comb, count) in aggregates.drain() {
                 self.aggregated_data.aggregates_count.insert(
@@ -335,7 +372,7 @@ impl<'aggregated_data> NoiseAggregator<'aggregated_data> {
                 count,
                 &existing_combs_to_remove,
             ) {
-                // set the combination count as zero to indicate it should not be used
+                // set the combination count as zero for consistence
                 (*count).count = 0;
                 // decrement the sensitivity of all records that contains this combination
                 for record_index in count.contained_in_records.iter() {
@@ -344,6 +381,7 @@ impl<'aggregated_data> NoiseAggregator<'aggregated_data> {
                         [*record_index] -= 1;
                 }
                 // clear this, so it won't affect the sensitivity filtering
+                // and to indicate this combination should not be used
                 (*count).contained_in_records.clear();
             }
         }
@@ -356,8 +394,12 @@ impl<'aggregated_data> NoiseAggregator<'aggregated_data> {
     /// * `delta` - allowed proportion to leak
     /// * `threshold_type` - either `Fixed` or `Adaptive`
     /// * `threshold_value` - threshold to suppress a combination if its noisy count is smaller than it
-    /// (if `threshold_type` is `Fixed`, the used threshold will be the provided value,
-    /// otherwise it will be `gaussian_std_per_combination_length * threshold_value`)
+    ///     - if `threshold_type` is `Fixed`, the used threshold will be the provided value
+    ///     - if `threshold_type` is `Adaptive`, the used threshold will be
+    /// `gaussian_std_per_combination_length * threshold_value`)
+    ///     - if `threshold_type` is `MaxFabrication`, the used threshold will be calculated so
+    /// the fabrication by combination length does not exceed the percentage informed in `threshold_value`
+    /// (e.g. 0.2 means 20% of the original aggregates counts for that length)
     /// * `sensitivity_filter_params` - `None` if no sensitivity filtering should be applied, otherwise
     /// the parameters that should be used
     pub fn make_aggregates_noisy(
@@ -371,11 +413,24 @@ impl<'aggregated_data> NoiseAggregator<'aggregated_data> {
         let mut noisy_aggregates_by_len = CombinationsCountMapByLen::default();
         let epsilon_by_length = epsilon / (self.aggregated_data.reporting_length as f64);
         let params = self.split_privacy_budget(sensitivity_filter_params);
+        let total_number_of_combinations_by_len = self
+            .aggregated_data
+            .calc_total_number_of_combinations_by_len();
 
         for l in 1..=self.aggregated_data.reporting_length {
+            let max_sensitivity = self.filter_and_get_sensitivity_for_len(l, &params);
+            // this should be called after the aggregated data is filtered using the DP sensitivity
             let mut all_current_aggregates =
                 self.gen_all_current_aggregates(&noisy_aggregates_by_len, l);
-            let max_sensitivity = self.filter_and_get_sensitivity_for_len(l, &params);
+
+            if max_sensitivity == 0.0 {
+                // make sure the aggregate selection is working as expected
+                // if the sensitivity is 0.0, there should never be sensitive
+                // combinations
+                assert!(all_current_aggregates
+                    .keys()
+                    .all(|comb| !self.aggregated_data.aggregates_count.contains_key(comb)));
+            }
 
             debug!(
                 "maximum sensitivity for {}-counts is {:.2}",
@@ -389,11 +444,15 @@ impl<'aggregated_data> NoiseAggregator<'aggregated_data> {
                 max_sensitivity,
                 &mut all_current_aggregates,
             )?;
+            let threshold = self.calc_threshold(
+                total_number_of_combinations_by_len[&l] as f64,
+                &all_current_aggregates,
+                &threshold_type,
+                threshold_value,
+                sigma,
+            );
 
-            let threshold = match threshold_type {
-                ThresholdType::Fixed => threshold_value,
-                ThresholdType::Adaptive => sigma * threshold_value,
-            };
+            debug!("used threshold = {}", threshold);
 
             let combs_to_remove =
                 NoiseAggregator::get_combs_to_remove(&all_current_aggregates, threshold);

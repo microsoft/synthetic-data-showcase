@@ -215,8 +215,12 @@ impl AggregatedData {
     /// * `delta` - allowed proportion to leak
     /// * `threshold_type` - either `Fixed` or `Adaptive`
     /// * `threshold_value` - threshold to suppress a combination if its noisy count is smaller than it
-    /// (if `threshold_type` is `Fixed`, the used threshold will be the provided value,
-    /// otherwise it will be `gaussian_std_per_combination_length * threshold_value`)
+    ///     - if `threshold_type` is `Fixed`, the used threshold will be the provided value
+    ///     - if `threshold_type` is `Adaptive`, the used threshold will be
+    /// `gaussian_std_per_combination_length * threshold_value`)
+    ///     - if `threshold_type` is `MaxFabrication`, the used threshold will be calculated so
+    /// the fabrication by combination length does not exceed the percentage informed in `threshold_value`
+    /// (e.g. 0.2 means 20% of the original aggregates counts for that length)
     /// * `sensitivity_filter_params` - `None` if no sensitivity filtering should be applied, otherwise
     /// the parameters that should be used
     pub fn protect_with_dp(
@@ -428,6 +432,33 @@ impl AggregatedData {
             epsilon,
             delta,
             ThresholdType::Adaptive,
+            threshold_ratio,
+            sensitivity_filter_params,
+        )
+    }
+
+    /// Add gaussian noise to the aggregates, also fabricating and suppressing
+    /// combinations to ensure the final result will be differential private
+    /// (with threshold based on max allowed fabrication)
+    /// # Arguments
+    /// * `epsilon` - privacy budget used to generate noise (split for all lengths)
+    /// * `delta` - allowed proportion to leak
+    /// * `max_fabrication` - the used threshold will be calculated so
+    /// the fabrication by combination length does not exceed this percentage
+    /// (e.g. 0.2 means 20% of the original aggregates counts for that length)
+    /// * `sensitivity_filter_params` - `None` if no sensitivity filtering should be applied, otherwise
+    /// the parameters that should be used
+    pub fn protect_with_dp_max_fabrication_threshold(
+        &mut self,
+        epsilon: f64,
+        delta: f64,
+        threshold_ratio: f64,
+        sensitivity_filter_params: Option<SensitivityFilterParameters>,
+    ) -> Result<(), StatsError> {
+        self.protect_with_dp(
+            epsilon,
+            delta,
+            ThresholdType::MaxFabrication,
             threshold_ratio,
             sensitivity_filter_params,
         )

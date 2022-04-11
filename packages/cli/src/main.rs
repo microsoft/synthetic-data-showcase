@@ -138,8 +138,8 @@ enum Command {
 
         #[structopt(
             long = "noise-threshold-type",
-            help = "threshold type, could be fixed or adaptive",
-            possible_values = &["fixed", "adaptive"],
+            help = "threshold type, could be fixed, adaptive or max_fabrication",
+            possible_values = &["fixed", "adaptive", "max_fabrication"],
             case_insensitive = true,
             default_value = "fixed",
         )]

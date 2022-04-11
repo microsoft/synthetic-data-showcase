@@ -174,12 +174,9 @@ pub fn validate_gen_all_current_aggregates_with_removed_combs() {
         NoiseAggregator::new(&mut aggregated_data)
             .gen_all_current_aggregates(&noisy_aggregates_by_len, 3),
     );
-    // a1;b1;d2, a2;b2;c1 and a2;b2;d1 won't get removed because
-    // they do not exist on the sensitive data
     assert_map_equals(
         &noisy_aggregates_by_len[&3],
         &gen_combinations_count_map(&[
-            ("a1;b1;d2", 0.0),
             ("a1;b2;c1", 0.0),
             ("a1;b2;d1", 0.0),
             ("a1;b2;d2", 0.0),
@@ -188,8 +185,6 @@ pub fn validate_gen_all_current_aggregates_with_removed_combs() {
             ("a2;b1;c1", 0.0),
             ("a2;b1;d1", 0.0),
             ("a2;b1;d2", 0.0),
-            ("a2;b2;c1", 0.0),
-            ("a2;b2;d1", 0.0),
             ("a2;c1;d1", 0.0),
             ("a2;c1;d2", 0.0),
             ("b1;c1;d1", 1.0),
