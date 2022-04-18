@@ -3,6 +3,7 @@ use super::{
     navigator::WasmNavigateResult, sds_processor::SDSProcessor,
 };
 use log::debug;
+use sds_core::dp::NoisyCountThreshold;
 use wasm_bindgen::{prelude::*, JsCast};
 
 use crate::utils::js::{
@@ -253,19 +254,21 @@ impl SDSContext {
         Ok(())
     }
 
-    #[wasm_bindgen(js_name = "generateDp")]
     #[allow(clippy::too_many_arguments)]
-    pub fn generate_dp(
+    fn generate_dp(
         &mut self,
         resolution: usize,
         empty_value: String,
         reporting_length: usize,
+        epsilon: f64,
+        delta: f64,
         percentile_percentage: usize,
-        sensitivity_filter_epsilon: f64,
-        noise_epsilon: f64,
-        noise_delta: f64,
+        percentile_epsilon_proportion: f64,
+        sigma_proportions: Option<Vec<f64>>,
+        threshold: NoisyCountThreshold,
         use_synthetic_counts: bool,
-        aggregates_progress_callback: JsReportProgressCallback,
+        sensitive_aggregates_progress_callback: JsReportProgressCallback,
+        reportable_aggregates_progress_callback: JsReportProgressCallback,
         synthesis_progress_callback: JsReportProgressCallback,
     ) -> JsResult<()> {
         self.pre_computed_aggregates = true;
@@ -274,15 +277,19 @@ impl SDSContext {
 
         self.sensitive_aggregate_result = self
             .sensitive_processor
-            .aggregate(reporting_length, aggregates_progress_callback)?;
+            .aggregate(reporting_length, sensitive_aggregates_progress_callback)?;
 
         debug!("calculating reportable aggregate data with differential privacy...");
 
-        self.reportable_aggregate_result = self.sensitive_aggregate_result.protect_with_dp(
+        self.reportable_aggregate_result = self.sensitive_processor.aggregate_with_dp(
+            reporting_length,
+            epsilon,
+            delta,
             percentile_percentage,
-            sensitivity_filter_epsilon,
-            noise_epsilon,
-            noise_delta,
+            percentile_epsilon_proportion,
+            sigma_proportions,
+            threshold,
+            reportable_aggregates_progress_callback,
         )?;
 
         debug!("generating synthetic data using aggregate-seeded approach...");
@@ -297,6 +304,111 @@ impl SDSContext {
 
         self.clear_evaluate();
         Ok(())
+    }
+
+    #[wasm_bindgen(js_name = "generateDpFixedThreshold")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn generate_dp_fixed_threshold(
+        &mut self,
+        resolution: usize,
+        empty_value: String,
+        reporting_length: usize,
+        epsilon: f64,
+        delta: f64,
+        percentile_percentage: usize,
+        percentile_epsilon_proportion: f64,
+        sigma_proportions: Option<Vec<f64>>,
+        threshold: f64,
+        use_synthetic_counts: bool,
+        sensitive_aggregates_progress_callback: JsReportProgressCallback,
+        reportable_aggregates_progress_callback: JsReportProgressCallback,
+        synthesis_progress_callback: JsReportProgressCallback,
+    ) -> JsResult<()> {
+        self.generate_dp(
+            resolution,
+            empty_value,
+            reporting_length,
+            epsilon,
+            delta,
+            percentile_percentage,
+            percentile_epsilon_proportion,
+            sigma_proportions,
+            NoisyCountThreshold::Fixed(threshold),
+            use_synthetic_counts,
+            sensitive_aggregates_progress_callback,
+            reportable_aggregates_progress_callback,
+            synthesis_progress_callback,
+        )
+    }
+
+    #[wasm_bindgen(js_name = "generateDpAdaptiveThreshold")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn generate_dp_adaptive_threshold(
+        &mut self,
+        resolution: usize,
+        empty_value: String,
+        reporting_length: usize,
+        epsilon: f64,
+        delta: f64,
+        percentile_percentage: usize,
+        percentile_epsilon_proportion: f64,
+        sigma_proportions: Option<Vec<f64>>,
+        threshold: f64,
+        use_synthetic_counts: bool,
+        sensitive_aggregates_progress_callback: JsReportProgressCallback,
+        reportable_aggregates_progress_callback: JsReportProgressCallback,
+        synthesis_progress_callback: JsReportProgressCallback,
+    ) -> JsResult<()> {
+        self.generate_dp(
+            resolution,
+            empty_value,
+            reporting_length,
+            epsilon,
+            delta,
+            percentile_percentage,
+            percentile_epsilon_proportion,
+            sigma_proportions,
+            NoisyCountThreshold::Adaptive(threshold),
+            use_synthetic_counts,
+            sensitive_aggregates_progress_callback,
+            reportable_aggregates_progress_callback,
+            synthesis_progress_callback,
+        )
+    }
+
+    #[wasm_bindgen(js_name = "generateDpMaxFabricationThreshold")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn generate_dp_max_fabrication_threshold(
+        &mut self,
+        resolution: usize,
+        empty_value: String,
+        reporting_length: usize,
+        epsilon: f64,
+        delta: f64,
+        percentile_percentage: usize,
+        percentile_epsilon_proportion: f64,
+        sigma_proportions: Option<Vec<f64>>,
+        threshold: f64,
+        use_synthetic_counts: bool,
+        sensitive_aggregates_progress_callback: JsReportProgressCallback,
+        reportable_aggregates_progress_callback: JsReportProgressCallback,
+        synthesis_progress_callback: JsReportProgressCallback,
+    ) -> JsResult<()> {
+        self.generate_dp(
+            resolution,
+            empty_value,
+            reporting_length,
+            epsilon,
+            delta,
+            percentile_percentage,
+            percentile_epsilon_proportion,
+            sigma_proportions,
+            NoisyCountThreshold::MaxFabrication(threshold),
+            use_synthetic_counts,
+            sensitive_aggregates_progress_callback,
+            reportable_aggregates_progress_callback,
+            synthesis_progress_callback,
+        )
     }
 
     pub fn evaluate(

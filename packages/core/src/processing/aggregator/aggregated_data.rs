@@ -20,7 +20,6 @@ use pyo3::prelude::*;
 
 use crate::{
     data_block::DataBlockHeaders,
-    dp::{NoiseAggregator, SensitivityFilterParameters, StatsError, ThresholdType},
     processing::aggregator::{
         typedefs::RecordsSet, value_combination::ValueCombination, AggregatedCount,
     },
@@ -207,46 +206,6 @@ impl AggregatedData {
         line.push('\n');
         line
     }
-
-    /// Add gaussian noise to the aggregates, also fabricating and suppressing
-    /// combinations to ensure the final result will be differential private
-    /// # Arguments
-    /// * `epsilon` - privacy budget used to generate noise (split for all lengths)
-    /// * `delta` - allowed proportion to leak
-    /// * `threshold_type` - either `Fixed` or `Adaptive`
-    /// * `threshold_value` - threshold to suppress a combination if its noisy count is smaller than it
-    /// (if `threshold_type` is `Fixed`, the used threshold will be the provided value,
-    /// otherwise it will be `gaussian_std_per_combination_length * threshold_value`)
-    /// * `sensitivity_filter_params` - `None` if no sensitivity filtering should be applied, otherwise
-    /// the parameters that should be used
-    pub fn protect_with_dp(
-        &mut self,
-        epsilon: f64,
-        delta: f64,
-        threshold_type: ThresholdType,
-        threshold_value: f64,
-        sensitivity_filter_params: Option<SensitivityFilterParameters>,
-    ) -> Result<(), StatsError> {
-        info!(
-            "protecting aggregates with DP: epsilon = {}, delta = {}, threshold type = {} and threshold value = {}",
-            epsilon, delta, threshold_type, threshold_value
-        );
-        let _duration_logger = ElapsedDurationLogger::new("protect with DP");
-
-        NoiseAggregator::new(self).make_aggregates_noisy(
-            epsilon,
-            delta,
-            threshold_type,
-            threshold_value,
-            sensitivity_filter_params,
-        )?;
-
-        self.remove_zero_counts();
-        self.add_missing_parent_combinations();
-        self.normalize_noisy_combinations();
-
-        Ok(())
-    }
 }
 
 #[cfg_attr(feature = "pyo3", pymethods)]
@@ -381,56 +340,6 @@ impl AggregatedData {
         for (comb, count) in noisy_combs.drain() {
             self.aggregates_count.get_mut(&comb).unwrap().count = count;
         }
-    }
-
-    /// Add gaussian noise to the aggregates, also fabricating and suppressing
-    /// combinations to ensure the final result will be differential private
-    /// (with fixed threshold for combination counts)
-    /// # Arguments
-    /// * `epsilon` - privacy budget used to generate noise (split for all lengths)
-    /// * `delta` - allowed proportion to leak
-    /// * `threshold` - threshold to suppress a combination if its noisy count is smaller than it
-    /// * `sensitivity_filter_params` - `None` if no sensitivity filtering should be applied, otherwise
-    /// the parameters that should be used
-    pub fn protect_with_dp_fixed_threshold(
-        &mut self,
-        epsilon: f64,
-        delta: f64,
-        threshold: f64,
-        sensitivity_filter_params: Option<SensitivityFilterParameters>,
-    ) -> Result<(), StatsError> {
-        self.protect_with_dp(
-            epsilon,
-            delta,
-            ThresholdType::Fixed,
-            threshold,
-            sensitivity_filter_params,
-        )
-    }
-
-    /// Add gaussian noise to the aggregates, also fabricating and suppressing
-    /// combinations to ensure the final result will be differential private
-    /// (with adaptive threshold for combination counts)
-    /// # Arguments
-    /// * `epsilon` - privacy budget used to generate noise (split for all lengths)
-    /// * `delta` - allowed proportion to leak
-    /// * `threshold_ratio` - threshold will be `gaussian_std_per_combination_length * threshold_ratio`
-    /// * `sensitivity_filter_params` - `None` if no sensitivity filtering should be applied, otherwise
-    /// the parameters that should be used
-    pub fn protect_with_dp_adaptive_threshold(
-        &mut self,
-        epsilon: f64,
-        delta: f64,
-        threshold_ratio: f64,
-        sensitivity_filter_params: Option<SensitivityFilterParameters>,
-    ) -> Result<(), StatsError> {
-        self.protect_with_dp(
-            epsilon,
-            delta,
-            ThresholdType::Adaptive,
-            threshold_ratio,
-            sensitivity_filter_params,
-        )
     }
 
     /// Round the aggregated counts down to the nearest multiple of resolution

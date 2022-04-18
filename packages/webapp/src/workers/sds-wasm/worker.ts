@@ -6,6 +6,7 @@ import init, { init_logger, SDSContext } from 'sds-wasm'
 
 import {
 	AggregateType,
+	NoisyCountThresholdType,
 	OversamplingType,
 	SynthesisMode,
 	UseSyntheticCounts,
@@ -169,22 +170,80 @@ async function handleGenerate(
 			)
 			break
 		case SynthesisMode.DP:
-			context.generateDp(
-				message.contextParameters.resolution,
-				message.contextParameters.emptyValue,
-				message.contextParameters.reportingLength,
-				message.contextParameters.percentilePercentage,
-				message.contextParameters.sensitivityFilterEpsilon,
-				message.contextParameters.noiseEpsilon,
-				message.contextParameters.noiseDelta,
-				message.contextParameters.useSyntheticCounts === UseSyntheticCounts.Yes,
-				p => {
-					postProgress(message.id, 0.5 * p)
-				},
-				p => {
-					postProgress(message.id, 50.0 + 0.5 * p)
-				},
-			)
+			switch (message.contextParameters.thresholdType) {
+				case NoisyCountThresholdType.Fixed:
+					context.generateDpFixedThreshold(
+						message.contextParameters.resolution,
+						message.contextParameters.emptyValue,
+						message.contextParameters.reportingLength,
+						message.contextParameters.noiseEpsilon,
+						message.contextParameters.noiseDelta,
+						message.contextParameters.percentilePercentage,
+						message.contextParameters.percentileEpsilonProportion,
+						undefined,
+						message.contextParameters.thresholdValue,
+						message.contextParameters.useSyntheticCounts ===
+							UseSyntheticCounts.Yes,
+						p => {
+							postProgress(message.id, 0.25 * p)
+						},
+						p => {
+							postProgress(message.id, 25.0 + 0.25 * p)
+						},
+						p => {
+							postProgress(message.id, 50.0 + 0.5 * p)
+						},
+					)
+					break
+				case NoisyCountThresholdType.Adaptive:
+					context.generateDpAdaptiveThreshold(
+						message.contextParameters.resolution,
+						message.contextParameters.emptyValue,
+						message.contextParameters.reportingLength,
+						message.contextParameters.noiseEpsilon,
+						message.contextParameters.noiseDelta,
+						message.contextParameters.percentilePercentage,
+						message.contextParameters.percentileEpsilonProportion,
+						undefined,
+						message.contextParameters.thresholdValue,
+						message.contextParameters.useSyntheticCounts ===
+							UseSyntheticCounts.Yes,
+						p => {
+							postProgress(message.id, 0.25 * p)
+						},
+						p => {
+							postProgress(message.id, 25.0 + 0.25 * p)
+						},
+						p => {
+							postProgress(message.id, 50.0 + 0.5 * p)
+						},
+					)
+					break
+				case NoisyCountThresholdType.MaxFabrication:
+					context.generateDpMaxFabricationThreshold(
+						message.contextParameters.resolution,
+						message.contextParameters.emptyValue,
+						message.contextParameters.reportingLength,
+						message.contextParameters.noiseEpsilon,
+						message.contextParameters.noiseDelta,
+						message.contextParameters.percentilePercentage,
+						message.contextParameters.percentileEpsilonProportion,
+						undefined,
+						message.contextParameters.thresholdValue,
+						message.contextParameters.useSyntheticCounts ===
+							UseSyntheticCounts.Yes,
+						p => {
+							postProgress(message.id, 0.25 * p)
+						},
+						p => {
+							postProgress(message.id, 25.0 + 0.25 * p)
+						},
+						p => {
+							postProgress(message.id, 50.0 + 0.5 * p)
+						},
+					)
+					break
+			}
 			break
 	}
 

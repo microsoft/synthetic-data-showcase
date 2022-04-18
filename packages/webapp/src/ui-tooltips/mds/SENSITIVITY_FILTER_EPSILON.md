@@ -1,1 +1,0 @@
-The percentile selection is done with differential privacy. This sets the epsilon used in the process (distribution - `exp(epsilon / 2.0)`).

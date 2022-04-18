@@ -3,10 +3,7 @@ use fnv::FnvHashMap;
 use sds_core::{
     data_block::{CsvDataBlockCreator, DataBlock, DataBlockCreator, DataBlockValue},
     dp::CombinationsCountMap,
-    processing::aggregator::{
-        AggregatedData, Aggregator, ValueCombination, COMBINATIONS_DELIMITER,
-    },
-    utils::reporting::LoggerProgressReporter,
+    processing::aggregator::{ValueCombination, COMBINATIONS_DELIMITER},
 };
 use std::{
     hash::Hash,
@@ -37,12 +34,6 @@ pub fn read_test_data_block<S: AsRef<Path>>(
         record_limit,
     )
     .unwrap()
-}
-
-pub fn gen_aggregated_data(data_block: Arc<DataBlock>, reporting_length: usize) -> AggregatedData {
-    let mut progress_reporter: Option<LoggerProgressReporter> = None;
-
-    Aggregator::new(data_block).aggregate(reporting_length, &mut progress_reporter)
 }
 
 pub fn gen_value_combination(combination_str: &str) -> ValueCombination {

@@ -3,6 +3,8 @@ use log::{log_enabled, Level::Debug};
 use pyo3::prelude::*;
 use sds_core::{
     data_block::{CsvDataBlockCreator, CsvIOError, DataBlock, DataBlockCreator},
+    dp::DpParameters,
+    dp::{NoisyCountThreshold, StatsError},
     processing::{
         aggregator::{AggregatedData, Aggregator},
         generator::{GeneratedData, Generator, OversamplingParameters},
@@ -14,6 +16,29 @@ use std::sync::Arc;
 #[pyclass]
 pub struct SDSProcessor {
     data_block: Arc<DataBlock>,
+}
+
+impl SDSProcessor {
+    #[inline]
+    fn aggregate_with_dp(
+        &self,
+        reporting_length: usize,
+        dp_parameters: &DpParameters,
+        threshold: NoisyCountThreshold,
+    ) -> Result<AggregatedData, StatsError> {
+        let mut progress_reporter = if log_enabled!(Debug) {
+            Some(LoggerProgressReporter::new(Debug))
+        } else {
+            None
+        };
+        let aggregator = Aggregator::new(self.data_block.clone());
+        aggregator.aggregate_with_dp(
+            reporting_length,
+            dp_parameters,
+            threshold,
+            &mut progress_reporter,
+        )
+    }
 }
 
 #[pymethods]
@@ -53,6 +78,45 @@ impl SDSProcessor {
         };
         let mut aggregator = Aggregator::new(self.data_block.clone());
         aggregator.aggregate(reporting_length, &mut progress_reporter)
+    }
+
+    fn aggregate_with_dp_fixed_threshold(
+        &self,
+        reporting_length: usize,
+        dp_parameters: &DpParameters,
+        threshold: f64,
+    ) -> Result<AggregatedData, StatsError> {
+        self.aggregate_with_dp(
+            reporting_length,
+            dp_parameters,
+            NoisyCountThreshold::Fixed(threshold),
+        )
+    }
+
+    fn aggregate_with_dp_adaptive_threshold(
+        &self,
+        reporting_length: usize,
+        dp_parameters: &DpParameters,
+        threshold: f64,
+    ) -> Result<AggregatedData, StatsError> {
+        self.aggregate_with_dp(
+            reporting_length,
+            dp_parameters,
+            NoisyCountThreshold::Adaptive(threshold),
+        )
+    }
+
+    fn aggregate_with_dp_max_fabrication_threshold(
+        &self,
+        reporting_length: usize,
+        dp_parameters: &DpParameters,
+        threshold: f64,
+    ) -> Result<AggregatedData, StatsError> {
+        self.aggregate_with_dp(
+            reporting_length,
+            dp_parameters,
+            NoisyCountThreshold::MaxFabrication(threshold),
+        )
     }
 
     pub fn generate_row_seeded(

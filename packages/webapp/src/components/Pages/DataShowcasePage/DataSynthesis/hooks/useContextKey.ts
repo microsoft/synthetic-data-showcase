@@ -27,7 +27,7 @@ export function useContextKey(
 			case SynthesisMode.AggregateSeeded:
 				return `K-Anon ${params.synthesisMode} (Resolution=${params.resolution}, ReportingLength=${params.reportingLength}, UseSyntheticCounts=${params.useSyntheticCounts})`
 			case SynthesisMode.DP:
-				return `DP (Resolution=${params.resolution}, ReportingLength=${params.reportingLength}, UseSyntheticCounts=${params.useSyntheticCounts}, PercentilePercentage=${params.percentilePercentage}, SensitivityFilterEpsilon=${params.sensitivityFilterEpsilon}, NoiseEpsilon=${params.noiseEpsilon}, NoiseDelta=${params.noiseDelta})`
+				return `DP (Resolution=${params.resolution}, ReportingLength=${params.reportingLength}, UseSyntheticCounts=${params.useSyntheticCounts}, Percentile=${params.percentilePercentage}, PercentileEpsilonProp=${params.percentileEpsilonProportion}, Epsilon=${params.noiseEpsilon}, Delta=${params.noiseDelta}, Threshold=(${params.thresholdType}, ${params.thresholdValue}))`
 		}
 	}, [params])
 }

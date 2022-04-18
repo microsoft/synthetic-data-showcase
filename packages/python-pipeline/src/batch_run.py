@@ -8,7 +8,7 @@ from sys import argv
 
 def run_experiment(index, execute, base_config, output_dir, experiment):
     for key in experiment.keys():
-        if key != 'name':
+        if key != 'name' and key != 'skip':
             base_config[key] = experiment[key]
     name = experiment['name']
     base_config['output_dir'] = path.join(output_dir, f'{index}_{name}')
@@ -43,8 +43,9 @@ def main():
         if not path.exists(group_output_dir) and len(exps) > 0:
             mkdir(group_output_dir)
         for i, exp in enumerate(exps):
-            run_experiment(i, execute, copy.deepcopy(
-                base_config), group_output_dir, exp)
+            if not exp.get('skip', False):
+                run_experiment(i, execute, copy.deepcopy(
+                    base_config), group_output_dir, exp)
 
 
 if __name__ == '__main__':

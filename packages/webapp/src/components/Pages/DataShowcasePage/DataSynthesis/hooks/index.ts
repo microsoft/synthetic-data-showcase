@@ -5,6 +5,7 @@
 export * from './commands'
 export * from './useContextKey'
 export * from './useGetSyntheticCsvContent'
+export * from './useNoisyCountThresholdTypeOptions'
 export * from './useOnRunGenerate'
 export * from './useOversamplingTypeOptions'
 export * from './useSelectedContextParametersOnChange'

@@ -6,6 +6,7 @@ import { useCallback } from 'react'
 
 import type {
 	IContextParameters,
+	NoisyCountThresholdType,
 	OversamplingType,
 	SynthesisMode,
 	UseSyntheticCounts,
@@ -32,9 +33,11 @@ export interface IOnRunGenerateParameters {
 	oversamplingTries: number
 	useSyntheticCounts: UseSyntheticCounts
 	percentilePercentage: number
-	sensitivityFilterEpsilon: number
+	percentileEpsilonProportion: number
 	noiseEpsilon: number
 	noiseDelta: number
+	thresholdType: NoisyCountThresholdType
+	thresholdValue: number
 }
 
 export function useOnRunGenerate(

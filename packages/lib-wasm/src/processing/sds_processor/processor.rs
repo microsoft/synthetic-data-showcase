@@ -2,6 +2,7 @@ use csv::ReaderBuilder;
 use js_sys::Function;
 use sds_core::{
     data_block::{CsvDataBlockCreator, CsvRecord, DataBlock, DataBlockCreator},
+    dp::{DpParameters, NoisyCountThreshold},
     processing::{
         aggregator::Aggregator,
         generator::{Generator, OversamplingParameters},
@@ -87,6 +88,119 @@ impl SDSProcessor {
             reporting_length,
             &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
         ))))
+    }
+
+    #[inline]
+    #[allow(clippy::too_many_arguments)]
+    pub(crate) fn aggregate_with_dp(
+        &self,
+        reporting_length: usize,
+        epsilon: f64,
+        delta: f64,
+        percentile_percentage: usize,
+        percentile_epsilon_proportion: f64,
+        sigma_proportions: Option<Vec<f64>>,
+        threshold: NoisyCountThreshold,
+        progress_callback: JsReportProgressCallback,
+    ) -> Result<WasmAggregateResult, JsValue> {
+        let _duration_logger = ElapsedDurationLogger::new(format!(
+            "sds processor aggregation with dp and threshold = {:?}",
+            threshold
+        ));
+        let js_callback: Function = progress_callback.dyn_into()?;
+        let aggregator = Aggregator::new(self.data_block.clone());
+
+        Ok(WasmAggregateResult::new(Arc::new(
+            aggregator
+                .aggregate_with_dp(
+                    reporting_length,
+                    &DpParameters::new(
+                        epsilon,
+                        delta,
+                        percentile_percentage,
+                        percentile_epsilon_proportion,
+                        sigma_proportions,
+                    ),
+                    threshold,
+                    &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
+                )
+                .map_err(|err| JsValue::from(err.to_string()))?,
+        )))
+    }
+
+    #[wasm_bindgen(js_name = "aggregateWithDpFixedThreshold")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn aggregate_with_dp_fixed_threshold(
+        &self,
+        reporting_length: usize,
+        epsilon: f64,
+        delta: f64,
+        percentile_percentage: usize,
+        percentile_epsilon_proportion: f64,
+        sigma_proportions: Option<Vec<f64>>,
+        threshold: f64,
+        progress_callback: JsReportProgressCallback,
+    ) -> Result<WasmAggregateResult, JsValue> {
+        self.aggregate_with_dp(
+            reporting_length,
+            epsilon,
+            delta,
+            percentile_percentage,
+            percentile_epsilon_proportion,
+            sigma_proportions,
+            NoisyCountThreshold::Fixed(threshold),
+            progress_callback,
+        )
+    }
+
+    #[wasm_bindgen(js_name = "aggregateWithDpAdaptiveThreshold")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn aggregate_with_dp_adaptive_threshold(
+        &self,
+        reporting_length: usize,
+        epsilon: f64,
+        delta: f64,
+        percentile_percentage: usize,
+        percentile_epsilon_proportion: f64,
+        sigma_proportions: Option<Vec<f64>>,
+        threshold: f64,
+        progress_callback: JsReportProgressCallback,
+    ) -> Result<WasmAggregateResult, JsValue> {
+        self.aggregate_with_dp(
+            reporting_length,
+            epsilon,
+            delta,
+            percentile_percentage,
+            percentile_epsilon_proportion,
+            sigma_proportions,
+            NoisyCountThreshold::Adaptive(threshold),
+            progress_callback,
+        )
+    }
+
+    #[wasm_bindgen(js_name = "aggregateWithDpMaxFabricationThreshold")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn aggregate_with_dp_max_fabrication_threshold(
+        &self,
+        reporting_length: usize,
+        epsilon: f64,
+        delta: f64,
+        percentile_percentage: usize,
+        percentile_epsilon_proportion: f64,
+        sigma_proportions: Option<Vec<f64>>,
+        threshold: f64,
+        progress_callback: JsReportProgressCallback,
+    ) -> Result<WasmAggregateResult, JsValue> {
+        self.aggregate_with_dp(
+            reporting_length,
+            epsilon,
+            delta,
+            percentile_percentage,
+            percentile_epsilon_proportion,
+            sigma_proportions,
+            NoisyCountThreshold::MaxFabrication(threshold),
+            progress_callback,
+        )
     }
 
     #[wasm_bindgen(js_name = "generateUnseeded")]

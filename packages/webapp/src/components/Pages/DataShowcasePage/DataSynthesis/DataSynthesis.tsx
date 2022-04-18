@@ -25,16 +25,18 @@ import {
 	useIsProcessingValue,
 	useNoiseDelta,
 	useNoiseEpsilon,
+	useNoisyCountThresholdType,
+	useNoisyCountThresholdValue,
 	useOversamplingRatio,
 	useOversamplingTries,
 	useOversamplingType,
+	usePercentileEpsilonProportion,
 	usePercentilePercentage,
 	useRecordLimit,
 	useReportingLength,
 	useResolution,
 	useSelectedContextParameters,
 	useSensitiveContentValue,
-	useSensitivityFilterEpsilon,
 	useSynthesisMode,
 	useUseSyntheticCounts,
 } from '~states'
@@ -43,6 +45,7 @@ import { tooltips } from '~ui-tooltips'
 import { useCanRun, useDropdownOnChange, useSpinButtonOnChange } from '../hooks'
 import {
 	useGetSyntheticCsvContent,
+	useNoisyCountThresholdTypeOptions,
 	useOnRunGenerate,
 	useSelectedContextParametersOnChange,
 	useSynthesisModeOptions,
@@ -62,10 +65,14 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 	const [useSyntheticCounts, setUseSyntheticCounts] = useUseSyntheticCounts()
 	const [percentilePercentage, setPercentilePercentage] =
 		usePercentilePercentage()
-	const [sensitivityFilterEpsilon, setSensitivityFilterEpsilon] =
-		useSensitivityFilterEpsilon()
+	const [percentileEpsilonProportion, setPercentileEpsilonProportion] =
+		usePercentileEpsilonProportion()
 	const [noiseEpsilon, setNoiseEpsilon] = useNoiseEpsilon()
 	const [noiseDelta, setNoiseDelta] = useNoiseDelta()
+	const [noisyCountThresholdType, setNoisyCountThresholdType] =
+		useNoisyCountThresholdType()
+	const [noisyCountThresholdValue, setNoisyCountThresholdValue] =
+		useNoisyCountThresholdValue()
 	const isProcessing = useIsProcessingValue()
 	const sensitiveContent = useSensitiveContentValue()
 	const [reportingLength, setReportingLength] = useReportingLength()
@@ -76,6 +83,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 	const synthesisModeOptions = useSynthesisModeOptions()
 	const oversamplingTypeOptions = useOversamplingTypeOptions()
 	const useSyntheticCountsOptions = useUseSyntheticCountOptions()
+	const noisyCountThresholdTypeOptions = useNoisyCountThresholdTypeOptions()
 	const allContextsParameters = useAllContextsParametersValue()
 	const [selectedContextParameters, setSelectedContextParameters] =
 		useSelectedContextParameters()
@@ -85,7 +93,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 			selectedContextParameters,
 			getSyntheticCsvContent,
 			setSyntheticContent,
-			isMounted
+			isMounted,
 		)
 
 	const theme = getTheme()
@@ -124,9 +132,11 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 		oversamplingTries,
 		useSyntheticCounts,
 		percentilePercentage,
-		sensitivityFilterEpsilon,
+		percentileEpsilonProportion,
 		noiseEpsilon,
 		noiseDelta,
+		thresholdType: noisyCountThresholdType,
+		thresholdValue: noisyCountThresholdValue,
 	})
 
 	const tableCommands = useSyntheticTableCommands(syntheticContent)
@@ -147,11 +157,17 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 	const handlePercentilePercentageChange = useSpinButtonOnChange(
 		setPercentilePercentage,
 	)
-	const handleSensitivityFilterEpsilonChange = useSpinButtonOnChange(
-		setSensitivityFilterEpsilon,
+	const handlePercentileEpsilonProportionChange = useSpinButtonOnChange(
+		setPercentileEpsilonProportion,
 	)
 	const handleNoiseEpsilonChange = useSpinButtonOnChange(setNoiseEpsilon)
 	const handleNoiseDeltaChange = useSpinButtonOnChange(setNoiseDelta)
+	const handleNoisyCountThresholdTypeChange = useDropdownOnChange(
+		setNoisyCountThresholdType,
+	)
+	const handleNoisyCountThresholdValueChange = useSpinButtonOnChange(
+		setNoisyCountThresholdValue,
+	)
 
 	useEffect(() => {
 		selectedContextParametersOnChange()
@@ -238,7 +254,10 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 					synthesisMode === SynthesisMode.AggregateSeeded ||
 					synthesisMode === SynthesisMode.DP) && (
 					<Stack.Item>
-						<TooltipWrapper tooltip={tooltips.reportingLength} label="Reporting length">
+						<TooltipWrapper
+							tooltip={tooltips.reportingLength}
+							label="Reporting length"
+						>
 							<SpinButton
 								labelPosition={Position.top}
 								min={1}
@@ -255,7 +274,10 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 				{synthesisMode === SynthesisMode.ValueSeeded && (
 					<>
 						<Stack.Item>
-							<TooltipWrapper tooltip={tooltips.oversampling} label="Oversampling">
+							<TooltipWrapper
+								tooltip={tooltips.oversampling}
+								label="Oversampling"
+							>
 								<Dropdown
 									selectedKey={oversamplingType}
 									onChange={handleOversamplingTypeChange}
@@ -348,23 +370,27 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 
 								<Stack.Item>
 									<TooltipWrapper
-										tooltip={tooltips.sensitivityFilterEpsilon}
-										label="Sensitivity filter epsilon"
+										tooltip={tooltips.percentileEpsilonProportion}
+										label="Percentile epsilon prop"
 									>
 										<SpinButton
 											labelPosition={Position.top}
-											min={0}
-											step={0.1}
-											value={sensitivityFilterEpsilon.toString()}
+											min={0.01}
+											max={1.0}
+											step={0.01}
+											value={percentileEpsilonProportion.toString()}
 											disabled={isProcessing}
-											onChange={handleSensitivityFilterEpsilonChange}
+											onChange={handlePercentileEpsilonProportionChange}
 											styles={inputStyles}
 										/>
 									</TooltipWrapper>
 								</Stack.Item>
 
 								<Stack.Item>
-									<TooltipWrapper tooltip={tooltips.noiseEpsilon} label="Noise epsilon">
+									<TooltipWrapper
+										tooltip={tooltips.noiseEpsilon}
+										label="Noise epsilon"
+									>
 										<SpinButton
 											labelPosition={Position.top}
 											min={0}
@@ -378,7 +404,10 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 								</Stack.Item>
 
 								<Stack.Item>
-									<TooltipWrapper tooltip={tooltips.noiseDelta} label="Noise delta">
+									<TooltipWrapper
+										tooltip={tooltips.noiseDelta}
+										label="Noise delta"
+									>
 										<SpinButton
 											labelPosition={Position.top}
 											min={0}
@@ -386,6 +415,39 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 											value={noiseDelta.toString()}
 											disabled={isProcessing}
 											onChange={handleNoiseDeltaChange}
+											styles={inputStyles}
+										/>
+									</TooltipWrapper>
+								</Stack.Item>
+
+								<Stack.Item>
+									<TooltipWrapper
+										tooltip={tooltips.thresholdType}
+										label="Threshold type"
+									>
+										<Dropdown
+											selectedKey={noisyCountThresholdType}
+											onChange={handleNoisyCountThresholdTypeChange}
+											placeholder="Select threshold type"
+											options={noisyCountThresholdTypeOptions}
+											styles={inputStyles}
+											disabled={isProcessing}
+										/>
+									</TooltipWrapper>
+								</Stack.Item>
+
+								<Stack.Item>
+									<TooltipWrapper
+										tooltip={tooltips.thresholdValue}
+										label="Threshold value"
+									>
+										<SpinButton
+											labelPosition={Position.top}
+											min={0.01}
+											step={0.01}
+											value={noisyCountThresholdValue.toString()}
+											disabled={isProcessing}
+											onChange={handleNoisyCountThresholdValueChange}
 											styles={inputStyles}
 										/>
 									</TooltipWrapper>

@@ -35,9 +35,9 @@ def aggregate(config):
     reportable_aggregated_data_json = path.join(
         output_dir, f'{prefix}_reportable_aggregated_data.json')
     dp_aggregates = config['dp_aggregates']
-    filter_sensitivities = config['filter_sensitivities']
-    sensitivities_epsilon = config['sensitivities_epsilon']
-    sensitivities_percentile = config['sensitivities_percentile']
+    percentile_percentage = config['percentile_percentage']
+    percentile_epsilon_proportion = config['percentile_epsilon_proportion']
+    sigma_proportions = config['sigma_proportions']
     noise_epsilon = config['noise_epsilon']
     noise_delta = config['noise_delta']
     noise_threshold_type = config['noise_threshold_type']
@@ -71,25 +71,44 @@ def aggregate(config):
     aggregated_data.write_to_json(sensitive_aggregated_data_json)
 
     if dp_aggregates:
-        sensitivity_filter_params = sds.SensitivityFilterParameters(
-            sensitivities_percentile, sensitivities_epsilon) if filter_sensitivities else None
-
         if not noise_delta:
             noise_delta = 1 / (2 * sds_processor.number_of_records())
 
         if noise_threshold_type == 'fixed':
-            aggregated_data.protect_with_dp_fixed_threshold(
-                noise_epsilon,
-                noise_delta,
-                noise_threshold_value,
-                sensitivity_filter_params
+            aggregated_data = sds_processor.aggregate_with_dp_fixed_threshold(
+                reporting_length,
+                sds.DpParameters(
+                    noise_epsilon,
+                    noise_delta,
+                    percentile_percentage,
+                    percentile_epsilon_proportion,
+                    sigma_proportions
+                ),
+                noise_threshold_value
             )
         elif noise_threshold_type == 'adaptive':
-            aggregated_data.protect_with_dp_adaptive_threshold(
-                noise_epsilon,
-                noise_delta,
-                noise_threshold_value,
-                sensitivity_filter_params
+            aggregated_data = sds_processor.aggregate_with_dp_adaptive_threshold(
+                reporting_length,
+                sds.DpParameters(
+                    noise_epsilon,
+                    noise_delta,
+                    percentile_percentage,
+                    percentile_epsilon_proportion,
+                    sigma_proportions
+                ),
+                noise_threshold_value
+            )
+        elif noise_threshold_type == 'max_fabrication':
+            aggregated_data = sds_processor.aggregate_with_dp_max_fabrication_threshold(
+                reporting_length,
+                sds.DpParameters(
+                    noise_epsilon,
+                    noise_delta,
+                    percentile_percentage,
+                    percentile_epsilon_proportion,
+                    sigma_proportions
+                ),
+                noise_threshold_value
             )
         else:
             raise ValueError(

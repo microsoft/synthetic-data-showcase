@@ -1,8 +1,5 @@
 use js_sys::{Object, Reflect::set};
-use sds_core::{
-    dp::SensitivityFilterParameters, processing::aggregator::AggregatedData,
-    utils::time::ElapsedDurationLogger,
-};
+use sds_core::{processing::aggregator::AggregatedData, utils::time::ElapsedDurationLogger};
 use std::{ops::Deref, sync::Arc};
 use wasm_bindgen::{prelude::*, JsCast};
 
@@ -94,32 +91,6 @@ impl WasmAggregateResult {
         new_aggregated_data.protect_with_k_anonymity(resolution);
 
         WasmAggregateResult::new(Arc::new(new_aggregated_data))
-    }
-
-    #[wasm_bindgen(js_name = "protectWithDp")]
-    pub fn protect_with_dp(
-        &mut self,
-        percentile_percentage: usize,
-        sensitivity_filter_epsilon: f64,
-        noise_epsilon: f64,
-        noise_delta: f64,
-    ) -> JsResult<WasmAggregateResult> {
-        let mut new_aggregated_data = (*self.aggregated_data).clone();
-
-        // TODO: propagate all parameters to API
-        new_aggregated_data
-            .protect_with_dp_adaptive_threshold(
-                noise_epsilon,
-                noise_delta,
-                2.0,
-                Some(SensitivityFilterParameters::new(
-                    percentile_percentage,
-                    sensitivity_filter_epsilon,
-                )),
-            )
-            .map_err(|err| JsValue::from(err.to_string()))?;
-
-        Ok(WasmAggregateResult::new(Arc::new(new_aggregated_data)))
     }
 }
 
