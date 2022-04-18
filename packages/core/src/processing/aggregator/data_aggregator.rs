@@ -91,7 +91,7 @@ impl Aggregator {
         reporting_length: usize,
         dp_parameters: &DpParameters,
         threshold: NoisyCountThreshold,
-        _progress_reporter: &mut Option<T>,
+        progress_reporter: &mut Option<T>,
     ) -> Result<AggregatedData, StatsError>
     where
         T: ReportProgress,
@@ -111,7 +111,7 @@ impl Aggregator {
             dp_parameters,
             threshold,
         )
-        .generate_noisy_aggregates()?;
+        .generate_noisy_aggregates(progress_reporter)?;
 
         info!(
             "data aggregated resulting in {} distinct combinations...",

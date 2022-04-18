@@ -20,6 +20,7 @@ use crate::{
         AggregatedCount, AggregatedData, AggregatesCountMap, RecordsSensitivityByLen, RecordsSet,
         ValueCombination,
     },
+    utils::{math::calc_percentage, reporting::ReportProgress},
 };
 
 /// Structure capable of generating
@@ -419,6 +420,16 @@ impl NoiseAggregator {
 
         aggregated_data
     }
+
+    #[inline]
+    fn update_progress<T>(progress_reporter: &mut Option<T>, n_processed: usize, total: usize)
+    where
+        T: ReportProgress,
+    {
+        if let Some(r) = progress_reporter {
+            r.report(calc_percentage(n_processed as f64, total as f64));
+        }
+    }
 }
 
 impl NoiseAggregator {
@@ -476,7 +487,13 @@ impl NoiseAggregator {
     }
 
     /// Generates the noisy aggregated data with differential privacy
-    pub fn generate_noisy_aggregates(&mut self) -> Result<AggregatedData, StatsError> {
+    pub fn generate_noisy_aggregates<T>(
+        &mut self,
+        progress_reporter: &mut Option<T>,
+    ) -> Result<AggregatedData, StatsError>
+    where
+        T: ReportProgress,
+    {
         let mut noisy_aggregates_by_len = CombinationsCountMapByLen::default();
         let sorted_records = self.gen_sorted_records();
 
@@ -507,6 +524,8 @@ impl NoiseAggregator {
             debug!("generated noisy {}-counts", l);
 
             noisy_aggregates_by_len.insert(l, all_current_aggregates);
+
+            NoiseAggregator::update_progress(progress_reporter, l, self.reporting_length);
         }
 
         Ok(self.build_aggregated_data(noisy_aggregates_by_len))
