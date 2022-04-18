@@ -4,6 +4,8 @@
  */
 import type { HeaderNames } from 'sds-wasm'
 
+import type { NoisyCountThresholdType } from '~models'
+
 import type { OversamplingType } from './OversamplingType'
 import type { SynthesisMode } from './SynthesisMode'
 import type { UseSyntheticCounts } from './UseSyntheticCounts'
@@ -23,9 +25,11 @@ export interface IContextParameters {
 	oversamplingTries: number
 	useSyntheticCounts: UseSyntheticCounts
 	percentilePercentage: number
-	sensitivityFilterEpsilon: number
+	percentileEpsilonProportion: number
 	noiseEpsilon: number
 	noiseDelta: number
+	thresholdType: NoisyCountThresholdType
+	thresholdValue: number
 	emptyValue: string
 	isEvaluated: boolean
 }
