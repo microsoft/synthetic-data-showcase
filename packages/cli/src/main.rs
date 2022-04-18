@@ -1,7 +1,7 @@
 use log::{error, log_enabled, trace, Level::Debug};
 use sds_core::{
     data_block::{CsvDataBlockCreator, DataBlockCreator},
-    dp::{SensitivityFilterParameters, ThresholdType},
+    dp::{DpParameters, NoisyCountThreshold},
     processing::{
         aggregator::{AggregatedData, Aggregator},
         generator::{Generator, OversamplingParameters},
@@ -95,44 +95,37 @@ enum Command {
         records_sensitivity_path: Option<String>,
 
         #[structopt(
-            long = "filter-sensitivities",
-            help = "suppress combination contributions to meet a certain sensitivity criteria",
-            requires_all = &["sensitivities-percentile", "sensitivities-epsilon", "add-noise"]
+            long = "dp",
+            help = "generate the aggregates with differential privacy",
+            requires_all = &["sensitivities-percentile", "sensitivities-epsilon-proportion", "noise-epsilon", "noise-threshold-type", "noise-threshold-value"]
         )]
-        filter_sensitivities: bool,
+        dp: bool,
 
         #[structopt(
             long = "sensitivities-percentile",
             help = "percentile used as record sensitivity filter",
-            requires = "filter-sensitivities"
+            requires = "dp"
         )]
         sensitivities_percentile: Option<usize>,
 
         #[structopt(
-            long = "sensitivities-epsilon",
-            help = "epsilon used to generate noise during sensitivity filter selection",
-            requires = "filter-sensitivities"
+            long = "sensitivities-epsilon-proportion",
+            help = "proportion of epsilon used to generate noise during sensitivity filter selection",
+            requires = "dp"
         )]
-        sensitivities_epsilon: Option<f64>,
-
-        #[structopt(
-            long = "add-noise",
-            help = "add gaussian noise to the aggregates",
-            requires_all = &["noise-epsilon", "noise-threshold-type", "noise-threshold-value"]
-        )]
-        add_noise: bool,
+        sensitivities_epsilon_proportion: Option<f64>,
 
         #[structopt(
             long = "noise-epsilon",
             help = "epsilon used to generate noise that will be added to the aggregate counts",
-            requires = "add-noise"
+            requires = "dp"
         )]
         noise_epsilon: Option<f64>,
 
         #[structopt(
             long = "noise-delta",
             help = "delta used to generate noise that will be added to the aggregate counts [default: 1/(2 * number of records)]",
-            requires = "add-noise"
+            requires = "dp"
         )]
         noise_delta: Option<f64>,
 
@@ -143,14 +136,21 @@ enum Command {
             case_insensitive = true,
             default_value = "fixed",
         )]
-        noise_threshold_type: ThresholdType,
+        noise_threshold_type: String,
 
         #[structopt(
             long = "noise-threshold-value",
             help = "value used as the count threshold filter (meaning will change based on \"noise-threshold-type\")",
-            requires = "add-noise"
+            requires = "dp"
         )]
         noise_threshold_value: Option<f64>,
+
+        #[structopt(
+            long = "sigma-proportions",
+            help = "proportion to split sigma across combination lengths",
+            requires = "dp"
+        )]
+        sigma_proportions: Option<Vec<f64>>,
 
         #[structopt(
             long = "aggregates-json",
@@ -323,52 +323,67 @@ fn main() {
                 reporting_length,
                 not_protect,
                 records_sensitivity_path,
-                filter_sensitivities,
                 sensitivities_percentile,
-                sensitivities_epsilon,
-                add_noise,
+                sensitivities_epsilon_proportion,
+                dp,
                 noise_delta,
                 noise_epsilon,
                 noise_threshold_type,
                 noise_threshold_value,
+                sigma_proportions,
                 aggregates_json,
             } => {
                 let mut aggregator = Aggregator::new(data_block.clone());
-                let mut aggregated_data =
-                    aggregator.aggregate(reporting_length, &mut progress_reporter);
-                let delta =
-                    noise_delta.unwrap_or(1.0 / (2.0 * (data_block.number_of_records() as f64)));
-
-                if add_noise {
-                    let sensitivity_filter_params = if filter_sensitivities {
-                        Some(SensitivityFilterParameters::new(
-                            sensitivities_percentile.unwrap(),
-                            sensitivities_epsilon.unwrap(),
-                        ))
-                    } else {
-                        None
+                let aggregated_data = if dp {
+                    let delta = noise_delta
+                        .unwrap_or(1.0 / (2.0 * (data_block.number_of_records() as f64)));
+                    let threshold = match noise_threshold_type.as_str() {
+                        "fixed" => NoisyCountThreshold::Fixed(noise_threshold_value.unwrap()),
+                        "adaptive" => NoisyCountThreshold::Adaptive(noise_threshold_value.unwrap()),
+                        "max_fabrication" => {
+                            NoisyCountThreshold::MaxFabrication(noise_threshold_value.unwrap())
+                        }
+                        _ => {
+                            error!("invalid noise threshold type");
+                            process::exit(1);
+                        }
                     };
 
-                    if let Err(err) = aggregated_data.protect_with_dp(
-                        noise_epsilon.unwrap(),
-                        delta,
-                        noise_threshold_type,
-                        noise_threshold_value.unwrap(),
-                        sensitivity_filter_params,
+                    match aggregator.aggregate_with_dp(
+                        reporting_length,
+                        &DpParameters::new(
+                            noise_epsilon.unwrap(),
+                            delta,
+                            sensitivities_percentile.unwrap(),
+                            sensitivities_epsilon_proportion.unwrap(),
+                            sigma_proportions,
+                        ),
+                        threshold,
+                        &mut progress_reporter,
                     ) {
-                        error!("error making aggregates noisy: {}", err);
-                        process::exit(1);
+                        Err(err) => {
+                            error!("error making aggregates noisy: {}", err);
+                            process::exit(1);
+                        }
+                        Ok(ad) => ad,
                     }
-                } else if !not_protect {
-                    aggregated_data.protect_with_k_anonymity(cli.resolution);
-                }
+                } else {
+                    let mut aggregated_data =
+                        aggregator.aggregate(reporting_length, &mut progress_reporter);
+
+                    if !not_protect {
+                        aggregated_data.protect_with_k_anonymity(cli.resolution);
+                    }
+
+                    aggregated_data
+                };
 
                 if let Err(err) = aggregated_data.write_aggregates_count(
                     &aggregates_path,
                     aggregates_delimiter.chars().next().unwrap(),
                     ";",
                     cli.resolution,
-                    !not_protect || add_noise,
+                    !not_protect || dp,
                 ) {
                     error!("error writing output file: {}", err);
                     process::exit(1);
