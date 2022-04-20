@@ -9,7 +9,7 @@ import { NoisyCountThresholdType } from '~models'
 
 const state = atom<NoisyCountThresholdType>({
 	key: 'noisy-count-threshold-type',
-	default: NoisyCountThresholdType.MaxFabrication,
+	default: NoisyCountThresholdType.Adaptive,
 })
 
 export function useNoisyCountThresholdType(): [

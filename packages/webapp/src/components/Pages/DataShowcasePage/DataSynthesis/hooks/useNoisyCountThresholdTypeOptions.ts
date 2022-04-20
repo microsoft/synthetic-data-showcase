@@ -12,10 +12,6 @@ const noisyCountThresholdTypeOptions = [
 		key: NoisyCountThresholdType.Adaptive,
 		text: NoisyCountThresholdType.Adaptive,
 	},
-	{
-		key: NoisyCountThresholdType.MaxFabrication,
-		text: NoisyCountThresholdType.MaxFabrication,
-	},
 ]
 
 export function useNoisyCountThresholdTypeOptions(): IDropdownOption[] {
