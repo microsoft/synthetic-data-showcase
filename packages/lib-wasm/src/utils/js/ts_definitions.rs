@@ -6,6 +6,10 @@ export type ReportProgressCallback = (progress: number) => void
 
 export type HeaderNames = string[]
 
+export interface IInputNumberByLength {
+  [length: number]: number
+}
+
 export interface IGenerateResult {
   expansionRatio: number
   syntheticData: string
@@ -71,6 +75,9 @@ extern "C" {
 
     #[wasm_bindgen(typescript_type = "HeaderNames")]
     pub type JsHeaderNames;
+
+    #[wasm_bindgen(typescript_type = "IInputNumberByLength")]
+    pub type JsInputNumberByLength;
 
     #[wasm_bindgen(typescript_type = "IGenerateResult")]
     pub type JsGenerateResult;

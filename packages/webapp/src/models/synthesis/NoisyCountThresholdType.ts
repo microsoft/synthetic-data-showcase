@@ -5,5 +5,4 @@
 export enum NoisyCountThresholdType {
 	Fixed = 'Fixed',
 	Adaptive = 'Adaptive',
-	MaxFabrication = 'MaxFabrication',
 }

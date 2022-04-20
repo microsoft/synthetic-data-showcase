@@ -4,7 +4,7 @@ use pyo3::prelude::*;
 use sds_core::{
     data_block::{CsvDataBlockCreator, CsvIOError, DataBlock, DataBlockCreator},
     dp::DpParameters,
-    dp::{NoisyCountThreshold, StatsError},
+    dp::{InputValueByLen, NoisyCountThreshold, StatsError},
     processing::{
         aggregator::{AggregatedData, Aggregator},
         generator::{GeneratedData, Generator, OversamplingParameters},
@@ -84,7 +84,7 @@ impl SDSProcessor {
         &self,
         reporting_length: usize,
         dp_parameters: &DpParameters,
-        threshold: f64,
+        threshold: InputValueByLen<f64>,
     ) -> Result<AggregatedData, StatsError> {
         self.aggregate_with_dp(
             reporting_length,
@@ -97,25 +97,12 @@ impl SDSProcessor {
         &self,
         reporting_length: usize,
         dp_parameters: &DpParameters,
-        threshold: f64,
+        threshold: InputValueByLen<f64>,
     ) -> Result<AggregatedData, StatsError> {
         self.aggregate_with_dp(
             reporting_length,
             dp_parameters,
             NoisyCountThreshold::Adaptive(threshold),
-        )
-    }
-
-    fn aggregate_with_dp_max_fabrication_threshold(
-        &self,
-        reporting_length: usize,
-        dp_parameters: &DpParameters,
-        threshold: f64,
-    ) -> Result<AggregatedData, StatsError> {
-        self.aggregate_with_dp(
-            reporting_length,
-            dp_parameters,
-            NoisyCountThreshold::MaxFabrication(threshold),
         )
     }
 

@@ -252,68 +252,32 @@ impl NoiseAggregator {
         let noise = Normal::new(0.0, 1.0).map_err(StatsError::new)?;
 
         for count in all_current_aggregates.values_mut() {
-            (*count) = ((*count) + current_sigma * noise.sample(&mut thread_rng())).round();
+            (*count) += current_sigma * noise.sample(&mut thread_rng());
         }
         Ok(())
     }
 
     #[inline]
-    fn calc_threshold(
-        &self,
-        all_current_aggregates: &CombinationsCountMap,
-        combinations_by_record: &CombinationsByRecord,
-        noisy_aggregates_by_len: &CombinationsCountMapByLen,
-        l1_sensitivity: f64,
-        comb_len: usize,
-    ) -> f64 {
-        match self.threshold {
-            NoisyCountThreshold::Fixed(threshold) => threshold,
-            NoisyCountThreshold::Adaptive(threshold) => {
-                if comb_len == 1 {
-                    1.0 + (self.sigmas[0]
+    fn calc_threshold(&self, l1_sensitivity: f64, comb_len: usize) -> f64 {
+        if comb_len == 1 {
+            1.0 + (self.sigmas[0]
+                * l1_sensitivity.sqrt()
+                * Normal::new(0.0, 1.0)
+                    .unwrap()
+                    .inverse_cdf((1.0 - (self.delta / 2.0)).powf(1.0 / l1_sensitivity)))
+        } else {
+            // thresholds should start at index 2 (1-counts needs to be fixed to guarantee DP)
+            match self.threshold.clone() {
+                NoisyCountThreshold::Fixed(thresholds) => {
+                    thresholds.get(&comb_len).cloned().unwrap_or(0.0)
+                }
+                NoisyCountThreshold::Adaptive(thresholds) => {
+                    // PPF at 0.5 should give threshold = 0
+                    self.sigmas[comb_len - 1]
                         * l1_sensitivity.sqrt()
                         * Normal::new(0.0, 1.0)
                             .unwrap()
-                            .inverse_cdf((1.0 - (self.delta / 2.0)).powf(1.0 / l1_sensitivity)))
-                } else {
-                    self.sigmas[comb_len - 1]
-                        * l1_sensitivity.sqrt()
-                        * Normal::new(0.0, 1.0).unwrap().inverse_cdf(
-                            1.0 - (threshold
-                                * 1_f64.min(
-                                    noisy_aggregates_by_len
-                                        .get(&(comb_len - 1))
-                                        .map(|combs| combs.len() as f64)
-                                        .unwrap_or(0.0)
-                                        / (all_current_aggregates.len() as f64),
-                                )),
-                        )
-                }
-            }
-            NoisyCountThreshold::MaxFabrication(threshold) => {
-                let sensitive_combinations_on_len: FnvHashSet<&Arc<ValueCombination>> =
-                    combinations_by_record
-                        .iter()
-                        .flat_map(|combinations| combinations.iter())
-                        .collect();
-                let fabricated = all_current_aggregates
-                    .iter()
-                    .filter_map(|(comb, count)| {
-                        if !sensitive_combinations_on_len.contains(comb) && *count > 0.0 {
-                            Some(*count)
-                        } else {
-                            None
-                        }
-                    })
-                    .sorted_by(|a, b| a.partial_cmp(b).unwrap())
-                    .collect_vec();
-                let max_allowed_fabricated_count =
-                    ((sensitive_combinations_on_len.len() as f64) * threshold).round() as usize;
-
-                if fabricated.len() > max_allowed_fabricated_count {
-                    fabricated[fabricated.len() - max_allowed_fabricated_count - 1]
-                } else {
-                    *fabricated.first().unwrap_or(&0.0)
+                            .inverse_cdf(1.0 - thresholds.get(&comb_len).cloned().unwrap_or(0.5))
                 }
             }
         }
@@ -323,22 +287,16 @@ impl NoiseAggregator {
     fn retain_based_on_threshold(
         &self,
         all_current_aggregates: &mut CombinationsCountMap,
-        combinations_by_record: &CombinationsByRecord,
-        noisy_aggregates_by_len: &CombinationsCountMapByLen,
         l1_sensitivity: f64,
         comb_len: usize,
     ) {
-        let threshold = self.calc_threshold(
-            all_current_aggregates,
-            combinations_by_record,
-            noisy_aggregates_by_len,
-            l1_sensitivity,
-            comb_len,
-        );
+        let threshold = self.calc_threshold(l1_sensitivity, comb_len);
 
         debug!("used threshold = {}", threshold);
 
-        all_current_aggregates.retain(|_comb, count| *count > threshold);
+        // make sure to retain combinations that have a count greater than the threshold
+        // and also greater than 0, in case the threshold is negative somehow
+        all_current_aggregates.retain(|_comb, count| *count > threshold && *count > 0.0);
     }
 
     #[inline]
@@ -346,7 +304,6 @@ impl NoiseAggregator {
         &self,
         all_current_aggregates: &mut CombinationsCountMap,
         combinations_by_record: &CombinationsByRecord,
-        noisy_aggregates_by_len: &CombinationsCountMapByLen,
         comb_len: usize,
         l1_sensitivity: usize,
     ) -> Result<(), StatsError> {
@@ -367,13 +324,7 @@ impl NoiseAggregator {
 
             NoiseAggregator::add_gaussian_noise(all_current_aggregates, current_sigma)?;
 
-            self.retain_based_on_threshold(
-                all_current_aggregates,
-                combinations_by_record,
-                noisy_aggregates_by_len,
-                l1_sensitivity_f64,
-                comb_len,
-            );
+            self.retain_based_on_threshold(all_current_aggregates, l1_sensitivity_f64, comb_len);
 
             debug!("noise added to {}-counts", comb_len);
         } else {
@@ -516,7 +467,6 @@ impl NoiseAggregator {
             self.add_gaussian_noise_and_retain_based_on_threshold(
                 &mut all_current_aggregates,
                 &combinations_by_record,
-                &noisy_aggregates_by_len,
                 l,
                 allowed_sensitivity,
             )?;

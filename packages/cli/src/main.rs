@@ -97,7 +97,7 @@ enum Command {
         #[structopt(
             long = "dp",
             help = "generate the aggregates with differential privacy",
-            requires_all = &["sensitivities-percentile", "sensitivities-epsilon-proportion", "noise-epsilon", "noise-threshold-type", "noise-threshold-value"]
+            requires_all = &["sensitivities-percentile", "sensitivities-epsilon-proportion", "noise-epsilon", "noise-threshold-type", "noise-threshold-values"]
         )]
         dp: bool,
 
@@ -131,19 +131,19 @@ enum Command {
 
         #[structopt(
             long = "noise-threshold-type",
-            help = "threshold type, could be fixed, adaptive or max_fabrication",
-            possible_values = &["fixed", "adaptive", "max_fabrication"],
+            help = "threshold type, could be fixed or adaptive",
+            possible_values = &["fixed", "adaptive"],
             case_insensitive = true,
             default_value = "fixed",
         )]
         noise_threshold_type: String,
 
         #[structopt(
-            long = "noise-threshold-value",
+            long = "noise-threshold-values",
             help = "value used as the count threshold filter (meaning will change based on \"noise-threshold-type\")",
             requires = "dp"
         )]
-        noise_threshold_value: Option<f64>,
+        noise_threshold_values: Option<Vec<f64>>,
 
         #[structopt(
             long = "sigma-proportions",
@@ -329,7 +329,7 @@ fn main() {
                 noise_delta,
                 noise_epsilon,
                 noise_threshold_type,
-                noise_threshold_value,
+                noise_threshold_values,
                 sigma_proportions,
                 aggregates_json,
             } => {
@@ -337,12 +337,16 @@ fn main() {
                 let aggregated_data = if dp {
                     let delta = noise_delta
                         .unwrap_or(1.0 / (2.0 * (data_block.number_of_records() as f64)));
+                    let thresholds_map = noise_threshold_values
+                        .unwrap()
+                        .iter()
+                        .enumerate()
+                        .map(|(i, t)| (i + 2, *t))
+                        .collect();
+
                     let threshold = match noise_threshold_type.as_str() {
-                        "fixed" => NoisyCountThreshold::Fixed(noise_threshold_value.unwrap()),
-                        "adaptive" => NoisyCountThreshold::Adaptive(noise_threshold_value.unwrap()),
-                        "max_fabrication" => {
-                            NoisyCountThreshold::MaxFabrication(noise_threshold_value.unwrap())
-                        }
+                        "fixed" => NoisyCountThreshold::Fixed(thresholds_map),
+                        "adaptive" => NoisyCountThreshold::Adaptive(thresholds_map),
                         _ => {
                             error!("invalid noise threshold type");
                             process::exit(1);
