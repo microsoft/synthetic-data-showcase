@@ -41,7 +41,7 @@ def aggregate(config):
     noise_epsilon = config['noise_epsilon']
     noise_delta = config['noise_delta']
     noise_threshold_type = config['noise_threshold_type']
-    noise_threshold_value = config['noise_threshold_value']
+    noise_threshold_values = config['noise_threshold_values']
 
     logging.info(f'Aggregate {sensitive_microdata_path}')
     start_time = time.time()
@@ -84,7 +84,7 @@ def aggregate(config):
                     percentile_epsilon_proportion,
                     sigma_proportions
                 ),
-                noise_threshold_value
+                noise_threshold_values
             )
         elif noise_threshold_type == 'adaptive':
             aggregated_data = sds_processor.aggregate_with_dp_adaptive_threshold(
@@ -96,19 +96,7 @@ def aggregate(config):
                     percentile_epsilon_proportion,
                     sigma_proportions
                 ),
-                noise_threshold_value
-            )
-        elif noise_threshold_type == 'max_fabrication':
-            aggregated_data = sds_processor.aggregate_with_dp_max_fabrication_threshold(
-                reporting_length,
-                sds.DpParameters(
-                    noise_epsilon,
-                    noise_delta,
-                    percentile_percentage,
-                    percentile_epsilon_proportion,
-                    sigma_proportions
-                ),
-                noise_threshold_value
+                noise_threshold_values
             )
         else:
             raise ValueError(

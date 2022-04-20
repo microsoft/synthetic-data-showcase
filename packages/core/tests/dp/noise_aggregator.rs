@@ -1,4 +1,6 @@
-use sds_core::dp::{CombinationsCountMapByLen, DpParameters, NoiseAggregator, NoisyCountThreshold};
+use sds_core::dp::{
+    CombinationsCountMapByLen, DpParameters, InputValueByLen, NoiseAggregator, NoisyCountThreshold,
+};
 
 use crate::utils::{
     assert_map_equals, gen_combinations_count_map, gen_value_combination, read_test_data_block,
@@ -13,7 +15,7 @@ fn get_noise_aggregator() -> NoiseAggregator {
         read_test_data_block(TEST_FILE_PATH, DELIMITER, &[], &[], 0),
         3,
         &DpParameters::new(1.0, 0.001, 99, 0.1, None),
-        NoisyCountThreshold::Fixed(10.0),
+        NoisyCountThreshold::Fixed(InputValueByLen::default()),
     )
 }
 

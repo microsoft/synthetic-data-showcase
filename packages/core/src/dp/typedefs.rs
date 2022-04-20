@@ -21,3 +21,6 @@ pub type CombinationsCountMap = FnvHashMap<Arc<ValueCombination>, f64>;
 /// Maps a value combination to its count but grouped by combination
 /// length
 pub type CombinationsCountMapByLen = FnvHashMap<usize, CombinationsCountMap>;
+
+/// Specifies an input value by combination length
+pub type InputValueByLen<T> = FnvHashMap<usize, T>;
