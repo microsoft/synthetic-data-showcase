@@ -43,8 +43,8 @@ const Container = styled.div`
 
 const StyledLink = styled(NavLink)`
 	position: relative;
-	height: 20px;
-	line-height: 20px;
+	height: 24px;
+	line-height: 24px;
 	color: ${p => p.theme.palette.neutralLight};
 	background: ${p => p.theme.palette.neutralSecondary};
 	font-size: ${p => p.theme.fonts.small.fontSize};
@@ -85,8 +85,8 @@ const StyledLink = styled(NavLink)`
 		height: 0;
 		z-index: 1;
 		border-left: 10px solid ${p => p.theme.palette.neutralSecondary};
-		border-top: 10px solid transparent;
-		border-bottom: 10px solid transparent;
+		border-top: 12px solid transparent;
+		border-bottom: 12px solid transparent;
 	}
 
 	&:before {
@@ -97,8 +97,8 @@ const StyledLink = styled(NavLink)`
 		width: 0;
 		height: 0;
 		border-left: 10px solid ${p => p.theme.palette.neutralSecondary};
-		border-top: 10px solid transparent;
-		border-bottom: 10px solid transparent;
+		border-top: 12px solid transparent;
+		border-bottom: 12px solid transparent;
 	}
 `
 
