@@ -6,7 +6,7 @@ import { introspect } from '@data-wrangling-components/core'
 import { op } from 'arquero'
 import { useEffect } from 'react'
 
-import { defaultSubjectID } from '../../models'
+import { defaultSubjectID } from '~models'
 import {
 	useClearSensitiveData,
 	useIsProcessingSetter,
@@ -14,8 +14,8 @@ import {
 	usePreparedTable,
 	useRecordLimitSetter,
 	useSensitiveContent,
-} from '../../states'
-import { columnIndexesWithZeros, tableHeaders } from '../../utils'
+} from '~states'
+import { columnIndexesWithZeros, tableHeaders } from '~utils'
 
 export function useOnTableChange(): void {
 	const [preparedTable] = usePreparedTable()

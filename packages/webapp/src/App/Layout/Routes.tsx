@@ -8,7 +8,8 @@ import { memo, Suspense } from 'react'
 import { Route, Routes as Switch } from 'react-router-dom'
 import styled from 'styled-components'
 
-import { Pages } from '../Pages'
+import { Pages } from '~pages'
+
 import { Layout } from './Layout'
 
 export const Routes: FC = memo(function Routes() {

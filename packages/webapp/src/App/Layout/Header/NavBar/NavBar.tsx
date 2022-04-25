@@ -7,8 +7,8 @@ import { memo } from 'react'
 import { NavLink } from 'react-router-dom'
 import styled from 'styled-components'
 
-import { Flex } from '../../../../components/Flexbox'
-import { Pages } from '../../../Pages'
+import { Flex } from '~components/Flexbox'
+import { Pages } from '~pages'
 
 export const NavBar: FC = memo(function NavBar() {
 	const links = Object.values(Pages)

@@ -6,16 +6,17 @@ import React, { memo, useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import styled from 'styled-components'
 
-import { Flex } from '../../components/Flexbox'
-import { useOnTableChange } from '../../pages/hooks'
+import { Flex } from '~components/Flexbox'
+import { Pages } from '~pages'
+import { useOnTableChange } from '~pages/hooks'
 import {
 	useIsProcessingSetter,
 	usePreparedTable,
 	useSelectedTable,
 	useWasmWorker,
-} from '../../states'
-import { SdsWasmWorker } from '../../workers/sds-wasm'
-import { Pages } from '../Pages'
+} from '~states'
+import { SdsWasmWorker } from '~workers/sds-wasm'
+
 import { Header } from './Header'
 
 export const Layout: React.FC = memo(function Layout({ children }) {

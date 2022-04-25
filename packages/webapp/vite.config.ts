@@ -18,7 +18,6 @@ export default defineConfig(({ command, mode }) => {
 			rollupOptions: {
 				input: {
 					main: './index.html',
-					refactor: './refactor.html',
 				},
 			},
 		},

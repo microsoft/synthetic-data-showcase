@@ -5,8 +5,8 @@
 import type { FC } from 'react'
 import { memo } from 'react'
 
-import { ErrorMessageBar } from '../../../../components/ErrorMessageBar'
-import { useGlobalErrorMessage } from '../../../../states'
+import { ErrorMessageBar } from '~components/ErrorMessageBar'
+import { useGlobalErrorMessage } from '~states'
 
 export const ErrorBar: FC = memo(function ErrorBar() {
 	const [globalError, setGlobalError] = useGlobalErrorMessage()

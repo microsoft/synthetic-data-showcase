@@ -12,23 +12,24 @@ import type { IEvaluateResult } from 'sds-wasm'
 import {
 	getMetricsByCountLabels,
 	getMetricsByLenLabels,
-} from '../../components/Charts/hooks'
-import type { DownloadInfo } from '../../components/controls/DownloadButton'
+} from '~components/Charts/hooks'
+import type { DownloadInfo } from '~components/controls/DownloadButton'
 import {
 	getAggregatesCsv,
 	getAnalysisByCountCsv,
 	getAnalysisByLenCsv,
 	getMetricsSummaryCsv,
-} from '../../components/DataEvaluationInfoDownloader'
-import { getMicrodataMetricsItems } from '../../components/MetricsSummaryTable'
-import type { IContextParameters } from '../../models'
-import { AggregateType } from '../../models'
+} from '~components/DataEvaluationInfoDownloader'
+import { getMicrodataMetricsItems } from '~components/MetricsSummaryTable'
+import type { IContextParameters } from '~models'
+import { AggregateType } from '~models'
 import {
 	useAllContextsParametersValue,
 	useSensitiveContentValue,
 	useWasmWorkerValue,
-} from '../../states'
-import type { SdsWasmWorker } from '../../workers/sds-wasm'
+} from '~states'
+import type { SdsWasmWorker } from '~workers/sds-wasm'
+
 import { useGetSyntheticCsvContent } from '../Synthesize/DataSynthesis/hooks'
 
 async function generateAggregatesCsv(

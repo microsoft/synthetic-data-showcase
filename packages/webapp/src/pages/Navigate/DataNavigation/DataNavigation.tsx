@@ -20,17 +20,18 @@ import {
 	ColumnAttributeSelectorGrid,
 	HeaderSelector,
 	SelectedAttributes,
-} from '../../../components/AttributeSelector'
-import { ContextsDropdown } from '../../../components/ContextsDropdown'
-import { InfoTooltip } from '../../../components/InfoTooltip'
-import { PipelineStep } from '../../../models'
+} from '~components/AttributeSelector'
+import { ContextsDropdown } from '~components/ContextsDropdown'
+import { InfoTooltip } from '~components/InfoTooltip'
+import { PipelineStep } from '~models'
 import {
 	useAllContextsParametersValue,
 	useSelectedContextParameters,
 	useSelectedPipelineStepSetter,
 	useWasmWorkerValue,
-} from '../../../states'
-import { tooltips } from '../../../ui-tooltips'
+} from '~states'
+import { tooltips } from '~ui-tooltips'
+
 import {
 	useInitiallySelectedHeaders,
 	useOnClearSelectedAttributes,

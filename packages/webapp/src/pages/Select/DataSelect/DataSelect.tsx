@@ -7,9 +7,10 @@ import { getTheme, Stack } from '@fluentui/react'
 import type { FC } from 'react'
 import { memo } from 'react'
 
-import { CsvTable } from '../../../components/CsvTable'
-import { ErrorMessageBar } from '../../../components/ErrorMessageBar'
-import { useSensitiveContent } from '../../../states'
+import { CsvTable } from '~components/CsvTable'
+import { ErrorMessageBar } from '~components/ErrorMessageBar'
+import { useSensitiveContent } from '~states'
+
 import {
 	useSensitiveTableCommands,
 	useSubjectIdErrorMessage,

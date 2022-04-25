@@ -4,14 +4,14 @@
  */
 import { useCallback } from 'react'
 
-import type { IContextParameters } from '../../../../models'
+import type { IContextParameters } from '~models'
 import {
 	useAllContextsParametersSetter,
 	useIsProcessingSetter,
 	useProcessingProgressSetter,
 	useSelectedContextParametersSetter,
 	useWasmWorkerValue,
-} from '../../../../states'
+} from '~states'
 
 export function useOnRunEvaluate(
 	reportingLength: number,

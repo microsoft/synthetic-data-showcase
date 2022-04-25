@@ -7,7 +7,7 @@ import type { ICommandBarItemProps } from '@fluentui/react'
 import { useCallback, useMemo } from 'react'
 import type { SetterOrUpdater } from 'recoil'
 
-import type { ICsvContent } from '../../../../../models'
+import type { ICsvContent } from '~models'
 
 export function useSubjectIdCommand(
 	content: ICsvContent,

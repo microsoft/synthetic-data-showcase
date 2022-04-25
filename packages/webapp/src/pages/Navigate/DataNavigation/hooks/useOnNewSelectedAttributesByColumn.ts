@@ -6,7 +6,7 @@ import type { MutableRefObject } from 'react'
 import { useCallback } from 'react'
 import type { ISelectedAttributesByColumn } from 'sds-wasm'
 
-import type { SdsWasmWorker } from '../../../../workers/sds-wasm'
+import type { SdsWasmWorker } from '~workers/sds-wasm'
 
 export function useOnNewSelectedAttributesByColumn(
 	contextKey: string | undefined,

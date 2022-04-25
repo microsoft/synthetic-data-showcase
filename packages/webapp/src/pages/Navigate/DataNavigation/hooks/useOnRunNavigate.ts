@@ -5,7 +5,7 @@
 import type { MutableRefObject } from 'react'
 import { useCallback } from 'react'
 
-import type { SdsWasmWorker } from '../../../../workers/sds-wasm'
+import type { SdsWasmWorker } from '~workers/sds-wasm'
 
 export function useOnRunNavigate(
 	contextKey: string | undefined,

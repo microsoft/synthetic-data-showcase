@@ -5,7 +5,7 @@
 import { useCallback } from 'react'
 import type { SetterOrUpdater } from 'recoil'
 
-import type { PipelineStep } from '../../../../models'
+import type { PipelineStep } from '~models'
 
 export function useOnGoBack(
 	setSelectedPipelineStep: SetterOrUpdater<string>,

@@ -7,8 +7,8 @@ import type { MutableRefObject } from 'react'
 import { useCallback } from 'react'
 import type { IEvaluateResult } from 'sds-wasm'
 
-import type { IContextParameters } from '../../../../models'
-import { useWasmWorkerValue } from '../../../../states'
+import type { IContextParameters } from '~models'
+import { useWasmWorkerValue } from '~states'
 
 export function useSelectedContextParametersOnChange(
 	selectedContextParameters: IContextParameters | undefined,

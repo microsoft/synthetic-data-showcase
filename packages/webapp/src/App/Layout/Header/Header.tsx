@@ -7,20 +7,21 @@ import { memo } from 'react'
 import { NavLink } from 'react-router-dom'
 import styled from 'styled-components'
 
-import { Flex } from '../../../components/Flexbox'
-import { Pages } from '../../Pages'
+import { Flex } from '~components/Flexbox'
+import { Pages } from '~pages'
+
 import { ErrorBar } from './ErrorBar'
 import { NavBar } from './NavBar'
 
 export const Header: FC = memo(function Header() {
 	return (
-		<>
+		<Flex vertical>
 			<TitleBar>
 				<StyledLink to={Pages.Home.path}>{Pages.Home.name}</StyledLink>
 			</TitleBar>
 			<NavBar />
 			<ErrorBar />
-		</>
+		</Flex>
 	)
 })
 Header.displayName = 'Header'

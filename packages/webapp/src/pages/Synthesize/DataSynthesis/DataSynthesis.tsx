@@ -13,16 +13,17 @@ import {
 } from '@fluentui/react'
 import { memo, useEffect, useRef, useState } from 'react'
 
-import { ContextsDropdown } from '../../../components/ContextsDropdown'
-import { CsvTable } from '../../../components/CsvTable'
-import { InfoTooltip } from '../../../components/InfoTooltip'
-import { TooltipWrapper } from '../../../components/TooltipWrapper'
-import type { ICsvContent } from '../../../models'
+import { ContextsDropdown } from '~components/ContextsDropdown'
+import { CsvTable } from '~components/CsvTable'
+import { InfoTooltip } from '~components/InfoTooltip'
+import { TooltipWrapper } from '~components/TooltipWrapper'
+import type { ICsvContent } from '~models'
+import { defaultCsvContent, OversamplingType, SynthesisMode } from '~models'
 import {
-	defaultCsvContent,
-	OversamplingType,
-	SynthesisMode,
-} from '../../../models'
+	useCanRun,
+	useDropdownOnChange,
+	useSpinButtonOnChange,
+} from '~pages/hooks'
 import {
 	useAllContextsParametersValue,
 	useCacheSize,
@@ -43,13 +44,9 @@ import {
 	useSensitiveContentValue,
 	useSynthesisMode,
 	useUseSyntheticCounts,
-} from '../../../states'
-import { tooltips } from '../../../ui-tooltips'
-import {
-	useCanRun,
-	useDropdownOnChange,
-	useSpinButtonOnChange,
-} from '../../hooks'
+} from '~states'
+import { tooltips } from '~ui-tooltips'
+
 import {
 	useGetSyntheticCsvContent,
 	useNoisyCountThresholdTypeOptions,

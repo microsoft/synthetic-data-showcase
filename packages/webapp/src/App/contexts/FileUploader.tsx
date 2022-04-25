@@ -8,8 +8,8 @@ import type { FC } from 'react'
 import { memo, useCallback } from 'react'
 import type { FileRejection } from 'react-dropzone'
 
-import { FileDrop } from '../../components/FileDrop'
-import { useGlobalErrorMessage, useTables } from '../../states'
+import { FileDrop } from '~components/FileDrop'
+import { useGlobalErrorMessage, useTables } from '~states'
 
 export const FileUploader: FC = memo(function FileUploader({ children }) {
 	const [, setGlobalError] = useGlobalErrorMessage()

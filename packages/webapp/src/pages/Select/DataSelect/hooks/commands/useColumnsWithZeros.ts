@@ -4,7 +4,7 @@
  */
 import { useMemo } from 'react'
 
-import type { ICsvContent } from '../../../../../models'
+import type { ICsvContent } from '~models'
 
 export function useColumnsWithZeros(
 	content: ICsvContent,

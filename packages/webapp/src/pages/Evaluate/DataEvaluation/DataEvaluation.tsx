@@ -15,24 +15,25 @@ import {
 import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import type { IEvaluateResult } from 'sds-wasm'
 
-import { ContextsDropdown } from '../../../components/ContextsDropdown'
-import { DataEvaluationInfo } from '../../../components/DataEvaluationInfo'
-import { InfoTooltip } from '../../../components/InfoTooltip'
-import { TooltipWrapper } from '../../../components/TooltipWrapper'
-import type { IContextParameters } from '../../../models'
-import { AggregateType, SynthesisMode } from '../../../models'
+import { ContextsDropdown } from '~components/ContextsDropdown'
+import { DataEvaluationInfo } from '~components/DataEvaluationInfo'
+import { InfoTooltip } from '~components/InfoTooltip'
+import { TooltipWrapper } from '~components/TooltipWrapper'
+import type { IContextParameters } from '~models'
+import { AggregateType, SynthesisMode } from '~models'
+import {
+	useCanRun,
+	useDropdownOnChange,
+	useSpinButtonOnChange,
+} from '~pages/hooks'
 import {
 	useAllContextsParametersValue,
 	useIsProcessing,
 	useReportingLength,
 	useSelectedContextParameters,
-} from '../../../states'
-import { tooltips } from '../../../ui-tooltips'
-import {
-	useCanRun,
-	useDropdownOnChange,
-	useSpinButtonOnChange,
-} from '../../hooks'
+} from '~states'
+import { tooltips } from '~ui-tooltips'
+
 import {
 	useAggregateTypeOptions,
 	useMicrodataMaxStatistics,

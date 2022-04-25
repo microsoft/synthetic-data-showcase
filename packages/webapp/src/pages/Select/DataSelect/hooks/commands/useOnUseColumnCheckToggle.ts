@@ -5,7 +5,7 @@
 import { useCallback } from 'react'
 import type { SetterOrUpdater } from 'recoil'
 
-import type { ICsvContent } from '../../../../../models'
+import type { ICsvContent } from '~models'
 
 export function useOnUseColumnCheckToggle(
 	setter: SetterOrUpdater<ICsvContent>,

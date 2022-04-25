@@ -6,7 +6,7 @@ import _ from 'lodash'
 import { useMemo } from 'react'
 import type { IMicrodataStatistics } from 'sds-wasm'
 
-import type { IMicrodataMaxStatistics } from '../../../../models'
+import type { IMicrodataMaxStatistics } from '~models'
 
 export function useMicrodataMaxStatistics(
 	statsList?: (IMicrodataStatistics | undefined)[],

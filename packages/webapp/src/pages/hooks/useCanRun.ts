@@ -4,7 +4,8 @@
  */
 import { useMemo } from 'react'
 
-import { useIsProcessingValue, useSensitiveContentValue } from '../../states'
+import { useIsProcessingValue, useSensitiveContentValue } from '~states'
+
 import { useIsSubjectIdValid } from '../Select/DataSelect/hooks'
 
 export function useCanRun(): boolean {
