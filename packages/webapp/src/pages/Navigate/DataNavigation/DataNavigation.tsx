@@ -10,7 +10,8 @@ import {
 	Stack,
 	useTheme,
 } from '@fluentui/react'
-import { memo, useEffect, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import type {
 	IAttributesIntersection,
 	ISelectedAttributesByColumn,
@@ -23,11 +24,10 @@ import {
 } from '~components/AttributeSelector'
 import { ContextsDropdown } from '~components/ContextsDropdown'
 import { InfoTooltip } from '~components/InfoTooltip'
-import { PipelineStep } from '~models'
+import { Pages } from '~pages'
 import {
 	useAllContextsParametersValue,
 	useSelectedContextParameters,
-	useSelectedPipelineStepSetter,
 	useWasmWorkerValue,
 } from '~states'
 import { tooltips } from '~ui-tooltips'
@@ -35,7 +35,6 @@ import { tooltips } from '~ui-tooltips'
 import {
 	useInitiallySelectedHeaders,
 	useOnClearSelectedAttributes,
-	useOnGoBack,
 	useOnNewSelectedAttributesByColumn,
 	useOnRunNavigate,
 	useOnSetSelectedAttributes,
@@ -56,11 +55,11 @@ export type SetSelectedAttributesCallback = (
 export type ClearSelectedAttributesCallback = () => Promise<void>
 
 export const DataNavigation: React.FC = memo(function DataNavigation() {
+	const navigate = useNavigate()
 	const [isLoading, setIsLoading] = useState(true)
 	const [selectedAttributesByColumn, setSelectedAttributesByColumn] =
 		useState<ISelectedAttributesByColumn>({})
 	const worker = useWasmWorkerValue()
-	const setSelectedPipelineStep = useSelectedPipelineStepSetter()
 	const isMounted = useRef(true)
 	const allContextsParameters = useAllContextsParametersValue()
 	const [selectedContextParameters, setSelectedContextParameters] =
@@ -84,7 +83,9 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 	const onClearSelectedAttributes = useOnClearSelectedAttributes(
 		setNewSelectedAttributesByColumn,
 	)
-	const onGoBack = useOnGoBack(setSelectedPipelineStep, PipelineStep.Evaluate)
+	const onGoBack = useCallback(() => {
+		navigate(Pages.Evaluate.path)
+	}, [navigate])
 	const onToggleSelectedHeader = useOnToggleSelectedHeader(
 		selectedHeaders,
 		setSelectedHeaders,

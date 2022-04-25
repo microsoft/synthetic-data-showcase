@@ -11,6 +11,7 @@ export type PageDetails = {
 	component: LazyExoticComponent<FC<any>>
 	path: string
 	hideFromMenu: boolean
+	useLayout: boolean
 }
 
 export const Pages: Record<string, PageDetails> = {
@@ -18,6 +19,7 @@ export const Pages: Record<string, PageDetails> = {
 		name: 'Synthetic Data Showcase',
 		path: '/',
 		hideFromMenu: true,
+		useLayout: true,
 		component: lazy(
 			async () =>
 				/* webpackChunkName: "HomePage" */
@@ -28,6 +30,7 @@ export const Pages: Record<string, PageDetails> = {
 		name: 'Prepare',
 		path: '/',
 		hideFromMenu: false,
+		useLayout: true,
 		component: lazy(
 			async () =>
 				/* webpackChunkName: "PreparePage" */
@@ -38,6 +41,7 @@ export const Pages: Record<string, PageDetails> = {
 		name: 'Select',
 		path: '/select',
 		hideFromMenu: false,
+		useLayout: true,
 		component: lazy(
 			async () =>
 				/* webpackChunkName: "SelectPage" */
@@ -48,6 +52,7 @@ export const Pages: Record<string, PageDetails> = {
 		name: 'Synthesize',
 		path: '/synthesize',
 		hideFromMenu: false,
+		useLayout: true,
 		component: lazy(
 			async () =>
 				/* webpackChunkName: "SynthesizePage" */
@@ -58,6 +63,7 @@ export const Pages: Record<string, PageDetails> = {
 		name: 'Evaluate',
 		path: '/evaluate',
 		hideFromMenu: false,
+		useLayout: true,
 		component: lazy(
 			async () =>
 				/* webpackChunkName: "EvaluatePage" */
@@ -68,6 +74,7 @@ export const Pages: Record<string, PageDetails> = {
 		name: 'Navigate',
 		path: 'navigate',
 		hideFromMenu: false,
+		useLayout: false,
 		component: lazy(
 			async () =>
 				/* webpackChunkName: "NavigatePage" */
