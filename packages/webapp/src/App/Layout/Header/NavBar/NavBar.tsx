@@ -27,12 +27,7 @@ export const NavBar: FC = memo(function NavBar() {
 
 	return (
 		<Container>
-			<Flex align="center">
-				{links}
-				{/* <StyledLink to="null" as={button} role="button" data-role="disabled">
-					{}
-				</StyledLink> */}
-			</Flex>
+			<Flex align="center">{links}</Flex>
 		</Container>
 	)
 })
@@ -101,56 +96,3 @@ const StyledLink = styled(NavLink)`
 		border-bottom: 12px solid transparent;
 	}
 `
-
-// const StyledLink = styled(NavLink)`
-// 	position: relative;
-// 	height: 44px;
-// 	line-height: 44px;
-// 	color: ${p => p.theme.palette.neutralLight};
-// 	background: ${p => p.theme.palette.themePrimary};
-// 	margin-top: 0;
-// 	margin-right: 1px;
-// 	font-size: 18px; /* ${p => p.theme.fonts.medium.fontSize};*/
-// 	font-weight: bold;
-// 	letter-spacing: 1.5px;
-// 	padding: 0 ${p => p.theme.spacing.l2};
-// 	text-decoration: none;
-// 	&:hover {
-// 		color: ${p => p.theme.palette.white};
-// 	}
-// 	&.active {
-// 		color: ${p => p.theme.palette.black};
-// 		font-weight: bold;
-// 		background: ${p => p.theme.palette.white};
-// 		&:after {
-// 			border-left: 10px solid ${p => p.theme.palette.white};
-// 		}
-// 	}
-
-// 	&:after {
-// 		content: '';
-// 		position: absolute;
-// 		right: -10px;
-// 		bottom: 0;
-// 		width: 0;
-// 		height: 0;
-// 		z-index: 100;
-// 		border-left: 10px solid ${p => p.theme.palette.themePrimary};
-// 		border-top: 22px solid transparent;
-// 		border-bottom: 22px solid transparent;
-// 	}
-
-// 	&:before {
-// 		content: '';
-// 		position: absolute;
-// 		left: 0px;
-// 		bottom: 0;
-// 		width: 0;
-// 		height: 0;
-// 		border-left: transparent;
-// 		/* border-left: 10px solid ${({ theme }) =>
-// 			theme.palette.neutralPrimary}; */
-// 		border-top: 22px solid transparent;
-// 		border-bottom: 22px solid transparent;
-// 	}
-// `
