@@ -10,6 +10,7 @@ import { NavLink } from 'react-router-dom'
 import styled from 'styled-components'
 
 import { Flex } from '~components/Flexbox'
+import { ProcessingProgress } from '~components/ProcessingProgress'
 import { Pages } from '~pages'
 import { useCanRun, useOnGetAllAssetsDownloadInfo } from '~pages/hooks'
 
@@ -34,13 +35,16 @@ export const TitleBar: FC = memo(function TitleBar() {
 	return (
 		<Container align="center" justify="space-between">
 			<StyledLink to={Pages.Home.path}>{Pages.Home.name}</StyledLink>
+			<StyledSpan>
+				<ProcessingProgress />
+			</StyledSpan>
 			{canRun && (
-				<span>
+				<StyledSpan>
 					<StyledDownload iconProps={downloadIcon} onClick={handleDownload}>
 						Download assets
 					</StyledDownload>
 					<DownloadAnchor style={{ display: 'none' }} ref={downloadAnchorRef} />
-				</span>
+				</StyledSpan>
 			)}
 		</Container>
 	)
@@ -70,8 +74,11 @@ const StyledLink = styled(NavLink)`
 	}
 `
 
-const StyledDownload = styled(PrimaryButton)`
+const StyledSpan = styled.span`
 	margin-right: ${p => p.theme.spacing.m};
+`
+
+const StyledDownload = styled(PrimaryButton)`
 	font-size: ${p => p.theme.fonts.mediumPlus.fontSize};
 `
 
