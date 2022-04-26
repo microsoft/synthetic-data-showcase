@@ -9,10 +9,13 @@ import { UseSyntheticCounts } from '~models'
 
 const state = atom<UseSyntheticCounts>({
 	key: 'use-synthetic-counts',
-	default: UseSyntheticCounts.Yes,
+	default: UseSyntheticCounts.No,
 })
 
-export function useUseSyntheticCounts(): [UseSyntheticCounts, SetterOrUpdater<UseSyntheticCounts>] {
+export function useUseSyntheticCounts(): [
+	UseSyntheticCounts,
+	SetterOrUpdater<UseSyntheticCounts>,
+] {
 	return useRecoilState(state)
 }
 

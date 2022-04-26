@@ -18,7 +18,12 @@ import { CsvTable } from '~components/CsvTable'
 import { InfoTooltip } from '~components/InfoTooltip'
 import { TooltipWrapper } from '~components/TooltipWrapper'
 import type { ICsvContent } from '~models'
-import { defaultCsvContent, OversamplingType, SynthesisMode } from '~models'
+import {
+	defaultCsvContent,
+	defaultThreshold,
+	OversamplingType,
+	SynthesisMode,
+} from '~models'
 import {
 	useCanRun,
 	useDropdownOnChange,
@@ -30,8 +35,8 @@ import {
 	useIsProcessingValue,
 	useNoiseDelta,
 	useNoiseEpsilon,
+	useNoisyCountThreshold,
 	useNoisyCountThresholdType,
-	useNoisyCountThresholdValue,
 	useOversamplingRatio,
 	useOversamplingTries,
 	useOversamplingType,
@@ -49,14 +54,15 @@ import { tooltips } from '~ui-tooltips'
 
 import {
 	useGetSyntheticCsvContent,
+	useNoisyCountThresholdChange,
 	useNoisyCountThresholdTypeOptions,
 	useOnRunGenerate,
+	useOversamplingTypeOptions,
 	useSelectedContextParametersOnChange,
 	useSynthesisModeOptions,
 	useSyntheticTableCommands,
+	useUseSyntheticCountOptions,
 } from './hooks'
-import { useOversamplingTypeOptions } from './hooks/useOversamplingTypeOptions'
-import { useUseSyntheticCountOptions } from './hooks/useUseSyntheticCountOptions'
 
 export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 	const isMounted = useRef(true)
@@ -75,8 +81,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 	const [noiseDelta, setNoiseDelta] = useNoiseDelta()
 	const [noisyCountThresholdType, setNoisyCountThresholdType] =
 		useNoisyCountThresholdType()
-	const [noisyCountThresholdValue, setNoisyCountThresholdValue] =
-		useNoisyCountThresholdValue()
+	const [noisyCountThreshold, setNoisyCountThreshold] = useNoisyCountThreshold()
 	const isProcessing = useIsProcessingValue()
 	const sensitiveContent = useSensitiveContentValue()
 	const [reportingLength, setReportingLength] = useReportingLength()
@@ -140,7 +145,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 		noiseEpsilon,
 		noiseDelta,
 		thresholdType: noisyCountThresholdType,
-		thresholdValue: noisyCountThresholdValue,
+		threshold: noisyCountThreshold,
 	})
 
 	const tableCommands = useSyntheticTableCommands(syntheticContent)
@@ -169,13 +174,24 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 	const handleNoisyCountThresholdTypeChange = useDropdownOnChange(
 		setNoisyCountThresholdType,
 	)
-	const handleNoisyCountThresholdValueChange = useSpinButtonOnChange(
-		setNoisyCountThresholdValue,
+	const handleNoisyCountThresholdChange = useNoisyCountThresholdChange(
+		noisyCountThreshold,
+		setNoisyCountThreshold,
 	)
 
 	useEffect(() => {
 		selectedContextParametersOnChange()
 	}, [selectedContextParametersOnChange])
+
+	useEffect(() => {
+		if (reportingLength - 1 !== Object.keys(noisyCountThreshold).length) {
+			const newValues = {}
+			for (let i = 2; i <= reportingLength; ++i) {
+				newValues[i] = noisyCountThreshold[i] || defaultThreshold
+			}
+			setNoisyCountThreshold(newValues)
+		}
+	}, [reportingLength, setNoisyCountThreshold, noisyCountThreshold])
 
 	useEffect(() => {
 		return () => {
@@ -440,22 +456,24 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 									</TooltipWrapper>
 								</Stack.Item>
 
-								<Stack.Item>
-									<TooltipWrapper
-										tooltip={tooltips.thresholdValue}
-										label="Threshold value"
-									>
-										<SpinButton
-											labelPosition={Position.top}
-											min={0.01}
-											step={0.01}
-											value={noisyCountThresholdValue.toString()}
-											disabled={isProcessing}
-											onChange={handleNoisyCountThresholdValueChange}
-											styles={inputStyles}
-										/>
-									</TooltipWrapper>
-								</Stack.Item>
+								{Object.keys(noisyCountThreshold).map(l => (
+									<Stack.Item key={l}>
+										<TooltipWrapper
+											tooltip={tooltips.thresholdValue}
+											label={`${l}-counts threshold`}
+										>
+											<SpinButton
+												labelPosition={Position.top}
+												min={0.01}
+												step={0.01}
+												value={noisyCountThreshold[l].toString()}
+												disabled={isProcessing}
+												onChange={handleNoisyCountThresholdChange[l]}
+												styles={inputStyles}
+											/>
+										</TooltipWrapper>
+									</Stack.Item>
+								))}
 							</>
 						)}
 					</>

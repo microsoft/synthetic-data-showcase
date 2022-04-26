@@ -3,6 +3,7 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { useCallback } from 'react'
+import type { IInputNumberByLength } from 'sds-wasm'
 
 import type {
 	IContextParameters,
@@ -37,7 +38,7 @@ export interface IOnRunGenerateParameters {
 	noiseEpsilon: number
 	noiseDelta: number
 	thresholdType: NoisyCountThresholdType
-	thresholdValue: number
+	threshold: IInputNumberByLength
 }
 
 export function useOnRunGenerate(

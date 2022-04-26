@@ -2,7 +2,6 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import type { IInputNumberByLength } from 'sds-wasm'
 import init, { init_logger, SDSContext } from 'sds-wasm'
 
 import {
@@ -104,13 +103,6 @@ async function handleGenerate(
 		context: new SDSContext(),
 		contextParameters: message.contextParameters,
 	}).context
-	const thresholdValues: IInputNumberByLength = {}
-
-	// do this for now while the UI does not support
-	// the multi-value input
-	for (let i = 2; i <= message.contextParameters.reportingLength; ++i) {
-		thresholdValues[i] = message.contextParameters.thresholdValue
-	}
 
 	context.setSensitiveData(
 		message.sensitiveCsvData,
@@ -189,7 +181,7 @@ async function handleGenerate(
 						message.contextParameters.percentilePercentage,
 						message.contextParameters.percentileEpsilonProportion,
 						undefined,
-						thresholdValues,
+						message.contextParameters.threshold,
 						message.contextParameters.useSyntheticCounts ===
 							UseSyntheticCounts.Yes,
 						p => {
@@ -213,7 +205,7 @@ async function handleGenerate(
 						message.contextParameters.percentilePercentage,
 						message.contextParameters.percentileEpsilonProportion,
 						undefined,
-						thresholdValues,
+						message.contextParameters.threshold,
 						message.contextParameters.useSyntheticCounts ===
 							UseSyntheticCounts.Yes,
 						p => {
