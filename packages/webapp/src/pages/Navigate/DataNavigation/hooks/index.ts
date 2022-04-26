@@ -4,7 +4,6 @@
  */
 export * from './useInitiallySelectedHeaders'
 export * from './useOnClearSelectedAttributes'
-export * from './useOnGoBack'
 export * from './useOnNewSelectedAttributesByColumn'
 export * from './useOnRunNavigate'
 export * from './useOnSetSelectedAttributes'
