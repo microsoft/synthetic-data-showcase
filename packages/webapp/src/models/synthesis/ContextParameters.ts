@@ -36,4 +36,4 @@ export interface IContextParameters {
 
 export type AllContextsParameters = IContextParameters[]
 
-export const defaultThreshold = 0.5
+export const defaultThreshold = 1.0

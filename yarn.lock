@@ -9360,8 +9360,8 @@ __metadata:
 
 "sds-wasm@file:../../target/wasm::locator=webapp%40workspace%3Apackages%2Fwebapp":
   version: 1.3.0
-  resolution: "sds-wasm@file:../../target/wasm#../../target/wasm::hash=69a10d&locator=webapp%40workspace%3Apackages%2Fwebapp"
-  checksum: f150c3862e2eaabc55bcc53b11a0888e135c7ae7cbf37aa484025764942cb544556de26ab0244a8696b157fa5e7ebc3f522d825163bb0fb4c994b970b0e39595
+  resolution: "sds-wasm@file:../../target/wasm#../../target/wasm::hash=a23477&locator=webapp%40workspace%3Apackages%2Fwebapp"
+  checksum: 5ec2d631eccc2a41ccf656ec0037948be43717b810be7502145b90bf3c50b72976fdd977847c6da23c6b641c8461545c3df85c14c2a653899fc332925dc23f74
   languageName: node
   linkType: hard
 
