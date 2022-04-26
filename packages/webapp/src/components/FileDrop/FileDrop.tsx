@@ -82,7 +82,7 @@ const DefaultDivOverlay = styled.div`
 	align-items: center;
 	top: 0;
 	left: 0;
-	z-index: 1000;
+	z-index: 1000000;
 	width: 100vw;
 	height: 100vh;
 	background-color: ${p => p.theme.palette.neutralTertiaryAlt};
