@@ -74,7 +74,7 @@ export const Pages: Record<string, PageDetails> = {
 		name: 'Navigate',
 		path: 'navigate',
 		hideFromMenu: false,
-		useLayout: false,
+		useLayout: true,
 		component: lazy(
 			async () =>
 				/* webpackChunkName: "NavigatePage" */
