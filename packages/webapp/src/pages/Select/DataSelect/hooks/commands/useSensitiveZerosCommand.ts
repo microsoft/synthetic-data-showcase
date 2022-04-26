@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { checkedItemsCommand } from '@data-wrangling-components/react'
+import { checkedItemsCommand } from '@essex/arquero-react'
 import type { ICommandBarItemProps } from '@fluentui/react'
 import { useCallback, useMemo } from 'react'
 import type { SetterOrUpdater } from 'recoil'

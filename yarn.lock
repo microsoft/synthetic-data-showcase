@@ -1639,33 +1639,37 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@data-wrangling-components/core@npm:^5.2.0":
-  version: 5.2.0
-  resolution: "@data-wrangling-components/core@npm:5.2.0"
+"@data-wrangling-components/core@npm:^6.1.0":
+  version: 6.1.0
+  resolution: "@data-wrangling-components/core@npm:6.1.0"
   dependencies:
+    d3-time-format: ^4.1.0
     lodash-es: ^4.17.21
+    rxjs: ^7.5.5
+    toposort: ^2.0.2
+    uuid: ^8.3.2
   peerDependencies:
     "@types/node": "*"
     arquero: ^4.8.7
   peerDependenciesMeta:
     "@types/node":
       optional: true
-  checksum: 8916b34fd6e2e3ae524315d00599520e058ea2e8082201c67d159fb31a54cfd93f7a8bfee2ba3f0ee223c30715e3d7239a66198aa182ebed044ed1c20eb1fa4b
+  checksum: 9beeb568c8a725edd9ccc58d8312eea2ccf30b452463148a9eb0b06afb1f924f10c60dfe6787117ed5b8ea766b567e7749b876127a13863f18c3e236493321f2
   languageName: node
   linkType: hard
 
-"@data-wrangling-components/guidance@npm:^0.1.8":
-  version: 0.1.8
-  resolution: "@data-wrangling-components/guidance@npm:0.1.8"
-  checksum: bd12cfb93203757affcbf60db28a4fee35bb1dc670fc27a4b446632db23139e630ebc931dee48f365e55a55a400bd30c2a74b073db5e7fda994fa721cc88d4a8
+"@data-wrangling-components/guidance@npm:^0.1.11":
+  version: 0.1.11
+  resolution: "@data-wrangling-components/guidance@npm:0.1.11"
+  checksum: cb77aa254e16639f65207211d0819a1d42b1ef33942403feb9b4021cf848a819c0d020daea624932639971cd1503f0752513ff25c22c56ade9780a29d57048cc
   languageName: node
   linkType: hard
 
-"@data-wrangling-components/react@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "@data-wrangling-components/react@npm:4.0.0"
+"@data-wrangling-components/react@npm:^5.1.3":
+  version: 5.1.3
+  resolution: "@data-wrangling-components/react@npm:5.1.3"
   dependencies:
-    "@data-wrangling-components/guidance": ^0.1.8
+    "@data-wrangling-components/guidance": ^0.1.11
     "@essex/hooks": ^4.0.6
     "@essex/themed-components": ^2.1.3
     core-js: ^3.21.1
@@ -1694,18 +1698,18 @@ __metadata:
     react: ^17.0.2
     react-dom: ^17.0.2
     styled-components: ^5.3.0
-  checksum: f5c807f8ec3807b34acabf8add77cd2236c5c9b24bdee7524c909f1758a0526addf5d74a30e0a45d275391f2def6d1dac898a0cd94e73095bc4986244b34a679
+  checksum: b806c631646baf6d8e9d0bd5c59d475b0a30f19aa3f8e6595bdd75b6c332b978f2e4f53cc10c61ef44ec07a2d1e772a4344036a8f1b97c3558f85a219219c4f0
   languageName: node
   linkType: hard
 
-"@data-wrangling-components/utilities@npm:^1.7.1":
-  version: 1.7.1
-  resolution: "@data-wrangling-components/utilities@npm:1.7.1"
+"@data-wrangling-components/utilities@npm:^1.8.2":
+  version: 1.8.2
+  resolution: "@data-wrangling-components/utilities@npm:1.8.2"
   dependencies:
     "@zip.js/zip.js": ^2.4.6
   peerDependencies:
     arquero: ^4.8.7
-  checksum: 8a69961a9badb26c3515aaebf7a0ea41fd094282e664ba3b718b12f644986ea226de65992f7ef5feedfe5a483cb71a95f84c329b18dabf0ef2f2fbcda844675b
+  checksum: 346375c06fb2820e21ac2765a3ed2d74ba5e1d333d2248e1a0bc77aed1f2c1235d09ce899ef90d90854f701d36b486be9ecb1581c46dd6dd2d02bcbccbf4d13f
   languageName: node
   linkType: hard
 
@@ -1760,6 +1764,57 @@ __metadata:
   version: 1.0.0
   resolution: "@essex/api-extractor-config@npm:1.0.0"
   checksum: 4cedac8906875bbb6e3ab219ffe64db27a3b3e64e1ecc9d13d39a3fe63b09909b7ba5cdaff16fad04cb47a8f69e2f3d8a842fbaba892ad26a82612a966c18410
+  languageName: node
+  linkType: hard
+
+"@essex/arquero-react@npm:^1.0.4":
+  version: 1.0.4
+  resolution: "@essex/arquero-react@npm:1.0.4"
+  dependencies:
+    "@essex/arquero": ^2.0.1
+    "@essex/charts-react": ^1.0.3
+    d3-format: ^3.1.0
+    lodash-es: ^4.17.21
+    react-if: ^4.1.3
+  peerDependencies:
+    "@fluentui/react": ^8.24.0
+    "@fluentui/utilities": ^8.2.1
+    "@thematic/core": ^1.3.0
+    "@thematic/d3": ^1.3.0
+    "@thematic/react": ^1.3.0
+    arquero: ^4.8.7
+    react: ">= 18"
+    styled-components: ^5.3.0
+  checksum: 0aed1ee35bdf847d7b6da3cf45c92a1acf192a2cc404aea1f6e28272dea186b67f5601d9c3e854fe48e87f0cf441c6eff658f07031cd4fba1737190b969a3e18
+  languageName: node
+  linkType: hard
+
+"@essex/arquero@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "@essex/arquero@npm:2.0.1"
+  dependencies:
+    lodash-es: ^4.17.21
+  peerDependencies:
+    arquero: ^4.8.7
+  checksum: d3869276a7fd8439677d57001a51038565400a4a258a0e51e4addb6a9db6d5a451e32476f76ca15cd3d9bc5b4156c01c84cfe6787ba39e41c91315b08228a12b
+  languageName: node
+  linkType: hard
+
+"@essex/charts-react@npm:^1.0.3":
+  version: 1.0.3
+  resolution: "@essex/charts-react@npm:1.0.3"
+  dependencies:
+    d3-format: ^3.1.0
+    d3-scale: ^4.0.2
+    d3-selection: ^3.0.0
+    d3-shape: ^3.1.0
+    lodash-es: ^4.17.21
+  peerDependencies:
+    "@thematic/core": ^1.3.0
+    "@thematic/d3": ^1.3.0
+    "@thematic/react": ^1.3.0
+    react: ">= 18"
+  checksum: 66579cdc7ed4f70ffe57c5fcb3750aaeeee8e738a4c4f0e0b8f9d1824cf6d69a352c5385dbb2aa8860d8d76e62e0d1284bf7d384eb7c5ca7b687cb0bbf35a7ce
   languageName: node
   linkType: hard
 
@@ -5028,7 +5083,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3-time-format@npm:2 - 4":
+"d3-time-format@npm:2 - 4, d3-time-format@npm:^4.1.0":
   version: 4.1.0
   resolution: "d3-time-format@npm:4.1.0"
   dependencies:
@@ -8887,6 +8942,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-if@npm:^4.1.3":
+  version: 4.1.4
+  resolution: "react-if@npm:4.1.4"
+  peerDependencies:
+    react: ^16.x || ^17.x || ^18.x
+  checksum: 107ba70562b97c2262d8bdbf9076e66113a4225a04abd2feb55001d38902a50a416d358ca0e4783736149e2a6d47db86d7e46a1e5a4d8acf1d7b1383caedf1a4
+  languageName: node
+  linkType: hard
+
 "react-is@npm:17.0.2, react-is@npm:^17.0.1":
   version: 17.0.2
   resolution: "react-is@npm:17.0.2"
@@ -9360,8 +9424,8 @@ __metadata:
 
 "sds-wasm@file:../../target/wasm::locator=webapp%40workspace%3Apackages%2Fwebapp":
   version: 1.3.0
-  resolution: "sds-wasm@file:../../target/wasm#../../target/wasm::hash=3899c0&locator=webapp%40workspace%3Apackages%2Fwebapp"
-  checksum: ba486cdf90a625381b5ab7f293763f04254113915f9cde55793899429126ac23fe579e0f8a02c154b0630bf65506827788e95be795637058f35c4ce7a555207b
+  resolution: "sds-wasm@file:../../target/wasm#../../target/wasm::hash=225e60&locator=webapp%40workspace%3Apackages%2Fwebapp"
+  checksum: 9d65b7a9dad350721c3f3c2ff19d70cebf60a04e012f4770b119ddd41beaefe58599e885779b885967fdcbc9e6b1f165d1f49598f1c5946c2f8dd33d0859494f
   languageName: node
   linkType: hard
 
@@ -10446,9 +10510,11 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "webapp@workspace:packages/webapp"
   dependencies:
-    "@data-wrangling-components/core": ^5.2.0
-    "@data-wrangling-components/react": ^4.0.0
-    "@data-wrangling-components/utilities": ^1.7.1
+    "@data-wrangling-components/core": ^6.1.0
+    "@data-wrangling-components/react": ^5.1.3
+    "@data-wrangling-components/utilities": ^1.8.2
+    "@essex/arquero": ^2.0.1
+    "@essex/arquero-react": ^1.0.4
     "@essex/vite-config": ^18.0.2
     "@fluentui/font-icons-mdl2": ^8.2.5
     "@fluentui/react": ^8.62.1

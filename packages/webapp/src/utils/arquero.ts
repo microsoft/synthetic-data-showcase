@@ -64,7 +64,7 @@ export function tableHeaders(
 			: ({
 					name: h,
 					fieldName: i.toString(),
-					use: true,
+					use: false,
 					hasSensitiveZeros: false,
 			  } as ICsvTableHeader),
 	)
