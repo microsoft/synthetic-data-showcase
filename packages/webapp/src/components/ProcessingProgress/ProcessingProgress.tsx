@@ -17,6 +17,20 @@ export const ProcessingProgress: React.FC = memo(function ProcessingProgress() {
 		childrenGap: theme.spacing.s2,
 	}
 
+	const styles = {
+		root: {
+			textAlign: 'end',
+			width: 400,
+			fontWeight: 'bold',
+		},
+		itemName: {
+			color: theme.palette.neutralLight,
+		},
+		progressBar: {
+			background: theme.palette.themeDarker,
+		},
+	}
+
 	if (!isProcessing) {
 		return <></>
 	}
@@ -26,13 +40,7 @@ export const ProcessingProgress: React.FC = memo(function ProcessingProgress() {
 			<ProgressIndicator
 				label={`${processingProgress.toFixed(2)} %`}
 				percentComplete={processingProgress / 100.0}
-				styles={{
-					root: {
-						textAlign: 'end',
-						width: 200,
-						fontWeight: 'bold',
-					},
-				}}
+				styles={styles}
 			/>
 		</Stack>
 	)

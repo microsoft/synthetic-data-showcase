@@ -14,7 +14,9 @@
 			"~states/*": ["src/states/*"],
 			"~workers/*": ["./src/workers/*"],
 			"~ui-tooltips": ["src/ui-tooltips/index.ts"],
-			"~ui-tooltips/*": ["src/ui-tooltips/*"]
+			"~ui-tooltips/*": ["src/ui-tooltips/*"],
+			"~pages": ["src/pages/index.ts"],
+			"~pages/*": ["src/pages/*"]
 		},
 		"allowJs": true,
 		"lib": ["ESNext", "DOM"],
