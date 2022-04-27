@@ -8,7 +8,7 @@ import type { HeaderNames, ISelectedAttributesByColumn } from 'sds-wasm'
 
 import { AttributeIntersectionValueChartLegend } from '~components/AttributeIntersectionValueChartLegend'
 import { useHorizontalScrolling } from '~components/Charts/hooks'
-import type { SetSelectedAttributesCallback } from '~components/Pages/DataShowcasePage/DataNavigation'
+import type { SetSelectedAttributesCallback } from '~pages/Navigate/DataNavigation'
 
 import { ColumnAttributeSelector } from './ColumnAttributeSelector'
 
