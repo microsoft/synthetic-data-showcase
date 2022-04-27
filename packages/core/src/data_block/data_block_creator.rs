@@ -63,8 +63,8 @@ pub trait DataBlockCreator {
         value
             .trim()
             // replace reserved delimiters
-            .replace(";", "<semicolon>")
-            .replace(":", "<colon>")
+            .replace(';', "<semicolon>")
+            .replace(':', "<colon>")
     }
 
     #[inline]
