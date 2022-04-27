@@ -83,7 +83,6 @@ impl AttributeRowsSampler {
             Some(cache_value) => cache_value.clone(),
             None => {
                 let mut current_attrs_rows: AttributeRows = AttributeRows::new();
-                let current_attrs_rows_arc: Arc<AttributeRows>;
 
                 if !synthesized_record.is_empty() {
                     for sr in synthesized_record.iter() {
@@ -96,7 +95,7 @@ impl AttributeRowsSampler {
                 } else {
                     current_attrs_rows = (0..self.records_len).collect();
                 }
-                current_attrs_rows_arc = Arc::new(current_attrs_rows);
+                let current_attrs_rows_arc = Arc::new(current_attrs_rows);
 
                 self.cache
                     .insert(cache_key.clone(), current_attrs_rows_arc.clone());

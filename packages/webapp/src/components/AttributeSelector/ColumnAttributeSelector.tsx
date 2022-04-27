@@ -8,7 +8,7 @@ import type { IAttributesIntersection } from 'sds-wasm'
 
 import { AttributeIntersectionValueChart } from '~components/Charts/AttributeIntersectionValueChart'
 import { useStopPropagation } from '~components/Charts/hooks'
-import type { SetSelectedAttributesCallback } from '~components/Pages/DataShowcasePage/DataNavigation'
+import type { SetSelectedAttributesCallback } from '~pages/Navigate/DataNavigation'
 import { useWasmWorkerValue } from '~states'
 
 import { useMaxCount } from './hooks'

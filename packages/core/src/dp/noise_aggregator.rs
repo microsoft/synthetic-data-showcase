@@ -275,9 +275,13 @@ impl NoiseAggregator {
                     // PPF at 0.5 should give threshold = 0
                     self.sigmas[comb_len - 1]
                         * l1_sensitivity.sqrt()
-                        * Normal::new(0.0, 1.0)
-                            .unwrap()
-                            .inverse_cdf(1.0 - thresholds.get(&comb_len).cloned().unwrap_or(0.5))
+                        // threshold values should be between 0 and 0.5
+                        // we are dividing by 2 here to normalize it between 0 and 1.0
+                        * Normal::new(0.0, 1.0).unwrap().inverse_cdf(
+                            1.0 - (
+                                thresholds.get(&comb_len).cloned().unwrap_or(1.0) / 2.0
+                            ).min(0.5),
+                        )
                 }
             }
         }

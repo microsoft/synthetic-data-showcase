@@ -5,5 +5,6 @@
 export * from './ContextParameters'
 export * from './NoisyCountThresholdType'
 export * from './OversamplingType'
+export * from './PrivacyBudgetProfile'
 export * from './SynthesisMode'
 export * from './UseSyntheticCounts'

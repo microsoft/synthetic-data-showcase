@@ -2,13 +2,13 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import type { IInputNumberByLength } from 'sds-wasm'
 import init, { init_logger, SDSContext } from 'sds-wasm'
 
 import {
 	AggregateType,
 	NoisyCountThresholdType,
 	OversamplingType,
+	PrivacyBudgetProfile,
 	SynthesisMode,
 	UseSyntheticCounts,
 } from '../../models'
@@ -104,12 +104,24 @@ async function handleGenerate(
 		context: new SDSContext(),
 		contextParameters: message.contextParameters,
 	}).context
-	const thresholdValues: IInputNumberByLength = {}
+	const sigmaProportions = new Float64Array(
+		message.contextParameters.reportingLength,
+	)
 
-	// do this for now while the UI does not support
-	// the multi-value input
-	for (let i = 2; i <= message.contextParameters.reportingLength; ++i) {
-		thresholdValues[i] = message.contextParameters.thresholdValue
+	for (let i = 0; i < message.contextParameters.reportingLength; i++) {
+		let p
+		switch (message.contextParameters.privacyBudgetProfile) {
+			case PrivacyBudgetProfile.Flat:
+				p = 1.0
+				break
+			case PrivacyBudgetProfile.ProportionallyIncreasing:
+				p = 1.0 / (i + 1)
+				break
+			case PrivacyBudgetProfile.ProportionallyDecreasing:
+				p = 1.0 / (message.contextParameters.reportingLength - i)
+				break
+		}
+		sigmaProportions[i] = p
 	}
 
 	context.setSensitiveData(
@@ -188,8 +200,8 @@ async function handleGenerate(
 						message.contextParameters.noiseDelta,
 						message.contextParameters.percentilePercentage,
 						message.contextParameters.percentileEpsilonProportion,
-						undefined,
-						thresholdValues,
+						sigmaProportions,
+						message.contextParameters.threshold,
 						message.contextParameters.useSyntheticCounts ===
 							UseSyntheticCounts.Yes,
 						p => {
@@ -212,8 +224,8 @@ async function handleGenerate(
 						message.contextParameters.noiseDelta,
 						message.contextParameters.percentilePercentage,
 						message.contextParameters.percentileEpsilonProportion,
-						undefined,
-						thresholdValues,
+						sigmaProportions,
+						message.contextParameters.threshold,
 						message.contextParameters.useSyntheticCounts ===
 							UseSyntheticCounts.Yes,
 						p => {

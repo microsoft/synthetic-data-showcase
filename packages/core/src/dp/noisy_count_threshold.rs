@@ -8,6 +8,6 @@ pub enum NoisyCountThreshold {
     Fixed(InputValueByLen<f64>),
     /// Filter combinations by combination length based on a fraction of
     /// the fabricated counts distribution
-    /// (this should be a value between 0 and 0.5)
+    /// (this should be a value between 0 and 1.0)
     Adaptive(InputValueByLen<f64>),
 }
