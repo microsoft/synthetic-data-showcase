@@ -50,6 +50,7 @@ import {
 	useSynthesisMode,
 	useUseSyntheticCounts,
 } from '~states'
+import { usePrivacyBudgetProfile } from '~states/dataShowcaseContext/privacyBudgetProfile'
 import { tooltips } from '~ui-tooltips'
 
 import {
@@ -58,6 +59,7 @@ import {
 	useNoisyCountThresholdTypeOptions,
 	useOnRunGenerate,
 	useOversamplingTypeOptions,
+	usePrivacyBudgetProfileOptions,
 	useSelectedContextParametersOnChange,
 	useSynthesisModeOptions,
 	useSyntheticTableCommands,
@@ -82,6 +84,8 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 	const [noisyCountThresholdType, setNoisyCountThresholdType] =
 		useNoisyCountThresholdType()
 	const [noisyCountThreshold, setNoisyCountThreshold] = useNoisyCountThreshold()
+	const [privacyBudgetProfile, setPrivacyBudgetProfile] =
+		usePrivacyBudgetProfile()
 	const isProcessing = useIsProcessingValue()
 	const sensitiveContent = useSensitiveContentValue()
 	const [reportingLength, setReportingLength] = useReportingLength()
@@ -93,6 +97,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 	const oversamplingTypeOptions = useOversamplingTypeOptions()
 	const useSyntheticCountsOptions = useUseSyntheticCountOptions()
 	const noisyCountThresholdTypeOptions = useNoisyCountThresholdTypeOptions()
+	const privacyBudgetProfileOptions = usePrivacyBudgetProfileOptions()
 	const allContextsParameters = useAllContextsParametersValue()
 	const [selectedContextParameters, setSelectedContextParameters] =
 		useSelectedContextParameters()
@@ -126,7 +131,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 
 	const inputStyles = {
 		root: {
-			width: 180,
+			width: 200,
 		},
 	}
 
@@ -146,6 +151,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 		noiseDelta,
 		thresholdType: noisyCountThresholdType,
 		threshold: noisyCountThreshold,
+		privacyBudgetProfile,
 	})
 
 	const tableCommands = useSyntheticTableCommands(syntheticContent)
@@ -177,6 +183,9 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 	const handleNoisyCountThresholdChange = useNoisyCountThresholdChange(
 		noisyCountThreshold,
 		setNoisyCountThreshold,
+	)
+	const handlePrivacyBudgetProfileChange = useDropdownOnChange(
+		setPrivacyBudgetProfile,
 	)
 
 	useEffect(() => {
@@ -436,6 +445,22 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 											disabled={isProcessing}
 											onChange={handleNoiseDeltaChange}
 											styles={inputStyles}
+										/>
+									</TooltipWrapper>
+								</Stack.Item>
+
+								<Stack.Item>
+									<TooltipWrapper
+										tooltip={tooltips.privacyBudgetProfile}
+										label="Privacy budget profile"
+									>
+										<Dropdown
+											selectedKey={privacyBudgetProfile}
+											onChange={handlePrivacyBudgetProfileChange}
+											placeholder="Select budget type"
+											options={privacyBudgetProfileOptions}
+											styles={inputStyles}
+											disabled={isProcessing}
 										/>
 									</TooltipWrapper>
 								</Stack.Item>

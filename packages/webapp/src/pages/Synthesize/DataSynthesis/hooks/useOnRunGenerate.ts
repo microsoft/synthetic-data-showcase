@@ -9,6 +9,7 @@ import type {
 	IContextParameters,
 	NoisyCountThresholdType,
 	OversamplingType,
+	PrivacyBudgetProfile,
 	SynthesisMode,
 	UseSyntheticCounts,
 } from '~models'
@@ -39,6 +40,7 @@ export interface IOnRunGenerateParameters {
 	noiseDelta: number
 	thresholdType: NoisyCountThresholdType
 	threshold: IInputNumberByLength
+	privacyBudgetProfile: PrivacyBudgetProfile
 }
 
 export function useOnRunGenerate(

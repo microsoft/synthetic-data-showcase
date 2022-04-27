@@ -8,6 +8,7 @@ import {
 	AggregateType,
 	NoisyCountThresholdType,
 	OversamplingType,
+	PrivacyBudgetProfile,
 	SynthesisMode,
 	UseSyntheticCounts,
 } from '../../models'
@@ -103,6 +104,25 @@ async function handleGenerate(
 		context: new SDSContext(),
 		contextParameters: message.contextParameters,
 	}).context
+	const sigmaProportions = new Float64Array(
+		message.contextParameters.reportingLength,
+	)
+
+	for (let i = 0; i < message.contextParameters.reportingLength; i++) {
+		let p
+		switch (message.contextParameters.privacyBudgetProfile) {
+			case PrivacyBudgetProfile.Flat:
+				p = 1.0
+				break
+			case PrivacyBudgetProfile.ProportionallyIncreasing:
+				p = 1.0 / (i + 1)
+				break
+			case PrivacyBudgetProfile.ProportionallyDecreasing:
+				p = 1.0 / (message.contextParameters.reportingLength - i)
+				break
+		}
+		sigmaProportions[i] = p
+	}
 
 	context.setSensitiveData(
 		message.sensitiveCsvData,
@@ -180,7 +200,7 @@ async function handleGenerate(
 						message.contextParameters.noiseDelta,
 						message.contextParameters.percentilePercentage,
 						message.contextParameters.percentileEpsilonProportion,
-						undefined,
+						sigmaProportions,
 						message.contextParameters.threshold,
 						message.contextParameters.useSyntheticCounts ===
 							UseSyntheticCounts.Yes,
@@ -204,7 +224,7 @@ async function handleGenerate(
 						message.contextParameters.noiseDelta,
 						message.contextParameters.percentilePercentage,
 						message.contextParameters.percentileEpsilonProportion,
-						undefined,
+						sigmaProportions,
 						message.contextParameters.threshold,
 						message.contextParameters.useSyntheticCounts ===
 							UseSyntheticCounts.Yes,

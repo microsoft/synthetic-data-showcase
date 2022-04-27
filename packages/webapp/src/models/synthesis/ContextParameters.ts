@@ -4,7 +4,7 @@
  */
 import type { HeaderNames, IInputNumberByLength } from 'sds-wasm'
 
-import type { NoisyCountThresholdType } from '~models'
+import type { NoisyCountThresholdType, PrivacyBudgetProfile } from '~models'
 
 import type { OversamplingType } from './OversamplingType'
 import type { SynthesisMode } from './SynthesisMode'
@@ -30,6 +30,7 @@ export interface IContextParameters {
 	noiseDelta: number
 	thresholdType: NoisyCountThresholdType
 	threshold: IInputNumberByLength
+	privacyBudgetProfile: PrivacyBudgetProfile
 	emptyValue: string
 	isEvaluated: boolean
 }
