@@ -24,10 +24,8 @@ import type {
 	SdsWasmAttributesIntersectionsByColumnResponse,
 	SdsWasmClearContextsMessage,
 	SdsWasmErrorResponse,
-	SdsWasmEvaluateMessage,
-	SdsWasmEvaluateResponse,
-	SdsWasmGenerateMessage,
-	SdsWasmGenerateResponse,
+	SdsWasmGenerateAndEvaluateMessage,
+	SdsWasmGenerateAndEvaluateResponse,
 	SdsWasmGetAggregateResultMessage,
 	SdsWasmGetAggregateResultResponse,
 	SdsWasmGetEvaluateResultMessage,
@@ -133,7 +131,7 @@ export class SdsWasmWorker {
 		return response.type === SdsWasmMessageType.ClearContexts
 	}
 
-	public async generate(
+	public async generateAndEvaluate(
 		contextKey: string,
 		sensitiveCsvData: string,
 		contextParameters: IContextParameters,
@@ -142,37 +140,17 @@ export class SdsWasmWorker {
 		const response = await this.execute(
 			{
 				id: v4(),
-				type: SdsWasmMessageType.Generate,
+				type: SdsWasmMessageType.GenerateAndEvaluate,
 				contextKey,
 				sensitiveCsvData,
 				contextParameters,
-			} as SdsWasmGenerateMessage,
+			} as SdsWasmGenerateAndEvaluateMessage,
 			reportProgress,
 		)
 
-		if (response.type === SdsWasmMessageType.Generate) {
-			return (response as SdsWasmGenerateResponse).allContextParameters
-		}
-		return undefined
-	}
-
-	public async evaluate(
-		contextKey: string,
-		reportingLength: number,
-		reportProgress?: ReportProgressCallback,
-	): Promise<AllContextsParameters | undefined> {
-		const response = await this.execute(
-			{
-				id: v4(),
-				type: SdsWasmMessageType.Evaluate,
-				contextKey,
-				reportingLength,
-			} as SdsWasmEvaluateMessage,
-			reportProgress,
-		)
-
-		if (response.type === SdsWasmMessageType.Evaluate) {
-			return (response as SdsWasmEvaluateResponse).allContextParameters
+		if (response.type === SdsWasmMessageType.GenerateAndEvaluate) {
+			return (response as SdsWasmGenerateAndEvaluateResponse)
+				.allContextParameters
 		}
 		return undefined
 	}

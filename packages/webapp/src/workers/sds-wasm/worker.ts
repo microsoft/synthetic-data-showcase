@@ -19,10 +19,8 @@ import type {
 	SdsWasmClearContextsMessage,
 	SdsWasmClearContextsResponse,
 	SdsWasmErrorResponse,
-	SdsWasmEvaluateMessage,
-	SdsWasmEvaluateResponse,
-	SdsWasmGenerateMessage,
-	SdsWasmGenerateResponse,
+	SdsWasmGenerateAndEvaluateMessage,
+	SdsWasmGenerateAndEvaluateResponse,
 	SdsWasmGetAggregateResultMessage,
 	SdsWasmGetAggregateResultResponse,
 	SdsWasmGetEvaluateResultMessage,
@@ -45,8 +43,7 @@ let CONTEXT_CACHE: SDSContextCache
 const HANDLERS = {
 	[SdsWasmMessageType.Init]: handleInit,
 	[SdsWasmMessageType.ClearContexts]: handleClearContexts,
-	[SdsWasmMessageType.Generate]: handleGenerate,
-	[SdsWasmMessageType.Evaluate]: handleEvaluate,
+	[SdsWasmMessageType.GenerateAndEvaluate]: handleGenerateAndEvaluate,
 	[SdsWasmMessageType.Navigate]: handleNavigate,
 	[SdsWasmMessageType.SelectAttributes]: handleSelectAttributes,
 	[SdsWasmMessageType.AttributesIntersectionsByColumn]:
@@ -97,13 +94,13 @@ async function handleClearContexts(
 	}
 }
 
-async function handleGenerate(
-	message: SdsWasmGenerateMessage,
-): Promise<SdsWasmGenerateResponse> {
-	const context = CONTEXT_CACHE.set(message.contextKey, {
+async function handleGenerateAndEvaluate(
+	message: SdsWasmGenerateAndEvaluateMessage,
+): Promise<SdsWasmGenerateAndEvaluateResponse> {
+	const value = CONTEXT_CACHE.set(message.contextKey, {
 		context: new SDSContext(),
 		contextParameters: message.contextParameters,
-	}).context
+	})
 	const sigmaProportions = new Float64Array(
 		message.contextParameters.reportingLength,
 	)
@@ -124,7 +121,7 @@ async function handleGenerate(
 		sigmaProportions[i] = p
 	}
 
-	context.setSensitiveData(
+	value.context.setSensitiveData(
 		message.sensitiveCsvData,
 		message.contextParameters.delimiter,
 		message.contextParameters.useColumns,
@@ -134,27 +131,27 @@ async function handleGenerate(
 
 	switch (message.contextParameters.synthesisMode) {
 		case SynthesisMode.Unseeded:
-			context.generateUnseeded(
+			value.context.generateUnseeded(
 				message.contextParameters.cacheSize,
 				message.contextParameters.resolution,
 				message.contextParameters.emptyValue,
 				p => {
-					postProgress(message.id, p)
+					postProgress(message.id, 0.5 * p)
 				},
 			)
 			break
 		case SynthesisMode.RowSeeded:
-			context.generateRowSeeded(
+			value.context.generateRowSeeded(
 				message.contextParameters.cacheSize,
 				message.contextParameters.resolution,
 				message.contextParameters.emptyValue,
 				p => {
-					postProgress(message.id, p)
+					postProgress(message.id, 0.5 * p)
 				},
 			)
 			break
 		case SynthesisMode.ValueSeeded:
-			context.generateValueSeeded(
+			value.context.generateValueSeeded(
 				message.contextParameters.cacheSize,
 				message.contextParameters.resolution,
 				message.contextParameters.emptyValue,
@@ -168,31 +165,31 @@ async function handleGenerate(
 					? message.contextParameters.oversamplingTries
 					: undefined,
 				p => {
-					postProgress(message.id, 0.5 * p)
+					postProgress(message.id, 0.5 * (0.5 * p))
 				},
 				p => {
-					postProgress(message.id, 50.0 + 0.5 * p)
+					postProgress(message.id, 0.5 * (50.0 + 0.5 * p))
 				},
 			)
 			break
 		case SynthesisMode.AggregateSeeded:
-			context.generateAggregateSeeded(
+			value.context.generateAggregateSeeded(
 				message.contextParameters.resolution,
 				message.contextParameters.emptyValue,
 				message.contextParameters.reportingLength,
 				message.contextParameters.useSyntheticCounts === UseSyntheticCounts.Yes,
 				p => {
-					postProgress(message.id, 0.5 * p)
+					postProgress(message.id, 0.5 * (0.5 * p))
 				},
 				p => {
-					postProgress(message.id, 50.0 + 0.5 * p)
+					postProgress(message.id, 0.5 * (50.0 + 0.5 * p))
 				},
 			)
 			break
 		case SynthesisMode.DP:
 			switch (message.contextParameters.thresholdType) {
 				case NoisyCountThresholdType.Fixed:
-					context.generateDpFixedThreshold(
+					value.context.generateDpFixedThreshold(
 						message.contextParameters.resolution,
 						message.contextParameters.emptyValue,
 						message.contextParameters.reportingLength,
@@ -205,18 +202,18 @@ async function handleGenerate(
 						message.contextParameters.useSyntheticCounts ===
 							UseSyntheticCounts.Yes,
 						p => {
-							postProgress(message.id, 0.25 * p)
+							postProgress(message.id, 0.5 * 0.25 * p)
 						},
 						p => {
-							postProgress(message.id, 25.0 + 0.25 * p)
+							postProgress(message.id, 0.5 * (25.0 + 0.25 * p))
 						},
 						p => {
-							postProgress(message.id, 50.0 + 0.5 * p)
+							postProgress(message.id, 0.5 * (50.0 + 0.5 * p))
 						},
 					)
 					break
 				case NoisyCountThresholdType.Adaptive:
-					context.generateDpAdaptiveThreshold(
+					value.context.generateDpAdaptiveThreshold(
 						message.contextParameters.resolution,
 						message.contextParameters.emptyValue,
 						message.contextParameters.reportingLength,
@@ -229,13 +226,13 @@ async function handleGenerate(
 						message.contextParameters.useSyntheticCounts ===
 							UseSyntheticCounts.Yes,
 						p => {
-							postProgress(message.id, 0.25 * p)
+							postProgress(message.id, 0.5 * (0.25 * p))
 						},
 						p => {
-							postProgress(message.id, 25.0 + 0.25 * p)
+							postProgress(message.id, 0.5 * (25.0 + 0.25 * p))
 						},
 						p => {
-							postProgress(message.id, 50.0 + 0.5 * p)
+							postProgress(message.id, 0.5 * (50.0 + 0.5 * p))
 						},
 					)
 					break
@@ -243,29 +240,16 @@ async function handleGenerate(
 			break
 	}
 
-	return {
-		id: message.id,
-		type: message.type,
-		allContextParameters: CONTEXT_CACHE.allContextParameters(),
-	}
-}
-
-async function handleEvaluate(
-	message: SdsWasmEvaluateMessage,
-): Promise<SdsWasmEvaluateResponse> {
-	const value = CONTEXT_CACHE.getOrThrow(message.contextKey)
-
 	value.context.evaluate(
-		message.reportingLength,
+		message.contextParameters.reportingLength,
 		p => {
-			postProgress(message.id, 0.5 * p)
+			postProgress(message.id, 50.0 + 0.5 * 0.5 * p)
 		},
 		p => {
-			postProgress(message.id, 50.0 + 0.5 * p)
+			postProgress(message.id, 75.0 + 0.5 * 0.5 * p)
 		},
 	)
 
-	value.contextParameters.reportingLength = message.reportingLength
 	value.contextParameters.isEvaluated = true
 
 	// sets context again, so it is the latest one used

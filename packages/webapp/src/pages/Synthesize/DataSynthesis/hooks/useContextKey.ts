@@ -7,10 +7,10 @@ import { useMemo } from 'react'
 import type { IContextParameters } from '~models'
 import { OversamplingType, SynthesisMode } from '~models'
 
-import type { IOnRunGenerateParameters } from './useOnRunGenerate'
+import type { IOnRunGenerateAndEvaluateParameters } from './useOnRunGenerateAndEvaluate'
 
 export function useContextKey(
-	params: IContextParameters | IOnRunGenerateParameters,
+	params: IContextParameters | IOnRunGenerateAndEvaluateParameters,
 ): string {
 	return useMemo(() => {
 		switch (params.synthesisMode) {

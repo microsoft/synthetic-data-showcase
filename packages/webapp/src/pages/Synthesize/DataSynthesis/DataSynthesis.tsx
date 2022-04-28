@@ -62,8 +62,7 @@ import {
 	useGetSyntheticCsvContent,
 	useNoisyCountThresholdChange,
 	useNoisyCountThresholdTypeOptions,
-	useOnRunEvaluate,
-	useOnRunGenerate,
+	useOnRunGenerateAndEvaluate,
 	useOversamplingTypeOptions,
 	usePrivacyBudgetProfileOptions,
 	useSelectedContextParametersOnChange,
@@ -149,7 +148,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 		},
 	}
 
-	const onRunGenerate = useOnRunGenerate({
+	const onRunGenerateAndEvaluate = useOnRunGenerateAndEvaluate({
 		recordLimit,
 		synthesisMode,
 		resolution,
@@ -167,8 +166,6 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 		threshold: noisyCountThreshold,
 		privacyBudgetProfile,
 	})
-
-	const onRunEvaluate = useOnRunEvaluate(reportingLength)
 
 	const tableCommands = useSyntheticTableCommands(syntheticContent)
 
@@ -299,9 +296,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 				<Stack.Item align="end">
 					<PrimaryButton
 						type="submit"
-						onClick={async () => {
-							await onRunEvaluate(await onRunGenerate())
-						}}
+						onClick={onRunGenerateAndEvaluate}
 						disabled={!canRun}
 					>
 						Run
@@ -536,6 +531,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 							<Toggle
 								label="Show advanced evaluation"
 								inlineLabel
+								checked={showAdvancedEvaluation}
 								onChange={(_event, checked) =>
 									setShowAdvancedEvaluation(checked === true)
 								}
@@ -545,6 +541,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 							<Toggle
 								label="Show synthetic data"
 								inlineLabel
+								checked={showSyntheticData}
 								onChange={(_event, checked) =>
 									setShowSyntheticData(checked === true)
 								}
