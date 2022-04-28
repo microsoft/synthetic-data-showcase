@@ -48,22 +48,17 @@ export const SensitiveZeros: FC = memo(function SensitiveZeros() {
 	)
 
 	const list = useMemo(() => {
-		return (
-			sensitiveContent.headers
-				// .filter(header => header.use && columnsWithZeros?.includes(header.name))
-				.map((header, index) => {
-					if (!header.use || !columnsWithZeros?.includes(header.name))
-						return null
-					return (
-						<StyledCheckbox
-							key={header.fieldName}
-							label={header.name}
-							checked={header.hasSensitiveZeros}
-							onChange={() => handleSensitiveCheckChange(index)}
-						/>
-					)
-				})
-		)
+		return sensitiveContent.headers.map((header, index) => {
+			if (!header.use || !columnsWithZeros?.includes(header.name)) return null
+			return (
+				<StyledCheckbox
+					key={header.fieldName}
+					label={header.name}
+					checked={header.hasSensitiveZeros}
+					onChange={() => handleSensitiveCheckChange(index)}
+				/>
+			)
+		})
 	}, [sensitiveContent, handleSensitiveCheckChange, columnsWithZeros])
 	return (
 		<>
