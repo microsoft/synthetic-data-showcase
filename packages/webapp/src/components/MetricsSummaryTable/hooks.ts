@@ -49,12 +49,12 @@ export function getMicrodataMetricsItems(
 				tooltip: tooltips.nCountMeanAndError,
 				value: `${
 					stats.originalCombinationsCountMeanByLen[l]
-						.toFixed(precision)
-						.toString() ?? 0
+						?.toFixed(precision)
+						?.toString() ?? 0
 				} +/- ${
 					stats.combinationsCountMeanAbsErrorByLen[l]
-						.toFixed(precision)
-						.toString() ?? 0
+						?.toFixed(precision)
+						?.toString() ?? 0
 				}`,
 			})),
 			{
@@ -109,8 +109,9 @@ export function getMicrodataMetricsItems(
 				tooltip: tooltips.uniqueCombs,
 				value:
 					aggregateType === AggregateType.Sensitive
-						? stats.percentageOfUniqueCombinations.toFixed(precision).toString() +
-						  ' %'
+						? stats.percentageOfUniqueCombinations
+								.toFixed(precision)
+								.toString() + ' %'
 						: emptyValue,
 			},
 			{
