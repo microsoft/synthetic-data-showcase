@@ -25,7 +25,7 @@ import { namedSpread, spreadableHeaders, usableHeaders } from '~utils'
 
 import { useContextKey } from './useContextKey'
 
-export interface IOnRunGenerateParameters {
+export interface IOnRunGenerateAndEvaluateParameters {
 	recordLimit: number
 	synthesisMode: SynthesisMode
 	resolution: number
@@ -44,8 +44,8 @@ export interface IOnRunGenerateParameters {
 	privacyBudgetProfile: PrivacyBudgetProfile
 }
 
-export function useOnRunGenerate(
-	params: IOnRunGenerateParameters,
+export function useOnRunGenerateAndEvaluate(
+	params: IOnRunGenerateAndEvaluateParameters,
 ): () => Promise<void> {
 	const setIsProcessing = useIsProcessingSetter()
 	const worker = useWasmWorkerValue()
@@ -88,7 +88,7 @@ export function useOnRunGenerate(
 		}
 
 		const allContextParameters =
-			(await worker?.generate(
+			(await worker?.generateAndEvaluate(
 				contextKey,
 				sensitiveTable.toCSV({ delimiter: sensitiveContent.delimiter }),
 				contextParameters,

@@ -8,7 +8,7 @@ import { AggregateType } from '~models'
 
 const options = [
 	{ key: AggregateType.Sensitive, text: 'Sensitive' },
-	{ key: AggregateType.Reportable, text: 'Reportable' },
+	{ key: AggregateType.Aggregated, text: 'Aggregated' },
 	{ key: AggregateType.Synthetic, text: 'Synthetic' },
 ]
 

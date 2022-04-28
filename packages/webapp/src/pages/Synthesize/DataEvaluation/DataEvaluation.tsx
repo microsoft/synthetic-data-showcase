@@ -3,53 +3,35 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import type { IStackStyles, IStackTokens } from '@fluentui/react'
-import {
-	Dropdown,
-	getTheme,
-	Label,
-	Position,
-	PrimaryButton,
-	SpinButton,
-	Stack,
-} from '@fluentui/react'
+import { Dropdown, getTheme, Label, Stack } from '@fluentui/react'
 import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import type { IEvaluateResult } from 'sds-wasm'
 
 import { ContextsDropdown } from '~components/ContextsDropdown'
 import { DataEvaluationInfo } from '~components/DataEvaluationInfo'
-import { InfoTooltip } from '~components/InfoTooltip'
-import { TooltipWrapper } from '~components/TooltipWrapper'
 import type { IContextParameters } from '~models'
-import { AggregateType, SynthesisMode } from '~models'
-import {
-	useCanRun,
-	useDropdownOnChange,
-	useSpinButtonOnChange,
-} from '~pages/hooks'
+import { AggregateType } from '~models'
+import { useDropdownOnChange } from '~pages/hooks'
 import {
 	useAllContextsParametersValue,
 	useIsProcessing,
-	useReportingLength,
 	useSelectedContextParameters,
 } from '~states'
-import { tooltips } from '~ui-tooltips'
 
 import {
 	useAggregateTypeOptions,
 	useMicrodataMaxStatistics,
-	useOnRunEvaluate,
 	useSelectedContextParametersOnChange,
 } from './hooks'
 
 const aggregateTypeToStatKey = {
 	[AggregateType.Sensitive]: 'sensitiveDataStats',
-	[AggregateType.Reportable]: 'aggregateCountsStats',
+	[AggregateType.Aggregated]: 'aggregateCountsStats',
 	[AggregateType.Synthetic]: 'syntheticDataStats',
 }
 
 export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 	const isMounted = useRef(true)
-	const [reportingLength, setReportingLength] = useReportingLength()
 	const [isProcessing] = useIsProcessing()
 	const [leftEvaluateResult, setLeftEvaluateResult] = useState<
 		IEvaluateResult | undefined
@@ -73,23 +55,16 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 		? rightEvaluateResult[aggregateTypeToStatKey[rightAggregateType]]
 		: undefined
 	const microdataMaxStats = useMicrodataMaxStatistics([leftStats, rightStats])
-	const canRun = useCanRun()
-	const handleReportingLengthChange = useSpinButtonOnChange(setReportingLength)
 	const allContextsParameters = useAllContextsParametersValue()
 	const allEvaluatedContextsParameters = useMemo(
 		() => allContextsParameters.filter(c => c.isEvaluated),
 		[allContextsParameters],
 	)
-	const [selectedContextParameters, setSelectedContextParameters] =
-		useSelectedContextParameters()
+	const [selectedContextParameters] = useSelectedContextParameters()
 	const [leftSelectedContextParameters, setLeftSelectedContextParameters] =
 		useState<IContextParameters | undefined>(selectedContextParameters)
 	const [rightSelectedContextParameters, setRightSelectedContextParameters] =
 		useState<IContextParameters | undefined>(selectedContextParameters)
-	const onRunEvaluate = useOnRunEvaluate(
-		reportingLength,
-		selectedContextParameters,
-	)
 	const leftSelectedContextParametersOnChange =
 		useSelectedContextParametersOnChange(
 			leftSelectedContextParameters,
@@ -109,16 +84,10 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 		root: {
 			display: 'flex',
 			marginTop: theme.spacing.s2,
-			marginLeft: theme.spacing.l1,
-			marginRight: theme.spacing.l1,
 		},
 	}
 
 	const mainStackTokens: IStackTokens = {
-		childrenGap: theme.spacing.s1,
-	}
-
-	const subStackTokens: IStackTokens = {
 		childrenGap: theme.spacing.s1,
 	}
 
@@ -186,58 +155,6 @@ export const DataEvaluation: React.FC = memo(function DataEvaluation() {
 
 	return (
 		<Stack styles={mainStackStyles} tokens={mainStackTokens}>
-			<Stack.Item>
-				<ContextsDropdown
-					selectedContextParameters={selectedContextParameters}
-					allContextsParameters={allContextsParameters}
-					onContextSelected={params => {
-						setReportingLength(params.reportingLength)
-						setSelectedContextParameters(params)
-					}}
-					disabled={allContextsParameters.length === 0 || isProcessing}
-				/>
-			</Stack.Item>
-			<Stack.Item>
-				<Stack tokens={subStackTokens} horizontal>
-					<Stack.Item>
-						<TooltipWrapper
-							tooltip={tooltips.analysisLength}
-							label="Analysis length"
-						>
-							<SpinButton
-								labelPosition={Position.top}
-								min={1}
-								step={1}
-								value={reportingLength.toString()}
-								disabled={
-									isProcessing ||
-									(selectedContextParameters?.synthesisMode !==
-										SynthesisMode.Unseeded &&
-										selectedContextParameters?.synthesisMode !==
-											SynthesisMode.RowSeeded)
-								}
-								onChange={handleReportingLengthChange}
-							/>
-						</TooltipWrapper>
-					</Stack.Item>
-					<Stack.Item align="end">
-						<PrimaryButton
-							type="submit"
-							onClick={onRunEvaluate}
-							disabled={!canRun || !selectedContextParameters}
-						>
-							Run
-						</PrimaryButton>
-					</Stack.Item>
-					<Stack.Item align="end">
-						<InfoTooltip>{tooltips.evaluate}</InfoTooltip>
-					</Stack.Item>
-				</Stack>
-			</Stack.Item>
-
-			<Stack.Item>
-				<h3>Compare results</h3>
-			</Stack.Item>
 			<Stack horizontal styles={dataStackStyles} tokens={dataStackTokens}>
 				<Stack.Item styles={dataStackItemStyles}>
 					<Stack styles={dataStackStyles} tokens={dataStackTokens}>

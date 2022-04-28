@@ -7,16 +7,16 @@ import { useMemo } from 'react'
 import type { IContextParameters } from '~models'
 import { OversamplingType, SynthesisMode } from '~models'
 
-import type { IOnRunGenerateParameters } from './useOnRunGenerate'
+import type { IOnRunGenerateAndEvaluateParameters } from './useOnRunGenerateAndEvaluate'
 
 export function useContextKey(
-	params: IContextParameters | IOnRunGenerateParameters,
+	params: IContextParameters | IOnRunGenerateAndEvaluateParameters,
 ): string {
 	return useMemo(() => {
 		switch (params.synthesisMode) {
 			case SynthesisMode.Unseeded:
 			case SynthesisMode.RowSeeded:
-				return `K-Anon ${params.synthesisMode} (Resolution=${params.resolution})`
+				return `K-Anon ${params.synthesisMode} (Resolution=${params.resolution}, ReportingLength=${params.reportingLength})`
 			case SynthesisMode.ValueSeeded:
 				return (
 					`K-Anon ${params.synthesisMode} (Resolution=${params.resolution}, ReportingLength=${params.reportingLength}, Oversampling=${params.oversamplingType}` +

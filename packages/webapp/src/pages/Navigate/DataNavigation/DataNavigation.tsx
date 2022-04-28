@@ -84,7 +84,7 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 		setNewSelectedAttributesByColumn,
 	)
 	const onGoBack = useCallback(() => {
-		navigate(Pages.Evaluate.path)
+		navigate(Pages.Synthesize.path)
 	}, [navigate])
 	const onToggleSelectedHeader = useOnToggleSelectedHeader(
 		selectedHeaders,

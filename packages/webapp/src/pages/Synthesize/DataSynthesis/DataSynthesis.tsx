@@ -9,12 +9,16 @@ import {
 	Position,
 	PrimaryButton,
 	SpinButton,
+	Spinner,
 	Stack,
+	Toggle,
 } from '@fluentui/react'
 import { memo, useEffect, useRef, useState } from 'react'
+import type { IEvaluateResult } from 'sds-wasm'
 
 import { ContextsDropdown } from '~components/ContextsDropdown'
 import { CsvTable } from '~components/CsvTable'
+import { HumanReadableSummary } from '~components/HumanReadableSummary'
 import { InfoTooltip } from '~components/InfoTooltip'
 import { TooltipWrapper } from '~components/TooltipWrapper'
 import type { ICsvContent } from '~models'
@@ -29,6 +33,7 @@ import {
 	useDropdownOnChange,
 	useSpinButtonOnChange,
 } from '~pages/hooks'
+import { DataEvaluation } from '~pages/Synthesize/DataEvaluation'
 import {
 	useAllContextsParametersValue,
 	useCacheSize,
@@ -57,7 +62,7 @@ import {
 	useGetSyntheticCsvContent,
 	useNoisyCountThresholdChange,
 	useNoisyCountThresholdTypeOptions,
-	useOnRunGenerate,
+	useOnRunGenerateAndEvaluate,
 	useOversamplingTypeOptions,
 	usePrivacyBudgetProfileOptions,
 	useSelectedContextParametersOnChange,
@@ -102,13 +107,21 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 	const [selectedContextParameters, setSelectedContextParameters] =
 		useSelectedContextParameters()
 	const getSyntheticCsvContent = useGetSyntheticCsvContent()
+	const [evaluateResult, setEvaluateResult] = useState<
+		IEvaluateResult | undefined
+	>()
+	const [isLoadingFromWorker, setIsLoadingFromWorker] = useState(false)
 	const selectedContextParametersOnChange =
 		useSelectedContextParametersOnChange(
 			selectedContextParameters,
 			getSyntheticCsvContent,
 			setSyntheticContent,
+			setEvaluateResult,
+			setIsLoadingFromWorker,
 			isMounted,
 		)
+	const [showSyntheticData, setShowSyntheticData] = useState(false)
+	const [showAdvancedEvaluation, setShowAdvancedEvaluation] = useState(false)
 
 	const theme = getTheme()
 
@@ -135,7 +148,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 		},
 	}
 
-	const onRunGenerate = useOnRunGenerate({
+	const onRunGenerateAndEvaluate = useOnRunGenerateAndEvaluate({
 		recordLimit,
 		synthesisMode,
 		resolution,
@@ -237,6 +250,22 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 					</TooltipWrapper>
 				</Stack.Item>
 				<Stack.Item>
+					<TooltipWrapper
+						tooltip={tooltips.reportingLength}
+						label="Reporting length"
+					>
+						<SpinButton
+							labelPosition={Position.top}
+							min={1}
+							step={1}
+							value={reportingLength.toString()}
+							disabled={isProcessing}
+							onChange={handleReportingLengthChange}
+							styles={inputStyles}
+						/>
+					</TooltipWrapper>
+				</Stack.Item>
+				<Stack.Item>
 					<TooltipWrapper tooltip={tooltips.recordLimit} label="Record Limit">
 						<SpinButton
 							labelPosition={Position.top}
@@ -267,7 +296,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 				<Stack.Item align="end">
 					<PrimaryButton
 						type="submit"
-						onClick={onRunGenerate}
+						onClick={onRunGenerateAndEvaluate}
 						disabled={!canRun}
 					>
 						Run
@@ -279,27 +308,6 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 			</Stack>
 
 			<Stack tokens={subStackTokens} horizontal wrap>
-				{(synthesisMode === SynthesisMode.ValueSeeded ||
-					synthesisMode === SynthesisMode.AggregateSeeded ||
-					synthesisMode === SynthesisMode.DP) && (
-					<Stack.Item>
-						<TooltipWrapper
-							tooltip={tooltips.reportingLength}
-							label="Reporting length"
-						>
-							<SpinButton
-								labelPosition={Position.top}
-								min={1}
-								step={1}
-								value={reportingLength.toString()}
-								disabled={isProcessing}
-								onChange={handleReportingLengthChange}
-								styles={inputStyles}
-							/>
-						</TooltipWrapper>
-					</Stack.Item>
-				)}
-
 				{synthesisMode === SynthesisMode.ValueSeeded && (
 					<>
 						<Stack.Item>
@@ -508,20 +516,80 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 			{!isProcessing && allContextsParameters.length > 0 && (
 				<>
 					<Stack.Item>
-						<h3>Synthetic data</h3>
+						<h3>Results</h3>
 					</Stack.Item>
 					<Stack.Item>
 						<ContextsDropdown
 							selectedContextParameters={selectedContextParameters}
 							allContextsParameters={allContextsParameters}
 							onContextSelected={setSelectedContextParameters}
+							disabled={isLoadingFromWorker}
 						/>
 					</Stack.Item>
-					<Stack tokens={subStackTokens}>
+					<Stack tokens={subStackTokens} horizontal wrap>
 						<Stack.Item>
-							<CsvTable content={syntheticContent} commands={tableCommands} />
+							<Toggle
+								label="Show advanced evaluation"
+								inlineLabel
+								checked={showAdvancedEvaluation}
+								onChange={(_event, checked) =>
+									setShowAdvancedEvaluation(checked === true)
+								}
+							/>
+						</Stack.Item>
+						<Stack.Item>
+							<Toggle
+								label="Show synthetic data"
+								inlineLabel
+								checked={showSyntheticData}
+								onChange={(_event, checked) =>
+									setShowSyntheticData(checked === true)
+								}
+							/>
 						</Stack.Item>
 					</Stack>
+					{isLoadingFromWorker ? (
+						<Spinner />
+					) : (
+						<>
+							{evaluateResult && selectedContextParameters && (
+								<>
+									<Stack.Item>
+										<h3>Evaluation summary</h3>
+									</Stack.Item>
+									<Stack.Item>
+										<HumanReadableSummary
+											evaluateResult={evaluateResult}
+											contextParameters={selectedContextParameters}
+										/>
+									</Stack.Item>
+									{showAdvancedEvaluation && (
+										<>
+											<Stack.Item>
+												<h3>Advanced evaluation</h3>
+											</Stack.Item>
+											<Stack.Item>
+												<DataEvaluation />
+											</Stack.Item>
+										</>
+									)}
+								</>
+							)}
+							{showSyntheticData && (
+								<Stack tokens={subStackTokens}>
+									<Stack.Item>
+										<h3>Synthetic data</h3>
+									</Stack.Item>
+									<Stack.Item>
+										<CsvTable
+											content={syntheticContent}
+											commands={tableCommands}
+										/>
+									</Stack.Item>
+								</Stack>
+							)}
+						</>
+					)}
 				</>
 			)}
 		</Stack>
