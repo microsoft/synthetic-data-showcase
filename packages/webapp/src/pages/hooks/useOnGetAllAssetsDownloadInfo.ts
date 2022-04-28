@@ -243,8 +243,6 @@ export function useOnGetAllAssetsDownloadInfo(
 			)
 			const lenLabels = getMetricsByLenLabels(evaluateResult?.reportingLength)
 
-			console.log(`lenLabels`, lenLabels)
-
 			await collection.add(
 				new FileWithPath(
 					new Blob([syntheticContent.table.toCSV({ delimiter })], {
