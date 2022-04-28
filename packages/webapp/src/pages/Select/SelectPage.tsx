@@ -6,18 +6,34 @@ import type { FC } from 'react'
 import { memo } from 'react'
 import styled from 'styled-components'
 
-import { DataSelect } from './DataSelect'
+import { Flex } from '~components/Flexbox'
+
+import { InfoBar } from './InfoBar'
+import { SelectCommands } from './SelectCommands'
+import { TablePreview } from './TablePreview'
 
 export const SelectPage: FC = memo(function SelectPage() {
 	return (
-		<Container>
-			<DataSelect />
+		<Container vertical>
+			<SelectCommands />
+			<MainContent vertical>
+				<InfoBar />
+				<TablePreview />
+			</MainContent>
 		</Container>
 	)
 })
 SelectPage.displayName = 'SelectPage'
 
-const Container = styled.div`
+const Container = styled(Flex)`
 	height: 100%;
-	overflow-y: scroll;
+	overflow-y: auto;
+	&::-webkit-scrollbar {
+		display: none;
+	}
+`
+
+const MainContent = styled(Flex)`
+	height: 100%;
+	overflow-y: auto;
 `

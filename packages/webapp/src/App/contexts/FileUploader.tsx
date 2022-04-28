@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { container } from '@data-wrangling-components/core'
+import { container } from '@essex/arquero'
 import { fromCSV } from 'arquero'
 import type { FC } from 'react'
 import { memo, useCallback } from 'react'
