@@ -16,7 +16,7 @@ export function useContextKey(
 		switch (params.synthesisMode) {
 			case SynthesisMode.Unseeded:
 			case SynthesisMode.RowSeeded:
-				return `K-Anon ${params.synthesisMode} (Resolution=${params.resolution})`
+				return `K-Anon ${params.synthesisMode} (Resolution=${params.resolution}, ReportingLength=${params.reportingLength})`
 			case SynthesisMode.ValueSeeded:
 				return (
 					`K-Anon ${params.synthesisMode} (Resolution=${params.resolution}, ReportingLength=${params.reportingLength}, Oversampling=${params.oversamplingType}` +

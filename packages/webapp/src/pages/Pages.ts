@@ -59,17 +59,6 @@ export const Pages: Record<string, PageDetails> = {
 				await import('./Synthesize'),
 		),
 	},
-	Evaluate: {
-		name: 'Evaluate',
-		path: '/evaluate',
-		hideFromMenu: false,
-		useLayout: true,
-		component: lazy(
-			async () =>
-				/* webpackChunkName: "EvaluatePage" */
-				await import('./Evaluate'),
-		),
-	},
 	Navigate: {
 		name: 'Navigate',
 		path: 'navigate',

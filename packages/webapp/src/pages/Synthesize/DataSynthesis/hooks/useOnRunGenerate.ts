@@ -46,7 +46,7 @@ export interface IOnRunGenerateParameters {
 
 export function useOnRunGenerate(
 	params: IOnRunGenerateParameters,
-): () => Promise<void> {
+): () => Promise<IContextParameters> {
 	const setIsProcessing = useIsProcessingSetter()
 	const worker = useWasmWorkerValue()
 	const setProcessingProgress = useProcessingProgressSetter()
@@ -99,7 +99,13 @@ export function useOnRunGenerate(
 
 		setIsProcessing(false)
 		setAllContextsParameters(allContextParameters)
-		setSelectedContext(allContextParameters[allContextParameters.length - 1])
+
+		const selectedContext =
+			allContextParameters[allContextParameters.length - 1]
+
+		setSelectedContext(selectedContext)
+
+		return selectedContext
 	}, [
 		setIsProcessing,
 		setProcessingProgress,

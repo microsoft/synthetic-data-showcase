@@ -33,6 +33,7 @@ import {
 	useDropdownOnChange,
 	useSpinButtonOnChange,
 } from '~pages/hooks'
+import { DataEvaluation } from '~pages/Synthesize/DataEvaluation'
 import {
 	useAllContextsParametersValue,
 	useCacheSize,
@@ -61,6 +62,7 @@ import {
 	useGetSyntheticCsvContent,
 	useNoisyCountThresholdChange,
 	useNoisyCountThresholdTypeOptions,
+	useOnRunEvaluate,
 	useOnRunGenerate,
 	useOversamplingTypeOptions,
 	usePrivacyBudgetProfileOptions,
@@ -120,6 +122,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 			isMounted,
 		)
 	const [showSyntheticData, setShowSyntheticData] = useState(false)
+	const [showAdvancedEvaluation, setShowAdvancedEvaluation] = useState(false)
 
 	const theme = getTheme()
 
@@ -164,6 +167,8 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 		threshold: noisyCountThreshold,
 		privacyBudgetProfile,
 	})
+
+	const onRunEvaluate = useOnRunEvaluate(reportingLength)
 
 	const tableCommands = useSyntheticTableCommands(syntheticContent)
 
@@ -248,6 +253,22 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 					</TooltipWrapper>
 				</Stack.Item>
 				<Stack.Item>
+					<TooltipWrapper
+						tooltip={tooltips.reportingLength}
+						label="Reporting length"
+					>
+						<SpinButton
+							labelPosition={Position.top}
+							min={1}
+							step={1}
+							value={reportingLength.toString()}
+							disabled={isProcessing}
+							onChange={handleReportingLengthChange}
+							styles={inputStyles}
+						/>
+					</TooltipWrapper>
+				</Stack.Item>
+				<Stack.Item>
 					<TooltipWrapper tooltip={tooltips.recordLimit} label="Record Limit">
 						<SpinButton
 							labelPosition={Position.top}
@@ -278,7 +299,9 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 				<Stack.Item align="end">
 					<PrimaryButton
 						type="submit"
-						onClick={onRunGenerate}
+						onClick={async () => {
+							await onRunEvaluate(await onRunGenerate())
+						}}
 						disabled={!canRun}
 					>
 						Run
@@ -290,27 +313,6 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 			</Stack>
 
 			<Stack tokens={subStackTokens} horizontal wrap>
-				{(synthesisMode === SynthesisMode.ValueSeeded ||
-					synthesisMode === SynthesisMode.AggregateSeeded ||
-					synthesisMode === SynthesisMode.DP) && (
-					<Stack.Item>
-						<TooltipWrapper
-							tooltip={tooltips.reportingLength}
-							label="Reporting length"
-						>
-							<SpinButton
-								labelPosition={Position.top}
-								min={1}
-								step={1}
-								value={reportingLength.toString()}
-								disabled={isProcessing}
-								onChange={handleReportingLengthChange}
-								styles={inputStyles}
-							/>
-						</TooltipWrapper>
-					</Stack.Item>
-				)}
-
 				{synthesisMode === SynthesisMode.ValueSeeded && (
 					<>
 						<Stack.Item>
@@ -529,15 +531,26 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 							disabled={isLoadingFromWorker}
 						/>
 					</Stack.Item>
-					<Stack.Item>
-						<Toggle
-							label="Show synthetic data"
-							inlineLabel
-							onChange={(_event, checked) =>
-								setShowSyntheticData(checked === true)
-							}
-						/>
-					</Stack.Item>
+					<Stack tokens={subStackTokens} horizontal wrap>
+						<Stack.Item>
+							<Toggle
+								label="Show advanced evaluation"
+								inlineLabel
+								onChange={(_event, checked) =>
+									setShowAdvancedEvaluation(checked === true)
+								}
+							/>
+						</Stack.Item>
+						<Stack.Item>
+							<Toggle
+								label="Show synthetic data"
+								inlineLabel
+								onChange={(_event, checked) =>
+									setShowSyntheticData(checked === true)
+								}
+							/>
+						</Stack.Item>
+					</Stack>
 					{isLoadingFromWorker ? (
 						<Spinner />
 					) : (
@@ -553,6 +566,16 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 											contextParameters={selectedContextParameters}
 										/>
 									</Stack.Item>
+									{showAdvancedEvaluation && (
+										<>
+											<Stack.Item>
+												<h3>Advanced evaluation</h3>
+											</Stack.Item>
+											<Stack.Item>
+												<DataEvaluation />
+											</Stack.Item>
+										</>
+									)}
 								</>
 							)}
 							{showSyntheticData && (
