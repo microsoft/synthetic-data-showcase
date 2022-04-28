@@ -327,7 +327,7 @@ async function handleGetAggregateResult(
 				message.combinationDelimiter,
 			)
 			break
-		case AggregateType.Reportable:
+		case AggregateType.Aggregated:
 			aggregateResult = context.reportableAggregateResultToJs(
 				message.aggregatesDelimiter,
 				message.combinationDelimiter,

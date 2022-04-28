@@ -26,7 +26,7 @@ export function getMicrodataMetricsItems(
 				metric: 'Suppressed combinations',
 				tooltip: tooltips.suppressedCombinations,
 				value:
-					aggregateType === AggregateType.Reportable ||
+					aggregateType === AggregateType.Aggregated ||
 					aggregateType === AggregateType.Synthetic
 						? stats.percentageOfSuppressedCombinations
 								.toFixed(precision)
@@ -37,7 +37,7 @@ export function getMicrodataMetricsItems(
 				metric: 'Fabricated combinations',
 				tooltip: tooltips.fabricatedCombinations,
 				value:
-					aggregateType === AggregateType.Reportable ||
+					aggregateType === AggregateType.Aggregated ||
 					aggregateType === AggregateType.Synthetic
 						? stats.percentageOfFabricatedCombinations
 								.toFixed(precision)
@@ -79,7 +79,7 @@ export function getMicrodataMetricsItems(
 				metric: 'Mean proportional error',
 				tooltip: tooltips.meanProportionalError,
 				value:
-					aggregateType === AggregateType.Reportable ||
+					aggregateType === AggregateType.Aggregated ||
 					aggregateType === AggregateType.Synthetic
 						? stats.meanProportionalError.toFixed(precision).toString()
 						: emptyValue,

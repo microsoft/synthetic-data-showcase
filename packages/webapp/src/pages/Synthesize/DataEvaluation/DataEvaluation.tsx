@@ -26,7 +26,7 @@ import {
 
 const aggregateTypeToStatKey = {
 	[AggregateType.Sensitive]: 'sensitiveDataStats',
-	[AggregateType.Reportable]: 'aggregateCountsStats',
+	[AggregateType.Aggregated]: 'aggregateCountsStats',
 	[AggregateType.Synthetic]: 'syntheticDataStats',
 }
 

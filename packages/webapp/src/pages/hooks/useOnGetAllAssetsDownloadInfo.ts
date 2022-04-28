@@ -49,13 +49,13 @@ async function generateAggregatesCsv(
 		),
 		new FileWithPath(
 			new Blob(
-				[await getAggregatesCsv(worker, c.key, AggregateType.Reportable)],
+				[await getAggregatesCsv(worker, c.key, AggregateType.Aggregated)],
 				{
 					type: 'text/csv',
 				},
 			),
-			`${c.key}/${AggregateType.Reportable}_aggregates.csv`,
-			`${c.key}/${AggregateType.Reportable}_aggregates.csv`,
+			`${c.key}/${AggregateType.Aggregated}_aggregates.csv`,
+			`${c.key}/${AggregateType.Aggregated}_aggregates.csv`,
 		),
 		new FileWithPath(
 			new Blob(
@@ -98,7 +98,7 @@ async function generateMetricsSummaryCsv(
 					getMetricsSummaryCsv(
 						getMicrodataMetricsItems(
 							evaluateResult.aggregateCountsStats,
-							AggregateType.Reportable,
+							AggregateType.Aggregated,
 						),
 					),
 				],
@@ -106,8 +106,8 @@ async function generateMetricsSummaryCsv(
 					type: 'text/csv',
 				},
 			),
-			`${c.key}/${AggregateType.Reportable}_metrics_summary.csv`,
-			`${c.key}/${AggregateType.Reportable}_metrics_summary.csv`,
+			`${c.key}/${AggregateType.Aggregated}_metrics_summary.csv`,
+			`${c.key}/${AggregateType.Aggregated}_metrics_summary.csv`,
 		),
 		new FileWithPath(
 			new Blob(
@@ -157,8 +157,8 @@ async function generateAnalysisByCountCsv(
 					type: 'text/csv',
 				},
 			),
-			`${c.key}/${AggregateType.Reportable}_analysis_by_count.csv`,
-			`${c.key}/${AggregateType.Reportable}_analysis_by_count.csv`,
+			`${c.key}/${AggregateType.Aggregated}_analysis_by_count.csv`,
+			`${c.key}/${AggregateType.Aggregated}_analysis_by_count.csv`,
 		),
 		new FileWithPath(
 			new Blob(
@@ -196,8 +196,8 @@ async function generateAnalysisByLenCsv(
 					type: 'text/csv',
 				},
 			),
-			`${c.key}/${AggregateType.Reportable}_analysis_by_length.csv`,
-			`${c.key}/${AggregateType.Reportable}_analysis_by_length.csv`,
+			`${c.key}/${AggregateType.Aggregated}_analysis_by_length.csv`,
+			`${c.key}/${AggregateType.Aggregated}_analysis_by_length.csv`,
 		),
 		new FileWithPath(
 			new Blob(
