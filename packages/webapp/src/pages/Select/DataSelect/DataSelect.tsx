@@ -5,7 +5,7 @@
 import type { IStackStyles, IStackTokens } from '@fluentui/react'
 import { getTheme, Stack } from '@fluentui/react'
 import type { FC } from 'react'
-import { memo, useMemo } from 'react'
+import { memo } from 'react'
 
 import { CsvTable } from '~components/CsvTable'
 import { ErrorMessageBar } from '~components/ErrorMessageBar'
@@ -37,9 +37,6 @@ export const DataSelect: FC = memo(function DataSelect() {
 	}
 
 	const visibleColumns = useVisibleColumnNames(sensitiveContent)
-	// const visibleColumns = useMemo(() => {
-	// 	return sensitiveContent.headers.map(h => h.name)
-	// }, [sensitiveContent])
 
 	const tableCommands = useSensitiveTableCommands(
 		sensitiveContent,
