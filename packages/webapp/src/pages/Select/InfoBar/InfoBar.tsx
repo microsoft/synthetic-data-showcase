@@ -30,7 +30,7 @@ export const InfoBar: FC = memo(function InfoBar() {
 		)
 
 		if (data.count) {
-			return `${data.count} columns, ${rowCount} rows and ${data.unique} unique values.` // with ${data.combinations} maximum possible combimations`
+			return `${data.count} columns, ${rowCount} rows and ${data.unique} unique data values.` // with ${data.combinations} maximum possible combimations`
 		} else {
 			return '0 columns selected'
 		}
