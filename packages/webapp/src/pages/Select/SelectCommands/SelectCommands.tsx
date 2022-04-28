@@ -8,6 +8,7 @@ import styled from 'styled-components'
 
 import { Flex } from '~components/Flexbox'
 
+import { MultiValueColumns } from './MultiValueColumns'
 import { SelectColumns } from './SelectColumns'
 import { SensitiveZeros } from './SensitiveZeros'
 import { SubjectId } from './SubjectId'
@@ -21,7 +22,7 @@ export const SelectCommands: FC = memo(function SelectCommand() {
 			<Divider>|</Divider>
 			<SensitiveZeros />
 			<Divider>|</Divider>
-			<Action>Multi Value Columns</Action>
+			<MultiValueColumns />
 		</Container>
 	)
 })
@@ -30,17 +31,6 @@ SelectCommands.displayName = 'SelectCommands'
 const Container = styled(Flex)`
 	border-bottom: 1px solid ${p => p.theme.palette.neutralLight};
 	box-shadow: ${p => p.theme.effects.elevation4};
-`
-
-const Action = styled.span`
-	font-size: ${p => p.theme.fonts.mediumPlus.fontSize};
-	/* font-weight: bold; */
-	letter-spacing: 1.25px;
-	padding: ${p => p.theme.spacing.m};
-	color: ${p => p.theme.palette.themePrimary};
-	&:hover {
-		cursor: pointer;
-	}
 `
 
 const Divider = styled.span`
