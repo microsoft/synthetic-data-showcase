@@ -15,7 +15,7 @@ export interface ICsvTableHeader {
 	fieldName: string
 	use: boolean
 	hasSensitiveZeros: boolean
-	spreadWithDelimiter?: string
+	spreadWithDelimiter: string | null
 }
 
 export interface ICsvContent {

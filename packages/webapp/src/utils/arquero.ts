@@ -66,6 +66,7 @@ export function tableHeaders(
 					fieldName: i.toString(),
 					use: false,
 					hasSensitiveZeros: false,
+					spreadWithDelimiter: null,
 			  } as ICsvTableHeader),
 	)
 }
@@ -77,8 +78,7 @@ export function tableHeaders(
  */
 export function usableHeaders(data: ICsvContent): ICsvTableHeader[] {
 	return data.headers.filter(
-		h =>
-			h.use && h.name !== data.subjectId && h.spreadWithDelimiter === undefined,
+		h => h.use && h.name !== data.subjectId && h.spreadWithDelimiter === null,
 	)
 }
 
@@ -89,8 +89,7 @@ export function usableHeaders(data: ICsvContent): ICsvTableHeader[] {
  */
 export function spreadableHeaders(data: ICsvContent): ICsvTableHeader[] {
 	return data.headers.filter(
-		h =>
-			h.use && h.name !== data.subjectId && h.spreadWithDelimiter !== undefined,
+		h => h.use && h.name !== data.subjectId && h.spreadWithDelimiter !== null,
 	)
 }
 
