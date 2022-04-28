@@ -22,6 +22,11 @@ export const SensitiveZeros: FC = memo(function SensitiveZeros() {
 	const [sensitiveContent, setSensitiveContent] = useSensitiveContent()
 	const columnsWithZeros = useColumnsWithZeros(sensitiveContent)
 
+	const toggleCallout = useCallback(() => {
+		if (!columnsWithZeros?.length) return
+		toggleIsCalloutVisible()
+	}, [columnsWithZeros, toggleIsCalloutVisible])
+
 	const actionClass = useMemo(() => {
 		return columnsWithZeros?.length ? '' : 'disabled'
 	}, [columnsWithZeros])
@@ -62,11 +67,7 @@ export const SensitiveZeros: FC = memo(function SensitiveZeros() {
 	}, [sensitiveContent, handleSensitiveCheckChange, columnsWithZeros])
 	return (
 		<>
-			<Action
-				className={actionClass}
-				id={actionId}
-				onClick={toggleIsCalloutVisible}
-			>
+			<Action className={actionClass} id={actionId} onClick={toggleCallout}>
 				Sensitive Zeros
 			</Action>
 			{isCalloutVisible && (
@@ -80,7 +81,7 @@ export const SensitiveZeros: FC = memo(function SensitiveZeros() {
 					setInitialFocus
 				>
 					<Container vertical>
-						<GroupActions justify="space-around">
+						<GroupActions justify="space-around" align="center">
 							<GroupAction onClick={() => setAllOptions(true)}>All</GroupAction>
 							<Divider>|</Divider>
 							<GroupAction onClick={() => setAllOptions(false)}>
@@ -117,7 +118,7 @@ const Action = styled.span`
 
 const Container = styled(Flex)`
 	min-width: 250px;
-	max-height: 450px;
+	max-height: 400px;
 	border: 1px solid ${p => p.theme.palette.neutralLight};
 	/* background: ${p => p.theme.palette.neutralQuaternary}; */
 	overflow-y: auto;
