@@ -78,16 +78,22 @@ def runForConfig(config):
 
     # differential privacy
     config['dp_aggregates'] = config.get('dp_aggregates', False)
-    config['sensitivities_epsilon'] = config.get(
-        'sensitivities_epsilon', None)
-    config['sensitivities_percentile'] = config.get(
-        'sensitivities_percentile', None)
+    config['percentile_percentage'] = config.get('percentile_percentage', None)
+    config['percentile_epsilon_proportion'] = config.get(
+        'percentile_epsilon_proportion', None)
+    config['sigma_proportions'] = config.get('sigma_proportions', None)
     config['noise_epsilon'] = config.get('noise_epsilon', None)
     config['noise_delta'] = config.get('noise_delta', None)
+    config['noise_threshold_type'] = config.get('noise_threshold_type', None)
+    if config['noise_threshold_type'] != None:
+        config['noise_threshold_type'] = config['noise_threshold_type'].lower()
+    config['noise_threshold_values'] = {
+        int(l): t for l, t in config.get('noise_threshold_values', {}).items()}
 
     # parameters affecting the representation and interpretation of values
     config['sensitive_zeros'] = config.get('sensitive_zeros', [])
-    config['synthesis_mode'] = config.get('synthesis_mode', 'seeded')
+    config['synthesis_mode'] = config.get(
+        'synthesis_mode', 'row_seeded').lower()
     config['oversampling_ratio'] = config.get('oversampling_ratio', None)
     config['oversampling_tries'] = config.get('oversampling_tries', None)
     config['use_synthetic_counts'] = config.get(

@@ -1,9 +1,9 @@
 use js_sys::Array;
-use sds_core::data_block::typedefs::CsvRecord;
+use sds_core::data_block::CsvRecord;
 use std::convert::TryFrom;
 use wasm_bindgen::{JsCast, JsValue};
 
-use crate::utils::js::ts_definitions::JsHeaderNames;
+use crate::utils::js::JsHeaderNames;
 
 impl JsHeaderNames {
     #[inline]

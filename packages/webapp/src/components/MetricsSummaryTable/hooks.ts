@@ -26,9 +26,9 @@ export function getMicrodataMetricsItems(
 				metric: 'Suppressed combinations',
 				tooltip: tooltips.suppressedCombinations,
 				value:
-					aggregateType === AggregateType.Reportable ||
+					aggregateType === AggregateType.Aggregated ||
 					aggregateType === AggregateType.Synthetic
-						? stats.suppressedCombinationsPercentage
+						? stats.percentageOfSuppressedCombinations
 								.toFixed(precision)
 								.toString() + ' %'
 						: emptyValue,
@@ -37,32 +37,32 @@ export function getMicrodataMetricsItems(
 				metric: 'Fabricated combinations',
 				tooltip: tooltips.fabricatedCombinations,
 				value:
-					aggregateType === AggregateType.Reportable ||
+					aggregateType === AggregateType.Aggregated ||
 					aggregateType === AggregateType.Synthetic
-						? stats.fabricatedCombinationsPercentage
+						? stats.percentageOfFabricatedCombinations
 								.toFixed(precision)
 								.toString() + ' %'
 						: emptyValue,
 			},
-			...Object.keys(stats.originalMeanCombinationsCountByLen ?? {}).map(l => ({
+			...Object.keys(stats.originalCombinationsCountMeanByLen ?? {}).map(l => ({
 				metric: `${l}-count mean value +/- Mean error`,
 				tooltip: tooltips.nCountMeanAndError,
 				value: `${
-					stats.originalMeanCombinationsCountByLen[l]
-						.toFixed(precision)
-						.toString() ?? 0
+					stats.originalCombinationsCountMeanByLen[l]
+						?.toFixed(precision)
+						?.toString() ?? 0
 				} +/- ${
-					stats.meanCombinationsCountErrorByLen[l]
-						.toFixed(precision)
-						.toString() ?? 0
+					stats.combinationsCountMeanAbsErrorByLen[l]
+						?.toFixed(precision)
+						?.toString() ?? 0
 				}`,
 			})),
 			{
 				metric: 'Mean combination count +/- Mean error',
 				tooltip: tooltips.countMeanAndError,
-				value: `${stats.originalMeanCombinationsCount
+				value: `${stats.originalCombinationsCountMean
 					.toFixed(precision)
-					.toString()} +/- ${stats.meanCombinationsCountError
+					.toString()} +/- ${stats.combinationsCountMeanAbsError
 					.toFixed(precision)
 					.toString()}`,
 			},
@@ -79,7 +79,7 @@ export function getMicrodataMetricsItems(
 				metric: 'Mean proportional error',
 				tooltip: tooltips.meanProportionalError,
 				value:
-					aggregateType === AggregateType.Reportable ||
+					aggregateType === AggregateType.Aggregated ||
 					aggregateType === AggregateType.Synthetic
 						? stats.meanProportionalError.toFixed(precision).toString()
 						: emptyValue,
@@ -89,7 +89,7 @@ export function getMicrodataMetricsItems(
 				tooltip: tooltips.recordsWithUniqueCombs,
 				value:
 					aggregateType === AggregateType.Sensitive
-						? stats.recordsWithUniqueCombinationsPercentage
+						? stats.percentageOfRecordsWithUniqueCombinations
 								.toFixed(precision)
 								.toString() + ' %'
 						: emptyValue,
@@ -99,7 +99,7 @@ export function getMicrodataMetricsItems(
 				tooltip: tooltips.recordsWithRareCombs,
 				value:
 					aggregateType === AggregateType.Sensitive
-						? stats.recordsWithRareCombinationsPercentage
+						? stats.percentageOfRecordsWithRareCombinations
 								.toFixed(precision)
 								.toString() + ' %'
 						: emptyValue,
@@ -109,8 +109,9 @@ export function getMicrodataMetricsItems(
 				tooltip: tooltips.uniqueCombs,
 				value:
 					aggregateType === AggregateType.Sensitive
-						? stats.uniqueCombinationsPercentage.toFixed(precision).toString() +
-						  ' %'
+						? stats.percentageOfUniqueCombinations
+								.toFixed(precision)
+								.toString() + ' %'
 						: emptyValue,
 			},
 			{
@@ -118,7 +119,7 @@ export function getMicrodataMetricsItems(
 				tooltip: tooltips.rareCombs,
 				value:
 					aggregateType === AggregateType.Sensitive
-						? stats.rareCombinationsPercentage.toFixed(precision).toString() +
+						? stats.percentageOfRareCombinations.toFixed(precision).toString() +
 						  ' %'
 						: emptyValue,
 			},

@@ -1,11 +1,9 @@
 use js_sys::{Object, Reflect::set};
-use sds_core::{
-    processing::aggregator::aggregated_data::AggregatedData, utils::time::ElapsedDurationLogger,
-};
+use sds_core::{processing::aggregator::AggregatedData, utils::time::ElapsedDurationLogger};
 use std::{ops::Deref, sync::Arc};
 use wasm_bindgen::{prelude::*, JsCast};
 
-use crate::utils::js::ts_definitions::{JsAggregateResult, JsResult};
+use crate::utils::js::{JsAggregateResult, JsResult};
 
 #[wasm_bindgen]
 #[derive(Clone)]
@@ -90,28 +88,9 @@ impl WasmAggregateResult {
     pub fn protect_with_k_anonymity(&mut self, resolution: usize) -> WasmAggregateResult {
         let mut new_aggregated_data = (*self.aggregated_data).clone();
 
-        new_aggregated_data.protect_aggregates_count(resolution);
+        new_aggregated_data.protect_with_k_anonymity(resolution);
 
         WasmAggregateResult::new(Arc::new(new_aggregated_data))
-    }
-
-    #[wasm_bindgen(js_name = "protectWithDp")]
-    pub fn protect_with_dp(
-        &mut self,
-        percentile_percentage: usize,
-        sensitivity_filter_epsilon: f64,
-        noise_epsilon: f64,
-        noise_delta: f64,
-    ) -> JsResult<WasmAggregateResult> {
-        let mut new_aggregated_data = (*self.aggregated_data).clone();
-        let allowed_sensitivity_by_len = new_aggregated_data
-            .filter_sensitivities(percentile_percentage, sensitivity_filter_epsilon);
-
-        new_aggregated_data
-            .add_gaussian_noise(noise_epsilon, noise_delta, allowed_sensitivity_by_len)
-            .map_err(|err| JsValue::from(err.to_string()))?;
-
-        Ok(WasmAggregateResult::new(Arc::new(new_aggregated_data)))
     }
 }
 

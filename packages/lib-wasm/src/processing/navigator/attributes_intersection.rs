@@ -2,9 +2,7 @@ use js_sys::{Array, Object, Reflect::set};
 use std::{collections::HashMap, convert::TryFrom, sync::Arc};
 use wasm_bindgen::{JsCast, JsValue};
 
-use crate::utils::js::ts_definitions::{
-    JsAttributesIntersection, JsAttributesIntersectionByColumn,
-};
+use crate::utils::js::{JsAttributesIntersection, JsAttributesIntersectionByColumn};
 
 pub struct WasmAttributesIntersection {
     pub(crate) value: Arc<String>,

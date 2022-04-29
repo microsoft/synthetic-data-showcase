@@ -22,8 +22,7 @@ export enum SdsWasmMessageType {
 	Error = 'Error',
 	ClearContexts = 'ClearContexts',
 	ReportProgress = 'ReportProgress',
-	Generate = 'Generate',
-	Evaluate = 'Evaluate',
+	GenerateAndEvaluate = 'GenerateAndEvaluate',
 	Navigate = 'Navigate',
 	SelectAttributes = 'SelectAttributes',
 	AttributesIntersectionsByColumn = 'AttributesIntersectionsByColumn',
@@ -72,26 +71,15 @@ export interface SdsWasmReportProgressResponse extends SdsWasmResponse {
 	progress: number
 }
 
-export interface SdsWasmGenerateMessage extends SdsWasmMessage {
-	type: SdsWasmMessageType.Generate
+export interface SdsWasmGenerateAndEvaluateMessage extends SdsWasmMessage {
+	type: SdsWasmMessageType.GenerateAndEvaluate
 	contextKey: string
 	sensitiveCsvData: string
 	contextParameters: IContextParameters
 }
 
-export interface SdsWasmGenerateResponse extends SdsWasmResponse {
-	type: SdsWasmMessageType.Generate
-	allContextParameters: AllContextsParameters
-}
-
-export interface SdsWasmEvaluateMessage extends SdsWasmMessage {
-	type: SdsWasmMessageType.Evaluate
-	contextKey: string
-	reportingLength: number
-}
-
-export interface SdsWasmEvaluateResponse extends SdsWasmResponse {
-	type: SdsWasmMessageType.Evaluate
+export interface SdsWasmGenerateAndEvaluateResponse extends SdsWasmResponse {
+	type: SdsWasmMessageType.GenerateAndEvaluate
 	allContextParameters: AllContextsParameters
 }
 

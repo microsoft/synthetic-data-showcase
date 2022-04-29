@@ -1,46 +1,15 @@
 use super::aggregated_data::AggregatedData;
 use super::rows_aggregator::RowsAggregator;
-use super::typedefs::RecordsSet;
 use itertools::Itertools;
 use log::info;
-use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-use crate::data_block::block::DataBlock;
+use crate::data_block::DataBlock;
+use crate::dp::{DpParameters, NoiseAggregator, NoisyCountThreshold, StatsError};
 use crate::utils::math::calc_percentage;
 use crate::utils::reporting::ReportProgress;
 use crate::utils::threading::get_number_of_threads;
 use crate::utils::time::ElapsedDurationLogger;
-
-#[cfg(feature = "pyo3")]
-use pyo3::prelude::*;
-
-/// Result of data aggregation for each combination
-#[cfg_attr(feature = "pyo3", pyclass)]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AggregatedCount {
-    /// How many times the combination appears on the records
-    pub count: usize,
-    /// Which records this combinations is part of
-    pub contained_in_records: RecordsSet,
-}
-
-#[cfg(feature = "pyo3")]
-#[cfg_attr(feature = "pyo3", pymethods)]
-impl AggregatedCount {
-    /// How many times the combination appears on the records
-    #[getter]
-    fn count(&self) -> usize {
-        self.count
-    }
-
-    /// Which records this combinations is part of
-    /// This method will clone the data, so its recommended to have its result stored
-    /// in a local variable to avoid it being called multiple times
-    fn get_contained_in_records(&self) -> RecordsSet {
-        self.contained_in_records.clone()
-    }
-}
 
 /// Process a data block to produced aggregated data
 pub struct Aggregator {
@@ -56,10 +25,10 @@ impl Aggregator {
         Aggregator { data_block }
     }
 
-    /// Aggregates the data block and returns the aggregated data back
+    /// Compute the aggregate data for the `data_block` informed in
+    /// the constructor
     /// # Arguments
     /// * `reporting_length` - Calculate combinations from 1 up to `reporting_length`
-    /// (0 means no suppression)
     /// * `progress_reporter` - Will be used to report the processing
     /// progress (`ReportProgress` trait). If `None`, nothing will be reported
     pub fn aggregate<T>(
@@ -73,7 +42,7 @@ impl Aggregator {
         let _duration_logger = ElapsedDurationLogger::new("data aggregation");
         let normalized_reporting_length =
             self.data_block.normalize_reporting_length(reporting_length);
-        let total_n_records = self.data_block.records.len();
+        let total_n_records = self.data_block.number_of_records();
         let total_n_records_f64 = total_n_records as f64;
 
         info!(
@@ -101,11 +70,55 @@ impl Aggregator {
         );
 
         AggregatedData::new(
-            self.data_block.clone(),
+            self.data_block.headers.clone(),
+            self.data_block.number_of_records(),
             result.aggregates_count,
             result.records_sensitivity_by_len,
             normalized_reporting_length,
         )
+    }
+
+    /// Compute the aggregate data for the `data_block` informed in
+    /// the constructor using differential privacy
+    /// # Arguments
+    /// * `reporting_length` - Calculate combinations from 1 up to `reporting_length`
+    /// * `dp_parameters` - Differential privacy parameters
+    /// * `threshold` - Threshold used to filter noisy counts
+    /// * `progress_reporter` - Will be used to report the processing
+    /// progress (`ReportProgress` trait). If `None`, nothing will be reported
+    pub fn aggregate_with_dp<T>(
+        &self,
+        reporting_length: usize,
+        dp_parameters: &DpParameters,
+        threshold: NoisyCountThreshold,
+        progress_reporter: &mut Option<T>,
+    ) -> Result<AggregatedData, StatsError>
+    where
+        T: ReportProgress,
+    {
+        let _duration_logger = ElapsedDurationLogger::new("data aggregation with DP");
+        let normalized_reporting_length =
+            self.data_block.normalize_reporting_length(reporting_length);
+
+        info!(
+            "aggregating data with reporting length = {}, {} thread(s), dp parameters={:?}, threshold = {:?}",
+            normalized_reporting_length, get_number_of_threads(), dp_parameters, threshold
+        );
+
+        let result = NoiseAggregator::new(
+            self.data_block.clone(),
+            reporting_length,
+            dp_parameters,
+            threshold,
+        )
+        .generate_noisy_aggregates(progress_reporter)?;
+
+        info!(
+            "data aggregated resulting in {} distinct combinations...",
+            result.aggregates_count.len()
+        );
+
+        Ok(result)
     }
 
     #[inline]

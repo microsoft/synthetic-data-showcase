@@ -6,6 +6,10 @@ export type ReportProgressCallback = (progress: number) => void
 
 export type HeaderNames = string[]
 
+export interface IInputNumberByLength {
+  [length: number]: number
+}
+
 export interface IGenerateResult {
   expansionRatio: number
   syntheticData: string
@@ -21,26 +25,26 @@ export interface IAggregateResult {
 }
 
 export interface IMicrodataStatistics {
-  suppressedCombinationsPercentage: number
-  fabricatedCombinationsPercentage: number
-  originalMeanCombinationsCount: number
-  originalMeanCombinationsCountByLen: IMetricByKey
-  meanCombinationsCountError: number
-  meanCombinationsCountErrorByLen: IMetricByKey
+  percentageOfSuppressedCombinations: number
+  percentageOfFabricatedCombinations: number
+  originalCombinationsCountMean: number
+  originalCombinationsCountMeanByLen: IMetricByKey
+  combinationsCountMeanAbsError: number
+  combinationsCountMeanAbsErrorByLen: IMetricByKey
   meanProportionalError: number
   meanProportionalErrorByBucket: IMetricByKey
-  meanCombinationsLengthByBucket: IMetricByKey
-  meanCombinationsCountByLen: IMetricByKey
-  distinctCombinationsCountByLen: IMetricByKey
-  rareCombinationsCountByLen: IMetricByKey
-  rareCombinationsPercentageByLen: IMetricByKey
+  meanCombinationLengthByBucket: IMetricByKey
+  recordExpansionPercentage: number
+  combinationsCountMeanByLen: IMetricByKey
+  totalNumberOfCombinationsByLen: IMetricByKey
+  numberOfRareCombinationsByLen: IMetricByKey
+  percentageOfRareCombinationsByLen: IMetricByKey
   leakageCountByLen: IMetricByKey
   leakagePercentageByLen: IMetricByKey
-  recordsWithUniqueCombinationsPercentage: number
-  recordsWithRareCombinationsPercentage: number
-  uniqueCombinationsPercentage: number
-  rareCombinationsPercentage: number
-  recordExpansionPercentage: number
+  percentageOfRecordsWithUniqueCombinations: number
+  percentageOfRecordsWithRareCombinations: number
+  percentageOfUniqueCombinations: number
+  percentageOfRareCombinations: number
 }
 
 export interface IEvaluateResult {
@@ -71,6 +75,9 @@ extern "C" {
 
     #[wasm_bindgen(typescript_type = "HeaderNames")]
     pub type JsHeaderNames;
+
+    #[wasm_bindgen(typescript_type = "IInputNumberByLength")]
+    pub type JsInputNumberByLength;
 
     #[wasm_bindgen(typescript_type = "IGenerateResult")]
     pub type JsGenerateResult;

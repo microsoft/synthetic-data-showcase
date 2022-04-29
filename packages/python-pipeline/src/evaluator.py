@@ -69,12 +69,7 @@ class Evaluator:
         self.sen_aggregated_data = sds.AggregatedData.read_from_json(
             self.sensitive_aggregated_data_json
         )
-        self.sen_sds_processor = sds.SDSProcessor.from_aggregated_data(
-            self.sen_aggregated_data
-        )
-        self.reporting_length = self.sen_sds_processor.normalize_reporting_length(
-            self.reporting_length
-        )
+        self.reporting_length = self.sen_aggregated_data.reporting_length
 
     def _load_reportable_aggregates(self):
         logging.info('Loading reportable aggregates...')
@@ -116,7 +111,7 @@ class Evaluator:
 
     def _write_parameters(self):
         logging.info('Writing evaluation parameters...')
-        total_sen = self.sen_sds_processor.protected_number_of_records(
+        total_sen = self.sen_aggregated_data.number_of_records_protected_with_k_anonymity(
             self.reporting_resolution
         )
         with open(self.parameters_tsv, 'w') as f:
@@ -145,7 +140,7 @@ class Evaluator:
     def _find_leakages(self):
         logging.info(
             'Looking for leakages from the sensitive dataset on the synthetic dataset...')
-        comb_counts = self.syn_aggregated_data.calc_combinations_count_by_len()
+        comb_counts = self.syn_aggregated_data.calc_total_number_of_combinations_by_len()
         leakage_counts = self.sds_evaluator.calc_leakage_count_by_len(
             self.sen_aggregated_data, self.syn_aggregated_data, self.reporting_resolution
         )
@@ -184,7 +179,6 @@ class Evaluator:
             self.sen_aggregated_data, self.syn_aggregated_data, self.reporting_resolution
         )
 
-        self.config['combination_loss'] = preservation_by_count.calc_combination_loss()
         self.config['mean_proportional_error'] = preservation_by_count.calc_mean_proportional_error()
 
         preservation_by_count.write_preservation_by_count(
@@ -249,25 +243,25 @@ class Evaluator:
         )
 
     def _gen_stats_summary(self, src, target):
-        missing_percentage = self.sds_evaluator.calc_missed_percentage(
+        suppressed_percentage = self.sds_evaluator.calc_percentage_of_suppressed_combinations(
             src, target)
-        fabricated_percentage = self.sds_evaluator.calc_fabricated_percentage(
+        fabricated_percentage = self.sds_evaluator.calc_percentage_of_fabricated_combinations(
             src, target
         )
-        mean_error_by_len = self.sds_evaluator.calc_combinations_mean_abs_error_by_len(
+        mean_error_by_len = self.sds_evaluator.calc_combinations_count_mean_abs_error_by_len(
             src, target
         )
-        overall_error = self.sds_evaluator.calc_combinations_mean_abs_error(
+        overall_error = self.sds_evaluator.calc_combinations_count_mean_abs_error(
             src, target
         )
-        src_mean_count_by_len = src.calc_combinations_mean_by_len()
-        overall_src_mean_count = src.calc_combinations_mean()
+        src_mean_count_by_len = src.calc_combinations_count_mean_by_len()
+        overall_src_mean_count = src.calc_combinations_count_mean()
 
         summary = [['Metric', 'Value']]
         summary.append(
-            [f'Missing combination %', f'{missing_percentage:.2f} %'])
+            [f'Suppressed combinations %', f'{suppressed_percentage:.2f} %'])
         summary.append(
-            [f'Fabricated %', f'{fabricated_percentage:.2f} %'])
+            [f'Fabricated combinations %', f'{fabricated_percentage:.2f} %'])
         for l in sorted(mean_error_by_len.keys()):
             summary.append([f'{l}-counts mean value +/- mean error',
                             f'{src_mean_count_by_len[l]:.2f} +/- {mean_error_by_len[l]:.2f}'])

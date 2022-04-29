@@ -2,7 +2,9 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import type { HeaderNames } from 'sds-wasm'
+import type { HeaderNames, IInputNumberByLength } from 'sds-wasm'
+
+import type { NoisyCountThresholdType, PrivacyBudgetProfile } from '~models'
 
 import type { OversamplingType } from './OversamplingType'
 import type { SynthesisMode } from './SynthesisMode'
@@ -23,11 +25,16 @@ export interface IContextParameters {
 	oversamplingTries: number
 	useSyntheticCounts: UseSyntheticCounts
 	percentilePercentage: number
-	sensitivityFilterEpsilon: number
+	percentileEpsilonProportion: number
 	noiseEpsilon: number
 	noiseDelta: number
+	thresholdType: NoisyCountThresholdType
+	threshold: IInputNumberByLength
+	privacyBudgetProfile: PrivacyBudgetProfile
 	emptyValue: string
 	isEvaluated: boolean
 }
 
 export type AllContextsParameters = IContextParameters[]
+
+export const defaultThreshold = 1.0

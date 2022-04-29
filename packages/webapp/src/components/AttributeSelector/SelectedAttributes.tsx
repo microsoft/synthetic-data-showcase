@@ -10,7 +10,7 @@ import type { HeaderNames, ISelectedAttributesByColumn } from 'sds-wasm'
 import type {
 	ClearSelectedAttributesCallback,
 	SetSelectedAttributesCallback,
-} from '~components/Pages/DataShowcasePage/DataNavigation'
+} from '~pages/Navigate/DataNavigation'
 
 import { useSelectedAttributesByColumnEntries } from './hooks'
 

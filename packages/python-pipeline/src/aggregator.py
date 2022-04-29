@@ -35,10 +35,13 @@ def aggregate(config):
     reportable_aggregated_data_json = path.join(
         output_dir, f'{prefix}_reportable_aggregated_data.json')
     dp_aggregates = config['dp_aggregates']
-    sensitivities_epsilon = config['sensitivities_epsilon']
-    sensitivities_percentile = config['sensitivities_percentile']
+    percentile_percentage = config['percentile_percentage']
+    percentile_epsilon_proportion = config['percentile_epsilon_proportion']
+    sigma_proportions = config['sigma_proportions']
     noise_epsilon = config['noise_epsilon']
     noise_delta = config['noise_delta']
+    noise_threshold_type = config['noise_threshold_type']
+    noise_threshold_values = config['noise_threshold_values']
 
     logging.info(f'Aggregate {sensitive_microdata_path}')
     start_time = time.time()
@@ -54,8 +57,8 @@ def aggregate(config):
     aggregated_data = sds_processor.aggregate(
         reporting_length
     )
-    len_to_combo_count = aggregated_data.calc_combinations_count_by_len()
-    len_to_rare_count = aggregated_data.calc_rare_combinations_count_by_len(
+    len_to_combo_count = aggregated_data.calc_total_number_of_combinations_by_len()
+    len_to_rare_count = aggregated_data.calc_number_of_rare_combinations_by_len(
         reporting_resolution)
 
     aggregated_data.write_aggregates_count(
@@ -68,21 +71,38 @@ def aggregate(config):
     aggregated_data.write_to_json(sensitive_aggregated_data_json)
 
     if dp_aggregates:
-        allowed_sensitivity_by_len = aggregated_data.filter_sensitivities(
-            sensitivities_percentile,
-            sensitivities_epsilon
-        )
-
         if not noise_delta:
             noise_delta = 1 / (2 * sds_processor.number_of_records())
 
-        aggregated_data.add_gaussian_noise(
-            noise_epsilon,
-            noise_delta,
-            allowed_sensitivity_by_len
-        )
+        if noise_threshold_type == 'fixed':
+            aggregated_data = sds_processor.aggregate_with_dp_fixed_threshold(
+                reporting_length,
+                sds.DpParameters(
+                    noise_epsilon,
+                    noise_delta,
+                    percentile_percentage,
+                    percentile_epsilon_proportion,
+                    sigma_proportions
+                ),
+                noise_threshold_values
+            )
+        elif noise_threshold_type == 'adaptive':
+            aggregated_data = sds_processor.aggregate_with_dp_adaptive_threshold(
+                reporting_length,
+                sds.DpParameters(
+                    noise_epsilon,
+                    noise_delta,
+                    percentile_percentage,
+                    percentile_epsilon_proportion,
+                    sigma_proportions
+                ),
+                noise_threshold_values
+            )
+        else:
+            raise ValueError(
+                f'invalid noise_threshold_type: "{noise_threshold_type}"')
     else:
-        aggregated_data.protect_aggregates_count(reporting_resolution)
+        aggregated_data.protect_with_k_anonymity(reporting_resolution)
 
     aggregated_data.write_aggregates_count(
         reportable_aggregates_path,

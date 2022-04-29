@@ -1,1 +1,3 @@
-pub mod generate_result;
+mod generate_result;
+
+pub use generate_result::*;

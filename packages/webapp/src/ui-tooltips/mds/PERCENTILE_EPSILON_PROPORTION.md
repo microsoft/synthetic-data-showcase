@@ -1,0 +1,1 @@
+The percentile selection is done with differential privacy. This sets the proportion of the overall epsilon to dedicate to this stage (0.1 means 10%).

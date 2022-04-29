@@ -1,15 +1,11 @@
 use csv::ReaderBuilder;
 use js_sys::Function;
 use sds_core::{
-    data_block::{
-        block::DataBlock, csv_block_creator::CsvDataBlockCreator,
-        data_block_creator::DataBlockCreator, typedefs::CsvRecord,
-    },
+    data_block::{CsvDataBlockCreator, CsvRecord, DataBlock, DataBlockCreator},
+    dp::{DpParameters, InputValueByLen, NoisyCountThreshold},
     processing::{
         aggregator::Aggregator,
-        generator::{
-            synthesizer::consolidate_parameters::ConsolidateParameters, Generator, SynthesisMode,
-        },
+        generator::{Generator, OversamplingParameters},
     },
     utils::time::ElapsedDurationLogger,
 };
@@ -18,13 +14,10 @@ use std::{convert::TryFrom, io::Cursor};
 use wasm_bindgen::{prelude::*, JsCast};
 
 use crate::{
-    utils::js::js_progress_reporter::JsProgressReporter,
+    utils::js::{JsInputNumberByLength, JsProgressReporter},
     {
-        processing::{
-            aggregator::aggregate_result::WasmAggregateResult,
-            generator::generate_result::WasmGenerateResult,
-        },
-        utils::js::ts_definitions::{JsHeaderNames, JsReportProgressCallback},
+        processing::{aggregator::WasmAggregateResult, generator::WasmGenerateResult},
+        utils::js::{JsHeaderNames, JsReportProgressCallback},
     },
 };
 
@@ -97,6 +90,94 @@ impl SDSProcessor {
         ))))
     }
 
+    #[inline]
+    #[allow(clippy::too_many_arguments)]
+    pub(crate) fn aggregate_with_dp(
+        &self,
+        reporting_length: usize,
+        epsilon: f64,
+        delta: f64,
+        percentile_percentage: usize,
+        percentile_epsilon_proportion: f64,
+        sigma_proportions: Option<Vec<f64>>,
+        threshold: NoisyCountThreshold,
+        progress_callback: JsReportProgressCallback,
+    ) -> Result<WasmAggregateResult, JsValue> {
+        let _duration_logger = ElapsedDurationLogger::new(format!(
+            "sds processor aggregation with dp and threshold = {:?}",
+            threshold
+        ));
+        let js_callback: Function = progress_callback.dyn_into()?;
+        let aggregator = Aggregator::new(self.data_block.clone());
+
+        Ok(WasmAggregateResult::new(Arc::new(
+            aggregator
+                .aggregate_with_dp(
+                    reporting_length,
+                    &DpParameters::new(
+                        epsilon,
+                        delta,
+                        percentile_percentage,
+                        percentile_epsilon_proportion,
+                        sigma_proportions,
+                    ),
+                    threshold,
+                    &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
+                )
+                .map_err(|err| JsValue::from(err.to_string()))?,
+        )))
+    }
+
+    #[wasm_bindgen(js_name = "aggregateWithDpFixedThreshold")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn aggregate_with_dp_fixed_threshold(
+        &self,
+        reporting_length: usize,
+        epsilon: f64,
+        delta: f64,
+        percentile_percentage: usize,
+        percentile_epsilon_proportion: f64,
+        sigma_proportions: Option<Vec<f64>>,
+        threshold: JsInputNumberByLength,
+        progress_callback: JsReportProgressCallback,
+    ) -> Result<WasmAggregateResult, JsValue> {
+        self.aggregate_with_dp(
+            reporting_length,
+            epsilon,
+            delta,
+            percentile_percentage,
+            percentile_epsilon_proportion,
+            sigma_proportions,
+            NoisyCountThreshold::Fixed(InputValueByLen::<f64>::try_from(threshold)?),
+            progress_callback,
+        )
+    }
+
+    #[wasm_bindgen(js_name = "aggregateWithDpAdaptiveThreshold")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn aggregate_with_dp_adaptive_threshold(
+        &self,
+        reporting_length: usize,
+        epsilon: f64,
+        delta: f64,
+        percentile_percentage: usize,
+        percentile_epsilon_proportion: f64,
+        sigma_proportions: Option<Vec<f64>>,
+        threshold: JsInputNumberByLength,
+        progress_callback: JsReportProgressCallback,
+    ) -> Result<WasmAggregateResult, JsValue> {
+        self.aggregate_with_dp(
+            reporting_length,
+            epsilon,
+            delta,
+            percentile_percentage,
+            percentile_epsilon_proportion,
+            sigma_proportions,
+            NoisyCountThreshold::Adaptive(InputValueByLen::<f64>::try_from(threshold)?),
+            progress_callback,
+        )
+    }
+
     #[wasm_bindgen(js_name = "generateUnseeded")]
     pub fn generate_unseeded(
         &self,
@@ -107,14 +188,13 @@ impl SDSProcessor {
     ) -> Result<WasmGenerateResult, JsValue> {
         let _duration_logger = ElapsedDurationLogger::new(String::from("generation unseeded"));
         let js_callback: Function = progress_callback.dyn_into()?;
-        let mut generator = Generator::new(self.data_block.clone());
+        let generator = Generator::default();
 
-        Ok(WasmGenerateResult::new(generator.generate(
+        Ok(WasmGenerateResult::new(generator.generate_unseeded(
+            &self.data_block,
             resolution,
             cache_max_size,
-            empty_value,
-            SynthesisMode::Unseeded,
-            ConsolidateParameters::default(),
+            &empty_value,
             &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
         )))
     }
@@ -129,14 +209,13 @@ impl SDSProcessor {
     ) -> Result<WasmGenerateResult, JsValue> {
         let _duration_logger = ElapsedDurationLogger::new(String::from("generation row seeded"));
         let js_callback: Function = progress_callback.dyn_into()?;
-        let mut generator = Generator::new(self.data_block.clone());
+        let generator = Generator::default();
 
-        Ok(WasmGenerateResult::new(generator.generate(
+        Ok(WasmGenerateResult::new(generator.generate_row_seeded(
+            &self.data_block,
             resolution,
             cache_max_size,
-            empty_value,
-            SynthesisMode::Seeded,
-            ConsolidateParameters::default(),
+            &empty_value,
             &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
         )))
     }
@@ -155,19 +234,18 @@ impl SDSProcessor {
     ) -> Result<WasmGenerateResult, JsValue> {
         let _duration_logger = ElapsedDurationLogger::new(String::from("generation value seeded"));
         let js_callback: Function = progress_callback.dyn_into()?;
-        let mut generator = Generator::new(self.data_block.clone());
+        let generator = Generator::default();
 
-        Ok(WasmGenerateResult::new(generator.generate(
+        Ok(WasmGenerateResult::new(generator.generate_value_seeded(
+            &self.data_block,
             resolution,
             cache_max_size,
-            empty_value,
-            SynthesisMode::FromCounts,
-            ConsolidateParameters {
+            &empty_value,
+            oversampling_ratio.map(|_| OversamplingParameters {
                 aggregated_data: aggregated_result.aggregated_data.clone(),
                 oversampling_ratio,
                 oversampling_tries,
-                use_synthetic_counts: false,
-            },
+            }),
             &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
         )))
     }
@@ -175,29 +253,23 @@ impl SDSProcessor {
     #[wasm_bindgen(js_name = "generateAggregateSeeded")]
     pub fn generate_aggregate_seeded(
         &self,
-        cache_max_size: usize,
-        resolution: usize,
         empty_value: String,
         aggregated_result: &WasmAggregateResult,
         use_synthetic_counts: bool,
         progress_callback: JsReportProgressCallback,
     ) -> Result<WasmGenerateResult, JsValue> {
-        let _duration_logger = ElapsedDurationLogger::new(String::from("generation value seeded"));
+        let _duration_logger =
+            ElapsedDurationLogger::new(String::from("generation aggregate seeded"));
         let js_callback: Function = progress_callback.dyn_into()?;
-        let mut generator = Generator::new(self.data_block.clone());
+        let generator = Generator::default();
 
-        Ok(WasmGenerateResult::new(generator.generate(
-            resolution,
-            cache_max_size,
-            empty_value,
-            SynthesisMode::FromAggregates,
-            ConsolidateParameters {
-                aggregated_data: aggregated_result.aggregated_data.clone(),
-                oversampling_ratio: None,
-                oversampling_tries: None,
+        Ok(WasmGenerateResult::new(
+            generator.generate_aggregate_seeded(
+                &empty_value,
+                aggregated_result.aggregated_data.clone(),
                 use_synthetic_counts,
-            },
-            &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
-        )))
+                &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
+            ),
+        ))
     }
 }

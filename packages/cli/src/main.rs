@@ -1,15 +1,14 @@
-use log::{error, info, log_enabled, trace, Level::Debug};
+use log::{error, log_enabled, trace, Level::Debug};
 use sds_core::{
-    data_block::{csv_block_creator::CsvDataBlockCreator, data_block_creator::DataBlockCreator},
+    data_block::{CsvDataBlockCreator, DataBlockCreator},
+    dp::{DpParameters, NoisyCountThreshold},
     processing::{
-        aggregator::Aggregator,
-        generator::{
-            synthesizer::consolidate_parameters::ConsolidateParameters, Generator, SynthesisMode,
-        },
+        aggregator::{AggregatedData, Aggregator},
+        generator::{Generator, OversamplingParameters},
     },
     utils::{reporting::LoggerProgressReporter, threading::set_number_of_threads},
 };
-use std::process;
+use std::{process, sync::Arc};
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
@@ -35,35 +34,35 @@ enum Command {
         #[structopt(
             long = "mode",
             help = "synthesis mode",
-            possible_values = &["seeded", "unseeded", "from_counts", "from_aggregates"],
+            possible_values = &["row_seeded", "unseeded", "value_seeded", "aggregate_seeded"],
             case_insensitive = true,
-            default_value = "seeded"
+            default_value = "row_seeded"
         )]
-        mode: SynthesisMode,
+        mode: String,
 
         #[structopt(
             long = "aggregates-json",
-            help = "json file generated on the aggregate step (optional on the \"from_counts\" mode, required on \"from_aggregates\" mode)"
+            help = "json file generated on the aggregate step (optional on the \"value_seeded\" mode, required on \"aggregate_seeded\" mode)"
         )]
         aggregates_json: Option<String>,
 
         #[structopt(
             long = "oversampling-ratio",
-            help = "allowed oversampling ratio used on \"from_counts\" and \"from_aggregates\" modes (0.1 means 10%)",
+            help = "allowed oversampling ratio used on \"value_seeded\" mode (0.1 means 10%)",
             requires = "aggregates-json"
         )]
         oversampling_ratio: Option<f64>,
 
         #[structopt(
             long = "oversampling-tries",
-            help = "how many times try to resample in case the currently sampled value causes oversampling",
+            help = "how many times try to resample in case the currently sampled value causes oversampling (\"value_seeded\" mode)",
             requires = "aggregates-json"
         )]
         oversampling_tries: Option<usize>,
 
         #[structopt(
             long = "use-synthetic-counts",
-            help = "use synthetic aggregates to balance attribute sampling on \"from_aggregates\" mode",
+            help = "use synthetic aggregates to balance attribute sampling on \"aggregate_seeded\" mode",
             requires = "aggregates-json"
         )]
         use_synthetic_counts: bool,
@@ -88,7 +87,7 @@ enum Command {
 
         #[structopt(
             long = "not-protect",
-            help = "do not protect the aggregates counts by rounding down to the nearest multiple of resolution"
+            help = "do not protect the aggregates counts by rounding down to the nearest multiple of resolution (if noise is not being added)"
         )]
         not_protect: bool,
 
@@ -96,46 +95,62 @@ enum Command {
         records_sensitivity_path: Option<String>,
 
         #[structopt(
-            long = "filter-sensitivities",
-            help = "suppress combination contributions to meet a certain sensitivity criteria",
-            requires_all = &["sensitivities-percentile", "sensitivities-epsilon"]
+            long = "dp",
+            help = "generate the aggregates with differential privacy",
+            requires_all = &["sensitivities-percentile", "sensitivities-epsilon-proportion", "noise-epsilon", "noise-threshold-type", "noise-threshold-values"]
         )]
-        filter_sensitivities: bool,
+        dp: bool,
 
         #[structopt(
             long = "sensitivities-percentile",
             help = "percentile used as record sensitivity filter",
-            requires = "filter-sensitivities"
+            requires = "dp"
         )]
         sensitivities_percentile: Option<usize>,
 
         #[structopt(
-            long = "sensitivities-epsilon",
-            help = "epsilon used to generate noise used for the sensitivity filter selection",
-            requires = "filter-sensitivities"
+            long = "sensitivities-epsilon-proportion",
+            help = "proportion of epsilon used to generate noise during sensitivity filter selection",
+            requires = "dp"
         )]
-        sensitivities_epsilon: Option<f64>,
-
-        #[structopt(
-            long = "add-noise",
-            help = "add gaussian noise to the aggregates",
-            requires_all = &["filter-sensitivities", "noise-epsilon"]
-        )]
-        add_noise: bool,
+        sensitivities_epsilon_proportion: Option<f64>,
 
         #[structopt(
             long = "noise-epsilon",
             help = "epsilon used to generate noise that will be added to the aggregate counts",
-            requires = "add-noise"
+            requires = "dp"
         )]
         noise_epsilon: Option<f64>,
 
         #[structopt(
             long = "noise-delta",
             help = "delta used to generate noise that will be added to the aggregate counts [default: 1/(2 * number of records)]",
-            requires = "add-noise"
+            requires = "dp"
         )]
         noise_delta: Option<f64>,
+
+        #[structopt(
+            long = "noise-threshold-type",
+            help = "threshold type, could be fixed or adaptive",
+            possible_values = &["fixed", "adaptive"],
+            case_insensitive = true,
+            default_value = "fixed",
+        )]
+        noise_threshold_type: String,
+
+        #[structopt(
+            long = "noise-threshold-values",
+            help = "value used as the count threshold filter (meaning will change based on \"noise-threshold-type\")",
+            requires = "dp"
+        )]
+        noise_threshold_values: Option<Vec<f64>>,
+
+        #[structopt(
+            long = "sigma-proportions",
+            help = "proportion to split sigma across combination lengths",
+            requires = "dp"
+        )]
+        sigma_proportions: Option<Vec<f64>>,
 
         #[structopt(
             long = "aggregates-json",
@@ -164,7 +179,7 @@ struct Cli {
 
     #[structopt(
         long = "resolution",
-        help = "minimum threshold to build the synthetic microdata"
+        help = "minimum threshold to build/evaluate synthetic microdata"
     )]
     resolution: usize,
 
@@ -229,27 +244,70 @@ fn main() {
                 oversampling_tries,
                 use_synthetic_counts,
             } => {
-                let consolidate_parameters = match ConsolidateParameters::new(
-                    aggregates_json,
-                    oversampling_ratio,
-                    oversampling_tries,
-                    use_synthetic_counts,
-                ) {
-                    Ok(parameters) => parameters,
-                    Err(err) => {
-                        error!("error reading aggregates json file: {}", err);
+                let aggregated_data = aggregates_json.map(|json_path| {
+                    match AggregatedData::read_from_json(&json_path) {
+                        Ok(data) => Arc::new(data),
+                        Err(err) => {
+                            error!("error reading aggregates json file: {}", err);
+                            process::exit(1);
+                        }
+                    }
+                });
+
+                if (oversampling_ratio.is_some()
+                    || oversampling_tries.is_some()
+                    || mode == "aggregate_seeded")
+                    && aggregated_data.is_none()
+                {
+                    error!("aggregates json file should be provided");
+                    process::exit(1);
+                }
+
+                let oversampling_parameters =
+                    if oversampling_ratio.is_some() || oversampling_tries.is_some() {
+                        Some(OversamplingParameters::new(
+                            aggregated_data.clone().unwrap(),
+                            oversampling_ratio,
+                            oversampling_tries,
+                        ))
+                    } else {
+                        None
+                    };
+                let generator = Generator::default();
+                let generated_data = match mode.as_str() {
+                    "unseeded" => generator.generate_unseeded(
+                        &data_block,
+                        cli.resolution,
+                        cache_max_size,
+                        "",
+                        &mut progress_reporter,
+                    ),
+                    "row_seeded" => generator.generate_row_seeded(
+                        &data_block,
+                        cli.resolution,
+                        cache_max_size,
+                        "",
+                        &mut progress_reporter,
+                    ),
+                    "value_seeded" => generator.generate_value_seeded(
+                        &data_block,
+                        cli.resolution,
+                        cache_max_size,
+                        "",
+                        oversampling_parameters,
+                        &mut progress_reporter,
+                    ),
+                    "aggregate_seeded" => generator.generate_aggregate_seeded(
+                        "",
+                        aggregated_data.unwrap(),
+                        use_synthetic_counts,
+                        &mut progress_reporter,
+                    ),
+                    _ => {
+                        error!("invalid mode");
                         process::exit(1);
                     }
                 };
-                let mut generator = Generator::new(data_block);
-                let generated_data = generator.generate(
-                    cli.resolution,
-                    cache_max_size,
-                    String::from(""),
-                    mode,
-                    consolidate_parameters,
-                    &mut progress_reporter,
-                );
 
                 if let Err(err) = generated_data.write_synthetic_data(
                     &synthetic_path,
@@ -265,52 +323,71 @@ fn main() {
                 reporting_length,
                 not_protect,
                 records_sensitivity_path,
-                filter_sensitivities,
                 sensitivities_percentile,
-                sensitivities_epsilon,
-                add_noise,
+                sensitivities_epsilon_proportion,
+                dp,
                 noise_delta,
                 noise_epsilon,
+                noise_threshold_type,
+                noise_threshold_values,
+                sigma_proportions,
                 aggregates_json,
             } => {
                 let mut aggregator = Aggregator::new(data_block.clone());
-                let mut aggregated_data =
-                    aggregator.aggregate(reporting_length, &mut progress_reporter);
-                let privacy_risk = aggregated_data.calc_privacy_risk(cli.resolution);
+                let aggregated_data = if dp {
+                    let delta = noise_delta
+                        .unwrap_or(1.0 / (2.0 * (data_block.number_of_records() as f64)));
+                    let thresholds_map = noise_threshold_values
+                        .unwrap()
+                        .iter()
+                        .enumerate()
+                        .map(|(i, t)| (i + 2, *t))
+                        .collect();
 
-                if filter_sensitivities {
-                    let allowed_sensitivity_by_len = aggregated_data.filter_sensitivities(
-                        sensitivities_percentile.unwrap(),
-                        sensitivities_epsilon.unwrap(),
-                    );
-
-                    if add_noise {
-                        let delta = noise_delta
-                            .unwrap_or(1.0 / (2.0 * (data_block.number_of_records() as f64)));
-
-                        if let Err(err) = aggregated_data.add_gaussian_noise(
-                            noise_epsilon.unwrap(),
-                            delta,
-                            allowed_sensitivity_by_len,
-                        ) {
-                            error!("error applying gaussian noise: {}", err);
+                    let threshold = match noise_threshold_type.as_str() {
+                        "fixed" => NoisyCountThreshold::Fixed(thresholds_map),
+                        "adaptive" => NoisyCountThreshold::Adaptive(thresholds_map),
+                        _ => {
+                            error!("invalid noise threshold type");
                             process::exit(1);
                         }
+                    };
+
+                    match aggregator.aggregate_with_dp(
+                        reporting_length,
+                        &DpParameters::new(
+                            noise_epsilon.unwrap(),
+                            delta,
+                            sensitivities_percentile.unwrap(),
+                            sensitivities_epsilon_proportion.unwrap(),
+                            sigma_proportions,
+                        ),
+                        threshold,
+                        &mut progress_reporter,
+                    ) {
+                        Err(err) => {
+                            error!("error making aggregates noisy: {}", err);
+                            process::exit(1);
+                        }
+                        Ok(ad) => ad,
                     }
-                }
+                } else {
+                    let mut aggregated_data =
+                        aggregator.aggregate(reporting_length, &mut progress_reporter);
 
-                if !not_protect {
-                    aggregated_data.protect_aggregates_count(cli.resolution);
-                }
+                    if !not_protect {
+                        aggregated_data.protect_with_k_anonymity(cli.resolution);
+                    }
 
-                info!("Calculated privacy risk is: {:#?}", privacy_risk);
+                    aggregated_data
+                };
 
                 if let Err(err) = aggregated_data.write_aggregates_count(
                     &aggregates_path,
                     aggregates_delimiter.chars().next().unwrap(),
                     ";",
                     cli.resolution,
-                    !not_protect,
+                    !not_protect || dp,
                 ) {
                     error!("error writing output file: {}", err);
                     process::exit(1);

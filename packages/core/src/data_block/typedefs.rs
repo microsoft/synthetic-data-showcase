@@ -2,7 +2,7 @@ use super::{record::DataBlockRecord, value::DataBlockValue};
 use fnv::FnvHashMap;
 use std::sync::Arc;
 
-use crate::processing::evaluator::rare_combinations_comparison_data::CombinationComparison;
+use crate::processing::evaluator::CombinationComparison;
 
 /// Ordered vector of rows where a particular value combination is present
 pub type AttributeRows = Vec<usize>;

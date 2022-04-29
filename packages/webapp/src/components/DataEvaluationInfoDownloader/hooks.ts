@@ -50,7 +50,7 @@ export function getAnalysisByCountCsv(
 				c =>
 					`${c}${delimiter}${
 						stats.meanProportionalErrorByBucket[c] ?? 0
-					}${delimiter}${stats.meanCombinationsLengthByBucket[c] ?? 0}`,
+					}${delimiter}${stats.meanCombinationLengthByBucket[c] ?? 0}`,
 			)
 			.join('\n')
 	}
@@ -80,11 +80,11 @@ export function getAnalysisByLenCsv(
 			.map(
 				l =>
 					`${l}${delimiter}${
-						stats.meanCombinationsCountByLen[l] ?? 0
+						stats.combinationsCountMeanByLen[l] ?? 0
 					}${delimiter}${
-						stats.distinctCombinationsCountByLen[l] ?? 0
-					}${delimiter}${stats.rareCombinationsCountByLen[l] ?? 0}${delimiter}${
-						stats.rareCombinationsPercentageByLen[l] ?? 0
+						stats.totalNumberOfCombinationsByLen[l] ?? 0
+					}${delimiter}${stats.numberOfRareCombinationsByLen[l] ?? 0}${delimiter}${
+						stats.percentageOfRareCombinationsByLen[l] ?? 0
 					}${delimiter}${stats.leakageCountByLen[l] ?? 0}${delimiter}${
 						stats.leakagePercentageByLen[l] ?? 0
 					}`,

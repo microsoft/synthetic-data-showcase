@@ -1,18 +1,16 @@
 use super::preservation_by_count::{PreservationByCountBucketBins, PreservationByCountBuckets};
 use super::rare_combinations_comparison_data::RareCombinationsComparisonData;
 use fnv::{FnvHashMap, FnvHashSet};
-use log::info;
 use std::sync::Arc;
 
 #[cfg(feature = "pyo3")]
 use pyo3::prelude::*;
 
-use crate::processing::aggregator::aggregated_data::AggregatedData;
-use crate::processing::aggregator::typedefs::{AggregatedCountByLenMap, AggregatedMetricByLenMap};
-use crate::processing::aggregator::value_combination::ValueCombination;
+use crate::processing::aggregator::{
+    AggregatedCountByLenMap, AggregatedData, AggregatedMetricByLenMap, ValueCombination,
+};
 use crate::processing::evaluator::preservation_bucket::PreservationBucket;
 use crate::processing::evaluator::preservation_by_length::PreservationByLengthBuckets;
-use crate::utils::time::ElapsedDurationLogger;
 
 #[cfg_attr(feature = "pyo3", pyclass)]
 /// Evaluates aggregated, sensitive and synthesized data
@@ -76,10 +74,7 @@ impl Evaluator {
         synthetic_aggregated_data: &AggregatedData,
         resolution: usize,
     ) -> AggregatedCountByLenMap {
-        let _duration_logger = ElapsedDurationLogger::new("leakage count by len calculation");
         let mut result: AggregatedCountByLenMap = AggregatedCountByLenMap::default();
-
-        info!("calculating leakage count by length");
 
         for (sensitive_agg, sensitive_count) in sensitive_aggregated_data.aggregates_count.iter() {
             if sensitive_count.count < resolution {
@@ -111,11 +106,7 @@ impl Evaluator {
         synthetic_aggregated_data: &AggregatedData,
         resolution: usize,
     ) -> AggregatedMetricByLenMap {
-        let _duration_logger = ElapsedDurationLogger::new("leakage percentage by len calculation");
-
-        info!("calculating leakage percentage by length");
-
-        let total_by_len = sensitive_aggregated_data.calc_combinations_count_by_len();
+        let total_by_len = sensitive_aggregated_data.calc_total_number_of_combinations_by_len();
 
         self.calc_leakage_count_by_len(
             sensitive_aggregated_data,
@@ -131,52 +122,48 @@ impl Evaluator {
         .collect::<AggregatedMetricByLenMap>()
     }
 
-    /// Calculates the total missed counts
+    /// Calculates the total number of suppressed combinations
     /// (how many attribute combinations exist on the sensitive data that do not
     /// exist on the synthetic data).
     /// # Arguments
     /// * `sensitive_aggregated_data` - Calculated aggregated data for the sensitive data
     /// * `synthetic_aggregated_data` - Calculated aggregated data for the synthetic data
-    pub fn calc_missed_count(
+    pub fn calc_number_of_suppressed_combinations(
         &self,
         sensitive_aggregated_data: &AggregatedData,
         synthetic_aggregated_data: &AggregatedData,
     ) -> usize {
-        let _duration_logger = ElapsedDurationLogger::new("missed count calculation");
-        let mut missed = 0;
-
-        info!("calculating missed combinations");
+        let mut suppressed = 0;
 
         for sensitive_agg in sensitive_aggregated_data.aggregates_count.keys() {
             if !synthetic_aggregated_data
                 .aggregates_count
                 .contains_key(sensitive_agg)
             {
-                missed += 1;
+                suppressed += 1;
             }
         }
-        missed
+        suppressed
     }
 
-    /// Calculates the total missed percentage
+    /// Calculates the total percentage of suppressed combinations
     /// (how many attribute combinations exist on the sensitive data that do not
     /// exist on the synthetic data).
     /// # Arguments
     /// * `sensitive_aggregated_data` - Calculated aggregated data for the sensitive data
     /// * `synthetic_aggregated_data` - Calculated aggregated data for the synthetic data
-    pub fn calc_missed_percentage(
+    pub fn calc_percentage_of_suppressed_combinations(
         &self,
         sensitive_aggregated_data: &AggregatedData,
         synthetic_aggregated_data: &AggregatedData,
     ) -> f64 {
-        let _duration_logger = ElapsedDurationLogger::new("missed percentage calculation");
-
-        info!("calculating missed percentage of combinations");
-
-        let total_count = sensitive_aggregated_data.total_number_of_combinations();
+        let total_count = sensitive_aggregated_data.number_of_distinct_combinations();
 
         if total_count > 0 {
-            ((self.calc_missed_count(sensitive_aggregated_data, synthetic_aggregated_data) as f64)
+            ((self.calc_number_of_suppressed_combinations(
+                sensitive_aggregated_data,
+                synthetic_aggregated_data,
+            ) as f64)
                 / (total_count as f64))
                 * 100.0
         } else {
@@ -184,21 +171,18 @@ impl Evaluator {
         }
     }
 
-    /// Calculates the total fabricated counts
+    /// Calculates the total number of fabricated combinations
     /// (how many attribute combinations exist on the synthetic data that do not
     /// exist on the sensitive data).
     /// # Arguments
     /// * `sensitive_aggregated_data` - Calculated aggregated data for the sensitive data
     /// * `synthetic_aggregated_data` - Calculated aggregated data for the synthetic data
-    pub fn calc_fabricated_count(
+    pub fn calc_number_of_fabricated_combinations(
         &self,
         sensitive_aggregated_data: &AggregatedData,
         synthetic_aggregated_data: &AggregatedData,
     ) -> usize {
-        let _duration_logger = ElapsedDurationLogger::new("fabricated count calculation");
         let mut fabricated = 0;
-
-        info!("calculating fabricated synthetic combinations");
 
         for synthetic_agg in synthetic_aggregated_data.aggregates_count.keys() {
             if !sensitive_aggregated_data
@@ -211,59 +195,29 @@ impl Evaluator {
         fabricated
     }
 
-    /// Calculates the total fabricated percentage
+    /// Calculates the total percentage of fabricated combinations
     /// (how many attribute combinations exist on the synthetic data that do not
     /// exist on the sensitive data).
     /// # Arguments
     /// * `sensitive_aggregated_data` - Calculated aggregated data for the sensitive data
     /// * `synthetic_aggregated_data` - Calculated aggregated data for the synthetic data
-    pub fn calc_fabricated_percentage(
+    pub fn calc_percentage_of_fabricated_combinations(
         &self,
         sensitive_aggregated_data: &AggregatedData,
         synthetic_aggregated_data: &AggregatedData,
     ) -> f64 {
-        let _duration_logger = ElapsedDurationLogger::new("fabricated percentage calculation");
-
-        info!("calculating fabricated percentage of combinations");
-
-        let total_count = sensitive_aggregated_data.total_number_of_combinations();
+        let total_count = sensitive_aggregated_data.number_of_distinct_combinations();
 
         if total_count > 0 {
-            ((self.calc_fabricated_count(sensitive_aggregated_data, synthetic_aggregated_data)
-                as f64)
+            ((self.calc_number_of_fabricated_combinations(
+                sensitive_aggregated_data,
+                synthetic_aggregated_data,
+            ) as f64)
                 / (total_count as f64))
                 * 100.0
         } else {
             0.0
         }
-    }
-
-    /// Calculates the fabricated counts grouped by combination length
-    /// (how many attribute combinations exist on the synthetic data that do not
-    /// exist on the sensitive data).
-    /// # Arguments
-    /// * `sensitive_aggregated_data` - Calculated aggregated data for the sensitive data
-    /// * `synthetic_aggregated_data` - Calculated aggregated data for the synthetic data
-    pub fn calc_fabricated_count_by_len(
-        &self,
-        sensitive_aggregated_data: &AggregatedData,
-        synthetic_aggregated_data: &AggregatedData,
-    ) -> AggregatedCountByLenMap {
-        let _duration_logger = ElapsedDurationLogger::new("fabricated count by len calculation");
-        let mut result: AggregatedCountByLenMap = AggregatedCountByLenMap::default();
-
-        info!("calculating fabricated synthetic combinations by length");
-
-        for synthetic_agg in synthetic_aggregated_data.aggregates_count.keys() {
-            if !sensitive_aggregated_data
-                .aggregates_count
-                .contains_key(synthetic_agg)
-            {
-                let fabricated = result.entry(synthetic_agg.len()).or_insert(0);
-                *fabricated += 1;
-            }
-        }
-        result
     }
 
     /// Calculates the preservation information grouped by combination count.
@@ -279,13 +233,6 @@ impl Evaluator {
         synthetic_aggregated_data: &AggregatedData,
         resolution: usize,
     ) -> PreservationByCountBuckets {
-        let _duration_logger = ElapsedDurationLogger::new("preservation by count calculation");
-
-        info!(
-            "calculating preservation by count with resolution: {}",
-            resolution
-        );
-
         let max_syn_count = *synthetic_aggregated_data
             .aggregates_count
             .values()
@@ -343,13 +290,6 @@ impl Evaluator {
         synthetic_aggregated_data: &AggregatedData,
         resolution: usize,
     ) -> PreservationByLengthBuckets {
-        let _duration_logger = ElapsedDurationLogger::new("preservation by length calculation");
-
-        info!(
-            "calculating preservation by length with resolution: {}",
-            resolution
-        );
-
         let mut buckets: PreservationByLengthBuckets = PreservationByLengthBuckets::default();
         let mut processed_combs: FnvHashSet<&Arc<ValueCombination>> = FnvHashSet::default();
 
@@ -401,8 +341,6 @@ impl Evaluator {
         combination_delimiter: &str,
         protect: bool,
     ) -> RareCombinationsComparisonData {
-        let _duration_logger =
-            ElapsedDurationLogger::new("synthetic and sensitive rare comparison");
         RareCombinationsComparisonData::from_synthetic_and_sensitive_aggregated_data(
             synthetic_aggregated_data,
             sensitive_aggregated_data,
@@ -417,16 +355,11 @@ impl Evaluator {
     /// # Arguments
     /// * `sensitive_aggregated_data` - Calculated aggregated data for the sensitive data
     /// * `synthetic_aggregated_data` - Calculated aggregated data for the synthetic data
-    pub fn calc_combinations_mean_abs_error_by_len(
+    pub fn calc_combinations_count_mean_abs_error_by_len(
         &self,
         sensitive_aggregated_data: &AggregatedData,
         synthetic_aggregated_data: &AggregatedData,
     ) -> AggregatedMetricByLenMap {
-        let _duration_logger =
-            ElapsedDurationLogger::new("combination mean abs error by len calculation");
-
-        info!("calculating combination mean abs error by length");
-
         self.calc_combinations_abs_error_sum_count_by_len(
             sensitive_aggregated_data,
             synthetic_aggregated_data,
@@ -440,15 +373,11 @@ impl Evaluator {
     /// # Arguments
     /// * `sensitive_aggregated_data` - Calculated aggregated data for the sensitive data
     /// * `synthetic_aggregated_data` - Calculated aggregated data for the synthetic data
-    pub fn calc_combinations_mean_abs_error(
+    pub fn calc_combinations_count_mean_abs_error(
         &self,
         sensitive_aggregated_data: &AggregatedData,
         synthetic_aggregated_data: &AggregatedData,
     ) -> f64 {
-        let _duration_logger = ElapsedDurationLogger::new("combination mean abs error calculation");
-
-        info!("calculating combination mean abs error");
-
         let err_sum_count = self
             .calc_combinations_abs_error_sum_count_by_len(
                 sensitive_aggregated_data,
@@ -476,19 +405,13 @@ impl Evaluator {
         sensitive_aggregated_data: &AggregatedData,
         synthetic_aggregated_data: &AggregatedData,
     ) -> f64 {
-        if sensitive_aggregated_data.data_block.number_of_records() > 0 {
-            (((synthetic_aggregated_data.data_block.number_of_records() as f64)
-                / (sensitive_aggregated_data.data_block.number_of_records() as f64))
+        if sensitive_aggregated_data.number_of_records > 0 {
+            (((synthetic_aggregated_data.number_of_records as f64)
+                / (sensitive_aggregated_data.number_of_records as f64))
                 - 1.0)
                 * 100.0
         } else {
             0.0
         }
     }
-}
-
-#[cfg(feature = "pyo3")]
-pub fn register(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_class::<Evaluator>()?;
-    Ok(())
 }

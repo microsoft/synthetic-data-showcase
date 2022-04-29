@@ -64,8 +64,9 @@ export function tableHeaders(
 			: ({
 					name: h,
 					fieldName: i.toString(),
-					use: true,
+					use: false,
 					hasSensitiveZeros: false,
+					spreadWithDelimiter: null,
 			  } as ICsvTableHeader),
 	)
 }
@@ -75,9 +76,21 @@ export function tableHeaders(
  * @param table
  * @param onlyUsed
  */
-export function headers(data: ICsvContent, onlyUsed = false): string[] {
-	const filtered = onlyUsed ? data.headers.filter(h => h.use) : data.headers
-	return filtered.map(h => h.name)
+export function usableHeaders(data: ICsvContent): ICsvTableHeader[] {
+	return data.headers.filter(
+		h => h.use && h.name !== data.subjectId && h.spreadWithDelimiter === null,
+	)
+}
+
+/**
+ * Get a list of spreadable column names from the table
+ * @param table
+ * @param onlyUsed
+ */
+export function spreadableHeaders(data: ICsvContent): ICsvTableHeader[] {
+	return data.headers.filter(
+		h => h.use && h.name !== data.subjectId && h.spreadWithDelimiter !== null,
+	)
 }
 
 /**

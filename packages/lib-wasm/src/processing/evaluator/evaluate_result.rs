@@ -3,8 +3,8 @@ use sds_core::utils::time::ElapsedDurationLogger;
 use wasm_bindgen::{prelude::*, JsCast};
 
 use crate::{
-    processing::aggregator::aggregate_result::WasmAggregateResult,
-    utils::js::ts_definitions::{JsEvaluateResult, JsResult},
+    processing::aggregator::WasmAggregateResult,
+    utils::js::{JsEvaluateResult, JsResult},
 };
 
 use super::microdata_data_stats::WasmMicrodataStatistics;

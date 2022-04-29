@@ -1,5 +1,5 @@
 use js_sys::{Array, Object, Set};
-use sds_core::data_block::value::DataBlockValue;
+use sds_core::data_block::DataBlockValue;
 use std::{
     collections::{HashMap, HashSet},
     convert::TryFrom,
@@ -7,7 +7,7 @@ use std::{
 };
 use wasm_bindgen::{JsCast, JsValue};
 
-use crate::utils::js::ts_definitions::JsSelectedAttributesByColumn;
+use crate::utils::js::JsSelectedAttributesByColumn;
 
 pub type WasmSelectedAttributes = HashSet<Arc<DataBlockValue>>;
 
