@@ -7,7 +7,7 @@ use std::sync::Arc;
 use crate::data_block::DataBlock;
 use crate::dp::{DpParameters, NoiseAggregator, NoisyCountThreshold, StatsError};
 use crate::utils::math::calc_percentage;
-use crate::utils::reporting::ReportProgress;
+use crate::utils::reporting::{ProcessingStoppedError, ReportProgress};
 use crate::utils::threading::get_number_of_threads;
 use crate::utils::time::ElapsedDurationLogger;
 
@@ -35,7 +35,7 @@ impl Aggregator {
         &mut self,
         reporting_length: usize,
         progress_reporter: &mut Option<T>,
-    ) -> AggregatedData
+    ) -> Result<AggregatedData, ProcessingStoppedError>
     where
         T: ReportProgress,
     {
@@ -51,31 +51,32 @@ impl Aggregator {
             get_number_of_threads()
         );
 
-        let result = RowsAggregator::aggregate_all(
+        RowsAggregator::aggregate_all(
             total_n_records,
             normalized_reporting_length,
             &mut self.build_rows_aggregators(normalized_reporting_length),
             progress_reporter,
-        );
-
-        Aggregator::update_aggregate_progress(
-            progress_reporter,
-            total_n_records,
-            total_n_records_f64,
-        );
-
-        info!(
-            "data aggregated resulting in {} distinct combinations...",
-            result.aggregates_count.len()
-        );
-
-        AggregatedData::new(
-            self.data_block.headers.clone(),
-            self.data_block.number_of_records(),
-            result.aggregates_count,
-            result.records_sensitivity_by_len,
-            normalized_reporting_length,
         )
+        .map(|result| {
+            Aggregator::update_aggregate_progress(
+                progress_reporter,
+                total_n_records,
+                total_n_records_f64,
+            );
+
+            info!(
+                "data aggregated resulting in {} distinct combinations...",
+                result.aggregates_count.len()
+            );
+
+            AggregatedData::new(
+                self.data_block.headers.clone(),
+                self.data_block.number_of_records(),
+                result.aggregates_count,
+                result.records_sensitivity_by_len,
+                normalized_reporting_length,
+            )
+        })
     }
 
     /// Compute the aggregate data for the `data_block` informed in

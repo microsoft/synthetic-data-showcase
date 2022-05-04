@@ -53,12 +53,13 @@ const HANDLERS = {
 	[SdsWasmMessageType.GetEvaluateResult]: handleGetEvaluateResult,
 }
 
-function postProgress(id: string, progress: number) {
+function postProgress(id: string, progress: number): boolean {
 	postMessage({
 		id,
 		type: SdsWasmMessageType.ReportProgress,
 		progress,
 	} as SdsWasmReportProgressResponse)
+	return true
 }
 
 function postError(id: string, errorMessage: string) {
@@ -135,9 +136,7 @@ async function handleGenerateAndEvaluate(
 				message.contextParameters.cacheSize,
 				message.contextParameters.resolution,
 				message.contextParameters.emptyValue,
-				p => {
-					postProgress(message.id, 0.5 * p)
-				},
+				p => postProgress(message.id, 0.5 * p),
 			)
 			break
 		case SynthesisMode.RowSeeded:
@@ -145,9 +144,7 @@ async function handleGenerateAndEvaluate(
 				message.contextParameters.cacheSize,
 				message.contextParameters.resolution,
 				message.contextParameters.emptyValue,
-				p => {
-					postProgress(message.id, 0.5 * p)
-				},
+				p => postProgress(message.id, 0.5 * p),
 			)
 			break
 		case SynthesisMode.ValueSeeded:
@@ -164,12 +161,8 @@ async function handleGenerateAndEvaluate(
 					OversamplingType.Controlled
 					? message.contextParameters.oversamplingTries
 					: undefined,
-				p => {
-					postProgress(message.id, 0.5 * (0.5 * p))
-				},
-				p => {
-					postProgress(message.id, 0.5 * (50.0 + 0.5 * p))
-				},
+				p => postProgress(message.id, 0.5 * (0.5 * p)),
+				p => postProgress(message.id, 0.5 * (50.0 + 0.5 * p)),
 			)
 			break
 		case SynthesisMode.AggregateSeeded:
@@ -178,12 +171,8 @@ async function handleGenerateAndEvaluate(
 				message.contextParameters.emptyValue,
 				message.contextParameters.reportingLength,
 				message.contextParameters.useSyntheticCounts === UseSyntheticCounts.Yes,
-				p => {
-					postProgress(message.id, 0.5 * (0.5 * p))
-				},
-				p => {
-					postProgress(message.id, 0.5 * (50.0 + 0.5 * p))
-				},
+				p => postProgress(message.id, 0.5 * (0.5 * p)),
+				p => postProgress(message.id, 0.5 * (50.0 + 0.5 * p)),
 			)
 			break
 		case SynthesisMode.DP:
@@ -201,15 +190,9 @@ async function handleGenerateAndEvaluate(
 						message.contextParameters.threshold,
 						message.contextParameters.useSyntheticCounts ===
 							UseSyntheticCounts.Yes,
-						p => {
-							postProgress(message.id, 0.5 * 0.25 * p)
-						},
-						p => {
-							postProgress(message.id, 0.5 * (25.0 + 0.25 * p))
-						},
-						p => {
-							postProgress(message.id, 0.5 * (50.0 + 0.5 * p))
-						},
+						p => postProgress(message.id, 0.5 * 0.25 * p),
+						p => postProgress(message.id, 0.5 * (25.0 + 0.25 * p)),
+						p => postProgress(message.id, 0.5 * (50.0 + 0.5 * p)),
 					)
 					break
 				case NoisyCountThresholdType.Adaptive:
@@ -225,15 +208,9 @@ async function handleGenerateAndEvaluate(
 						message.contextParameters.threshold,
 						message.contextParameters.useSyntheticCounts ===
 							UseSyntheticCounts.Yes,
-						p => {
-							postProgress(message.id, 0.5 * (0.25 * p))
-						},
-						p => {
-							postProgress(message.id, 0.5 * (25.0 + 0.25 * p))
-						},
-						p => {
-							postProgress(message.id, 0.5 * (50.0 + 0.5 * p))
-						},
+						p => postProgress(message.id, 0.5 * (0.25 * p)),
+						p => postProgress(message.id, 0.5 * (25.0 + 0.25 * p)),
+						p => postProgress(message.id, 0.5 * (50.0 + 0.5 * p)),
 					)
 					break
 			}
@@ -242,12 +219,8 @@ async function handleGenerateAndEvaluate(
 
 	value.context.evaluate(
 		message.contextParameters.reportingLength,
-		p => {
-			postProgress(message.id, 50.0 + 0.5 * 0.5 * p)
-		},
-		p => {
-			postProgress(message.id, 75.0 + 0.5 * 0.5 * p)
-		},
+		p => postProgress(message.id, 50.0 + 0.5 * 0.5 * p),
+		p => postProgress(message.id, 75.0 + 0.5 * 0.5 * p),
 	)
 
 	value.contextParameters.isEvaluated = true

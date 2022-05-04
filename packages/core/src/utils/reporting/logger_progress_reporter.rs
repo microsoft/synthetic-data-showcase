@@ -22,7 +22,7 @@ impl LoggerProgressReporter {
 }
 
 impl ReportProgress for LoggerProgressReporter {
-    fn report(&mut self, new_progress: f64) {
+    fn report(&mut self, new_progress: f64) -> bool {
         let p = new_progress.floor();
 
         if p > self.progress {
@@ -33,5 +33,6 @@ impl ReportProgress for LoggerProgressReporter {
                 self.progress
             );
         }
+        true
     }
 }

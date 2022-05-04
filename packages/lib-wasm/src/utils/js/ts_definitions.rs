@@ -2,7 +2,7 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(typescript_custom_section)]
 const TS_APPEND_CONTENT: &'static str = r#"
-export type ReportProgressCallback = (progress: number) => void
+export type ReportProgressCallback = (progress: number) => boolean
 
 export type HeaderNames = string[]
 

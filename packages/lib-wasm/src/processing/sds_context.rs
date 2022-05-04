@@ -384,7 +384,7 @@ impl SDSContext {
         synthetic_progress_callback: JsReportProgressCallback,
     ) -> JsResult<()> {
         if self.pre_computed_aggregates {
-            if self.sensitive_aggregate_result.reporting_length != reporting_length {
+            if self.reportable_aggregate_result.reporting_length != reporting_length {
                 return Err(
                     JsValue::from(
                         format!(

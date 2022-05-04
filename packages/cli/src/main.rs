@@ -372,14 +372,18 @@ fn main() {
                         Ok(ad) => ad,
                     }
                 } else {
-                    let mut aggregated_data =
-                        aggregator.aggregate(reporting_length, &mut progress_reporter);
-
-                    if !not_protect {
-                        aggregated_data.protect_with_k_anonymity(cli.resolution);
+                    match aggregator.aggregate(reporting_length, &mut progress_reporter) {
+                        Ok(mut aggregated_data) => {
+                            if !not_protect {
+                                aggregated_data.protect_with_k_anonymity(cli.resolution);
+                            }
+                            aggregated_data
+                        }
+                        Err(err) => {
+                            error!("data aggregation error: {}", err);
+                            process::exit(1);
+                        }
                     }
-
-                    aggregated_data
                 };
 
                 if let Err(err) = aggregated_data.write_aggregates_count(

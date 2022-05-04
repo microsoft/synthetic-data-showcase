@@ -84,10 +84,13 @@ impl SDSProcessor {
         let js_callback: Function = progress_callback.dyn_into()?;
         let mut aggregator = Aggregator::new(self.data_block.clone());
 
-        Ok(WasmAggregateResult::new(Arc::new(aggregator.aggregate(
-            reporting_length,
-            &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
-        ))))
+        aggregator
+            .aggregate(
+                reporting_length,
+                &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
+            )
+            .map(|aggregated_data| WasmAggregateResult::new(Arc::new(aggregated_data)))
+            .map_err(|err| JsValue::from(err.to_string()))
     }
 
     #[inline]
