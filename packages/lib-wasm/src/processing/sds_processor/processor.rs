@@ -193,13 +193,16 @@ impl SDSProcessor {
         let js_callback: Function = progress_callback.dyn_into()?;
         let generator = Generator::default();
 
-        Ok(WasmGenerateResult::new(generator.generate_unseeded(
-            &self.data_block,
+        Ok(WasmGenerateResult::new(
+            generator.generate_unseeded(
+                &self.data_block,
+                resolution,
+                cache_max_size,
+                &empty_value,
+                &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
+            ),
             resolution,
-            cache_max_size,
-            &empty_value,
-            &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
-        )))
+        ))
     }
 
     #[wasm_bindgen(js_name = "generateRowSeeded")]
@@ -214,13 +217,16 @@ impl SDSProcessor {
         let js_callback: Function = progress_callback.dyn_into()?;
         let generator = Generator::default();
 
-        Ok(WasmGenerateResult::new(generator.generate_row_seeded(
-            &self.data_block,
+        Ok(WasmGenerateResult::new(
+            generator.generate_row_seeded(
+                &self.data_block,
+                resolution,
+                cache_max_size,
+                &empty_value,
+                &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
+            ),
             resolution,
-            cache_max_size,
-            &empty_value,
-            &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
-        )))
+        ))
     }
 
     #[wasm_bindgen(js_name = "generateValueSeeded")]
@@ -239,18 +245,21 @@ impl SDSProcessor {
         let js_callback: Function = progress_callback.dyn_into()?;
         let generator = Generator::default();
 
-        Ok(WasmGenerateResult::new(generator.generate_value_seeded(
-            &self.data_block,
+        Ok(WasmGenerateResult::new(
+            generator.generate_value_seeded(
+                &self.data_block,
+                resolution,
+                cache_max_size,
+                &empty_value,
+                oversampling_ratio.map(|_| OversamplingParameters {
+                    aggregated_data: aggregated_result.aggregated_data.clone(),
+                    oversampling_ratio,
+                    oversampling_tries,
+                }),
+                &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
+            ),
             resolution,
-            cache_max_size,
-            &empty_value,
-            oversampling_ratio.map(|_| OversamplingParameters {
-                aggregated_data: aggregated_result.aggregated_data.clone(),
-                oversampling_ratio,
-                oversampling_tries,
-            }),
-            &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
-        )))
+        ))
     }
 
     #[wasm_bindgen(js_name = "generateAggregateSeeded")]
@@ -273,6 +282,7 @@ impl SDSProcessor {
                 use_synthetic_counts,
                 &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
             ),
+            1,
         ))
     }
 }

@@ -97,7 +97,7 @@ impl WasmSdsProcessor {
         resolution: usize,
         empty_value: String,
         progress_callback: JsReportProgressCallback,
-    ) -> Result<WasmGenerateResult, JsValue> {
+    ) -> JsResult<WasmGenerateResult> {
         let js_callback: Function = progress_callback.dyn_into()?;
 
         self._generate_unseeded(
@@ -116,7 +116,7 @@ impl WasmSdsProcessor {
         resolution: usize,
         empty_value: String,
         progress_callback: JsReportProgressCallback,
-    ) -> Result<WasmGenerateResult, JsValue> {
+    ) -> JsResult<WasmGenerateResult> {
         let js_callback: Function = progress_callback.dyn_into()?;
 
         self._generate_row_seeded(
@@ -137,7 +137,7 @@ impl WasmSdsProcessor {
         aggregated_result: &WasmAggregateResult,
         oversampling_parameters: Option<WasmOversamplingParameters>,
         progress_callback: JsReportProgressCallback,
-    ) -> Result<WasmGenerateResult, JsValue> {
+    ) -> JsResult<WasmGenerateResult> {
         let js_callback: Function = progress_callback.dyn_into()?;
 
         self._generate_value_seeded(
@@ -154,14 +154,16 @@ impl WasmSdsProcessor {
     #[wasm_bindgen(js_name = "generateAggregateSeeded")]
     pub fn generate_aggregate_seeded(
         &self,
+        resolution: usize,
         empty_value: String,
         aggregated_result: &WasmAggregateResult,
         use_synthetic_counts: bool,
         progress_callback: JsReportProgressCallback,
-    ) -> Result<WasmGenerateResult, JsValue> {
+    ) -> JsResult<WasmGenerateResult> {
         let js_callback: Function = progress_callback.dyn_into()?;
 
         self._generate_aggregate_seeded(
+            resolution,
             empty_value,
             aggregated_result,
             use_synthetic_counts,
@@ -212,16 +214,19 @@ impl WasmSdsProcessor {
         resolution: usize,
         empty_value: String,
         progress_reporter: &mut Option<JsProgressReporter>,
-    ) -> Result<WasmGenerateResult, JsValue> {
+    ) -> JsResult<WasmGenerateResult> {
         let generator = Generator::default();
 
-        Ok(WasmGenerateResult::new(generator.generate_unseeded(
-            &self.data_block,
+        Ok(WasmGenerateResult::new(
+            generator.generate_unseeded(
+                &self.data_block,
+                resolution,
+                cache_max_size,
+                &empty_value,
+                progress_reporter,
+            ),
             resolution,
-            cache_max_size,
-            &empty_value,
-            progress_reporter,
-        )))
+        ))
     }
 
     #[inline]
@@ -231,16 +236,19 @@ impl WasmSdsProcessor {
         resolution: usize,
         empty_value: String,
         progress_reporter: &mut Option<JsProgressReporter>,
-    ) -> Result<WasmGenerateResult, JsValue> {
+    ) -> JsResult<WasmGenerateResult> {
         let generator = Generator::default();
 
-        Ok(WasmGenerateResult::new(generator.generate_row_seeded(
-            &self.data_block,
+        Ok(WasmGenerateResult::new(
+            generator.generate_row_seeded(
+                &self.data_block,
+                resolution,
+                cache_max_size,
+                &empty_value,
+                progress_reporter,
+            ),
             resolution,
-            cache_max_size,
-            &empty_value,
-            progress_reporter,
-        )))
+        ))
     }
 
     #[inline]
@@ -252,33 +260,37 @@ impl WasmSdsProcessor {
         aggregated_result: &WasmAggregateResult,
         oversampling_parameters: Option<WasmOversamplingParameters>,
         progress_reporter: &mut Option<JsProgressReporter>,
-    ) -> Result<WasmGenerateResult, JsValue> {
+    ) -> JsResult<WasmGenerateResult> {
         let generator = Generator::default();
 
-        Ok(WasmGenerateResult::new(generator.generate_value_seeded(
-            &self.data_block,
+        Ok(WasmGenerateResult::new(
+            generator.generate_value_seeded(
+                &self.data_block,
+                resolution,
+                cache_max_size,
+                &empty_value,
+                oversampling_parameters.map(|params| {
+                    OversamplingParameters::new(
+                        aggregated_result.aggregated_data.clone(),
+                        params.oversampling_ratio,
+                        params.oversampling_tries,
+                    )
+                }),
+                progress_reporter,
+            ),
             resolution,
-            cache_max_size,
-            &empty_value,
-            oversampling_parameters.map(|params| {
-                OversamplingParameters::new(
-                    aggregated_result.aggregated_data.clone(),
-                    params.oversampling_ratio,
-                    params.oversampling_tries,
-                )
-            }),
-            progress_reporter,
-        )))
+        ))
     }
 
     #[inline]
     pub(crate) fn _generate_aggregate_seeded(
         &self,
+        resolution: usize,
         empty_value: String,
         aggregated_result: &WasmAggregateResult,
         use_synthetic_counts: bool,
         progress_reporter: &mut Option<JsProgressReporter>,
-    ) -> Result<WasmGenerateResult, JsValue> {
+    ) -> JsResult<WasmGenerateResult> {
         let generator = Generator::default();
 
         Ok(WasmGenerateResult::new(
@@ -288,6 +300,7 @@ impl WasmSdsProcessor {
                 use_synthetic_counts,
                 progress_reporter,
             ),
+            resolution,
         ))
     }
 }

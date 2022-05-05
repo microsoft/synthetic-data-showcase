@@ -31,7 +31,7 @@ impl WasmAggregateResult {
 #[wasm_bindgen]
 impl WasmAggregateResult {
     #[wasm_bindgen(js_name = "protectWithKAnonymity")]
-    pub fn protect_with_k_anonymity(&mut self, resolution: usize) -> WasmAggregateResult {
+    pub fn protect_with_k_anonymity(&self, resolution: usize) -> WasmAggregateResult {
         let mut new_aggregated_data = (*self.aggregated_data).clone();
 
         new_aggregated_data.protect_with_k_anonymity(resolution);

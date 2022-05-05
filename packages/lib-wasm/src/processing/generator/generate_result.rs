@@ -8,6 +8,7 @@ use crate::utils::js::{JsGenerateResult, JsResult};
 #[wasm_bindgen]
 pub struct WasmGenerateResult {
     generated_data: GeneratedData,
+    resolution: usize,
 }
 
 impl WasmGenerateResult {
@@ -15,12 +16,16 @@ impl WasmGenerateResult {
     pub fn default() -> WasmGenerateResult {
         WasmGenerateResult {
             generated_data: GeneratedData::default(),
+            resolution: 0,
         }
     }
 
     #[inline]
-    pub fn new(generated_data: GeneratedData) -> WasmGenerateResult {
-        WasmGenerateResult { generated_data }
+    pub fn new(generated_data: GeneratedData, resolution: usize) -> WasmGenerateResult {
+        WasmGenerateResult {
+            generated_data,
+            resolution,
+        }
     }
 }
 
@@ -30,6 +35,12 @@ impl WasmGenerateResult {
     #[wasm_bindgen(js_name = "expansionRatio")]
     pub fn expansion_ratio(&self) -> f64 {
         self.generated_data.expansion_ratio
+    }
+
+    #[wasm_bindgen(getter)]
+    #[wasm_bindgen(js_name = "resolution")]
+    pub fn resolution(&self) -> usize {
+        self.resolution
     }
 
     #[wasm_bindgen(js_name = "syntheticDataToJs")]
