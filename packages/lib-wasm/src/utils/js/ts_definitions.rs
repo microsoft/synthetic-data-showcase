@@ -50,6 +50,11 @@ export interface IDpParameters {
   sigmaProportions?: number[]
 }
 
+export interface IOversamplingParameters {
+  oversamplingRatio?: number
+  oversamplingTries?: number
+}
+
 export interface IGenerateResult {
   expansionRatio: number
   syntheticData: string
@@ -136,6 +141,9 @@ extern "C" {
 
     #[wasm_bindgen(typescript_type = "IDpParameters")]
     pub type JsDpParameters;
+
+    #[wasm_bindgen(typescript_type = "IOversamplingParameters")]
+    pub type JsOversamplingParameters;
 
     #[wasm_bindgen(typescript_type = "IGenerateResult")]
     pub type JsGenerateResult;

@@ -1,8 +1,13 @@
+use super::WasmOversamplingParameters;
 use csv::ReaderBuilder;
 use js_sys::Function;
 use sds_core::{
     data_block::{CsvDataBlockCreator, DataBlock, DataBlockCreator},
-    processing::aggregator::Aggregator,
+    dp::{DpParameters, NoisyCountThreshold},
+    processing::{
+        aggregator::Aggregator,
+        generator::{Generator, OversamplingParameters},
+    },
     utils::time::ElapsedDurationLogger,
 };
 use std::io::Cursor;
@@ -10,8 +15,8 @@ use std::sync::Arc;
 use wasm_bindgen::{prelude::*, JsCast};
 
 use crate::{
-    processing::sds_context_v2::WasmCsvDataParameters,
-    utils::js::{JsProgressReporter, JsResult},
+    processing::{generator::WasmGenerateResult, sds_context_v2::WasmCsvDataParameters},
+    utils::js::{JsDpParameters, JsNoisyCountThreshold, JsProgressReporter, JsResult},
     {processing::aggregator::WasmAggregateResult, utils::js::JsReportProgressCallback},
 };
 
@@ -36,7 +41,7 @@ impl WasmSdsProcessor {
         csv_data: &str,
         csv_data_params: &WasmCsvDataParameters,
     ) -> JsResult<WasmSdsProcessor> {
-        let _duration_logger = ElapsedDurationLogger::new(String::from("sds processor creation"));
+        let _duration_logger = ElapsedDurationLogger::new("sds processor creation");
         let data_block = CsvDataBlockCreator::create(
             Ok(ReaderBuilder::new()
                 .delimiter(csv_data_params.delimiter as u8)
@@ -51,6 +56,7 @@ impl WasmSdsProcessor {
     }
 
     #[inline]
+    #[wasm_bindgen(js_name = "aggregate")]
     pub fn aggregate(
         &self,
         reporting_length: usize,
@@ -63,6 +69,105 @@ impl WasmSdsProcessor {
             &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
         )
     }
+
+    #[inline]
+    #[wasm_bindgen(js_name = "aggregateWithDp")]
+    pub fn aggregate_with_dp(
+        &self,
+        reporting_length: usize,
+        dp_parameters: JsDpParameters,
+        threshold: JsNoisyCountThreshold,
+        progress_callback: JsReportProgressCallback,
+    ) -> JsResult<WasmAggregateResult> {
+        let js_callback: Function = progress_callback.dyn_into()?;
+
+        self._aggregate_with_dp(
+            reporting_length,
+            dp_parameters,
+            threshold,
+            &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
+        )
+    }
+
+    #[inline]
+    #[wasm_bindgen(js_name = "generateUnseeded")]
+    pub fn generate_unseeded(
+        &self,
+        cache_max_size: usize,
+        resolution: usize,
+        empty_value: String,
+        progress_callback: JsReportProgressCallback,
+    ) -> Result<WasmGenerateResult, JsValue> {
+        let js_callback: Function = progress_callback.dyn_into()?;
+
+        self._generate_unseeded(
+            cache_max_size,
+            resolution,
+            empty_value,
+            &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
+        )
+    }
+
+    #[inline]
+    #[wasm_bindgen(js_name = "generateRowSeeded")]
+    pub fn generate_row_seeded(
+        &self,
+        cache_max_size: usize,
+        resolution: usize,
+        empty_value: String,
+        progress_callback: JsReportProgressCallback,
+    ) -> Result<WasmGenerateResult, JsValue> {
+        let js_callback: Function = progress_callback.dyn_into()?;
+
+        self._generate_row_seeded(
+            cache_max_size,
+            resolution,
+            empty_value,
+            &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
+        )
+    }
+
+    #[inline]
+    #[wasm_bindgen(js_name = "generateValueSeeded")]
+    pub fn generate_value_seeded(
+        &self,
+        cache_max_size: usize,
+        resolution: usize,
+        empty_value: String,
+        aggregated_result: &WasmAggregateResult,
+        oversampling_parameters: Option<WasmOversamplingParameters>,
+        progress_callback: JsReportProgressCallback,
+    ) -> Result<WasmGenerateResult, JsValue> {
+        let js_callback: Function = progress_callback.dyn_into()?;
+
+        self._generate_value_seeded(
+            cache_max_size,
+            resolution,
+            empty_value,
+            aggregated_result,
+            oversampling_parameters,
+            &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
+        )
+    }
+
+    #[inline]
+    #[wasm_bindgen(js_name = "generateAggregateSeeded")]
+    pub fn generate_aggregate_seeded(
+        &self,
+        empty_value: String,
+        aggregated_result: &WasmAggregateResult,
+        use_synthetic_counts: bool,
+        progress_callback: JsReportProgressCallback,
+    ) -> Result<WasmGenerateResult, JsValue> {
+        let js_callback: Function = progress_callback.dyn_into()?;
+
+        self._generate_aggregate_seeded(
+            empty_value,
+            aggregated_result,
+            use_synthetic_counts,
+            &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
+        )
+    }
 }
 
 impl WasmSdsProcessor {
@@ -70,14 +175,119 @@ impl WasmSdsProcessor {
     pub(crate) fn _aggregate(
         &self,
         reporting_length: usize,
-        progress_callback: &mut Option<JsProgressReporter>,
+        progress_reporter: &mut Option<JsProgressReporter>,
     ) -> JsResult<WasmAggregateResult> {
-        let _duration_logger =
-            ElapsedDurationLogger::new(String::from("sds processor aggregation"));
-
         Aggregator::new(self.data_block.clone())
-            .aggregate(reporting_length, progress_callback)
+            .aggregate(reporting_length, progress_reporter)
             .map(|aggregated_data| WasmAggregateResult::new(Arc::new(aggregated_data)))
             .map_err(|err| JsValue::from(err.to_string()))
+    }
+
+    #[inline]
+    pub(crate) fn _aggregate_with_dp(
+        &self,
+        reporting_length: usize,
+        dp_parameters: JsDpParameters,
+        threshold: JsNoisyCountThreshold,
+        progress_reporter: &mut Option<JsProgressReporter>,
+    ) -> JsResult<WasmAggregateResult> {
+        let aggregator = Aggregator::new(self.data_block.clone());
+
+        Ok(WasmAggregateResult::new(Arc::new(
+            aggregator
+                .aggregate_with_dp(
+                    reporting_length,
+                    &DpParameters::try_from(dp_parameters)?,
+                    NoisyCountThreshold::try_from(threshold)?,
+                    progress_reporter,
+                )
+                .map_err(|err| JsValue::from(err.to_string()))?,
+        )))
+    }
+
+    #[inline]
+    pub(crate) fn _generate_unseeded(
+        &self,
+        cache_max_size: usize,
+        resolution: usize,
+        empty_value: String,
+        progress_reporter: &mut Option<JsProgressReporter>,
+    ) -> Result<WasmGenerateResult, JsValue> {
+        let generator = Generator::default();
+
+        Ok(WasmGenerateResult::new(generator.generate_unseeded(
+            &self.data_block,
+            resolution,
+            cache_max_size,
+            &empty_value,
+            progress_reporter,
+        )))
+    }
+
+    #[inline]
+    pub(crate) fn _generate_row_seeded(
+        &self,
+        cache_max_size: usize,
+        resolution: usize,
+        empty_value: String,
+        progress_reporter: &mut Option<JsProgressReporter>,
+    ) -> Result<WasmGenerateResult, JsValue> {
+        let generator = Generator::default();
+
+        Ok(WasmGenerateResult::new(generator.generate_row_seeded(
+            &self.data_block,
+            resolution,
+            cache_max_size,
+            &empty_value,
+            progress_reporter,
+        )))
+    }
+
+    #[inline]
+    pub(crate) fn _generate_value_seeded(
+        &self,
+        cache_max_size: usize,
+        resolution: usize,
+        empty_value: String,
+        aggregated_result: &WasmAggregateResult,
+        oversampling_parameters: Option<WasmOversamplingParameters>,
+        progress_reporter: &mut Option<JsProgressReporter>,
+    ) -> Result<WasmGenerateResult, JsValue> {
+        let generator = Generator::default();
+
+        Ok(WasmGenerateResult::new(generator.generate_value_seeded(
+            &self.data_block,
+            resolution,
+            cache_max_size,
+            &empty_value,
+            oversampling_parameters.map(|params| {
+                OversamplingParameters::new(
+                    aggregated_result.aggregated_data.clone(),
+                    params.oversampling_ratio,
+                    params.oversampling_tries,
+                )
+            }),
+            progress_reporter,
+        )))
+    }
+
+    #[inline]
+    pub(crate) fn _generate_aggregate_seeded(
+        &self,
+        empty_value: String,
+        aggregated_result: &WasmAggregateResult,
+        use_synthetic_counts: bool,
+        progress_reporter: &mut Option<JsProgressReporter>,
+    ) -> Result<WasmGenerateResult, JsValue> {
+        let generator = Generator::default();
+
+        Ok(WasmGenerateResult::new(
+            generator.generate_aggregate_seeded(
+                &empty_value,
+                aggregated_result.aggregated_data.clone(),
+                use_synthetic_counts,
+                progress_reporter,
+            ),
+        ))
     }
 }
