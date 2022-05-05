@@ -20,8 +20,9 @@ use pyo3::prelude::*;
 
 use crate::{
     data_block::DataBlockHeaders,
-    processing::aggregator::{
-        typedefs::RecordsSet, value_combination::ValueCombination, AggregatedCount,
+    processing::{
+        aggregator::{typedefs::RecordsSet, value_combination::ValueCombination, AggregatedCount},
+        generator::AttributeCountMap,
     },
     utils::{math::uround_down, time::ElapsedDurationLogger},
 };
@@ -78,6 +79,21 @@ impl AggregatedData {
             records_sensitivity_by_len,
             reporting_length,
         }
+    }
+
+    /// Single attribute counts map
+    #[inline]
+    pub fn calc_single_attribute_counts(&self) -> AttributeCountMap {
+        self.aggregates_count
+            .iter()
+            .filter_map(|(comb, count)| {
+                if comb.len() == 1 {
+                    Some((comb[0].clone(), count.count))
+                } else {
+                    None
+                }
+            })
+            .collect()
     }
 
     #[inline]

@@ -2,12 +2,52 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(typescript_custom_section)]
 const TS_APPEND_CONTENT: &'static str = r#"
+export type HeaderNames = string[]
+
+export interface ICsvDataParameters {
+  delimiter: string
+  useColumns: HeaderNames
+  sensitiveZeros: HeaderNames
+  recordLimit: number
+}
+
 export type ReportProgressCallback = (progress: number) => boolean
 
-export type HeaderNames = string[]
+export interface ISingleAttributeCounts {
+  [attr: string]: number
+}
+
+export interface IAggregateStatistics {
+  numberOfDistinctAttributes: number
+  singleAttributeCounts: ISingleAttributeCounts
+  numberOfUniqueCombinations: number
+  numberOfRecordsWithUniqueCombinations: number
+  numberOfRareCombinations: number
+  numberOfRecordsWithRareCombinations: number
+  numberOfRecords: number
+  numberOfDistinctCombinations: usize
+}
+
+export enum NoisyCountThresholdType {
+  Fixed = 'Fixed'
+  Adaptive = 'Adaptive'
+}
 
 export interface IInputNumberByLength {
   [length: number]: number
+}
+
+export interface INoisyCountThreshold {
+  type: NoisyCountThresholdType
+  valuesByLen: IInputNumberByLength
+}
+
+export interface IDpParameters {
+  epsilon: number
+  delta: number
+  percentilePercentage: number
+  percentileEpsilonProportion: number
+  sigmaProportions?: number[]
 }
 
 export interface IGenerateResult {
@@ -70,14 +110,32 @@ export interface IAttributesIntersectionByColumn {
 
 #[wasm_bindgen]
 extern "C" {
-    #[wasm_bindgen(typescript_type = "ReportProgressCallback")]
-    pub type JsReportProgressCallback;
-
     #[wasm_bindgen(typescript_type = "HeaderNames")]
     pub type JsHeaderNames;
 
+    #[wasm_bindgen(typescript_type = "ICsvDataParameters")]
+    pub type JsCsvDataParameters;
+
+    #[wasm_bindgen(typescript_type = "ReportProgressCallback")]
+    pub type JsReportProgressCallback;
+
+    #[wasm_bindgen(typescript_type = "ISingleAttributeCounts")]
+    pub type JsSingleAttributeCounts;
+
+    #[wasm_bindgen(typescript_type = "IAggregateStatistics")]
+    pub type JsAggregateStatistics;
+
+    #[wasm_bindgen(typescript_type = "NoisyCountThresholdType")]
+    pub type JsNoisyCountThresholdType;
+
     #[wasm_bindgen(typescript_type = "IInputNumberByLength")]
     pub type JsInputNumberByLength;
+
+    #[wasm_bindgen(typescript_type = "INoisyCountThreshold")]
+    pub type JsNoisyCountThreshold;
+
+    #[wasm_bindgen(typescript_type = "IDpParameters")]
+    pub type JsDpParameters;
 
     #[wasm_bindgen(typescript_type = "IGenerateResult")]
     pub type JsGenerateResult;

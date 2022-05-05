@@ -1,9 +1,11 @@
 #[cfg(feature = "pyo3")]
 use pyo3::prelude::*;
+use serde::{Deserialize, Serialize};
 
 /// Parameters for aggregate generation with differential privacy
 #[cfg_attr(feature = "pyo3", pyclass)]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct DpParameters {
     /// Overall privacy budget used between
     /// percentile filtering and noisy generation by combination length
