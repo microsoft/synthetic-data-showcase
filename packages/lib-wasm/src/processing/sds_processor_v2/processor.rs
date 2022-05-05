@@ -15,7 +15,7 @@ use std::sync::Arc;
 use wasm_bindgen::{prelude::*, JsCast};
 
 use crate::{
-    processing::{generator::WasmGenerateResult, sds_context_v2::WasmCsvDataParameters},
+    processing::{generator::WasmGenerateResult, sds_processor_v2::WasmCsvDataParameters},
     utils::js::{JsDpParameters, JsNoisyCountThreshold, JsProgressReporter, JsResult},
     {processing::aggregator::WasmAggregateResult, utils::js::JsReportProgressCallback},
 };

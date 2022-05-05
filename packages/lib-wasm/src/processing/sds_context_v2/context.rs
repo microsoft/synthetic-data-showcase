@@ -1,8 +1,10 @@
-use super::WasmCsvDataParameters;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 use crate::{
-    processing::{aggregator::WasmAggregateResult, sds_processor_v2::WasmSdsProcessor},
+    processing::{
+        aggregator::WasmAggregateResult,
+        sds_processor_v2::{WasmCsvDataParameters, WasmSdsProcessor},
+    },
     utils::js::{JsAggregateStatistics, JsCsvDataParameters, JsReportProgressCallback, JsResult},
 };
 
