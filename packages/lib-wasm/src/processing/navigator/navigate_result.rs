@@ -14,7 +14,10 @@ use std::{cmp::Reverse, convert::TryFrom, sync::Arc};
 use wasm_bindgen::prelude::*;
 
 use crate::{
-    processing::{aggregator::WasmAggregateResult, sds_processor::SDSProcessor},
+    processing::{
+        aggregator::WasmAggregateResult, sds_processor::SDSProcessor,
+        sds_processor_v2::WasmSdsProcessor,
+    },
     utils::js::{
         JsAttributesIntersectionByColumn, JsHeaderNames, JsResult, JsSelectedAttributesByColumn,
     },
@@ -135,8 +138,25 @@ impl WasmNavigateResult {
 
 #[wasm_bindgen]
 impl WasmNavigateResult {
+    // TODO: remove this
     #[wasm_bindgen(constructor)]
     pub fn from_synthetic_processor(synthetic_processor: &SDSProcessor) -> WasmNavigateResult {
+        WasmNavigateResult::new(
+            synthetic_processor.data_block.clone(),
+            synthetic_processor
+                .data_block
+                .calc_attr_rows_by_column_with_no_empty_values(),
+            WasmSelectedAttributesByColumn::default(),
+            AttributeRows::default(),
+            (0..synthetic_processor.data_block.number_of_records()).collect(),
+            synthetic_processor.data_block.calc_column_index_by_name(),
+        )
+    }
+
+    #[wasm_bindgen(constructor)]
+    pub fn from_synthetic_processor_v2(
+        synthetic_processor: &WasmSdsProcessor,
+    ) -> WasmNavigateResult {
         WasmNavigateResult::new(
             synthetic_processor.data_block.clone(),
             synthetic_processor
@@ -158,7 +178,7 @@ impl WasmNavigateResult {
 
     #[wasm_bindgen(js_name = "attributesIntersectionsByColumn")]
     pub fn attributes_intersections_by_column(
-        &mut self,
+        &self,
         columns: JsHeaderNames,
         sensitive_aggregate_result: &WasmAggregateResult,
     ) -> JsResult<JsAttributesIntersectionByColumn> {

@@ -1,5 +1,6 @@
 use super::errors::{
-    INVALID_REPORTABLE_REPORTING_LENGTH_ERROR, MISSING_GENERATE_RESULT_ERROR,
+    INVALID_REPORTABLE_REPORTING_LENGTH_ERROR, MISSING_EVALUATE_RESULT_ERROR,
+    MISSING_GENERATE_RESULT_ERROR, MISSING_NAVIGATE_RESULT_ERROR,
     MISSING_REPORTABLE_AGGREGATE_RESULT_ERROR, MISSING_SENSITIVE_AGGREGATE_RESULT_ERROR,
     MISSING_SENSITIVE_DATA_ERROR, MISSING_SYNTHETIC_AGGREGATE_RESULT_ERROR,
     MISSING_SYNTHETIC_PROCESSOR_ERROR,
@@ -19,9 +20,10 @@ use crate::{
         },
     },
     utils::js::{
-        JsAggregateStatistics, JsBaseSynthesisParameters, JsCsvDataParameters, JsDpParameters,
-        JsNoisyCountThreshold, JsOversamplingParameters, JsProgressReporter,
-        JsReportProgressCallback, JsResult,
+        JsAggregateResult, JsAggregateStatistics, JsAttributesIntersectionByColumn,
+        JsBaseSynthesisParameters, JsCsvDataParameters, JsDpParameters, JsEvaluateResult,
+        JsGenerateResult, JsHeaderNames, JsNoisyCountThreshold, JsOversamplingParameters,
+        JsProgressReporter, JsReportProgressCallback, JsResult, JsSelectedAttributesByColumn,
     },
 };
 
@@ -268,6 +270,82 @@ impl WasmSdsContext {
         self.clear_navigate();
         Ok(())
     }
+
+    #[wasm_bindgen(js_name = "navigate")]
+    pub fn navigate(&mut self) -> JsResult<()> {
+        self.navigate_result = Some(WasmNavigateResult::from_synthetic_processor_v2(
+            self.get_synthetic_processor()?,
+        ));
+        Ok(())
+    }
+
+    #[wasm_bindgen(js_name = "selectAttributes")]
+    pub fn select_attributes(&mut self, attributes: JsSelectedAttributesByColumn) -> JsResult<()> {
+        self.get_navigate_result_mut()?
+            .select_attributes(attributes)
+    }
+
+    #[wasm_bindgen(js_name = "attributesIntersectionsByColumn")]
+    pub fn attributes_intersections_by_column(
+        &self,
+        columns: JsHeaderNames,
+    ) -> JsResult<JsAttributesIntersectionByColumn> {
+        self.get_navigate_result()?
+            .attributes_intersections_by_column(columns, self.get_reportable_aggregate_result()?)
+    }
+
+    #[wasm_bindgen(js_name = "generateResultToJs")]
+    pub fn generate_result_to_js(&self) -> JsResult<JsGenerateResult> {
+        self.get_generate_result()?
+            .to_js(self.get_sensitive_data_params()?.delimiter)
+    }
+
+    #[wasm_bindgen(js_name = "evaluateResultToJs")]
+    pub fn evaluate_result_to_js(&self) -> JsResult<JsEvaluateResult> {
+        self.get_evaluate_result()?.to_js()
+    }
+
+    #[wasm_bindgen(js_name = "sensitiveAggregateResultToJs")]
+    pub fn sensitive_aggregate_result_to_js(
+        &self,
+        aggregates_delimiter: char,
+        combination_delimiter: &str,
+    ) -> JsResult<JsAggregateResult> {
+        self.get_sensitive_aggregate_result()?.to_js(
+            aggregates_delimiter,
+            combination_delimiter,
+            self.get_generate_result()?.resolution(),
+            false,
+        )
+    }
+
+    #[wasm_bindgen(js_name = "reportableAggregateResultToJs")]
+    pub fn reportable_aggregate_result_to_js(
+        &self,
+        aggregates_delimiter: char,
+        combination_delimiter: &str,
+    ) -> JsResult<JsAggregateResult> {
+        self.get_reportable_aggregate_result()?.to_js(
+            aggregates_delimiter,
+            combination_delimiter,
+            self.get_generate_result()?.resolution(),
+            true,
+        )
+    }
+
+    #[wasm_bindgen(js_name = "syntheticAggregateResultToJs")]
+    pub fn synthetic_aggregate_result_to_js(
+        &self,
+        aggregates_delimiter: char,
+        combination_delimiter: &str,
+    ) -> JsResult<JsAggregateResult> {
+        self.get_synthetic_aggregate_result()?.to_js(
+            aggregates_delimiter,
+            combination_delimiter,
+            self.get_generate_result()?.resolution(),
+            false,
+        )
+    }
 }
 
 impl WasmSdsContext {
@@ -382,5 +460,26 @@ impl WasmSdsContext {
         self.synthetic_aggregate_result
             .as_ref()
             .ok_or_else(|| JsValue::from_str(MISSING_SYNTHETIC_AGGREGATE_RESULT_ERROR))
+    }
+
+    #[inline]
+    fn get_evaluate_result(&self) -> JsResult<&WasmEvaluateResult> {
+        self.evaluate_result
+            .as_ref()
+            .ok_or_else(|| JsValue::from_str(MISSING_EVALUATE_RESULT_ERROR))
+    }
+
+    #[inline]
+    fn get_navigate_result_mut(&mut self) -> JsResult<&mut WasmNavigateResult> {
+        self.navigate_result
+            .as_mut()
+            .ok_or_else(|| JsValue::from_str(MISSING_NAVIGATE_RESULT_ERROR))
+    }
+
+    #[inline]
+    fn get_navigate_result(&self) -> JsResult<&WasmNavigateResult> {
+        self.navigate_result
+            .as_ref()
+            .ok_or_else(|| JsValue::from_str(MISSING_NAVIGATE_RESULT_ERROR))
     }
 }
