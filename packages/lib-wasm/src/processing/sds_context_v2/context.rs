@@ -143,20 +143,20 @@ impl WasmSdsContext {
             _ => None,
         };
         let js_callback: Function = progress_callback.dyn_into()?;
-        let reportable_aggregate_result = self
-            .get_or_create_sensitive_aggregate_result(
+
+        self.reportable_aggregate_result = Some(
+            self.get_or_create_sensitive_aggregate_result(
                 reporting_length,
                 &mut Some(JsProgressReporter::new(&js_callback, &|p| 0.5 * p)),
             )?
-            .protect_with_k_anonymity(base_params.resolution);
-
+            .protect_with_k_anonymity(base_params.resolution),
+        );
         self.generate_result = Some(self.get_sensitive_processor()?._generate_value_seeded(
             &base_params,
-            &reportable_aggregate_result,
+            self.get_reportable_aggregate_result()?,
             oversampling_parameters,
             &mut Some(JsProgressReporter::new(&js_callback, &|p| 50.0 + 0.5 * p)),
         )?);
-        self.reportable_aggregate_result = Some(reportable_aggregate_result);
         self.pre_computed_aggregates = true;
         Ok(())
     }
@@ -171,20 +171,20 @@ impl WasmSdsContext {
     ) -> JsResult<()> {
         let base_params = WasmBaseSynthesisParameters::try_from(base_parameters)?;
         let js_callback: Function = progress_callback.dyn_into()?;
-        let reportable_aggregate_result = self
-            .get_or_create_sensitive_aggregate_result(
+
+        self.reportable_aggregate_result = Some(
+            self.get_or_create_sensitive_aggregate_result(
                 reporting_length,
                 &mut Some(JsProgressReporter::new(&js_callback, &|p| 0.5 * p)),
             )?
-            .protect_with_k_anonymity(base_params.resolution);
-
+            .protect_with_k_anonymity(base_params.resolution),
+        );
         self.generate_result = Some(self.get_sensitive_processor()?._generate_aggregate_seeded(
             &base_params,
-            &reportable_aggregate_result,
+            self.get_reportable_aggregate_result()?,
             use_synthetic_counts,
             &mut Some(JsProgressReporter::new(&js_callback, &|p| 50.0 + 0.5 * p)),
         )?);
-        self.reportable_aggregate_result = Some(reportable_aggregate_result);
         self.pre_computed_aggregates = true;
         Ok(())
     }
@@ -200,21 +200,20 @@ impl WasmSdsContext {
         progress_callback: JsReportProgressCallback,
     ) -> JsResult<()> {
         let js_callback: Function = progress_callback.dyn_into()?;
-        let sensitive_processor = self.get_sensitive_processor()?;
-        let reportable_aggregate_result = sensitive_processor._aggregate_with_dp(
-            reporting_length,
-            dp_parameters,
-            threshold,
-            &mut Some(JsProgressReporter::new(&js_callback, &|p| 0.5 * p)),
-        )?;
 
-        self.generate_result = Some(sensitive_processor._generate_aggregate_seeded(
+        self.reportable_aggregate_result =
+            Some(self.get_sensitive_processor()?._aggregate_with_dp(
+                reporting_length,
+                dp_parameters,
+                threshold,
+                &mut Some(JsProgressReporter::new(&js_callback, &|p| 0.5 * p)),
+            )?);
+        self.generate_result = Some(self.get_sensitive_processor()?._generate_aggregate_seeded(
             &WasmBaseSynthesisParameters::try_from(base_parameters)?,
-            &reportable_aggregate_result,
+            self.get_reportable_aggregate_result()?,
             use_synthetic_counts,
             &mut Some(JsProgressReporter::new(&js_callback, &|p| 50.0 + 0.5 * p)),
         )?);
-        self.reportable_aggregate_result = Some(reportable_aggregate_result);
         self.pre_computed_aggregates = true;
         Ok(())
     }
