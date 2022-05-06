@@ -153,7 +153,6 @@ impl WasmNavigateResult {
         )
     }
 
-    #[wasm_bindgen(constructor)]
     pub fn from_synthetic_processor_v2(
         synthetic_processor: &WasmSdsProcessor,
     ) -> WasmNavigateResult {
