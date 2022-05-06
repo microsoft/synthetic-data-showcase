@@ -1,11 +1,17 @@
+use super::errors::{
+    INVALID_REPORTABLE_REPORTING_LENGTH_ERROR, MISSING_GENERATE_RESULT_ERROR,
+    MISSING_REPORTABLE_AGGREGATE_RESULT_ERROR, MISSING_SENSITIVE_AGGREGATE_RESULT_ERROR,
+    MISSING_SENSITIVE_DATA_ERROR, MISSING_SYNTHETIC_AGGREGATE_RESULT_ERROR,
+    MISSING_SYNTHETIC_PROCESSOR_ERROR,
+};
 use js_sys::Function;
 use wasm_bindgen::{prelude::wasm_bindgen, JsCast, JsValue};
 
 use crate::{
     processing::{
         aggregator::WasmAggregateResult,
+        evaluator::WasmEvaluateResult,
         generator::WasmGenerateResult,
-        sds_context_v2::MISSING_SENSITIVE_DATA_ERROR,
         sds_processor_v2::{
             WasmBaseSynthesisParameters, WasmCsvDataParameters, WasmOversamplingParameters,
             WasmSdsProcessor,
@@ -27,6 +33,8 @@ pub struct WasmSdsContext {
     reportable_aggregate_result: Option<WasmAggregateResult>,
     synthetic_aggregate_result: Option<WasmAggregateResult>,
     generate_result: Option<WasmGenerateResult>,
+    pre_computed_aggregates: bool,
+    evaluate_result: Option<WasmEvaluateResult>,
 }
 
 #[wasm_bindgen]
@@ -41,6 +49,8 @@ impl WasmSdsContext {
             reportable_aggregate_result: None,
             synthetic_aggregate_result: None,
             generate_result: None,
+            pre_computed_aggregates: false,
+            evaluate_result: None,
         }
     }
 
@@ -70,6 +80,8 @@ impl WasmSdsContext {
         self.reportable_aggregate_result = None;
         self.synthetic_aggregate_result = None;
         self.generate_result = None;
+        self.pre_computed_aggregates = false;
+        self.evaluate_result = None;
     }
 
     #[wasm_bindgen(js_name = "sensitiveAggregateStatistics")]
@@ -99,6 +111,7 @@ impl WasmSdsContext {
             &WasmBaseSynthesisParameters::try_from(base_parameters)?,
             progress_callback,
         )?);
+        self.pre_computed_aggregates = false;
         Ok(())
     }
 
@@ -112,6 +125,7 @@ impl WasmSdsContext {
             &WasmBaseSynthesisParameters::try_from(base_parameters)?,
             progress_callback,
         )?);
+        self.pre_computed_aggregates = false;
         Ok(())
     }
 
@@ -143,6 +157,7 @@ impl WasmSdsContext {
             &mut Some(JsProgressReporter::new(&js_callback, &|p| 50.0 + 0.5 * p)),
         )?);
         self.reportable_aggregate_result = Some(reportable_aggregate_result);
+        self.pre_computed_aggregates = true;
         Ok(())
     }
 
@@ -170,6 +185,7 @@ impl WasmSdsContext {
             &mut Some(JsProgressReporter::new(&js_callback, &|p| 50.0 + 0.5 * p)),
         )?);
         self.reportable_aggregate_result = Some(reportable_aggregate_result);
+        self.pre_computed_aggregates = true;
         Ok(())
     }
 
@@ -199,11 +215,64 @@ impl WasmSdsContext {
             &mut Some(JsProgressReporter::new(&js_callback, &|p| 50.0 + 0.5 * p)),
         )?);
         self.reportable_aggregate_result = Some(reportable_aggregate_result);
+        self.pre_computed_aggregates = true;
+        Ok(())
+    }
+
+    #[wasm_bindgen(js_name = "evaluate")]
+    pub fn evaluate(
+        &mut self,
+        reporting_length: usize,
+        progress_callback: JsReportProgressCallback,
+    ) -> JsResult<()> {
+        let js_callback: Function = progress_callback.dyn_into()?;
+        let resolution = self.get_generate_result()?.resolution();
+        let mut params = (*self.get_sensitive_data_params()?).clone();
+
+        if self.pre_computed_aggregates {
+            self.check_reportable_aggregate_result(reporting_length)?;
+        } else {
+            self.reportable_aggregate_result = Some(
+                self.get_or_create_sensitive_aggregate_result(
+                    reporting_length,
+                    &mut Some(JsProgressReporter::new(&js_callback, &|p| 0.5 * p)),
+                )?
+                .protect_with_k_anonymity(resolution),
+            );
+        }
+
+        // always process all the synthetic data
+        params.record_limit = 0;
+
+        self.synthetic_processor = Some(WasmSdsProcessor::new(
+            &self
+                .get_generate_result()?
+                .synthetic_data_to_js(params.delimiter)?,
+            &params,
+        )?);
+        self.synthetic_aggregate_result = Some(self.get_synthetic_processor()?._aggregate(
+            reporting_length,
+            &mut Some(JsProgressReporter::new(&js_callback, &|p| 50.0 + 0.5 * p)),
+        )?);
+        self.evaluate_result = Some(WasmEvaluateResult::from_aggregate_results(
+            self.get_sensitive_aggregate_result()?,
+            self.get_reportable_aggregate_result()?,
+            self.get_synthetic_aggregate_result()?,
+            resolution,
+            reporting_length,
+        )?);
         Ok(())
     }
 }
 
 impl WasmSdsContext {
+    #[inline]
+    fn get_sensitive_data_params(&self) -> JsResult<&WasmCsvDataParameters> {
+        self.sensitive_data_params
+            .as_ref()
+            .ok_or_else(|| JsValue::from_str(MISSING_SENSITIVE_DATA_ERROR))
+    }
+
     #[inline]
     fn get_sensitive_processor(&self) -> JsResult<&WasmSdsProcessor> {
         self.sensitive_processor
@@ -227,6 +296,13 @@ impl WasmSdsContext {
     }
 
     #[inline]
+    fn get_sensitive_aggregate_result(&self) -> JsResult<&WasmAggregateResult> {
+        self.sensitive_aggregate_result
+            .as_ref()
+            .ok_or_else(|| JsValue::from_str(MISSING_SENSITIVE_AGGREGATE_RESULT_ERROR))
+    }
+
+    #[inline]
     fn get_or_create_sensitive_aggregate_result(
         &mut self,
         reporting_length: usize,
@@ -238,6 +314,52 @@ impl WasmSdsContext {
                     ._aggregate(reporting_length, progress_reporter)?,
             );
         }
-        Ok(self.sensitive_aggregate_result.as_ref().unwrap())
+        self.get_sensitive_aggregate_result()
+    }
+
+    #[inline]
+    fn check_reportable_aggregate_result(&self, reporting_length: usize) -> JsResult<()> {
+        let reportable_aggregate_result = self.get_reportable_aggregate_result()?;
+
+        if reportable_aggregate_result.reporting_length != reporting_length {
+            return Err(JsValue::from(
+                INVALID_REPORTABLE_REPORTING_LENGTH_ERROR
+                    .to_owned()
+                    .replace(
+                        "{0}",
+                        &reportable_aggregate_result.reporting_length.to_string(),
+                    )
+                    .replace("{1}", &reporting_length.to_string()),
+            ));
+        }
+        Ok(())
+    }
+
+    #[inline]
+    fn get_generate_result(&self) -> JsResult<&WasmGenerateResult> {
+        self.generate_result
+            .as_ref()
+            .ok_or_else(|| JsValue::from_str(MISSING_GENERATE_RESULT_ERROR))
+    }
+
+    #[inline]
+    fn get_reportable_aggregate_result(&self) -> JsResult<&WasmAggregateResult> {
+        self.reportable_aggregate_result
+            .as_ref()
+            .ok_or_else(|| JsValue::from_str(MISSING_REPORTABLE_AGGREGATE_RESULT_ERROR))
+    }
+
+    #[inline]
+    fn get_synthetic_processor(&self) -> JsResult<&WasmSdsProcessor> {
+        self.synthetic_processor
+            .as_ref()
+            .ok_or_else(|| JsValue::from_str(MISSING_SYNTHETIC_PROCESSOR_ERROR))
+    }
+
+    #[inline]
+    fn get_synthetic_aggregate_result(&self) -> JsResult<&WasmAggregateResult> {
+        self.synthetic_aggregate_result
+            .as_ref()
+            .ok_or_else(|| JsValue::from_str(MISSING_SYNTHETIC_AGGREGATE_RESULT_ERROR))
     }
 }

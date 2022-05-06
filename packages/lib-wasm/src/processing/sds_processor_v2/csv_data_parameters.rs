@@ -3,7 +3,7 @@ use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 use crate::{processing::sds_processor_v2::HeaderNames, utils::js::JsCsvDataParameters};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 #[wasm_bindgen]
 pub struct WasmCsvDataParameters {
