@@ -12,6 +12,7 @@ use crate::{
         aggregator::WasmAggregateResult,
         evaluator::WasmEvaluateResult,
         generator::WasmGenerateResult,
+        navigator::WasmNavigateResult,
         sds_processor_v2::{
             WasmBaseSynthesisParameters, WasmCsvDataParameters, WasmOversamplingParameters,
             WasmSdsProcessor,
@@ -35,6 +36,7 @@ pub struct WasmSdsContext {
     generate_result: Option<WasmGenerateResult>,
     pre_computed_aggregates: bool,
     evaluate_result: Option<WasmEvaluateResult>,
+    navigate_result: Option<WasmNavigateResult>,
 }
 
 #[wasm_bindgen]
@@ -51,7 +53,18 @@ impl WasmSdsContext {
             generate_result: None,
             pre_computed_aggregates: false,
             evaluate_result: None,
+            navigate_result: None,
         }
+    }
+
+    #[wasm_bindgen(js_name = "clear")]
+    pub fn clear(&mut self) {
+        self.sensitive_data_params = None;
+        self.sensitive_processor = None;
+        self.sensitive_aggregate_result = None;
+        self.generate_result = None;
+        self.pre_computed_aggregates = false;
+        self.clear_evaluate();
     }
 
     #[wasm_bindgen(js_name = "setSensitiveData")]
@@ -60,7 +73,7 @@ impl WasmSdsContext {
         csv_data: &str,
         csv_data_params: JsCsvDataParameters,
     ) -> JsResult<()> {
-        self.clear_sensitive_data();
+        self.clear();
 
         let params = WasmCsvDataParameters::try_from(csv_data_params)?;
         let processor = WasmSdsProcessor::new(csv_data, &params)?;
@@ -69,19 +82,6 @@ impl WasmSdsContext {
         self.sensitive_processor = Some(processor);
 
         Ok(())
-    }
-
-    #[wasm_bindgen(js_name = "clearSensitiveData")]
-    pub fn clear_sensitive_data(&mut self) {
-        self.sensitive_data_params = None;
-        self.sensitive_processor = None;
-        self.synthetic_processor = None;
-        self.sensitive_aggregate_result = None;
-        self.reportable_aggregate_result = None;
-        self.synthetic_aggregate_result = None;
-        self.generate_result = None;
-        self.pre_computed_aggregates = false;
-        self.evaluate_result = None;
     }
 
     #[wasm_bindgen(js_name = "sensitiveAggregateStatistics")]
@@ -112,6 +112,7 @@ impl WasmSdsContext {
             progress_callback,
         )?);
         self.pre_computed_aggregates = false;
+        self.clear_evaluate();
         Ok(())
     }
 
@@ -126,6 +127,7 @@ impl WasmSdsContext {
             progress_callback,
         )?);
         self.pre_computed_aggregates = false;
+        self.clear_evaluate();
         Ok(())
     }
 
@@ -158,6 +160,7 @@ impl WasmSdsContext {
             &mut Some(JsProgressReporter::new(&js_callback, &|p| 50.0 + 0.5 * p)),
         )?);
         self.pre_computed_aggregates = true;
+        self.clear_evaluate();
         Ok(())
     }
 
@@ -186,6 +189,7 @@ impl WasmSdsContext {
             &mut Some(JsProgressReporter::new(&js_callback, &|p| 50.0 + 0.5 * p)),
         )?);
         self.pre_computed_aggregates = true;
+        self.clear_evaluate();
         Ok(())
     }
 
@@ -215,6 +219,7 @@ impl WasmSdsContext {
             &mut Some(JsProgressReporter::new(&js_callback, &|p| 50.0 + 0.5 * p)),
         )?);
         self.pre_computed_aggregates = true;
+        self.clear_evaluate();
         Ok(())
     }
 
@@ -260,11 +265,28 @@ impl WasmSdsContext {
             resolution,
             reporting_length,
         )?);
+        self.clear_navigate();
         Ok(())
     }
 }
 
 impl WasmSdsContext {
+    #[inline]
+    fn clear_evaluate(&mut self) {
+        if !self.pre_computed_aggregates {
+            self.reportable_aggregate_result = None;
+        }
+        self.synthetic_processor = None;
+        self.synthetic_aggregate_result = None;
+        self.evaluate_result = None;
+        self.clear_navigate();
+    }
+
+    #[inline]
+    fn clear_navigate(&mut self) {
+        self.navigate_result = None;
+    }
+
     #[inline]
     fn get_sensitive_data_params(&self) -> JsResult<&WasmCsvDataParameters> {
         self.sensitive_data_params
