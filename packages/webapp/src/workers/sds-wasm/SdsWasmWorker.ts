@@ -9,7 +9,6 @@ import type {
 	IEvaluateResult,
 	IGenerateResult,
 	ISelectedAttributesByColumn,
-	ReportProgressCallback,
 } from 'sds-wasm'
 import { v4 } from 'uuid'
 
@@ -46,10 +45,12 @@ type SdsWasmResponseCallback = ((value: SdsWasmResponse) => void) | undefined
 
 type SdsWasmErrorCallback = ((reason?: string) => void) | undefined
 
+type ProgressCallback = (p: number) => void
+
 interface ICallbackMapValue {
 	resolver: SdsWasmResponseCallback
 	rejector: SdsWasmErrorCallback
-	reportProgress?: ReportProgressCallback
+	reportProgress?: ProgressCallback
 }
 
 export class SdsWasmWorker {
@@ -83,7 +84,7 @@ export class SdsWasmWorker {
 
 	private execute<T extends SdsWasmMessage>(
 		message: T,
-		reportProgress?: ReportProgressCallback,
+		reportProgress?: ProgressCallback,
 	): Promise<SdsWasmResponse> {
 		let resolver: SdsWasmResponseCallback = undefined
 		let rejector: SdsWasmErrorCallback = undefined
@@ -135,7 +136,7 @@ export class SdsWasmWorker {
 		contextKey: string,
 		sensitiveCsvData: string,
 		contextParameters: IContextParameters,
-		reportProgress?: ReportProgressCallback,
+		reportProgress?: ProgressCallback,
 	): Promise<AllContextsParameters | undefined> {
 		const response = await this.execute(
 			{

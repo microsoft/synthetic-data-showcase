@@ -6,11 +6,15 @@ use crate::{
         aggregator::WasmAggregateResult,
         generator::WasmGenerateResult,
         sds_context_v2::MISSING_SENSITIVE_DATA_ERROR,
-        sds_processor_v2::{WasmCsvDataParameters, WasmOversamplingParameters, WasmSdsProcessor},
+        sds_processor_v2::{
+            WasmBaseSynthesisParameters, WasmCsvDataParameters, WasmOversamplingParameters,
+            WasmSdsProcessor,
+        },
     },
     utils::js::{
-        JsAggregateStatistics, JsCsvDataParameters, JsDpParameters, JsNoisyCountThreshold,
-        JsOversamplingParameters, JsProgressReporter, JsReportProgressCallback, JsResult,
+        JsAggregateStatistics, JsBaseSynthesisParameters, JsCsvDataParameters, JsDpParameters,
+        JsNoisyCountThreshold, JsOversamplingParameters, JsProgressReporter,
+        JsReportProgressCallback, JsResult,
     },
 };
 
@@ -88,15 +92,11 @@ impl WasmSdsContext {
     #[wasm_bindgen(js_name = "generateUnseeded")]
     pub fn generate_unseeded(
         &mut self,
-        cache_max_size: usize,
-        resolution: usize,
-        empty_value: String,
+        base_parameters: JsBaseSynthesisParameters,
         progress_callback: JsReportProgressCallback,
     ) -> JsResult<()> {
         self.generate_result = Some(self.get_sensitive_processor()?.generate_unseeded(
-            cache_max_size,
-            resolution,
-            empty_value,
+            &WasmBaseSynthesisParameters::try_from(base_parameters)?,
             progress_callback,
         )?);
         Ok(())
@@ -105,15 +105,11 @@ impl WasmSdsContext {
     #[wasm_bindgen(js_name = "generateRowSeeded")]
     pub fn generate_row_seeded(
         &mut self,
-        cache_max_size: usize,
-        resolution: usize,
-        empty_value: String,
+        base_parameters: JsBaseSynthesisParameters,
         progress_callback: JsReportProgressCallback,
     ) -> JsResult<()> {
         self.generate_result = Some(self.get_sensitive_processor()?.generate_row_seeded(
-            cache_max_size,
-            resolution,
-            empty_value,
+            &WasmBaseSynthesisParameters::try_from(base_parameters)?,
             progress_callback,
         )?);
         Ok(())
@@ -122,13 +118,12 @@ impl WasmSdsContext {
     #[wasm_bindgen(js_name = "generateValueSeeded")]
     pub fn generate_value_seeded(
         &mut self,
-        cache_max_size: usize,
-        resolution: usize,
-        empty_value: String,
+        base_parameters: JsBaseSynthesisParameters,
         reporting_length: usize,
         oversampling_parameters: Option<JsOversamplingParameters>,
         progress_callback: JsReportProgressCallback,
     ) -> JsResult<()> {
+        let base_params = WasmBaseSynthesisParameters::try_from(base_parameters)?;
         let oversampling_parameters = match oversampling_parameters {
             Some(params) => Some(WasmOversamplingParameters::try_from(params)?),
             _ => None,
@@ -139,12 +134,10 @@ impl WasmSdsContext {
                 reporting_length,
                 &mut Some(JsProgressReporter::new(&js_callback, &|p| 0.5 * p)),
             )?
-            .protect_with_k_anonymity(resolution);
+            .protect_with_k_anonymity(base_params.resolution);
 
         self.generate_result = Some(self.get_sensitive_processor()?._generate_value_seeded(
-            cache_max_size,
-            resolution,
-            empty_value,
+            &base_params,
             &reportable_aggregate_result,
             oversampling_parameters,
             &mut Some(JsProgressReporter::new(&js_callback, &|p| 50.0 + 0.5 * p)),
@@ -156,23 +149,22 @@ impl WasmSdsContext {
     #[wasm_bindgen(js_name = "generateAggregateSeeded")]
     pub fn generate_aggregate_seeded(
         &mut self,
-        resolution: usize,
-        empty_value: String,
+        base_parameters: JsBaseSynthesisParameters,
         reporting_length: usize,
         use_synthetic_counts: bool,
         progress_callback: JsReportProgressCallback,
     ) -> JsResult<()> {
+        let base_params = WasmBaseSynthesisParameters::try_from(base_parameters)?;
         let js_callback: Function = progress_callback.dyn_into()?;
         let reportable_aggregate_result = self
             .get_or_create_sensitive_aggregate_result(
                 reporting_length,
                 &mut Some(JsProgressReporter::new(&js_callback, &|p| 0.5 * p)),
             )?
-            .protect_with_k_anonymity(resolution);
+            .protect_with_k_anonymity(base_params.resolution);
 
         self.generate_result = Some(self.get_sensitive_processor()?._generate_aggregate_seeded(
-            resolution,
-            empty_value,
+            &base_params,
             &reportable_aggregate_result,
             use_synthetic_counts,
             &mut Some(JsProgressReporter::new(&js_callback, &|p| 50.0 + 0.5 * p)),
@@ -184,8 +176,7 @@ impl WasmSdsContext {
     #[wasm_bindgen(js_name = "generateDp")]
     pub fn generate_dp(
         &mut self,
-        resolution: usize,
-        empty_value: String,
+        base_parameters: JsBaseSynthesisParameters,
         reporting_length: usize,
         dp_parameters: JsDpParameters,
         threshold: JsNoisyCountThreshold,
@@ -202,8 +193,7 @@ impl WasmSdsContext {
         )?;
 
         self.generate_result = Some(sensitive_processor._generate_aggregate_seeded(
-            resolution,
-            empty_value,
+            &WasmBaseSynthesisParameters::try_from(base_parameters)?,
             &reportable_aggregate_result,
             use_synthetic_counts,
             &mut Some(JsProgressReporter::new(&js_callback, &|p| 50.0 + 0.5 * p)),

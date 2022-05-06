@@ -9879,6 +9879,7 @@ __metadata:
   languageName: node
   linkType: hard
 
+<<<<<<< HEAD
 "scheduler@npm:^0.22.0":
   version: 0.22.0
   resolution: "scheduler@npm:0.22.0"
@@ -9908,6 +9909,12 @@ __metadata:
     ajv-formats: ^2.1.1
     ajv-keywords: ^5.0.0
   checksum: c843e92fdd1a5c145dbb6ffdae33e501867f9703afac67bdf35a685e49f85b1dcc10ea250033175a64bd9d31f0555bc6785b8359da0c90bcea30cf6dfbb55a8f
+=======
+"sds-wasm@file:../../target/wasm::locator=webapp%40workspace%3Apackages%2Fwebapp":
+  version: 1.4.0
+  resolution: "sds-wasm@file:../../target/wasm#../../target/wasm::hash=1fd4a6&locator=webapp%40workspace%3Apackages%2Fwebapp"
+  checksum: 0567d1e39eacc75e69487436765a5bf191c7c2852527b7a3f6e65f48d43f5a8e278ed4dd4c7ab351d24141e8e028a87faaaa88423a5b11fda0c4ad92592e9dfd
+>>>>>>> wrapping base synthesis parameters together on new wasm api
   languageName: node
   linkType: hard
 

@@ -61,6 +61,7 @@ impl WasmGenerateResult {
             &"expansionRatio".into(),
             &self.expansion_ratio().into(),
         )?;
+        set(&result, &"resolution".into(), &self.resolution().into())?;
         set(
             &result,
             &"syntheticData".into(),

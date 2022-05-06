@@ -29,7 +29,7 @@ export interface IAggregateStatistics {
 }
 
 export enum NoisyCountThresholdType {
-  Fixed = 'Fixed'
+  Fixed = 'Fixed',
   Adaptive = 'Adaptive'
 }
 
@@ -55,8 +55,15 @@ export interface IOversamplingParameters {
   oversamplingTries?: number
 }
 
+export interface IBaseSynthesisParameters {
+  resolution: usize,
+  cacheMaxSize?: number
+  emptyValue?: string
+}
+
 export interface IGenerateResult {
   expansionRatio: number
+  resolution: number
   syntheticData: string
 }
 
@@ -144,6 +151,9 @@ extern "C" {
 
     #[wasm_bindgen(typescript_type = "IOversamplingParameters")]
     pub type JsOversamplingParameters;
+
+    #[wasm_bindgen(typescript_type = "IBaseSynthesisParameters")]
+    pub type JsBaseSynthesisParameters;
 
     #[wasm_bindgen(typescript_type = "IGenerateResult")]
     pub type JsGenerateResult;
