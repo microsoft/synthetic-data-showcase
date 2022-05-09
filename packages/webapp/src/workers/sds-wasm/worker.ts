@@ -2,11 +2,10 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import init, { init_logger, SDSContext } from 'sds-wasm'
+import init, { init_logger, WasmSdsContext } from 'sds-wasm'
 
 import {
 	AggregateType,
-	NoisyCountThresholdType,
 	OversamplingType,
 	PrivacyBudgetProfile,
 	SynthesisMode,
@@ -99,12 +98,10 @@ async function handleGenerateAndEvaluate(
 	message: SdsWasmGenerateAndEvaluateMessage,
 ): Promise<SdsWasmGenerateAndEvaluateResponse> {
 	const value = CONTEXT_CACHE.set(message.contextKey, {
-		context: new SDSContext(),
+		context: new WasmSdsContext(),
 		contextParameters: message.contextParameters,
 	})
-	const sigmaProportions = new Float64Array(
-		message.contextParameters.reportingLength,
-	)
+	const sigmaProportions: number[] = []
 
 	for (let i = 0; i < message.contextParameters.reportingLength; i++) {
 		let p
@@ -119,108 +116,95 @@ async function handleGenerateAndEvaluate(
 				p = 1.0 / (message.contextParameters.reportingLength - i)
 				break
 		}
-		sigmaProportions[i] = p
+		sigmaProportions.push(p)
 	}
 
-	value.context.setSensitiveData(
-		message.sensitiveCsvData,
-		message.contextParameters.delimiter,
-		message.contextParameters.useColumns,
-		message.contextParameters.sensitiveZeros,
-		message.contextParameters.recordLimit,
-	)
+	value.context.setSensitiveData(message.sensitiveCsvData, {
+		delimiter: message.contextParameters.delimiter,
+		useColumns: message.contextParameters.useColumns,
+		sensitiveZeros: message.contextParameters.sensitiveZeros,
+		recordLimit: message.contextParameters.recordLimit,
+	})
 
 	switch (message.contextParameters.synthesisMode) {
 		case SynthesisMode.Unseeded:
 			value.context.generateUnseeded(
-				message.contextParameters.cacheSize,
-				message.contextParameters.resolution,
-				message.contextParameters.emptyValue,
+				{
+					resolution: message.contextParameters.resolution,
+					cacheMaxSize: message.contextParameters.cacheSize,
+					emptyValue: message.contextParameters.emptyValue,
+				},
 				p => postProgress(message.id, 0.5 * p),
 			)
 			break
 		case SynthesisMode.RowSeeded:
 			value.context.generateRowSeeded(
-				message.contextParameters.cacheSize,
-				message.contextParameters.resolution,
-				message.contextParameters.emptyValue,
+				{
+					resolution: message.contextParameters.resolution,
+					cacheMaxSize: message.contextParameters.cacheSize,
+					emptyValue: message.contextParameters.emptyValue,
+				},
 				p => postProgress(message.id, 0.5 * p),
 			)
 			break
 		case SynthesisMode.ValueSeeded:
 			value.context.generateValueSeeded(
-				message.contextParameters.cacheSize,
-				message.contextParameters.resolution,
-				message.contextParameters.emptyValue,
+				{
+					resolution: message.contextParameters.resolution,
+					cacheMaxSize: message.contextParameters.cacheSize,
+					emptyValue: message.contextParameters.emptyValue,
+				},
 				message.contextParameters.reportingLength,
 				message.contextParameters.oversamplingType ===
 					OversamplingType.Controlled
-					? message.contextParameters.oversamplingRatio
+					? {
+							oversamplingRatio: message.contextParameters.oversamplingRatio,
+							oversamplingTries: message.contextParameters.oversamplingTries,
+					  }
 					: undefined,
-				message.contextParameters.oversamplingType ===
-					OversamplingType.Controlled
-					? message.contextParameters.oversamplingTries
-					: undefined,
-				p => postProgress(message.id, 0.5 * (0.5 * p)),
-				p => postProgress(message.id, 0.5 * (50.0 + 0.5 * p)),
+				p => postProgress(message.id, 0.5 * p),
 			)
 			break
 		case SynthesisMode.AggregateSeeded:
 			value.context.generateAggregateSeeded(
-				message.contextParameters.resolution,
-				message.contextParameters.emptyValue,
+				{
+					resolution: message.contextParameters.resolution,
+					cacheMaxSize: message.contextParameters.cacheSize,
+					emptyValue: message.contextParameters.emptyValue,
+				},
 				message.contextParameters.reportingLength,
 				message.contextParameters.useSyntheticCounts === UseSyntheticCounts.Yes,
-				p => postProgress(message.id, 0.5 * (0.5 * p)),
-				p => postProgress(message.id, 0.5 * (50.0 + 0.5 * p)),
+				p => postProgress(message.id, 0.5 * p),
 			)
 			break
 		case SynthesisMode.DP:
-			switch (message.contextParameters.thresholdType) {
-				case NoisyCountThresholdType.Fixed:
-					value.context.generateDpFixedThreshold(
-						message.contextParameters.resolution,
-						message.contextParameters.emptyValue,
-						message.contextParameters.reportingLength,
-						message.contextParameters.noiseEpsilon,
-						message.contextParameters.noiseDelta,
-						message.contextParameters.percentilePercentage,
+			value.context.generateDp(
+				{
+					resolution: message.contextParameters.resolution,
+					cacheMaxSize: message.contextParameters.cacheSize,
+					emptyValue: message.contextParameters.emptyValue,
+				},
+				message.contextParameters.reportingLength,
+				{
+					epsilon: message.contextParameters.noiseEpsilon,
+					delta: message.contextParameters.noiseDelta,
+					percentilePercentage: message.contextParameters.percentilePercentage,
+					percentileEpsilonProportion:
 						message.contextParameters.percentileEpsilonProportion,
-						sigmaProportions,
-						message.contextParameters.threshold,
-						message.contextParameters.useSyntheticCounts ===
-							UseSyntheticCounts.Yes,
-						p => postProgress(message.id, 0.5 * 0.25 * p),
-						p => postProgress(message.id, 0.5 * (25.0 + 0.25 * p)),
-						p => postProgress(message.id, 0.5 * (50.0 + 0.5 * p)),
-					)
-					break
-				case NoisyCountThresholdType.Adaptive:
-					value.context.generateDpAdaptiveThreshold(
-						message.contextParameters.resolution,
-						message.contextParameters.emptyValue,
-						message.contextParameters.reportingLength,
-						message.contextParameters.noiseEpsilon,
-						message.contextParameters.noiseDelta,
-						message.contextParameters.percentilePercentage,
-						message.contextParameters.percentileEpsilonProportion,
-						sigmaProportions,
-						message.contextParameters.threshold,
-						message.contextParameters.useSyntheticCounts ===
-							UseSyntheticCounts.Yes,
-						p => postProgress(message.id, 0.5 * (0.25 * p)),
-						p => postProgress(message.id, 0.5 * (25.0 + 0.25 * p)),
-						p => postProgress(message.id, 0.5 * (50.0 + 0.5 * p)),
-					)
-					break
-			}
+					sigmaProportions: sigmaProportions,
+				},
+				{
+					type: message.contextParameters.thresholdType,
+					valuesByLen: message.contextParameters.threshold,
+				},
+				message.contextParameters.useSyntheticCounts === UseSyntheticCounts.Yes,
+				p => postProgress(message.id, 0.5 * p),
+			)
 			break
 	}
 
-	value.context.evaluate(
-		message.contextParameters.reportingLength,
-		p => postProgress(message.id, 50.0 + 0.5 * 0.5 * p),
-		p => postProgress(message.id, 75.0 + 0.5 * 0.5 * p),
+	value.context.evaluate(message.contextParameters.reportingLength, p =>
+		postProgress(message.id, 50.0 + 0.5 * p),
 	)
 
 	value.contextParameters.isEvaluated = true

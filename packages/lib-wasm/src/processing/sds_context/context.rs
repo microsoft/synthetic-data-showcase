@@ -207,12 +207,16 @@ impl WasmSdsContext {
     ) -> JsResult<()> {
         let js_callback: Function = progress_callback.dyn_into()?;
 
+        self.get_or_create_sensitive_aggregate_result(
+            reporting_length,
+            &mut Some(JsProgressReporter::new(&js_callback, &|p| 0.25 * p)),
+        )?;
         self.reportable_aggregate_result =
             Some(self.get_sensitive_processor()?._aggregate_with_dp(
                 reporting_length,
                 dp_parameters,
                 threshold,
-                &mut Some(JsProgressReporter::new(&js_callback, &|p| 0.5 * p)),
+                &mut Some(JsProgressReporter::new(&js_callback, &|p| 25.0 + 0.25 * p)),
             )?);
         self.generate_result = Some(self.get_sensitive_processor()?._generate_aggregate_seeded(
             &WasmBaseSynthesisParameters::try_from(base_parameters)?,
