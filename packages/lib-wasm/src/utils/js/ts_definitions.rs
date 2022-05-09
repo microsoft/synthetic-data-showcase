@@ -2,6 +2,8 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(typescript_custom_section)]
 const TS_APPEND_CONTENT: &'static str = r#"
+export type ReportProgressCallback = (progress: number) => boolean
+
 export type HeaderNames = string[]
 
 export interface ICsvDataParameters {
@@ -10,8 +12,6 @@ export interface ICsvDataParameters {
   sensitiveZeros: HeaderNames
   recordLimit: number
 }
-
-export type ReportProgressCallback = (progress: number) => boolean
 
 export interface ISingleAttributeCounts {
   [attr: string]: number
@@ -122,14 +122,14 @@ export interface IAttributesIntersectionByColumn {
 
 #[wasm_bindgen]
 extern "C" {
+    #[wasm_bindgen(typescript_type = "ReportProgressCallback")]
+    pub type JsReportProgressCallback;
+
     #[wasm_bindgen(typescript_type = "HeaderNames")]
     pub type JsHeaderNames;
 
     #[wasm_bindgen(typescript_type = "ICsvDataParameters")]
     pub type JsCsvDataParameters;
-
-    #[wasm_bindgen(typescript_type = "ReportProgressCallback")]
-    pub type JsReportProgressCallback;
 
     #[wasm_bindgen(typescript_type = "ISingleAttributeCounts")]
     pub type JsSingleAttributeCounts;

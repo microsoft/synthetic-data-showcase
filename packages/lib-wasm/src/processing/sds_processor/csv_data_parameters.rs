@@ -1,7 +1,8 @@
+use super::header_names::HeaderNames;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
-use crate::{processing::sds_processor_v2::HeaderNames, utils::js::JsCsvDataParameters};
+use crate::utils::js::JsCsvDataParameters;
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]

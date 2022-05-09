@@ -14,7 +14,7 @@ use crate::{
         evaluator::WasmEvaluateResult,
         generator::WasmGenerateResult,
         navigator::WasmNavigateResult,
-        sds_processor_v2::{
+        sds_processor::{
             WasmBaseSynthesisParameters, WasmCsvDataParameters, WasmOversamplingParameters,
             WasmSdsProcessor,
         },
@@ -273,7 +273,7 @@ impl WasmSdsContext {
 
     #[wasm_bindgen(js_name = "navigate")]
     pub fn navigate(&mut self) -> JsResult<()> {
-        self.navigate_result = Some(WasmNavigateResult::from_synthetic_processor_v2(
+        self.navigate_result = Some(WasmNavigateResult::from_synthetic_processor(
             self.get_synthetic_processor()?,
         ));
         Ok(())
