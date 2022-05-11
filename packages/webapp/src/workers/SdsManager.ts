@@ -47,7 +47,7 @@ export class SdsManager {
 		csvDataParameters: ICsvDataParameters,
 		reportingLength: number,
 		resolution: number,
-		progressCallback: Proxy<WorkerProgressCallback>,
+		progressCallback?: Proxy<WorkerProgressCallback>,
 	): Promise<Remote<ICancelablePromise<IAggregateStatistics>> | undefined> {
 		const aggregateStatisticsGenerator = this.getAggregateStatisticsGenerator()
 		const continueExecutingView = new AtomicBooleanView(
@@ -62,8 +62,8 @@ export class SdsManager {
 				csvDataParameters,
 				reportingLength,
 				resolution,
-				progressCallback,
 				continueExecutingView.getRaw(),
+				progressCallback,
 			),
 			cancel: () => {
 				continueExecutingView.set(false)

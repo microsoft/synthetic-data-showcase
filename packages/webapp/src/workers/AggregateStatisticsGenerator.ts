@@ -17,13 +17,14 @@ export class AggregateStatisticsGenerator extends BaseSdsWasmWorker {
 		csvDataParameters: ICsvDataParameters,
 		reportingLength: number,
 		resolution: number,
-		progressCallback: Proxy<WorkerProgressCallback>,
 		continueExecuting: AtomicBoolean,
+		progressCallback?: Proxy<WorkerProgressCallback>,
 	): Promise<IAggregateStatistics> {
 		const context = this.getContext()
 		const continueExecutingView = new AtomicBooleanView(continueExecuting)
-		const progressCallbackRemote =
-			progressCallback as unknown as Remote<WorkerProgressCallback>
+		const progressCallbackProxy = progressCallback
+			? (progressCallback as unknown as Remote<WorkerProgressCallback>)
+			: undefined
 
 		context.setSensitiveData(csvData, csvDataParameters)
 
@@ -31,7 +32,7 @@ export class AggregateStatisticsGenerator extends BaseSdsWasmWorker {
 			reportingLength,
 			resolution,
 			p => {
-				progressCallbackRemote(p)
+				progressCallbackProxy?.(p)
 				return continueExecutingView.get()
 			},
 		)
