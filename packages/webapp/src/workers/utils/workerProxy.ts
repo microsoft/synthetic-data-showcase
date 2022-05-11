@@ -10,10 +10,7 @@ export interface IWorkerProxy<T> {
 	terminate: () => void
 }
 
-export function createWorkerProxy<T>(url: string): IWorkerProxy<T> {
-	const worker = new Worker(url, {
-		type: 'module',
-	})
+export function createWorkerProxy<T>(worker: Worker): IWorkerProxy<T> {
 	const ProxyConstructor = wrap<T>(worker)
 	const terminate = () => {
 		ProxyConstructor[releaseProxy]()

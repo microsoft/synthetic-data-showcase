@@ -18,7 +18,7 @@ import {
 } from '~states'
 import { SdsWasmWorker } from '~workers/sds-wasm'
 import type { SdsManager } from '~workers/SdsManager'
-import SdsManagerUrl from '~workers/SdsManager?url'
+import SdsManagerWorker from '~workers/SdsManager?worker'
 import { createWorkerProxy } from '~workers/utils'
 
 import { Header } from './Header'
@@ -58,7 +58,9 @@ export const Layout: React.FC = memo(function Layout({ children }) {
 		async function getManager() {
 			if (!managerInstance) {
 				setIsProcessing(true)
-				const workerProxy = createWorkerProxy<typeof SdsManager>(SdsManagerUrl)
+				const workerProxy = createWorkerProxy<typeof SdsManager>(
+					new SdsManagerWorker(),
+				)
 				const instance = await new workerProxy.ProxyConstructor('SdsManager')
 				await instance.init(
 					(

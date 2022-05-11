@@ -7,7 +7,7 @@ import { expose, proxy } from 'comlink'
 import type { IAggregateStatistics, ICsvDataParameters } from 'sds-wasm'
 
 import type { AggregateStatisticsGenerator } from './AggregateStatisticsGenerator'
-import AggregateStatisticsGeneratorUrl from './AggregateStatisticsGenerator?url'
+import AggregateStatisticsGeneratorWorker from './AggregateStatisticsGenerator?worker'
 import type { ICancelablePromise, Proxy, WorkerProgressCallback } from './types'
 import type { IWorkerProxy } from './utils'
 import { AtomicBooleanView, createWorkerProxy } from './utils'
@@ -28,7 +28,7 @@ export class SdsManager {
 	public async init(wasmPath: string, logLevel: string): Promise<void> {
 		this._aggregateStatisticsWorkerProxy = createWorkerProxy<
 			typeof AggregateStatisticsGenerator
-		>(AggregateStatisticsGeneratorUrl)
+		>(new AggregateStatisticsGeneratorWorker())
 		this._aggregateStatisticsGenerator =
 			await new this._aggregateStatisticsWorkerProxy.ProxyConstructor(
 				`${this._name}:AggregateStatisticsGenerator`,

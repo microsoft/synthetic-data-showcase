@@ -42,3 +42,4 @@ RUN yarn install && yarn build:
 FROM nginx:1.21
 
 COPY --from=app-builder /usr/src/sds/packages/webapp/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/nginx.conf
