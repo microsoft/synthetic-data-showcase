@@ -43,20 +43,21 @@ where
     /// Updates `reporter` by adding `value_to_add` and reporting
     /// to the main reporter in a thread safe way
     #[inline]
-    pub fn update_progress(reporter: &mut SendableProgressReporterRef<T>, value_to_add: f64)
+    pub fn update_progress(reporter: &mut SendableProgressReporterRef<T>, value_to_add: f64) -> bool
     where
         T: ReportProgress,
     {
         #[cfg(feature = "rayon")]
         if let Ok(guard) = &mut reporter.lock() {
             if let Some(r) = guard.as_mut() {
-                r.report(value_to_add);
+                return r.report(value_to_add);
             }
         }
         #[cfg(not(feature = "rayon"))]
         if let Some(r) = reporter {
-            r.report(value_to_add);
+            return r.report(value_to_add);
         }
+        true
     }
 }
 
@@ -66,7 +67,7 @@ where
 {
     /// Will add `value_to_add` to `n_processed` and call the main reporter with
     /// `proportion * (n_processed * 100.0 / total)`
-    fn report(&mut self, value_to_add: f64) {
+    fn report(&mut self, value_to_add: f64) -> bool {
         self.n_processed += value_to_add;
         self.main_reporter
             .report(self.proportion * calc_percentage(self.n_processed, self.total))

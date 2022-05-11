@@ -1,23 +1,16 @@
-use js_sys::Array;
-use sds_core::data_block::CsvRecord;
 use std::convert::TryFrom;
-use wasm_bindgen::{JsCast, JsValue};
+use wasm_bindgen::JsValue;
 
 use crate::utils::js::JsHeaderNames;
 
-impl JsHeaderNames {
-    #[inline]
-    pub fn default() -> JsHeaderNames {
-        Array::default().unchecked_into()
-    }
-}
+pub type HeaderNames = Vec<String>;
 
-impl TryFrom<JsHeaderNames> for CsvRecord {
+impl TryFrom<JsHeaderNames> for HeaderNames {
     type Error = JsValue;
 
-    fn try_from(js_csv_record: JsHeaderNames) -> Result<Self, Self::Error> {
-        js_csv_record
-            .into_serde::<CsvRecord>()
+    fn try_from(js_header_names: JsHeaderNames) -> Result<Self, Self::Error> {
+        js_header_names
+            .into_serde::<HeaderNames>()
             .map_err(|err| JsValue::from(err.to_string()))
     }
 }

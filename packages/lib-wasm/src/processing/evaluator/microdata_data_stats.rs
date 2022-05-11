@@ -9,9 +9,9 @@ use sds_core::processing::{
 use serde::Serialize;
 use wasm_bindgen::{prelude::wasm_bindgen, JsCast, JsValue};
 
-#[wasm_bindgen]
 #[derive(Serialize, Default)]
 #[serde(rename_all = "camelCase")]
+#[wasm_bindgen]
 pub struct WasmMicrodataStatistics {
     percentage_of_suppressed_combinations: f64,
     percentage_of_fabricated_combinations: f64,

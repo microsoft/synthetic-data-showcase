@@ -2,12 +2,12 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import type { SDSContext } from 'sds-wasm'
+import type { WasmSdsContext } from 'sds-wasm'
 
 import type { AllContextsParameters, IContextParameters } from '~models'
 
 export interface ISDSContextCacheValue {
-	context: SDSContext,
+	context: WasmSdsContext,
 	contextParameters: IContextParameters
 }
 
