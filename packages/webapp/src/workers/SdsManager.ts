@@ -10,7 +10,7 @@ import type { AggregateStatisticsGenerator } from './AggregateStatisticsGenerato
 import AggregateStatisticsGeneratorWorker from './AggregateStatisticsGenerator?worker'
 import type { ICancelablePromise, Proxy, WorkerProgressCallback } from './types'
 import type { IWorkerProxy } from './utils'
-import { AtomicBooleanView, createWorkerProxy } from './utils'
+import { AtomicView, createWorkerProxy } from './utils'
 
 export class SdsManager {
 	private _aggregateStatisticsWorkerProxy: IWorkerProxy<
@@ -50,11 +50,7 @@ export class SdsManager {
 		progressCallback?: Proxy<WorkerProgressCallback>,
 	): Promise<Remote<ICancelablePromise<IAggregateStatistics>> | undefined> {
 		const aggregateStatisticsGenerator = this.getAggregateStatisticsGenerator()
-		const continueExecutingView = new AtomicBooleanView(
-			AtomicBooleanView.createRaw(),
-		)
-
-		continueExecutingView.set(true)
+		const continueExecutingView = new AtomicView(AtomicView.createBuffer(true))
 
 		return proxy({
 			promise: aggregateStatisticsGenerator.generateAggregateStatistics(
@@ -62,7 +58,7 @@ export class SdsManager {
 				csvDataParameters,
 				reportingLength,
 				resolution,
-				continueExecutingView.getRaw(),
+				continueExecutingView.getBuffer(),
 				progressCallback,
 			),
 			cancel: () => {

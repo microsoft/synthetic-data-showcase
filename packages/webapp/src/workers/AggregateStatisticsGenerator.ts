@@ -7,8 +7,8 @@ import type { IAggregateStatistics, ICsvDataParameters } from 'sds-wasm'
 
 import { BaseSdsWasmWorker } from './BaseSdsWasmWorker'
 import type { Proxy, WorkerProgressCallback } from './types'
-import type { AtomicBoolean } from './utils'
-import { AtomicBooleanView } from './utils'
+import type { AtomicBuffer } from './utils'
+import { AtomicView } from './utils'
 
 export class AggregateStatisticsGenerator extends BaseSdsWasmWorker {
 	public async generateAggregateStatistics(
@@ -16,11 +16,11 @@ export class AggregateStatisticsGenerator extends BaseSdsWasmWorker {
 		csvDataParameters: ICsvDataParameters,
 		reportingLength: number,
 		resolution: number,
-		continueExecuting: AtomicBoolean,
+		continueExecuting: AtomicBuffer,
 		progressCallback?: Proxy<WorkerProgressCallback>,
 	): Promise<IAggregateStatistics> {
 		const context = this.getContext()
-		const continueExecutingView = new AtomicBooleanView(continueExecuting)
+		const continueExecutingView = new AtomicView(continueExecuting)
 
 		context.setSensitiveData(csvData, csvDataParameters)
 
@@ -29,7 +29,7 @@ export class AggregateStatisticsGenerator extends BaseSdsWasmWorker {
 			resolution,
 			p => {
 				progressCallback?.(p)
-				return continueExecutingView.get()
+				return continueExecutingView.getBoolean()
 			},
 		)
 	}
