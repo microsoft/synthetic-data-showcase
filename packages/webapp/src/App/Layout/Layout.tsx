@@ -62,12 +62,7 @@ export const Layout: React.FC = memo(function Layout({ children }) {
 					new SdsManagerWorker(),
 				)
 				const instance = await new workerProxy.ProxyConstructor('SdsManager')
-				await instance.init(
-					(
-						await import('sds-wasm/sds_wasm_bg.wasm?url')
-					).default,
-					import.meta.env.VITE_SDS_WASM_LOG_LEVEL as string,
-				)
+				await instance.init()
 				setManagerInstance({ instance, workerProxy })
 				setIsProcessing(false)
 			}

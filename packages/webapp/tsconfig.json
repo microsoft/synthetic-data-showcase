@@ -30,7 +30,8 @@
 		"skipLibCheck": true,
 		"noImplicitAny": false,
 		"typeRoots": ["./node_modules/@types/", "./types"],
-		"noErrorTruncation": true
+		"noErrorTruncation": true,
+		"downlevelIteration": true
 	},
 	"include": ["src/**/*"],
 	"exclude": ["**/__tests__/**"]

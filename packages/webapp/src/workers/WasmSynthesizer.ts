@@ -25,79 +25,25 @@ import type {
 	WorkerProgressCallback,
 } from './types'
 import { AggregateType, SynthesisMode } from './types'
+import type { AtomicBuffer } from './utils'
+import { AtomicView } from './utils'
 
 export class WasmSynthesizer extends BaseSdsWasmWorker {
-	private generateUnseeded(
-		parameters: IUnseededSynthesisParameters,
-		progressCallback: ReportProgressCallback,
-	): void {
-		this.getContext().generateUnseeded(
-			parameters.baseSynthesisParameters,
-			progressCallback,
-		)
-	}
-
-	private generateRowSeeded(
-		parameters: IRowSeededSynthesisParameters,
-		progressCallback: ReportProgressCallback,
-	): void {
-		this.getContext().generateRowSeeded(
-			parameters.baseSynthesisParameters,
-			progressCallback,
-		)
-	}
-
-	private generateValueSeeded(
-		parameters: IValueSeededSynthesisParameters,
-		progressCallback: ReportProgressCallback,
-	): void {
-		this.getContext().generateValueSeeded(
-			parameters.baseSynthesisParameters,
-			parameters.reportingLength,
-			parameters.oversampling,
-			progressCallback,
-		)
-	}
-
-	private generateAggregateSeeded(
-		parameters: IAggregateSeededSynthesisParameters,
-		progressCallback: ReportProgressCallback,
-	): void {
-		this.getContext().generateAggregateSeeded(
-			parameters.baseSynthesisParameters,
-			parameters.reportingLength,
-			parameters.useSyntheticCounts,
-			progressCallback,
-		)
-	}
-
-	private generateDp(
-		parameters: IDpSynthesisParameters,
-		progressCallback: ReportProgressCallback,
-	): void {
-		this.getContext().generateDp(
-			parameters.baseSynthesisParameters,
-			parameters.reportingLength,
-			parameters.dpParameters,
-			parameters.noiseThreshold,
-			parameters.useSyntheticCounts,
-			progressCallback,
-		)
-	}
-
 	public async generateAndEvaluate(
 		csvData: string,
 		parameters: ISynthesisParameters,
+		continueExecuting: AtomicBuffer,
 		progressCallback?: Proxy<WorkerProgressCallback>,
 	): Promise<void> {
 		const context = this.getContext()
+		const continueExecutingView = new AtomicView(continueExecuting)
 		const generateProgressCallback = p => {
 			progressCallback?.(0.5 * p)
-			return true
+			return continueExecutingView.getBoolean()
 		}
 		const evaluateProgressCallback = p => {
 			progressCallback?.(50.0 + 0.5 * p)
-			return true
+			return continueExecutingView.getBoolean()
 		}
 
 		context.setSensitiveData(csvData, parameters.csvDataParameters)
@@ -186,6 +132,64 @@ export class WasmSynthesizer extends BaseSdsWasmWorker {
 
 	public async getEvaluateResult(): Promise<IEvaluateResult> {
 		return this.getContext().evaluateResultToJs()
+	}
+
+	private generateUnseeded(
+		parameters: IUnseededSynthesisParameters,
+		progressCallback: ReportProgressCallback,
+	): void {
+		this.getContext().generateUnseeded(
+			parameters.baseSynthesisParameters,
+			progressCallback,
+		)
+	}
+
+	private generateRowSeeded(
+		parameters: IRowSeededSynthesisParameters,
+		progressCallback: ReportProgressCallback,
+	): void {
+		this.getContext().generateRowSeeded(
+			parameters.baseSynthesisParameters,
+			progressCallback,
+		)
+	}
+
+	private generateValueSeeded(
+		parameters: IValueSeededSynthesisParameters,
+		progressCallback: ReportProgressCallback,
+	): void {
+		this.getContext().generateValueSeeded(
+			parameters.baseSynthesisParameters,
+			parameters.reportingLength,
+			parameters.oversampling,
+			progressCallback,
+		)
+	}
+
+	private generateAggregateSeeded(
+		parameters: IAggregateSeededSynthesisParameters,
+		progressCallback: ReportProgressCallback,
+	): void {
+		this.getContext().generateAggregateSeeded(
+			parameters.baseSynthesisParameters,
+			parameters.reportingLength,
+			parameters.useSyntheticCounts,
+			progressCallback,
+		)
+	}
+
+	private generateDp(
+		parameters: IDpSynthesisParameters,
+		progressCallback: ReportProgressCallback,
+	): void {
+		this.getContext().generateDp(
+			parameters.baseSynthesisParameters,
+			parameters.reportingLength,
+			parameters.dpParameters,
+			parameters.noiseThreshold,
+			parameters.useSyntheticCounts,
+			progressCallback,
+		)
 	}
 }
 
