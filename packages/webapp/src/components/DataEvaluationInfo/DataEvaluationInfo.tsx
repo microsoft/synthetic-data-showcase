@@ -14,10 +14,11 @@ import {
 } from '~components/Charts/hooks'
 import { DataEvaluationInfoDownloader } from '~components/DataEvaluationInfoDownloader'
 import { MetricsSummaryTable } from '~components/MetricsSummaryTable'
-import type { AggregateType, IMicrodataMaxStatistics } from '~models'
+import type { IMicrodataMaxStatistics } from '~models'
+import type { AggregateType } from '~workers/types'
 
 export interface DataEvaluationInfoProps {
-	contextKey: string,
+	contextKey: string
 	reportingLength: number
 	stats: IMicrodataStatistics
 	microdataMaxStats: IMicrodataMaxStatistics

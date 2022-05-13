@@ -12,7 +12,7 @@ import {
 	useMetricsByLenLabels,
 } from '~components/Charts/hooks'
 import { DownloadButton } from '~components/controls/DownloadButton'
-import type { AggregateType } from '~models'
+import type { AggregateType } from '~workers/types'
 
 import {
 	useOnGetAggregatesCsv,

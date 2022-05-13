@@ -5,9 +5,9 @@
 import type { HeaderNames, IInputNumberByLength } from 'sds-wasm'
 
 import type { NoisyCountThresholdType, PrivacyBudgetProfile } from '~models'
+import type { SynthesisMode } from '~workers/types'
 
 import type { OversamplingType } from './OversamplingType'
-import type { SynthesisMode } from './SynthesisMode'
 import type { UseSyntheticCounts } from './UseSyntheticCounts'
 
 export interface IContextParameters {

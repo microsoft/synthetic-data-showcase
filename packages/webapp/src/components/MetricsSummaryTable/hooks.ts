@@ -5,8 +5,8 @@
 import { useMemo } from 'react'
 import type { IMicrodataStatistics } from 'sds-wasm'
 
-import { AggregateType } from '~models'
 import { tooltips } from '~ui-tooltips'
+import { AggregateType } from '~workers/types'
 
 export interface IMicrodataMetricItem {
 	metric: string

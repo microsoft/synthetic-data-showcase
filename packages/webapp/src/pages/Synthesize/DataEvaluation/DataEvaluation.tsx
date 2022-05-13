@@ -10,13 +10,13 @@ import type { IEvaluateResult } from 'sds-wasm'
 import { ContextsDropdown } from '~components/ContextsDropdown'
 import { DataEvaluationInfo } from '~components/DataEvaluationInfo'
 import type { IContextParameters } from '~models'
-import { AggregateType } from '~models'
 import { useDropdownOnChange } from '~pages/hooks'
 import {
 	useAllContextsParametersValue,
 	useIsProcessing,
 	useSelectedContextParameters,
 } from '~states'
+import { AggregateType } from '~workers/types'
 
 import {
 	useAggregateTypeOptions,

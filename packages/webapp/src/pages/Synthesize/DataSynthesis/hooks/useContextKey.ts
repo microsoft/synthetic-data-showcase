@@ -5,7 +5,8 @@
 import { useMemo } from 'react'
 
 import type { IContextParameters } from '~models'
-import { OversamplingType, SynthesisMode } from '~models'
+import { OversamplingType } from '~models'
+import { SynthesisMode } from '~workers/types'
 
 import type { IOnRunGenerateAndEvaluateParameters } from './useOnRunGenerateAndEvaluate'
 

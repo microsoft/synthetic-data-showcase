@@ -10,7 +10,6 @@ import type {
 	NoisyCountThresholdType,
 	OversamplingType,
 	PrivacyBudgetProfile,
-	SynthesisMode,
 	UseSyntheticCounts,
 } from '~models'
 import {
@@ -22,6 +21,7 @@ import {
 	useWasmWorkerValue,
 } from '~states'
 import { namedSpread, spreadableHeaders, usableHeaders } from '~utils'
+import type { SynthesisMode } from '~workers/types'
 
 import { useContextKey } from './useContextKey'
 

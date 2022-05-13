@@ -2,7 +2,6 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import type { Remote } from 'comlink'
 import { expose } from 'comlink'
 import type { IAggregateStatistics, ICsvDataParameters } from 'sds-wasm'
 
@@ -22,9 +21,6 @@ export class AggregateStatisticsGenerator extends BaseSdsWasmWorker {
 	): Promise<IAggregateStatistics> {
 		const context = this.getContext()
 		const continueExecutingView = new AtomicBooleanView(continueExecuting)
-		const progressCallbackProxy = progressCallback
-			? (progressCallback as unknown as Remote<WorkerProgressCallback>)
-			: undefined
 
 		context.setSensitiveData(csvData, csvDataParameters)
 
@@ -32,7 +28,7 @@ export class AggregateStatisticsGenerator extends BaseSdsWasmWorker {
 			reportingLength,
 			resolution,
 			p => {
-				progressCallbackProxy?.(p)
+				progressCallback?.(p)
 				return continueExecutingView.get()
 			},
 		)

@@ -6,7 +6,7 @@ import { useMemo } from 'react'
 import type { IEvaluateResult } from 'sds-wasm'
 
 import type { IContextParameters } from '~models'
-import { SynthesisMode } from '~models'
+import { SynthesisMode } from '~workers/types'
 
 export function useSensitiveDataPrivacyText(
 	evaluateResult: IEvaluateResult,

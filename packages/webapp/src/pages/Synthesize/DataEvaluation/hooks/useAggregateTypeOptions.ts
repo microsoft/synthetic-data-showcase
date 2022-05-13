@@ -4,7 +4,7 @@
  */
 import type { IDropdownOption } from '@fluentui/react'
 
-import { AggregateType } from '~models'
+import { AggregateType } from '~workers/types'
 
 const options = [
 	{ key: AggregateType.Sensitive, text: 'Sensitive' },

@@ -12,10 +12,10 @@ import type {
 } from 'sds-wasm'
 
 import type {
-	AggregateType,
 	AllContextsParameters,
 	IContextParameters,
 } from '~models'
+import type { AggregateType } from '~workers/types'
 
 export enum SdsWasmMessageType {
 	Init = 'Init',

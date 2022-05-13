@@ -4,7 +4,7 @@
  */
 import type { IDropdownOption } from '@fluentui/react'
 
-import { SynthesisMode } from '~models'
+import { SynthesisMode } from '~workers/types'
 
 const synthesisModeOptions = [
 	{ key: SynthesisMode.Unseeded, text: SynthesisMode.Unseeded },

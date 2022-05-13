@@ -22,12 +22,7 @@ import { HumanReadableSummary } from '~components/HumanReadableSummary'
 import { InfoTooltip } from '~components/InfoTooltip'
 import { TooltipWrapper } from '~components/TooltipWrapper'
 import type { ICsvContent } from '~models'
-import {
-	defaultCsvContent,
-	defaultThreshold,
-	OversamplingType,
-	SynthesisMode,
-} from '~models'
+import { defaultCsvContent, defaultThreshold, OversamplingType } from '~models'
 import {
 	useCanRun,
 	useDropdownOnChange,
@@ -57,6 +52,7 @@ import {
 } from '~states'
 import { usePrivacyBudgetProfile } from '~states/dataShowcaseContext/privacyBudgetProfile'
 import { tooltips } from '~ui-tooltips'
+import { SynthesisMode } from '~workers/types'
 
 import {
 	useGetSyntheticCsvContent,

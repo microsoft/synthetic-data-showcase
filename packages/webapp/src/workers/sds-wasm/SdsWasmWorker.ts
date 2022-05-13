@@ -12,11 +12,8 @@ import type {
 } from 'sds-wasm'
 import { v4 } from 'uuid'
 
-import type {
-	AggregateType,
-	AllContextsParameters,
-	IContextParameters,
-} from '~models'
+import type { AllContextsParameters, IContextParameters } from '~models'
+import type { AggregateType } from '~workers/types'
 
 import type {
 	SdsWasmAttributesIntersectionsByColumnMessage,

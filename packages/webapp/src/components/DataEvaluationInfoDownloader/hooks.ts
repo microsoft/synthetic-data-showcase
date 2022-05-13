@@ -8,9 +8,9 @@ import type { IMicrodataStatistics } from 'sds-wasm'
 import type { DownloadInfo } from '~components/controls/DownloadButton'
 import type { IMicrodataMetricItem } from '~components/MetricsSummaryTable'
 import { useMicrodataMetricsItems } from '~components/MetricsSummaryTable'
-import type { AggregateType } from '~models'
 import { useWasmWorkerValue } from '~states'
 import type { SdsWasmWorker } from '~workers/sds-wasm'
+import type { AggregateType } from '~workers/types'
 
 export function getMetricsSummaryCsv(
 	microdataMetricItems: IMicrodataMetricItem[],

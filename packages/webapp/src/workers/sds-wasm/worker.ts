@@ -5,12 +5,11 @@
 import init, { init_logger, WasmSdsContext } from 'sds-wasm'
 
 import {
-	AggregateType,
 	OversamplingType,
 	PrivacyBudgetProfile,
-	SynthesisMode,
 	UseSyntheticCounts,
 } from '../../models'
+import { AggregateType, SynthesisMode } from '../types'
 import { SDSContextCache } from './SDSContextCache'
 import type {
 	SdsWasmAttributesIntersectionsByColumnMessage,

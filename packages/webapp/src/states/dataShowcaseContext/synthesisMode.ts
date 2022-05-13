@@ -5,7 +5,7 @@
 import type { SetterOrUpdater } from 'recoil'
 import { atom, useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
 
-import { SynthesisMode } from '~models'
+import { SynthesisMode } from '~workers/types'
 
 const state = atom<SynthesisMode>({
 	key: 'synthesis-mode',
