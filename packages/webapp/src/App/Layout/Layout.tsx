@@ -65,20 +65,20 @@ export const Layout: React.FC = memo(function Layout({ children }) {
 					new SdsManagerWorker(),
 				)
 				const instance = await new workerProxy.ProxyConstructor('SdsManager')
-				const updateSynthesisInfo = proxy(async () => {
+				const updateSynthesisInfo = async () => {
 					setAllSynthesisInfo(await instance.getAllSynthesisInfo())
-				})
+				}
 
 				await instance.init()
 				setManagerInstance({ instance, workerProxy })
-				await Promise.all([
-					instance.registerSynthesisStartedCallback(updateSynthesisInfo),
-					instance.registerSynthesisProgressUpdatedCallback(
-						updateSynthesisInfo,
-					),
-					instance.registerSynthesisFinishedCallback(updateSynthesisInfo),
-					instance.registerSynthesisTerminatedCallback(updateSynthesisInfo),
-				])
+				await instance.registerSynthesisCallback(
+					proxy({
+						started: updateSynthesisInfo,
+						finished: updateSynthesisInfo,
+						progressUpdated: updateSynthesisInfo,
+						terminated: updateSynthesisInfo,
+					}),
+				)
 				setIsProcessing(false)
 			}
 		}

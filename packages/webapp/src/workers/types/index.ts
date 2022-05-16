@@ -5,6 +5,7 @@
 export * from './AggregateType'
 export * from './CancelablePromise'
 export * from './Proxy'
+export * from './SdsManagerSynthesisCallbacks'
 export * from './SynthesisInfo'
 export * from './SynthesisMode'
 export * from './SynthesisParameters'

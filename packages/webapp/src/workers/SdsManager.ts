@@ -20,6 +20,7 @@ import AggregateStatisticsGeneratorWorker from './AggregateStatisticsGenerator?w
 import type {
 	AggregateType,
 	ICancelablePromise,
+	ISdsManagerSynthesisCallbacks,
 	ISynthesisInfo,
 	ISynthesisParameters,
 	IWasmSynthesizerWorkerInfo,
@@ -32,10 +33,6 @@ import { AtomicView, createWorkerProxy } from './utils'
 import type { WasmSynthesizer } from './WasmSynthesizer'
 import WasmSynthesizerWorker from './WasmSynthesizer?worker'
 
-export type SynthesisEventCallback = (
-	synthesisInfo: ISynthesisInfo,
-) => Promise<void>
-
 export class SdsManager {
 	private _name: string
 	private _aggregateStatisticsWorkerProxy: IWorkerProxy<
@@ -43,60 +40,20 @@ export class SdsManager {
 	> | null
 	private _aggregateStatisticsGenerator: Remote<AggregateStatisticsGenerator> | null
 	private _synthesizerWorkersInfoMap: Map<string, IWasmSynthesizerWorkerInfo>
-	private _synthesisStartedCallback: Proxy<SynthesisEventCallback> | null
-	private _synthesisFinishedCallback: Proxy<SynthesisEventCallback> | null
-	private _synthesisProgressUpdatedCallback: Proxy<SynthesisEventCallback> | null
-	private _synthesisTerminatedCallback: Proxy<SynthesisEventCallback> | null
+	private _synthesisCallbacks: Proxy<ISdsManagerSynthesisCallbacks> | null
 
 	constructor(name: string) {
 		this._name = name
 		this._aggregateStatisticsWorkerProxy = null
 		this._aggregateStatisticsGenerator = null
 		this._synthesizerWorkersInfoMap = new Map()
-		this._synthesisStartedCallback = null
-		this._synthesisFinishedCallback = null
-		this._synthesisProgressUpdatedCallback = null
-		this._synthesisTerminatedCallback = null
+		this._synthesisCallbacks = null
 	}
 
-	public async registerSynthesisStartedCallback(
-		cb: Proxy<SynthesisEventCallback>,
+	public async registerSynthesisCallback(
+		synthesisCallbacks: Proxy<ISdsManagerSynthesisCallbacks> | null,
 	): Promise<void> {
-		this._synthesisStartedCallback = cb
-	}
-
-	public async unregisterSynthesisStartedCallback(): Promise<void> {
-		this._synthesisStartedCallback = null
-	}
-
-	public async registerSynthesisFinishedCallback(
-		cb: Proxy<SynthesisEventCallback>,
-	): Promise<void> {
-		this._synthesisFinishedCallback = cb
-	}
-
-	public async unregisterSynthesisFinishedCallback(): Promise<void> {
-		this._synthesisFinishedCallback = null
-	}
-
-	public async registerSynthesisProgressUpdatedCallback(
-		cb: Proxy<SynthesisEventCallback>,
-	): Promise<void> {
-		this._synthesisProgressUpdatedCallback = cb
-	}
-
-	public async unregisterSynthesisProgressUpdatedCallback(): Promise<void> {
-		this._synthesisProgressUpdatedCallback = null
-	}
-
-	public async registerSynthesisTerminatedCallback(
-		cb: Proxy<SynthesisEventCallback>,
-	): Promise<void> {
-		this._synthesisTerminatedCallback = cb
-	}
-
-	public async unregisterSynthesisTerminatedCallback(): Promise<void> {
-		this._synthesisTerminatedCallback = null
+		this._synthesisCallbacks = synthesisCallbacks
 	}
 
 	public async init(): Promise<void> {
@@ -155,7 +112,7 @@ export class SdsManager {
 		await s.synthesizer.terminate()
 		s.synthesizerWorkerProxy.terminate()
 		this._synthesizerWorkersInfoMap.delete(key)
-		this._synthesisTerminatedCallback?.(s.synthesisInfo)
+		this._synthesisCallbacks?.terminated?.(s.synthesisInfo)
 	}
 
 	public async startGenerateAndEvaluate(
@@ -270,27 +227,27 @@ export class SdsManager {
 		parameters: ISynthesisParameters,
 		progressView: AtomicView,
 	): Promise<void> {
-		await this._synthesisStartedCallback?.(s.synthesisInfo)
+		await this._synthesisCallbacks?.started?.(s.synthesisInfo)
 		s.synthesizer
 			.generateAndEvaluate(
 				csvData,
 				parameters,
 				s.shouldRun.getBuffer(),
 				proxy((p: number) => {
-					this._synthesisProgressUpdatedCallback?.(s.synthesisInfo)
 					progressView.set(p)
+					this._synthesisCallbacks?.progressUpdated?.(s.synthesisInfo)
 				}),
 			)
 			.then(async () => {
 				s.synthesisInfo.status = IWasmSynthesizerWorkerStatus.FINISHED
 				s.synthesisInfo.finishedAt = new Date()
-				await this._synthesisFinishedCallback?.(s.synthesisInfo)
+				await this._synthesisCallbacks?.finished?.(s.synthesisInfo)
 			})
 			.catch(async err => {
 				s.synthesisInfo.status = IWasmSynthesizerWorkerStatus.ERROR
 				s.synthesisInfo.finishedAt = new Date()
 				s.synthesisInfo.errorMessage = err.toString()
-				await this._synthesisFinishedCallback?.(s.synthesisInfo)
+				await this._synthesisCallbacks?.finished?.(s.synthesisInfo)
 			})
 	}
 }
