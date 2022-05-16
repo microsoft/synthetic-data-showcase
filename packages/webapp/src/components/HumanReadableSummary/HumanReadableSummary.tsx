@@ -14,19 +14,19 @@ import { memo, useCallback } from 'react'
 import type { IEvaluateResult } from 'sds-wasm'
 import styled from 'styled-components'
 
-import type { IContextParameters } from '~models'
+import type { ISynthesisInfo } from '~workers/types'
 
-import { useHumanReadableSummaryItems } from './hooks'
+import { useHumanReadableSummaryItems } from './HumanReadableSummary.hooks'
 
 export interface HumanReadableSummaryProps {
 	evaluateResult: IEvaluateResult
-	contextParameters: IContextParameters
+	synthesisInfo: ISynthesisInfo
 }
 
 export const HumanReadableSummary: React.FC<HumanReadableSummaryProps> = memo(
 	function HumanReadableSummary({
 		evaluateResult,
-		contextParameters,
+		synthesisInfo,
 	}: HumanReadableSummaryProps) {
 		const theme = useTheme()
 		const columns: IColumn[] = [
@@ -48,10 +48,7 @@ export const HumanReadableSummary: React.FC<HumanReadableSummaryProps> = memo(
 				onRender: item => <WrappedText>{item.text}</WrappedText>,
 			},
 		]
-		const items = useHumanReadableSummaryItems(
-			evaluateResult,
-			contextParameters,
-		)
+		const items = useHumanReadableSummaryItems(evaluateResult, synthesisInfo)
 		const onRenderRow = useCallback(
 			props => {
 				const customStyles: Partial<IDetailsRowStyles> = {}

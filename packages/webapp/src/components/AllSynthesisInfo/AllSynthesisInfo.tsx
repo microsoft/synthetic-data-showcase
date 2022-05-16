@@ -31,17 +31,6 @@ export const AllSynthesisInfo: React.FC<AllSynthesisInfoProps> = memo(
 		return (
 			<Container>
 				<Flex vertical>
-					<Flex.Box align="flex-end">
-						<ActionButton
-							text="Delete"
-							disabled={!selectedSynthesisInfo || !onDelete}
-							iconProps={{ iconName: 'delete' }}
-							title="Delete selection"
-							onClick={() =>
-								selectedSynthesisInfo && onDelete?.(selectedSynthesisInfo)
-							}
-						/>
-					</Flex.Box>
 					<Flex.Box grow={1}>
 						<DetailsList
 							items={allSynthesisInfo}
@@ -50,6 +39,17 @@ export const AllSynthesisInfo: React.FC<AllSynthesisInfoProps> = memo(
 							setKey={'none'}
 							selection={selection}
 							selectionMode={SelectionMode.single}
+						/>
+					</Flex.Box>
+					<Flex.Box align="flex-start">
+						<ActionButton
+							text="Delete"
+							disabled={!selectedSynthesisInfo || !onDelete}
+							iconProps={{ iconName: 'delete' }}
+							title="Delete selection"
+							onClick={() =>
+								selectedSynthesisInfo && onDelete?.(selectedSynthesisInfo)
+							}
 						/>
 					</Flex.Box>
 				</Flex>

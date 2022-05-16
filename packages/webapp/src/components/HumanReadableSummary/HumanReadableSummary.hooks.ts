@@ -5,33 +5,33 @@
 import { useMemo } from 'react'
 import type { IEvaluateResult } from 'sds-wasm'
 
-import type { IContextParameters } from '~models'
+import type { ISynthesisInfo } from '~workers/types'
 import { SynthesisMode } from '~workers/types'
 
 export function useSensitiveDataPrivacyText(
 	evaluateResult: IEvaluateResult,
-	contextParameters: IContextParameters,
+	synthesisInfo: ISynthesisInfo,
 ): string {
 	return useMemo(() => {
 		const uniqueAttributeCount =
 			evaluateResult.sensitiveDataStats.totalNumberOfCombinationsByLen[1] || 0
 		return `The sensitive dataset contains ${uniqueAttributeCount} distinct attributes linked to ${
-			contextParameters.recordLimit
+			synthesisInfo.parameters.csvDataParameters.recordLimit
 		} unique data subjects. Its privacy risk has been analysed for all combinations of up to ${
-			contextParameters.reportingLength
+			synthesisInfo.parameters.reportingLength
 		} attributes, revealing that ${evaluateResult.sensitiveDataStats.percentageOfRecordsWithUniqueCombinations.toFixed(
 			2,
 		)}% of data subjects are linked to unique combinations and a further ${evaluateResult.sensitiveDataStats.percentageOfRecordsWithRareCombinations.toFixed(
 			2,
 		)}% are linked to rare combinations below the specified privacy resolution of ${
-			contextParameters.resolution
+			synthesisInfo.parameters.baseSynthesisParameters.resolution
 		}.`
-	}, [evaluateResult, contextParameters])
+	}, [evaluateResult, synthesisInfo])
 }
 
 export function useAggregateDataUtilityText(
 	evaluateResult: IEvaluateResult,
-	contextParameters: IContextParameters,
+	synthesisInfo: ISynthesisInfo,
 ): string {
 	return useMemo(() => {
 		const distinctCount = Object.values(
@@ -40,24 +40,24 @@ export function useAggregateDataUtilityText(
 
 		return (
 			`Considering all attribute combinations up to length ${
-				contextParameters.reportingLength
+				synthesisInfo.parameters.reportingLength
 			}, the sensitive dataset contains ${distinctCount} distinct combinations. ${evaluateResult.aggregateCountsStats.percentageOfSuppressedCombinations.toFixed(
 				2,
 			)}% of these combinations are rare and therefore not reported in the aggregate dataset. The average error of released combination counts after preserving privacy is ${evaluateResult.aggregateCountsStats.combinationsCountMeanAbsError.toFixed(
 				2,
 			)}.` +
-			(contextParameters.synthesisMode === SynthesisMode.DP
+			(synthesisInfo.parameters.mode === SynthesisMode.DP
 				? ` IMPORTANT: ${evaluateResult.aggregateCountsStats.percentageOfFabricatedCombinations.toFixed(
 						2,
 				  )}% of combinations were fabricated and do not exist in the sensitive dataset - this protects privacy, but only if the amount of fabrication is NOT disclosed.`
 				: ` All of these reported attributes exist in the sensitive dataset - there is zero fabrication of attribute combinations.`)
 		)
-	}, [evaluateResult, contextParameters])
+	}, [evaluateResult, synthesisInfo])
 }
 
 export function useSyntheticDataPrivacyText(
 	evaluateResult: IEvaluateResult,
-	contextParameters: IContextParameters,
+	synthesisInfo: ISynthesisInfo,
 ): string {
 	return useMemo(() => {
 		const uniqueAttributeCount =
@@ -73,24 +73,24 @@ export function useSyntheticDataPrivacyText(
 			distinctCount
 		const totalNumberOfRecords = Math.round(
 			(evaluateResult.syntheticDataStats.recordExpansionPercentage / 100 + 1) *
-				contextParameters.recordLimit,
+				synthesisInfo.parameters.csvDataParameters.recordLimit,
 		)
 		return (
 			`The synthetic dataset contains ${uniqueAttributeCount} distinct attributes linked to ${totalNumberOfRecords} "synthetic" individuals who are not actual data subjects in the sensitive dataset. Considering all attribute combinations up to length ${
-				contextParameters.reportingLength
+				synthesisInfo.parameters.reportingLength
 			}, ${leakagePercentage.toFixed(
 				2,
 			)}% describe groups of data subjects smaller than the privacy resolution ` +
-			(contextParameters.synthesisMode === SynthesisMode.DP
+			(synthesisInfo.parameters.mode === SynthesisMode.DP
 				? '(but protected by differential privacy).'
 				: '(guaranteed by k-anonymity).')
 		)
-	}, [evaluateResult, contextParameters])
+	}, [evaluateResult, synthesisInfo])
 }
 
 export function useSyntheticDataUtilityText(
 	evaluateResult: IEvaluateResult,
-	contextParameters: IContextParameters,
+	synthesisInfo: ISynthesisInfo,
 ): string {
 	return useMemo(() => {
 		const distinctCount = Object.values(
@@ -99,34 +99,34 @@ export function useSyntheticDataUtilityText(
 		const retainedCombinationsPercentage =
 			100 - evaluateResult.syntheticDataStats.percentageOfSuppressedCombinations
 		return `Considering all attribute combinations up to length ${
-			contextParameters.reportingLength
+			synthesisInfo.parameters.reportingLength
 		}, the synthetic dataset contains ${distinctCount} distinct combinations, retaining ${retainedCombinationsPercentage.toFixed(
 			2,
 		)}% of the combinations contained in the sensitive dataset. The average error of counts derived from this synthetic data is ${evaluateResult.syntheticDataStats.combinationsCountMeanAbsError.toFixed(
 			2,
 		)}.`
-	}, [evaluateResult, contextParameters])
+	}, [evaluateResult, synthesisInfo])
 }
 
 export function useHumanReadableSummaryItems(
 	evaluateResult: IEvaluateResult,
-	contextParameters: IContextParameters,
+	synthesisInfo: ISynthesisInfo,
 ): { name: string; text: string }[] {
 	const sensitiveDataPrivacyText = useSensitiveDataPrivacyText(
 		evaluateResult,
-		contextParameters,
+		synthesisInfo,
 	)
 	const aggregateDataUtilityText = useAggregateDataUtilityText(
 		evaluateResult,
-		contextParameters,
+		synthesisInfo,
 	)
 	const syntheticDataPrivacyText = useSyntheticDataPrivacyText(
 		evaluateResult,
-		contextParameters,
+		synthesisInfo,
 	)
 	const syntheticDataUtilityText = useSyntheticDataUtilityText(
 		evaluateResult,
-		contextParameters,
+		synthesisInfo,
 	)
 
 	return useMemo(() => {

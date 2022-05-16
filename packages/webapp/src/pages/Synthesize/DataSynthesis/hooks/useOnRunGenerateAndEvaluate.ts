@@ -3,57 +3,127 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { useCallback, useMemo } from 'react'
-import type { IInputNumberByLength } from 'sds-wasm'
 
-import type {
-	IContextParameters,
-	NoisyCountThresholdType,
+import type { ICsvContent } from '~models'
+import {
 	OversamplingType,
 	PrivacyBudgetProfile,
 	UseSyntheticCounts,
 } from '~models'
-import {
-	useAllContextsParametersSetter,
-	useIsProcessingSetter,
-	useProcessingProgressSetter,
-	useSelectedContextParametersSetter,
-	useSensitiveContentValue,
-	useWasmWorkerValue,
-} from '~states'
+import { useSdsManagerInstance, useSensitiveContentValue } from '~states'
 import { namedSpread, spreadableHeaders, usableHeaders } from '~utils'
-import type { SynthesisMode } from '~workers/types'
+import type {
+	IAggregateSeededSynthesisParameters,
+	IDpSynthesisParameters,
+	ISynthesisParameters,
+	IValueSeededSynthesisParameters,
+} from '~workers/types'
+import { SynthesisMode } from '~workers/types'
 
-import { useContextKey } from './useContextKey'
+import type { IRawSynthesisParameters } from '../../Synthesize.types'
+import { generateContextKey } from './useContextKey'
 
-export interface IOnRunGenerateAndEvaluateParameters {
-	recordLimit: number
-	synthesisMode: SynthesisMode
-	resolution: number
-	cacheSize: number
-	reportingLength: number
-	oversamplingType: OversamplingType
-	oversamplingRatio: number
-	oversamplingTries: number
-	useSyntheticCounts: UseSyntheticCounts
-	percentilePercentage: number
-	percentileEpsilonProportion: number
-	noiseEpsilon: number
-	noiseDelta: number
-	thresholdType: NoisyCountThresholdType
-	threshold: IInputNumberByLength
-	privacyBudgetProfile: PrivacyBudgetProfile
+function generateSigmaProportions(
+	reportingLength: number,
+	privacyBudgetProfile: PrivacyBudgetProfile,
+): number[] {
+	const sigmaProportions: number[] = []
+
+	for (let i = 0; i < reportingLength; i++) {
+		let p
+		switch (privacyBudgetProfile) {
+			case PrivacyBudgetProfile.Flat:
+				p = 1.0
+				break
+			case PrivacyBudgetProfile.ProportionallyIncreasing:
+				p = 1.0 / (i + 1)
+				break
+			case PrivacyBudgetProfile.ProportionallyDecreasing:
+				p = 1.0 / (reportingLength - i)
+				break
+		}
+		sigmaProportions.push(p)
+	}
+	return sigmaProportions
 }
 
-export function useOnRunGenerateAndEvaluate(
-	params: IOnRunGenerateAndEvaluateParameters,
-): () => Promise<void> {
-	const setIsProcessing = useIsProcessingSetter()
-	const worker = useWasmWorkerValue()
-	const setProcessingProgress = useProcessingProgressSetter()
+function convertRawToSynthesisParameters(
+	rawParams: IRawSynthesisParameters,
+	useColumns: string[],
+	sensitiveCsvContent: ICsvContent,
+): ISynthesisParameters {
+	let ret: ISynthesisParameters = {
+		mode: rawParams.synthesisMode,
+		csvDataParameters: {
+			delimiter: sensitiveCsvContent.delimiter,
+			useColumns,
+			sensitiveZeros: sensitiveCsvContent.headers
+				.filter(h => h.hasSensitiveZeros)
+				.map(h => h.name),
+			recordLimit: rawParams.recordLimit,
+		},
+		baseSynthesisParameters: {
+			resolution: rawParams.resolution,
+			cacheMaxSize: rawParams.cacheSize,
+			emptyValue: '',
+		},
+		reportingLength: rawParams.reportingLength,
+	}
+
+	switch (rawParams.synthesisMode) {
+		case SynthesisMode.Unseeded:
+			break
+		case SynthesisMode.RowSeeded:
+			break
+		case SynthesisMode.ValueSeeded:
+			ret = {
+				...ret,
+				oversampling:
+					rawParams.oversamplingType === OversamplingType.Controlled
+						? {
+								oversamplingRatio: rawParams.oversamplingRatio,
+								oversamplingTries: rawParams.oversamplingTries,
+						  }
+						: undefined,
+			} as IValueSeededSynthesisParameters
+			break
+		case SynthesisMode.AggregateSeeded:
+			ret = {
+				...ret,
+				useSyntheticCounts:
+					rawParams.useSyntheticCounts === UseSyntheticCounts.Yes,
+			} as IAggregateSeededSynthesisParameters
+			break
+		case SynthesisMode.DP:
+			ret = {
+				...ret,
+				dpParameters: {
+					epsilon: rawParams.noiseEpsilon,
+					delta: rawParams.noiseDelta,
+					percentilePercentage: rawParams.percentilePercentage,
+					percentileEpsilonProportion: rawParams.percentileEpsilonProportion,
+					sigmaProportions: generateSigmaProportions(
+						rawParams.reportingLength,
+						rawParams.privacyBudgetProfile,
+					),
+				},
+				noiseThreshold: {
+					type: rawParams.thresholdType,
+					valuesByLen: rawParams.threshold,
+				},
+				useSyntheticCounts:
+					rawParams.useSyntheticCounts === UseSyntheticCounts.Yes,
+			} as IDpSynthesisParameters
+			break
+	}
+	return ret
+}
+
+export function useOnRunGenerateAndEvaluate(): (
+	rawParams: IRawSynthesisParameters,
+) => Promise<void> {
 	const sensitiveContent = useSensitiveContentValue()
-	const contextKey = useContextKey(params)
-	const setAllContextsParameters = useAllContextsParametersSetter()
-	const setSelectedContext = useSelectedContextParametersSetter()
+	const manager = useSdsManagerInstance()[0]?.instance
 
 	const { resultTable: sensitiveTable, newColumnNames } = useMemo(
 		() =>
@@ -67,49 +137,24 @@ export function useOnRunGenerateAndEvaluate(
 		[sensitiveContent],
 	)
 
-	return useCallback(async () => {
-		setIsProcessing(true)
-		setProcessingProgress(0.0)
+	return useCallback(
+		async (rawParams: IRawSynthesisParameters) => {
+			const columnsToUse = new Set([
+				...usableHeaders(sensitiveContent).map(h => h.name),
+				...newColumnNames,
+			])
+			const synthesisParams = convertRawToSynthesisParameters(
+				rawParams,
+				sensitiveTable.columnNames().filter(c => columnsToUse.has(c)),
+				sensitiveContent,
+			)
 
-		const columnsToUse = new Set([
-			...usableHeaders(sensitiveContent).map(h => h.name),
-			...newColumnNames,
-		])
-		const contextParameters: IContextParameters = {
-			...params,
-			key: contextKey,
-			delimiter: sensitiveContent.delimiter,
-			useColumns: sensitiveTable.columnNames().filter(c => columnsToUse.has(c)),
-			sensitiveZeros: sensitiveContent.headers
-				.filter(h => h.hasSensitiveZeros)
-				.map(h => h.name),
-			emptyValue: '',
-			isEvaluated: false,
-		}
-
-		const allContextParameters =
-			(await worker?.generateAndEvaluate(
-				contextKey,
+			await manager?.startGenerateAndEvaluate(
+				generateContextKey(rawParams),
 				sensitiveTable.toCSV({ delimiter: sensitiveContent.delimiter }),
-				contextParameters,
-				p => {
-					setProcessingProgress(p)
-				},
-			)) ?? []
-
-		setIsProcessing(false)
-		setAllContextsParameters(allContextParameters)
-		setSelectedContext(allContextParameters[allContextParameters.length - 1])
-	}, [
-		setIsProcessing,
-		setProcessingProgress,
-		params,
-		contextKey,
-		sensitiveContent,
-		worker,
-		setAllContextsParameters,
-		setSelectedContext,
-		sensitiveTable,
-		newColumnNames,
-	])
+				synthesisParams,
+			)
+		},
+		[sensitiveContent, manager, newColumnNames, sensitiveTable],
+	)
 }

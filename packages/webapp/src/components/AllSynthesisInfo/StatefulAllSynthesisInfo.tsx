@@ -19,9 +19,14 @@ export const StatefulAllSynthesisInfo: React.FC = memo(
 		const [selectedSynthesis, setSelectedSynthesis] = useSelectedSynthesisInfo()
 		const onSelected = useCallback(
 			newSelection => {
-				setSelectedSynthesis(newSelection)
+				if (
+					selectedSynthesis?.key !== newSelection?.key ||
+					selectedSynthesis?.status !== newSelection?.status
+				) {
+					setSelectedSynthesis(newSelection)
+				}
 			},
-			[setSelectedSynthesis],
+			[selectedSynthesis, setSelectedSynthesis],
 		)
 		const onDelete = useCallback(
 			async selection => {
