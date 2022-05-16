@@ -3,6 +3,7 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 export * from './allContextsParameters'
+export * from './allSynthesisInfo'
 export * from './cacheSize'
 export * from './files'
 export * from './hooks'
@@ -24,6 +25,7 @@ export * from './resolution'
 export * from './sdsManagerInstance'
 export * from './selectedContextParameters'
 export * from './selectedPipelineStep'
+export * from './selectedSynthesisInfo'
 export * from './sensitiveContent'
 export * from './steps'
 export * from './synthesisMode'

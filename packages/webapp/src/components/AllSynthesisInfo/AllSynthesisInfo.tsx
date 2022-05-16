@@ -17,27 +17,31 @@ import type { AllSynthesisInfoProps } from './AllSynthesisInfo.types'
 export const AllSynthesisInfo: React.FC<AllSynthesisInfoProps> = memo(
 	function AllSynthesisInfo({
 		allSynthesisInfo,
-		selectedKey,
+		selectedSynthesisInfo,
 		onSelected,
 		onDelete,
 	}) {
 		const columns = useSynthesisInfoColumns()
-		const selection = useSynthesisInfoSelection(selectedKey, onSelected)
+		const selection = useSynthesisInfoSelection(
+			allSynthesisInfo,
+			selectedSynthesisInfo,
+			onSelected,
+		)
 
 		return (
 			<Container>
 				<Flex vertical>
-					{onDelete && (
-						<Flex.Box align="flex-end">
-							<ActionButton
-								text="Delete"
-								disabled={selectedKey === undefined}
-								iconProps={{ iconName: 'delete' }}
-								title="Delete selection"
-								onClick={() => selectedKey && onDelete?.(selectedKey)}
-							/>
-						</Flex.Box>
-					)}
+					<Flex.Box align="flex-end">
+						<ActionButton
+							text="Delete"
+							disabled={!selectedSynthesisInfo || !onDelete}
+							iconProps={{ iconName: 'delete' }}
+							title="Delete selection"
+							onClick={() =>
+								selectedSynthesisInfo && onDelete?.(selectedSynthesisInfo)
+							}
+						/>
+					</Flex.Box>
 					<Flex.Box grow={1}>
 						<DetailsList
 							items={allSynthesisInfo}

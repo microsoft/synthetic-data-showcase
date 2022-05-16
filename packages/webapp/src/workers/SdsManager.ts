@@ -46,6 +46,7 @@ export class SdsManager {
 	private _synthesisStartedCallback: Proxy<SynthesisEventCallback> | null
 	private _synthesisFinishedCallback: Proxy<SynthesisEventCallback> | null
 	private _synthesisProgressUpdatedCallback: Proxy<SynthesisEventCallback> | null
+	private _synthesisTerminatedCallback: Proxy<SynthesisEventCallback> | null
 
 	constructor(name: string) {
 		this._name = name
@@ -55,6 +56,7 @@ export class SdsManager {
 		this._synthesisStartedCallback = null
 		this._synthesisFinishedCallback = null
 		this._synthesisProgressUpdatedCallback = null
+		this._synthesisTerminatedCallback = null
 	}
 
 	public async registerSynthesisStartedCallback(
@@ -85,6 +87,16 @@ export class SdsManager {
 
 	public async unregisterSynthesisProgressUpdatedCallback(): Promise<void> {
 		this._synthesisProgressUpdatedCallback = null
+	}
+
+	public async registerSynthesisTerminatedCallback(
+		cb: Proxy<SynthesisEventCallback>,
+	): Promise<void> {
+		this._synthesisTerminatedCallback = cb
+	}
+
+	public async unregisterSynthesisTerminatedCallback(): Promise<void> {
+		this._synthesisTerminatedCallback = null
 	}
 
 	public async init(): Promise<void> {
@@ -143,6 +155,7 @@ export class SdsManager {
 		await s.synthesizer.terminate()
 		s.synthesizerWorkerProxy.terminate()
 		this._synthesizerWorkersInfoMap.delete(key)
+		this._synthesisTerminatedCallback?.(s.synthesisInfo)
 	}
 
 	public async startGenerateAndEvaluate(

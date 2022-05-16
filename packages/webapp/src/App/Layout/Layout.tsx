@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import { proxy } from 'comlink'
 import React, { memo, useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import styled from 'styled-components'
@@ -10,6 +11,7 @@ import { Flex } from '~components/Flexbox'
 import { Pages } from '~pages'
 import { useOnTableChange } from '~pages/hooks'
 import {
+	useAllSynthesisInfo,
 	useIsProcessingSetter,
 	usePreparedTable,
 	useSdsManagerInstance,
@@ -30,6 +32,7 @@ export const Layout: React.FC = memo(function Layout({ children }) {
 	const location = useLocation()
 	const [selectedTable] = useSelectedTable()
 	const [, setPreparedTable] = usePreparedTable()
+	const [, setAllSynthesisInfo] = useAllSynthesisInfo()
 
 	useOnTableChange()
 
@@ -62,14 +65,26 @@ export const Layout: React.FC = memo(function Layout({ children }) {
 					new SdsManagerWorker(),
 				)
 				const instance = await new workerProxy.ProxyConstructor('SdsManager')
+				const updateSynthesisInfo = proxy(async () => {
+					setAllSynthesisInfo(await instance.getAllSynthesisInfo())
+				})
+
 				await instance.init()
 				setManagerInstance({ instance, workerProxy })
+				await Promise.all([
+					instance.registerSynthesisStartedCallback(updateSynthesisInfo),
+					instance.registerSynthesisProgressUpdatedCallback(
+						updateSynthesisInfo,
+					),
+					instance.registerSynthesisFinishedCallback(updateSynthesisInfo),
+					instance.registerSynthesisTerminatedCallback(updateSynthesisInfo),
+				])
 				setIsProcessing(false)
 			}
 		}
 		getWorker()
 		getManager()
-	}, [worker, setWorker, managerInstance, setManagerInstance, setIsProcessing])
+	}, [worker, setWorker, managerInstance, setManagerInstance, setAllSynthesisInfo, setIsProcessing])
 
 	return (
 		<Container vertical>

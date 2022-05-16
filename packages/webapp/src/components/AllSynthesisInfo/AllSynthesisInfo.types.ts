@@ -4,9 +4,17 @@
  */
 import type { ISynthesisInfo } from '~workers/types'
 
+export type SelectSynthesisInfoCallback = (
+	newSelection: ISynthesisInfo | null,
+) => void | Promise<void>
+
+export type DeleteSynthesisInfoCallback = (
+	selection: ISynthesisInfo,
+) => void | Promise<void>
+
 export interface AllSynthesisInfoProps {
 	allSynthesisInfo: ISynthesisInfo[]
-	selectedKey?: string
-	onSelected?: (newKey: string | undefined) => void
-	onDelete?: (key: string) => void
+	selectedSynthesisInfo: ISynthesisInfo | null
+	onSelected?: SelectSynthesisInfoCallback
+	onDelete?: DeleteSynthesisInfoCallback
 }

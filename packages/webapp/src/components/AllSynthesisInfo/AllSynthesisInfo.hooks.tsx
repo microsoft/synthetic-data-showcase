@@ -10,6 +10,7 @@ import type { ISynthesisInfo } from '~workers/types'
 import { AtomicView } from '~workers/utils'
 
 import { WrappedText } from './AllSynthesisInfo.styles'
+import type { SelectSynthesisInfoCallback } from './AllSynthesisInfo.types'
 
 export function useSynthesisInfoColumns(): IColumn[] {
 	return useMemo(
@@ -79,8 +80,9 @@ export function useSynthesisInfoColumns(): IColumn[] {
 }
 
 export function useSynthesisInfoSelection(
-	selectedKey: string | undefined,
-	onSelected?: (newKey: string | undefined) => void,
+	allSynthesisInfo: ISynthesisInfo[],
+	selectedSynthesisInfo: ISynthesisInfo | null,
+	onSelected?: SelectSynthesisInfoCallback,
 ): Selection {
 	return useMemo(() => {
 		const selection = new Selection({
@@ -89,15 +91,16 @@ export function useSynthesisInfoSelection(
 
 				onSelected?.(
 					selectedItems.length === 1
-						? (selectedItems[0].key as string)
-						: undefined,
+						? (selectedItems[0] as ISynthesisInfo)
+						: null,
 				)
 			},
+			items: allSynthesisInfo,
 		})
 
-		if (selectedKey) {
-			selection.setKeySelected(selectedKey, true, true)
+		if (selectedSynthesisInfo) {
+			selection.setKeySelected(selectedSynthesisInfo.key, true, true)
 		}
 		return selection
-	}, [selectedKey, onSelected])
+	}, [allSynthesisInfo, selectedSynthesisInfo, onSelected])
 }
