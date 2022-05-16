@@ -8,6 +8,7 @@ import type { ISynthesisParameters } from './SynthesisParameters'
 import type { IWasmSynthesizerWorkerStatus } from './WasmSynthesizerWorkerStatus'
 
 export interface ISynthesisInfo {
+	key: string
 	parameters: ISynthesisParameters
 	status: IWasmSynthesizerWorkerStatus
 	startedAt: Date

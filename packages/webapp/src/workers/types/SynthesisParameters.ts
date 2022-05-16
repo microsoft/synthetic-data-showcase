@@ -13,7 +13,6 @@ import type {
 import type { SynthesisMode } from './SynthesisMode'
 
 export interface ISynthesisParameters {
-	key: string
 	mode: SynthesisMode
 	csvDataParameters: ICsvDataParameters
 	baseSynthesisParameters: IBaseSynthesisParameters
@@ -33,7 +32,8 @@ export interface IValueSeededSynthesisParameters extends ISynthesisParameters {
 	oversampling?: IOversamplingParameters
 }
 
-export interface IAggregateSeededSynthesisParameters extends ISynthesisParameters {
+export interface IAggregateSeededSynthesisParameters
+	extends ISynthesisParameters {
 	mode: SynthesisMode.AggregateSeeded
 	useSyntheticCounts: boolean
 }

@@ -106,11 +106,12 @@ export class SdsManager {
 	}
 
 	public async startGenerateAndEvaluate(
+		key: string,
 		csvData: string,
 		parameters: ISynthesisParameters,
 	): Promise<void> {
-		if (this._synthesizerWorkersInfoMap.has(parameters.key)) {
-			throw new Error(`synthesis for ${parameters.key} already exists`)
+		if (this._synthesizerWorkersInfoMap.has(key)) {
+			throw new Error(`synthesis for ${key} already exists`)
 		}
 		const synthesizerWorkerProxy = createWorkerProxy<typeof WasmSynthesizer>(
 			new WasmSynthesizerWorker(),
@@ -119,6 +120,7 @@ export class SdsManager {
 		const shouldRunView = new AtomicView(AtomicView.createBuffer(true))
 		const s: IWasmSynthesizerWorkerInfo = {
 			synthesisInfo: {
+				key,
 				parameters,
 				status: IWasmSynthesizerWorkerStatus.RUNNING,
 				startedAt: new Date(),
@@ -126,13 +128,13 @@ export class SdsManager {
 			},
 			synthesizerWorkerProxy,
 			synthesizer: await new synthesizerWorkerProxy.ProxyConstructor(
-				`${this._name}:WasmSynthesizer:${parameters.key}`,
+				`${this._name}:WasmSynthesizer:${key}`,
 			),
 			shouldRun: shouldRunView,
 		}
 
 		await s.synthesizer.init()
-		this._synthesizerWorkersInfoMap.set(parameters.key, s)
+		this._synthesizerWorkersInfoMap.set(key, s)
 		this.dispatchSynthesis(s, csvData, parameters, progressView)
 	}
 
