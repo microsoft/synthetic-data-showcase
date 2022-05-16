@@ -16,10 +16,11 @@ import { HumanReadableSummary } from '~components/HumanReadableSummary'
 import type { ICsvContent } from '~models'
 import { defaultCsvContent } from '~models'
 
-import { useSyntheticTableCommands } from '../DataSynthesis/hooks'
+import { DataEvaluation } from '../DataEvaluation'
 import {
 	useGetAndSetEvaluateResult,
 	useGetAndSetSyntheticCsvContent,
+	useSyntheticTableCommands,
 } from './DataSynthesisResult.hooks'
 import type { DataSynthesisResultProps } from './DataSynthesisResult.types'
 
@@ -93,7 +94,7 @@ export const DataSynthesisResult: React.FC<DataSynthesisResultProps> = memo(
 							{showAdvancedEvaluation && (
 								<>
 									<h3>Advanced evaluation</h3>
-									<div>TODO</div>
+									<DataEvaluation selectedSynthesis={selectedSynthesis} />
 								</>
 							)}
 							{showSyntheticData && syntheticCsvContent && (

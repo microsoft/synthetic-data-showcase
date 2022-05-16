@@ -21,58 +21,55 @@ import {
 	getMetricsSummaryCsv,
 } from '~components/DataEvaluationInfoDownloader'
 import { getMicrodataMetricsItems } from '~components/MetricsSummaryTable'
-import type { IContextParameters } from '~models'
+import type { ISdsManagerInstance } from '~models'
 import {
-	useAllContextsParametersValue,
-	useSensitiveContentValue,
-	useWasmWorkerValue,
-} from '~states'
-import type { SdsWasmWorker } from '~workers/sds-wasm'
+	useAllFinishedSynthesisInfo,
+	useGetSyntheticCsvContent,
+} from '~pages/Synthesize'
+import { useSdsManagerInstance, useSensitiveContentValue } from '~states'
 import { AggregateType } from '~workers/types'
 
-import { useGetSyntheticCsvContent } from '../Synthesize/DataSynthesis/hooks'
-
 async function generateAggregatesCsv(
-	worker: SdsWasmWorker,
-	c: IContextParameters,
+	manager: ISdsManagerInstance,
+	key: string,
 ): Promise<FileWithPath[]> {
 	return [
 		new FileWithPath(
 			new Blob(
-				[await getAggregatesCsv(worker, c.key, AggregateType.Sensitive)],
+				[await getAggregatesCsv(manager, key, AggregateType.Sensitive)],
 				{
 					type: 'text/csv',
 				},
 			),
-			`${c.key}/${AggregateType.Sensitive}_aggregates.csv`,
-			`${c.key}/${AggregateType.Sensitive}_aggregates.csv`,
+			`${key}/${AggregateType.Sensitive}_aggregates.csv`,
+			`${key}/${AggregateType.Sensitive}_aggregates.csv`,
 		),
 		new FileWithPath(
 			new Blob(
-				[await getAggregatesCsv(worker, c.key, AggregateType.Aggregated)],
+				[await getAggregatesCsv(manager, key, AggregateType.Aggregated)],
 				{
 					type: 'text/csv',
 				},
 			),
-			`${c.key}/${AggregateType.Aggregated}_aggregates.csv`,
-			`${c.key}/${AggregateType.Aggregated}_aggregates.csv`,
+			`${key}/${AggregateType.Aggregated}_aggregates.csv`,
+			`${key}/${AggregateType.Aggregated}_aggregates.csv`,
 		),
 		new FileWithPath(
 			new Blob(
-				[await getAggregatesCsv(worker, c.key, AggregateType.Synthetic)],
+				[await getAggregatesCsv(manager, key, AggregateType.Synthetic)],
 				{
 					type: 'text/csv',
 				},
 			),
-			`${c.key}/${AggregateType.Synthetic}_aggregates.csv`,
-			`${c.key}/${AggregateType.Synthetic}_aggregates.csv`,
+			`${key}/${AggregateType.Synthetic}_aggregates.csv`,
+			`${key}/${AggregateType.Synthetic}_aggregates.csv`,
 		),
 	]
 }
 
 async function generateMetricsSummaryCsv(
 	evaluateResult: IEvaluateResult,
-	c: IContextParameters,
+	key: string,
 ): Promise<FileWithPath[]> {
 	return [
 		new FileWithPath(
@@ -89,8 +86,8 @@ async function generateMetricsSummaryCsv(
 					type: 'text/csv',
 				},
 			),
-			`${c.key}/${AggregateType.Sensitive}_metrics_summary.csv`,
-			`${c.key}/${AggregateType.Sensitive}_metrics_summary.csv`,
+			`${key}/${AggregateType.Sensitive}_metrics_summary.csv`,
+			`${key}/${AggregateType.Sensitive}_metrics_summary.csv`,
 		),
 		new FileWithPath(
 			new Blob(
@@ -106,8 +103,8 @@ async function generateMetricsSummaryCsv(
 					type: 'text/csv',
 				},
 			),
-			`${c.key}/${AggregateType.Aggregated}_metrics_summary.csv`,
-			`${c.key}/${AggregateType.Aggregated}_metrics_summary.csv`,
+			`${key}/${AggregateType.Aggregated}_metrics_summary.csv`,
+			`${key}/${AggregateType.Aggregated}_metrics_summary.csv`,
 		),
 		new FileWithPath(
 			new Blob(
@@ -123,8 +120,8 @@ async function generateMetricsSummaryCsv(
 					type: 'text/csv',
 				},
 			),
-			`${c.key}/${AggregateType.Synthetic}_metrics_summary.csv`,
-			`${c.key}/${AggregateType.Synthetic}_metrics_summary.csv`,
+			`${key}/${AggregateType.Synthetic}_metrics_summary.csv`,
+			`${key}/${AggregateType.Synthetic}_metrics_summary.csv`,
 		),
 	]
 }
@@ -132,7 +129,7 @@ async function generateMetricsSummaryCsv(
 async function generateAnalysisByCountCsv(
 	evaluateResult: IEvaluateResult,
 	countLabels: number[],
-	c: IContextParameters,
+	key: string,
 ): Promise<FileWithPath[]> {
 	return [
 		new FileWithPath(
@@ -142,8 +139,8 @@ async function generateAnalysisByCountCsv(
 					type: 'text/csv',
 				},
 			),
-			`${c.key}/${AggregateType.Sensitive}_analysis_by_count.csv`,
-			`${c.key}/${AggregateType.Sensitive}_analysis_by_count.csv`,
+			`${key}/${AggregateType.Sensitive}_analysis_by_count.csv`,
+			`${key}/${AggregateType.Sensitive}_analysis_by_count.csv`,
 		),
 		new FileWithPath(
 			new Blob(
@@ -157,8 +154,8 @@ async function generateAnalysisByCountCsv(
 					type: 'text/csv',
 				},
 			),
-			`${c.key}/${AggregateType.Aggregated}_analysis_by_count.csv`,
-			`${c.key}/${AggregateType.Aggregated}_analysis_by_count.csv`,
+			`${key}/${AggregateType.Aggregated}_analysis_by_count.csv`,
+			`${key}/${AggregateType.Aggregated}_analysis_by_count.csv`,
 		),
 		new FileWithPath(
 			new Blob(
@@ -167,8 +164,8 @@ async function generateAnalysisByCountCsv(
 					type: 'text/csv',
 				},
 			),
-			`${c.key}/${AggregateType.Synthetic}_analysis_by_count.csv`,
-			`${c.key}/${AggregateType.Synthetic}_analysis_by_count.csv`,
+			`${key}/${AggregateType.Synthetic}_analysis_by_count.csv`,
+			`${key}/${AggregateType.Synthetic}_analysis_by_count.csv`,
 		),
 	]
 }
@@ -176,7 +173,7 @@ async function generateAnalysisByCountCsv(
 async function generateAnalysisByLenCsv(
 	evaluateResult: IEvaluateResult,
 	lenLabels: number[],
-	c: IContextParameters,
+	key: string,
 ): Promise<FileWithPath[]> {
 	return [
 		new FileWithPath(
@@ -186,8 +183,8 @@ async function generateAnalysisByLenCsv(
 					type: 'text/csv',
 				},
 			),
-			`${c.key}/${AggregateType.Sensitive}_analysis_by_length.csv`,
-			`${c.key}/${AggregateType.Sensitive}_analysis_by_length.csv`,
+			`${key}/${AggregateType.Sensitive}_analysis_by_length.csv`,
+			`${key}/${AggregateType.Sensitive}_analysis_by_length.csv`,
 		),
 		new FileWithPath(
 			new Blob(
@@ -196,8 +193,8 @@ async function generateAnalysisByLenCsv(
 					type: 'text/csv',
 				},
 			),
-			`${c.key}/${AggregateType.Aggregated}_analysis_by_length.csv`,
-			`${c.key}/${AggregateType.Aggregated}_analysis_by_length.csv`,
+			`${key}/${AggregateType.Aggregated}_analysis_by_length.csv`,
+			`${key}/${AggregateType.Aggregated}_analysis_by_length.csv`,
 		),
 		new FileWithPath(
 			new Blob(
@@ -206,8 +203,8 @@ async function generateAnalysisByLenCsv(
 					type: 'text/csv',
 				},
 			),
-			`${c.key}/${AggregateType.Synthetic}_analysis_by_length.csv`,
-			`${c.key}/${AggregateType.Synthetic}_analysis_by_length.csv`,
+			`${key}/${AggregateType.Synthetic}_analysis_by_length.csv`,
+			`${key}/${AggregateType.Synthetic}_analysis_by_length.csv`,
 		),
 	]
 }
@@ -217,8 +214,8 @@ export function useOnGetAllAssetsDownloadInfo(
 	delimiter = ',',
 	alias = 'all_assets.zip',
 ): () => Promise<DownloadInfo | undefined> {
-	const worker = useWasmWorkerValue()
-	const allContextsParameters = useAllContextsParametersValue()
+	const [manager] = useSdsManagerInstance()
+	const allSynthesisInfo = useAllFinishedSynthesisInfo()
 	const sensitiveContent = useSensitiveContentValue()
 	const getSyntheticCsvContent = useGetSyntheticCsvContent()
 
@@ -235,9 +232,9 @@ export function useOnGetAllAssetsDownloadInfo(
 			),
 		)
 
-		for (const c of allContextsParameters) {
-			const syntheticContent = await getSyntheticCsvContent(c)
-			const evaluateResult = await worker?.getEvaluateResult(c.key)
+		for (const s of allSynthesisInfo) {
+			const syntheticContent = await getSyntheticCsvContent(s)
+			const evaluateResult = await manager?.instance.getEvaluateResult(s.key)
 			const countLabels = getMetricsByCountLabels(
 				evaluateResult?.sensitiveDataStats.meanProportionalErrorByBucket,
 			)
@@ -248,17 +245,21 @@ export function useOnGetAllAssetsDownloadInfo(
 					new Blob([syntheticContent.table.toCSV({ delimiter })], {
 						type: 'text/csv',
 					}),
-					`${c.key}/synthetic_data.csv`,
-					`${c.key}/synthetic_data.csv`,
+					`${s.key}/synthetic_data.csv`,
+					`${s.key}/synthetic_data.csv`,
 				),
 			)
 
-			if (c.isEvaluated && evaluateResult && worker) {
+			if (evaluateResult && manager) {
 				await collection.add([
-					...(await generateAggregatesCsv(worker, c)),
-					...(await generateMetricsSummaryCsv(evaluateResult, c)),
-					...(await generateAnalysisByCountCsv(evaluateResult, countLabels, c)),
-					...(await generateAnalysisByLenCsv(evaluateResult, lenLabels, c)),
+					...(await generateAggregatesCsv(manager, s.key)),
+					...(await generateMetricsSummaryCsv(evaluateResult, s.key)),
+					...(await generateAnalysisByCountCsv(
+						evaluateResult,
+						countLabels,
+						s.key,
+					)),
+					...(await generateAnalysisByLenCsv(evaluateResult, lenLabels, s.key)),
 				])
 			}
 		}
@@ -269,8 +270,8 @@ export function useOnGetAllAssetsDownloadInfo(
 	}, [
 		delimiter,
 		alias,
-		worker,
-		allContextsParameters,
+		manager,
+		allSynthesisInfo,
 		sensitiveContent,
 		getSyntheticCsvContent,
 	])

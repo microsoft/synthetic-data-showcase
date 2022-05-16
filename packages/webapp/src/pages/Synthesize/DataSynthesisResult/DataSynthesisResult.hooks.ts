@@ -2,40 +2,17 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-
-import { introspect } from '@data-wrangling-components/core'
+import type { ICommandBarItemProps } from '@fluentui/react'
 import type { MutableRefObject } from 'react'
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import type { IEvaluateResult } from 'sds-wasm'
 
 import type { ICsvContent } from '~models'
+import { useDownloadCommand } from '~pages/hooks'
 import { useSdsManagerInstance } from '~states'
-import { fromCsvData, tableHeaders } from '~utils'
 import type { ISynthesisInfo } from '~workers/types'
 
-export function useGetSyntheticCsvContent(): (
-	selectedSynthesis: ISynthesisInfo,
-) => Promise<ICsvContent> {
-	const [manager] = useSdsManagerInstance()
-
-	return useCallback(
-		async (selectedSynthesis: ISynthesisInfo) => {
-			const generateResult = await manager?.instance.getGenerateResult(
-				selectedSynthesis.key,
-			)
-			const delimiter = selectedSynthesis.parameters.csvDataParameters.delimiter
-			const table = fromCsvData(generateResult?.syntheticData, delimiter)
-
-			return {
-				headers: tableHeaders(table),
-				delimiter,
-				table,
-				metadata: introspect(table, true),
-			}
-		},
-		[manager],
-	)
-}
+import { useGetSyntheticCsvContent } from '../Synthesize.hooks'
 
 export function useGetAndSetSyntheticCsvContent(
 	setSyntheticCsvContent: (content: ICsvContent) => void,
@@ -73,4 +50,11 @@ export function useGetAndSetEvaluateResult(
 		},
 		[manager, setEvaluateResult, isMounted],
 	)
+}
+
+export function useSyntheticTableCommands(
+	content: ICsvContent,
+): ICommandBarItemProps[] {
+	const dlcmd = useDownloadCommand(content, 'synthetic_data.csv')
+	return useMemo(() => [dlcmd], [dlcmd])
 }

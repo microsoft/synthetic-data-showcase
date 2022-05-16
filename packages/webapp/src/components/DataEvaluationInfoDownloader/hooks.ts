@@ -8,8 +8,8 @@ import type { IMicrodataStatistics } from 'sds-wasm'
 import type { DownloadInfo } from '~components/controls/DownloadButton'
 import type { IMicrodataMetricItem } from '~components/MetricsSummaryTable'
 import { useMicrodataMetricsItems } from '~components/MetricsSummaryTable'
-import { useWasmWorkerValue } from '~states'
-import type { SdsWasmWorker } from '~workers/sds-wasm'
+import type { ISdsManagerInstance } from '~models'
+import { useSdsManagerInstance } from '~states'
 import type { AggregateType } from '~workers/types'
 
 export function getMetricsSummaryCsv(
@@ -83,7 +83,9 @@ export function getAnalysisByLenCsv(
 						stats.combinationsCountMeanByLen[l] ?? 0
 					}${delimiter}${
 						stats.totalNumberOfCombinationsByLen[l] ?? 0
-					}${delimiter}${stats.numberOfRareCombinationsByLen[l] ?? 0}${delimiter}${
+					}${delimiter}${
+						stats.numberOfRareCombinationsByLen[l] ?? 0
+					}${delimiter}${
 						stats.percentageOfRareCombinationsByLen[l] ?? 0
 					}${delimiter}${stats.leakageCountByLen[l] ?? 0}${delimiter}${
 						stats.leakagePercentageByLen[l] ?? 0
@@ -106,16 +108,16 @@ export function useOnGetAnalysisByLenCsv(
 }
 
 export async function getAggregatesCsv(
-	worker: SdsWasmWorker | null,
+	manager: ISdsManagerInstance | null,
 	contextKey: string | undefined,
 	aggregateType: AggregateType,
 	aggregatesDelimiter = ',',
 	combinationDelimiter = ';',
 ): Promise<string> {
-	if (!worker || !contextKey) {
+	if (!manager || !contextKey) {
 		return ''
 	}
-	const result = await worker?.getAggregateResult(
+	const result = await manager?.instance.getAggregateResult(
 		contextKey,
 		aggregateType,
 		aggregatesDelimiter,
@@ -130,18 +132,18 @@ export function useOnGetAggregatesCsv(
 	aggregatesDelimiter = ',',
 	combinationDelimiter = ';',
 ): () => Promise<string> {
-	const worker = useWasmWorkerValue()
+	const [manager] = useSdsManagerInstance()
 
 	return useCallback(async () => {
 		return getAggregatesCsv(
-			worker,
+			manager,
 			contextKey,
 			aggregateType,
 			aggregatesDelimiter,
 			combinationDelimiter,
 		)
 	}, [
-		worker,
+		manager,
 		contextKey,
 		aggregateType,
 		aggregatesDelimiter,
