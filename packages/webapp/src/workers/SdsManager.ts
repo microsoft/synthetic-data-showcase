@@ -32,6 +32,10 @@ import { AtomicView, createWorkerProxy } from './utils'
 import type { WasmSynthesizer } from './WasmSynthesizer'
 import WasmSynthesizerWorker from './WasmSynthesizer?worker'
 
+export type SynthesisEventCallback = (
+	synthesisInfo: ISynthesisInfo,
+) => Promise<void>
+
 export class SdsManager {
 	private _name: string
 	private _aggregateStatisticsWorkerProxy: IWorkerProxy<
@@ -39,12 +43,48 @@ export class SdsManager {
 	> | null
 	private _aggregateStatisticsGenerator: Remote<AggregateStatisticsGenerator> | null
 	private _synthesizerWorkersInfoMap: Map<string, IWasmSynthesizerWorkerInfo>
+	private _synthesisStartedCallback: Proxy<SynthesisEventCallback> | null
+	private _synthesisFinishedCallback: Proxy<SynthesisEventCallback> | null
+	private _synthesisProgressUpdatedCallback: Proxy<SynthesisEventCallback> | null
 
 	constructor(name: string) {
 		this._name = name
 		this._aggregateStatisticsWorkerProxy = null
 		this._aggregateStatisticsGenerator = null
 		this._synthesizerWorkersInfoMap = new Map()
+		this._synthesisStartedCallback = null
+		this._synthesisFinishedCallback = null
+		this._synthesisProgressUpdatedCallback = null
+	}
+
+	public async registerSynthesisStartedCallback(
+		cb: Proxy<SynthesisEventCallback>,
+	): Promise<void> {
+		this._synthesisStartedCallback = cb
+	}
+
+	public async unregisterSynthesisStartedCallback(): Promise<void> {
+		this._synthesisStartedCallback = null
+	}
+
+	public async registerSynthesisFinishedCallback(
+		cb: Proxy<SynthesisEventCallback>,
+	): Promise<void> {
+		this._synthesisFinishedCallback = cb
+	}
+
+	public async unregisterSynthesisFinishedCallback(): Promise<void> {
+		this._synthesisFinishedCallback = null
+	}
+
+	public async registerSynthesisProgressUpdatedCallback(
+		cb: Proxy<SynthesisEventCallback>,
+	): Promise<void> {
+		this._synthesisProgressUpdatedCallback = cb
+	}
+
+	public async unregisterSynthesisProgressUpdatedCallback(): Promise<void> {
+		this._synthesisProgressUpdatedCallback = null
 	}
 
 	public async init(): Promise<void> {
@@ -211,33 +251,33 @@ export class SdsManager {
 		return s
 	}
 
-	private dispatchSynthesis(
+	private async dispatchSynthesis(
 		s: IWasmSynthesizerWorkerInfo,
 		csvData: string,
 		parameters: ISynthesisParameters,
 		progressView: AtomicView,
-	): void {
-		// TODO: dispatch event telling the synthesis started
+	): Promise<void> {
+		await this._synthesisStartedCallback?.(s.synthesisInfo)
 		s.synthesizer
 			.generateAndEvaluate(
 				csvData,
 				parameters,
 				s.shouldRun.getBuffer(),
 				proxy((p: number) => {
-					// TODO: maybe dispatch event telling the progress has been updated?
+					this._synthesisProgressUpdatedCallback?.(s.synthesisInfo)
 					progressView.set(p)
 				}),
 			)
-			.then(() => {
+			.then(async () => {
 				s.synthesisInfo.status = IWasmSynthesizerWorkerStatus.FINISHED
 				s.synthesisInfo.finishedAt = new Date()
-				// TODO: dispatch event telling the synthesis finished
+				await this._synthesisFinishedCallback?.(s.synthesisInfo)
 			})
-			.catch(err => {
+			.catch(async err => {
 				s.synthesisInfo.status = IWasmSynthesizerWorkerStatus.ERROR
 				s.synthesisInfo.finishedAt = new Date()
 				s.synthesisInfo.errorMessage = err.toString()
-				// TODO: dispatch event telling the synthesis finished with error
+				await this._synthesisFinishedCallback?.(s.synthesisInfo)
 			})
 	}
 }
