@@ -5040,6 +5040,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"comlink@npm:^4.3.1":
+  version: 4.3.1
+  resolution: "comlink@npm:4.3.1"
+  checksum: 557360a6558708c55aff74a25f834bfb9bfca8a42444682c4d5aead57681534a0206202be2a2760b4de124c3ba6d485b08978b6d5469cb3d26bf1438ee28a4f1
+  languageName: node
+  linkType: hard
+
 "command-line-args@npm:5.0.2":
   version: 5.0.2
   resolution: "command-line-args@npm:5.0.2"
@@ -11442,6 +11449,7 @@ __metadata:
     arquero: ^4.8.8
     chart.js: ^3.7.1
     chartjs-plugin-datalabels: ^2.0.0
+    comlink: ^4.3.1
     dompurify: ^2.3.6
     formik: ^2.2.9
     lodash: ^4.17.21

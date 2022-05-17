@@ -1,0 +1,21 @@
+# TS/JS ignores
+node_modules/
+build/
+dist/
+out/
+lib/
+
+# Yarn v2 Gitignores
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# Rust ignores
+target/
+
+# Env ignores
+.env/
+.vscode/

@@ -8,6 +8,7 @@ import styled from 'styled-components'
 
 import { Flex } from '~components/Flexbox'
 
+import { AggregateStatistics } from './AggregateStatistics'
 import { InfoBar } from './InfoBar'
 import { SelectCommands } from './SelectCommands'
 import { TablePreview } from './TablePreview'
@@ -17,6 +18,7 @@ export const SelectPage: FC = memo(function SelectPage() {
 		<Container vertical>
 			<SelectCommands />
 			<MainContent vertical>
+				<AggregateStatistics />
 				<InfoBar />
 				<TablePreview />
 			</MainContent>
