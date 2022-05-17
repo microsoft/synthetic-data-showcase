@@ -6,10 +6,11 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { Spinner, Toggle, useTheme } from '@fluentui/react'
+import { Spinner, useTheme } from '@fluentui/react'
 import { memo, useEffect, useRef, useState } from 'react'
 import type { IEvaluateResult } from 'sds-wasm'
 
+import { CollapsablePanel } from '~components/CollapsablePanel'
 import { CsvTable } from '~components/CsvTable'
 import { Flex } from '~components/Flexbox'
 import { HumanReadableSummary } from '~components/HumanReadableSummary'
@@ -28,8 +29,6 @@ export const DataSynthesisResult: React.FC<DataSynthesisResultProps> = memo(
 	function DataSynthesisResult({ selectedSynthesis }) {
 		const theme = useTheme()
 		const isMounted = useRef(true)
-		const [showSyntheticData, setShowSyntheticData] = useState(false)
-		const [showAdvancedEvaluation, setShowAdvancedEvaluation] = useState(false)
 		const [isLoading, setIsLoading] = useState(false)
 		const [evaluateResult, setEvaluateResult] =
 			useState<IEvaluateResult | null>(null)
@@ -69,48 +68,32 @@ export const DataSynthesisResult: React.FC<DataSynthesisResultProps> = memo(
 
 		return (
 			<Flex vertical>
-				<Flex gap={theme.spacing.m}>
-					<Toggle
-						label="Show advanced evaluation"
-						inlineLabel
-						checked={showAdvancedEvaluation}
-						onChange={(_event, checked) =>
-							setShowAdvancedEvaluation(checked === true)
-						}
-					/>
-					<Toggle
-						label="Show synthetic data"
-						inlineLabel
-						checked={showSyntheticData}
-						onChange={(_event, checked) =>
-							setShowSyntheticData(checked === true)
-						}
-					/>
-				</Flex>
 				{isLoading ? (
 					<Spinner />
 				) : (
 					evaluateResult && (
 						<Flex vertical gap={theme.spacing.m}>
-							<h3>Evaluation summary</h3>
-							<HumanReadableSummary
-								evaluateResult={evaluateResult}
-								synthesisInfo={selectedSynthesis}
-							/>
-							{showAdvancedEvaluation && (
-								<>
-									<h3>Advanced evaluation</h3>
-									<DataEvaluation selectedSynthesis={selectedSynthesis} />
-								</>
-							)}
-							{showSyntheticData && syntheticCsvContent && (
-								<>
-									<h3>Synthetic data</h3>
+							<CollapsablePanel
+								header={<h3>Evaluation summary</h3>}
+								defaultCollapsed
+							>
+								<HumanReadableSummary
+									evaluateResult={evaluateResult}
+									synthesisInfo={selectedSynthesis}
+								/>
+							</CollapsablePanel>
+
+							<CollapsablePanel header={<h3>Advanced evaluation</h3>}>
+								<DataEvaluation selectedSynthesis={selectedSynthesis} />
+							</CollapsablePanel>
+
+							{syntheticCsvContent && (
+								<CollapsablePanel header={<h3>Synthetic data</h3>}>
 									<CsvTable
 										content={syntheticCsvContent}
 										commands={tableCommands}
 									/>
-								</>
+								</CollapsablePanel>
 							)}
 						</Flex>
 					)

@@ -2,9 +2,11 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import { useTheme } from '@fluentui/react'
 import { memo, useCallback } from 'react'
 
 import { StatefulAllSynthesisInfo } from '~components/AllSynthesisInfo'
+import { CollapsablePanel } from '~components/CollapsablePanel/CollapsablePanel'
 import { useCanRun } from '~pages/hooks'
 import {
 	useGlobalErrorMessage,
@@ -19,6 +21,7 @@ import { useOnRunGenerateAndEvaluate } from './DataSynthesis.hooks'
 import { Container } from './DataSynthesis.styles'
 
 export const DataSynthesis: React.FC = memo(function DataSynthesis() {
+	const theme = useTheme()
 	const canRun = useCanRun()
 	const sensitiveContent = useSensitiveContentValue()
 	const [selectedSynthesis] = useSelectedSynthesisInfo()
@@ -39,16 +42,16 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 	)
 
 	return (
-		<Container vertical>
+		<Container vertical gap={theme.spacing.s1}>
 			<DataSynthesisParameter
 				enableRun={canRun}
 				sensitiveCsvContent={sensitiveContent}
 				onRun={onRun}
 			/>
 
-			<h3>Results</h3>
-
-			<StatefulAllSynthesisInfo />
+			<CollapsablePanel header={<h3>Results</h3>} defaultCollapsed>
+				<StatefulAllSynthesisInfo />
+			</CollapsablePanel>
 
 			{selectedSynthesis?.status === IWasmSynthesizerWorkerStatus.FINISHED && (
 				<DataSynthesisResult selectedSynthesis={selectedSynthesis} />
