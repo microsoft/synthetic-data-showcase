@@ -13,19 +13,26 @@ export function useSensitiveDataPrivacyText(
 	synthesisInfo: ISynthesisInfo,
 ): string {
 	return useMemo(() => {
-		const uniqueAttributeCount =
-			evaluateResult.sensitiveDataStats.totalNumberOfCombinationsByLen[1] || 0
-		return `The sensitive dataset contains ${uniqueAttributeCount} distinct attributes linked to ${
-			synthesisInfo.parameters.csvDataParameters.recordLimit
-		} unique data subjects. Its privacy risk has been analysed for all combinations of up to ${
+		const uniqueRecordsPercentage =
+			+evaluateResult.sensitiveDataStats.percentageOfRecordsWithUniqueCombinations.toFixed(
+				2,
+			)
+		const rareRecordsPercentage = +(
+			evaluateResult.sensitiveDataStats
+				.percentageOfRecordsWithRareCombinations - uniqueRecordsPercentage
+		).toFixed(2)
+
+		return `For all combinations of up to ${
 			synthesisInfo.parameters.reportingLength
-		} attributes, revealing that ${evaluateResult.sensitiveDataStats.percentageOfRecordsWithUniqueCombinations.toFixed(
+		} attributes, ${(uniqueRecordsPercentage + rareRecordsPercentage).toFixed(
 			2,
-		)}% of data subjects are linked to unique combinations and a further ${evaluateResult.sensitiveDataStats.percentageOfRecordsWithRareCombinations.toFixed(
+		)}% of records are potentially linkable to data subjects (${uniqueRecordsPercentage.toFixed(
 			2,
-		)}% are linked to rare combinations below the specified privacy resolution of ${
+		)}% uniquely identifiable, ${rareRecordsPercentage.toFixed(
+			2,
+		)}% linkable to small groups below the specified privacy resolution of ${
 			synthesisInfo.parameters.baseSynthesisParameters.resolution
-		}.`
+		}).`
 	}, [evaluateResult, synthesisInfo])
 }
 
@@ -34,24 +41,28 @@ export function useAggregateDataUtilityText(
 	synthesisInfo: ISynthesisInfo,
 ): string {
 	return useMemo(() => {
-		const distinctCount = Object.values(
-			evaluateResult.sensitiveDataStats.totalNumberOfCombinationsByLen,
-		).reduce((prev, curr) => prev + curr, 0)
+		switch (synthesisInfo.parameters.mode) {
+			case SynthesisMode.Unseeded:
+			case SynthesisMode.RowSeeded:
+			case SynthesisMode.ValueSeeded:
+			case SynthesisMode.AggregateSeeded:
+				return `For all combinations of up to ${
+					synthesisInfo.parameters.reportingLength
+				} attributes, ${evaluateResult.aggregateCountsStats.percentageOfSuppressedCombinations.toFixed(
+					2,
+				)}% are rare and therefore not reported in the aggregate dataset. All released combinations were present in the sensitive dataset and are reported with an average error of ${evaluateResult.aggregateCountsStats.combinationsCountMeanAbsError.toFixed(
+					2,
+				)}.`
 
-		return (
-			`Considering all attribute combinations up to length ${
-				synthesisInfo.parameters.reportingLength
-			}, the sensitive dataset contains ${distinctCount} distinct combinations. ${evaluateResult.aggregateCountsStats.percentageOfSuppressedCombinations.toFixed(
-				2,
-			)}% of these combinations are rare and therefore not reported in the aggregate dataset. The average error of released combination counts after preserving privacy is ${evaluateResult.aggregateCountsStats.combinationsCountMeanAbsError.toFixed(
-				2,
-			)}.` +
-			(synthesisInfo.parameters.mode === SynthesisMode.DP
-				? ` IMPORTANT: ${evaluateResult.aggregateCountsStats.percentageOfFabricatedCombinations.toFixed(
-						2,
-				  )}% of combinations were fabricated and do not exist in the sensitive dataset - this protects privacy, but only if the amount of fabrication is NOT disclosed.`
-				: ` All of these reported attributes exist in the sensitive dataset - there is zero fabrication of attribute combinations.`)
-		)
+			case SynthesisMode.DP:
+				return `For all combinations of up to ${
+					synthesisInfo.parameters.reportingLength
+				} attributes, ${evaluateResult.aggregateCountsStats.percentageOfSuppressedCombinations.toFixed(
+					2,
+				)}% were not reported in the aggregate dataset after preserving privacy. The released combinations were reported with an average error of ${evaluateResult.aggregateCountsStats.combinationsCountMeanAbsError.toFixed(
+					2,
+				)}.`
+		}
 	}, [evaluateResult, synthesisInfo])
 }
 
@@ -60,8 +71,6 @@ export function useSyntheticDataPrivacyText(
 	synthesisInfo: ISynthesisInfo,
 ): string {
 	return useMemo(() => {
-		const uniqueAttributeCount =
-			evaluateResult.syntheticDataStats.totalNumberOfCombinationsByLen[1] || 0
 		const distinctCount = Object.values(
 			evaluateResult.sensitiveDataStats.totalNumberOfCombinationsByLen,
 		).reduce((prev, curr) => prev + curr, 0)
@@ -71,20 +80,21 @@ export function useSyntheticDataPrivacyText(
 			).reduce((prev, curr) => prev + curr, 0) *
 				100) /
 			distinctCount
-		const totalNumberOfRecords = Math.round(
-			(evaluateResult.syntheticDataStats.recordExpansionPercentage / 100 + 1) *
-				synthesisInfo.parameters.csvDataParameters.recordLimit,
-		)
-		return (
-			`The synthetic dataset contains ${uniqueAttributeCount} distinct attributes linked to ${totalNumberOfRecords} "synthetic" individuals who are not actual data subjects in the sensitive dataset. Considering all attribute combinations up to length ${
-				synthesisInfo.parameters.reportingLength
-			}, ${leakagePercentage.toFixed(
-				2,
-			)}% describe groups of data subjects smaller than the privacy resolution ` +
-			(synthesisInfo.parameters.mode === SynthesisMode.DP
-				? '(but protected by differential privacy).'
-				: '(guaranteed by k-anonymity).')
-		)
+
+		switch (synthesisInfo.parameters.mode) {
+			case SynthesisMode.Unseeded:
+			case SynthesisMode.RowSeeded:
+			case SynthesisMode.ValueSeeded:
+				return `For all attribute combinations of any length, none describe groups of data subjects smaller than the privacy resolution (guaranteed by k-anonymity).`
+
+			case SynthesisMode.AggregateSeeded:
+				return `For all attribute combinations of up to 4 attributes, none describe groups of data subjects smaller than the privacy resolution (guaranteed by k-anonymity).`
+
+			case SynthesisMode.DP:
+				return `For all attribute combinations of up to 4 attributes, ${leakagePercentage.toFixed(
+					2,
+				)}% describe groups of data subjects smaller than the privacy resolution (but protected by differential privacy).`
+		}
 	}, [evaluateResult, synthesisInfo])
 }
 
@@ -93,18 +103,31 @@ export function useSyntheticDataUtilityText(
 	synthesisInfo: ISynthesisInfo,
 ): string {
 	return useMemo(() => {
-		const distinctCount = Object.values(
-			evaluateResult.syntheticDataStats.totalNumberOfCombinationsByLen,
-		).reduce((prev, curr) => prev + curr, 0)
 		const retainedCombinationsPercentage =
 			100 - evaluateResult.syntheticDataStats.percentageOfSuppressedCombinations
-		return `Considering all attribute combinations up to length ${
-			synthesisInfo.parameters.reportingLength
-		}, the synthetic dataset contains ${distinctCount} distinct combinations, retaining ${retainedCombinationsPercentage.toFixed(
-			2,
-		)}% of the combinations contained in the sensitive dataset. The average error of counts derived from this synthetic data is ${evaluateResult.syntheticDataStats.combinationsCountMeanAbsError.toFixed(
-			2,
-		)}.`
+
+		switch (synthesisInfo.parameters.mode) {
+			case SynthesisMode.Unseeded:
+			case SynthesisMode.RowSeeded:
+			case SynthesisMode.ValueSeeded:
+			case SynthesisMode.AggregateSeeded:
+				return `For all attribute combinations of up to ${
+					synthesisInfo.parameters.reportingLength
+				} attributes, ${retainedCombinationsPercentage.toFixed(
+					2,
+				)}% of the combinations in the sensitive dataset are retained in the synthetic one. All released combinations were present in the sensitive dataset and the average error of counts derived from this synthetic data is ${evaluateResult.syntheticDataStats.combinationsCountMeanAbsError.toFixed(
+					2,
+				)}.`
+
+			case SynthesisMode.DP:
+				return `For all attribute combinations of up to ${
+					synthesisInfo.parameters.reportingLength
+				} attributes, ${retainedCombinationsPercentage.toFixed(
+					2,
+				)}% of the combinations in the sensitive dataset are retained in the synthetic one. The average error of counts derived from this synthetic data is ${evaluateResult.syntheticDataStats.combinationsCountMeanAbsError.toFixed(
+					2,
+				)}.`
+		}
 	}, [evaluateResult, synthesisInfo])
 }
 
