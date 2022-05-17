@@ -81,7 +81,6 @@ export function useSynthesisInfoColumns(): IColumn[] {
 
 export function useSynthesisInfoSelection(
 	allSynthesisInfo: ISynthesisInfo[],
-	selectedSynthesisInfo: ISynthesisInfo | null,
 	onSelected?: SelectSynthesisInfoCallback,
 ): Selection {
 	return useMemo(() => {
@@ -97,10 +96,6 @@ export function useSynthesisInfoSelection(
 			},
 			items: allSynthesisInfo,
 		})
-
-		if (selectedSynthesisInfo) {
-			selection.setKeySelected(selectedSynthesisInfo.key, true, true)
-		}
 		return selection
-	}, [allSynthesisInfo, selectedSynthesisInfo, onSelected])
+	}, [allSynthesisInfo, onSelected])
 }

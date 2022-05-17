@@ -3,7 +3,7 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { ActionButton, DetailsList, SelectionMode } from '@fluentui/react'
-import { memo } from 'react'
+import { memo, useEffect } from 'react'
 
 import { Flex } from '~components/Flexbox'
 
@@ -22,11 +22,13 @@ export const AllSynthesisInfo: React.FC<AllSynthesisInfoProps> = memo(
 		onDelete,
 	}) {
 		const columns = useSynthesisInfoColumns()
-		const selection = useSynthesisInfoSelection(
-			allSynthesisInfo,
-			selectedSynthesisInfo,
-			onSelected,
-		)
+		const selection = useSynthesisInfoSelection(allSynthesisInfo, onSelected)
+
+		useEffect(() => {
+			if (selectedSynthesisInfo) {
+				selection.setKeySelected(selectedSynthesisInfo.key, true, true)
+			}
+		}, [selection, selectedSynthesisInfo])
 
 		return (
 			<Container>
@@ -36,7 +38,7 @@ export const AllSynthesisInfo: React.FC<AllSynthesisInfoProps> = memo(
 							items={allSynthesisInfo}
 							columns={columns}
 							compact
-							setKey={'none'}
+							setKey={selectedSynthesisInfo?.key}
 							selection={selection}
 							selectionMode={SelectionMode.single}
 						/>

@@ -61,6 +61,12 @@ export const DataSynthesisResult: React.FC<DataSynthesisResultProps> = memo(
 			loadData()
 		}, [selectedSynthesis, getAndSetSyntheticCsvData, getAndSetEvaluateResult])
 
+		useEffect(() => {
+			return () => {
+				isMounted.current = false
+			}
+		}, [])
+
 		return (
 			<Flex vertical>
 				<Flex gap={theme.spacing.m}>
