@@ -5,7 +5,7 @@
 import type { MutableRefObject } from 'react'
 import { useCallback } from 'react'
 
-import type { SdsWasmWorker } from '~workers/sds-wasm'
+import type { ISdsManagerInstance } from '~models'
 
 export function useOnRunNavigate(
 	contextKey: string | undefined,
@@ -13,22 +13,30 @@ export function useOnRunNavigate(
 	isMounted: MutableRefObject<boolean>,
 	setSelectedHeaders: (value: boolean[]) => void,
 	initiallySelectedHeaders: boolean[],
-	worker: SdsWasmWorker | null,
+	manager: ISdsManagerInstance | null,
 ): () => Promise<void> {
 	return useCallback(async () => {
-		if (worker && contextKey) {
+		if (manager && contextKey) {
 			setIsLoading(true)
 
-			const result = worker.navigate(contextKey)
+			try {
+				await manager.instance.navigate(contextKey)
 
-			if (isMounted.current && result) {
-				setSelectedHeaders(initiallySelectedHeaders)
-				setIsLoading(false)
+				if (isMounted.current) {
+					setSelectedHeaders(initiallySelectedHeaders)
+					setIsLoading(false)
+				}
+			} catch {
+				if (isMounted.current) {
+					setIsLoading(false)
+				}
 			}
+		} else {
+			setIsLoading(false)
 		}
 	}, [
 		setIsLoading,
-		worker,
+		manager,
 		isMounted,
 		setSelectedHeaders,
 		initiallySelectedHeaders,

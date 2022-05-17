@@ -4,12 +4,11 @@
  */
 import { useCallback } from 'react'
 
-import {
-	useResetAllContextsParameters,
-	useResetSelectedContextParameters,
-	useResetSensitiveContent,
-	useWasmWorkerValue,
-} from '~states'
+import { useResetSensitiveContent } from '~states'
+
+import { useResetAllSynthesisInfo } from './allSynthesisInfo'
+import { useSdsManagerInstance } from './sdsManagerInstance'
+import { useResetSelectedSynthesisInfo } from './selectedSynthesisInfo'
 
 export type DataClearer = () => Promise<void>
 
@@ -22,13 +21,13 @@ export function useClearSensitiveData(): DataClearer {
 }
 
 export function useClearContexts(): DataClearer {
-	const worker = useWasmWorkerValue()
-	const resetAllContextParameters = useResetAllContextsParameters()
-	const resetSelectedContextParameters = useResetSelectedContextParameters()
+	const [manager] = useSdsManagerInstance()
+	const resetAllSynthesisInfo = useResetAllSynthesisInfo()
+	const resetSelectedSynthesisInfo = useResetSelectedSynthesisInfo()
 
 	return useCallback(async () => {
-		await worker?.clearContexts()
-		resetAllContextParameters()
-		resetSelectedContextParameters()
-	}, [worker, resetAllContextParameters, resetSelectedContextParameters])
+		await manager?.instance?.terminateAllSynthesizers()
+		resetAllSynthesisInfo()
+		resetSelectedSynthesisInfo()
+	}, [manager, resetAllSynthesisInfo, resetSelectedSynthesisInfo])
 }
