@@ -16,9 +16,7 @@ import {
 	usePreparedTable,
 	useSdsManagerInstance,
 	useSelectedTable,
-	useWasmWorker,
 } from '~states'
-import { SdsWasmWorker } from '~workers/sds-wasm'
 import type { SdsManager } from '~workers/SdsManager'
 import SdsManagerWorker from '~workers/SdsManager?worker'
 import { createWorkerProxy } from '~workers/utils'
@@ -26,7 +24,6 @@ import { createWorkerProxy } from '~workers/utils'
 import { Header } from './Header'
 
 export const Layout: React.FC = memo(function Layout({ children }) {
-	const [worker, setWorker] = useWasmWorker()
 	const [managerInstance, setManagerInstance] = useSdsManagerInstance()
 	const setIsProcessing = useIsProcessingSetter()
 	const location = useLocation()
@@ -43,21 +40,6 @@ export const Layout: React.FC = memo(function Layout({ children }) {
 	}, [location, setPreparedTable, selectedTable])
 
 	useEffect(() => {
-		// TODO: this will get removed once everything
-		// is moved to the sds manager
-		async function getWorker() {
-			if (!worker) {
-				setIsProcessing(true)
-				const w = new SdsWasmWorker()
-				await w.init(
-					import.meta.env.VITE_SDS_WASM_LOG_LEVEL as string,
-					Number(import.meta.env.VITE_SDS_CONTEXT_CACHE_SIZE),
-				)
-				setWorker(w)
-				setIsProcessing(false)
-			}
-		}
-
 		async function getManager() {
 			if (!managerInstance) {
 				setIsProcessing(true)
@@ -82,9 +64,8 @@ export const Layout: React.FC = memo(function Layout({ children }) {
 				setIsProcessing(false)
 			}
 		}
-		getWorker()
 		getManager()
-	}, [worker, setWorker, managerInstance, setManagerInstance, setAllSynthesisInfo, setIsProcessing])
+	}, [managerInstance, setManagerInstance, setAllSynthesisInfo, setIsProcessing])
 
 	return (
 		<Container vertical>

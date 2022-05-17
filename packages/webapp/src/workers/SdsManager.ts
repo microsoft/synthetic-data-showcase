@@ -71,13 +71,7 @@ export class SdsManager {
 	public async terminate(): Promise<void> {
 		await this._aggregateStatisticsGenerator?.terminate()
 		this._aggregateStatisticsWorkerProxy?.terminate()
-
-		// terminate all synthesizers
-		await Promise.all(
-			[...this._synthesizerWorkersInfoMap.keys()].map(k =>
-				this.terminateSynthesizer(k),
-			),
-		)
+		await this.terminateAllSynthesizers()
 	}
 
 	public async generateAggregateStatistics(
@@ -103,6 +97,14 @@ export class SdsManager {
 				continueExecutingView.set(false)
 			},
 		}) as unknown as Remote<ICancelablePromise<IAggregateStatistics>>
+	}
+
+	public async terminateAllSynthesizers(): Promise<void> {
+		await Promise.all(
+			[...this._synthesizerWorkersInfoMap.keys()].map(k =>
+				this.terminateSynthesizer(k),
+			),
+		)
 	}
 
 	public async terminateSynthesizer(key: string): Promise<void> {

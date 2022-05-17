@@ -6,3 +6,5 @@ export enum NoisyCountThresholdType {
 	Fixed = 'Fixed',
 	Adaptive = 'Adaptive',
 }
+
+export const defaultThreshold = 1.0

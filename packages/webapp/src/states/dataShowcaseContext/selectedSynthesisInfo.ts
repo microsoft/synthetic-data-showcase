@@ -3,7 +3,7 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import type { SetterOrUpdater } from 'recoil'
-import { atom, useRecoilState } from 'recoil'
+import { atom, useRecoilState, useResetRecoilState } from 'recoil'
 
 import type { ISynthesisInfo } from '~workers/types'
 
@@ -17,4 +17,8 @@ export function useSelectedSynthesisInfo(): [
 	SetterOrUpdater<ISynthesisInfo | null>,
 ] {
 	return useRecoilState(state)
+}
+
+export function useResetSelectedSynthesisInfo(): () => void {
+	return useResetRecoilState(state)
 }
