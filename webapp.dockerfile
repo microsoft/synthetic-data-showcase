@@ -36,7 +36,7 @@ ENV VITE_SDS_WASM_LOG_LEVEL=warn
 ENV VITE_SDS_CONTEXT_CACHE_SIZE=4
 
 # install dependencies and build
-RUN yarn install && yarn build:
+RUN yarn install && yarn build
 
 # --- statically serve built application with nginx ---
 FROM nginx:1.21
