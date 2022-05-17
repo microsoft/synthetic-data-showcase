@@ -25,13 +25,13 @@ import {
 	useOversamplingType,
 	usePercentileEpsilonProportion,
 	usePercentilePercentage,
+	usePrivacyBudgetProfile,
 	useRecordLimit,
 	useReportingLength,
 	useResolution,
 	useSynthesisMode,
 	useUseSyntheticCounts,
 } from '~states'
-import { usePrivacyBudgetProfile } from '~states/dataShowcaseContext/privacyBudgetProfile'
 import { tooltips } from '~ui-tooltips'
 import { SynthesisMode } from '~workers/types'
 
