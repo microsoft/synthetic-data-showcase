@@ -3,16 +3,21 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import type { IColumn } from '@fluentui/react'
-import { Selection } from '@fluentui/react'
+import { IconButton, Selection } from '@fluentui/react'
 import { useMemo } from 'react'
 
 import type { ISynthesisInfo } from '~workers/types'
 import { AtomicView } from '~workers/utils'
 
 import { WrappedText } from './AllSynthesisInfo.styles'
-import type { SelectSynthesisInfoCallback } from './AllSynthesisInfo.types'
+import type {
+	DeleteSynthesisInfoCallback,
+	SelectSynthesisInfoCallback,
+} from './AllSynthesisInfo.types'
 
-export function useSynthesisInfoColumns(): IColumn[] {
+export function useSynthesisInfoColumns(
+	onDelete?: DeleteSynthesisInfoCallback,
+): IColumn[] {
 	return useMemo(
 		() =>
 			[
@@ -74,8 +79,25 @@ export function useSynthesisInfoColumns(): IColumn[] {
 					minWidth: 100,
 					isResizable: true,
 				},
+				{
+					name: 'Delete',
+					onRender: (item: ISynthesisInfo) => {
+						return (
+							<IconButton
+								data-selection-disabled
+								text="Delete/Terminate synthesis"
+								iconProps={{ iconName: 'delete' }}
+								title="Delete/Terminate synthesis"
+								onClick={() => onDelete?.(item)}
+							/>
+						)
+					},
+					key: 'delete',
+					minWidth: 100,
+					isResizable: true,
+				},
 			] as IColumn[],
-		[],
+		[onDelete],
 	)
 }
 

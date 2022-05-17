@@ -12,4 +12,8 @@ export const Container = styled.div`
 	.ms-DetailsHeader {
 		padding-top: 0px;
 	}
+
+	.ms-DetailsRow-cell {
+		margin: auto;
+	}
 `

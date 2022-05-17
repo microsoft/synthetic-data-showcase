@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { ActionButton, DetailsList, SelectionMode } from '@fluentui/react'
+import { DetailsList, SelectionMode } from '@fluentui/react'
 import { memo, useEffect } from 'react'
 
 import { Flex } from '~components/Flexbox'
@@ -21,7 +21,7 @@ export const AllSynthesisInfo: React.FC<AllSynthesisInfoProps> = memo(
 		onSelected,
 		onDelete,
 	}) {
-		const columns = useSynthesisInfoColumns()
+		const columns = useSynthesisInfoColumns(onDelete)
 		const selection = useSynthesisInfoSelection(allSynthesisInfo, onSelected)
 
 		useEffect(() => {
@@ -41,17 +41,6 @@ export const AllSynthesisInfo: React.FC<AllSynthesisInfoProps> = memo(
 							setKey={selectedSynthesisInfo?.key}
 							selection={selection}
 							selectionMode={SelectionMode.single}
-						/>
-					</Flex.Box>
-					<Flex.Box align="flex-start">
-						<ActionButton
-							text="Delete"
-							disabled={!selectedSynthesisInfo || !onDelete}
-							iconProps={{ iconName: 'delete' }}
-							title="Delete selection"
-							onClick={() =>
-								selectedSynthesisInfo && onDelete?.(selectedSynthesisInfo)
-							}
 						/>
 					</Flex.Box>
 				</Flex>
