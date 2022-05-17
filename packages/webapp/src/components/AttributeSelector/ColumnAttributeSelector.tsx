@@ -9,7 +9,7 @@ import type { IAttributesIntersection } from 'sds-wasm'
 import { AttributeIntersectionValueChart } from '~components/Charts/AttributeIntersectionValueChart'
 import { useStopPropagation } from '~components/Charts/hooks'
 import type { SetSelectedAttributesCallback } from '~pages/Navigate/DataNavigation'
-import { useWasmWorkerValue } from '~states'
+import { useSdsManagerInstance } from '~states'
 
 import { useMaxCount } from './hooks'
 
@@ -42,7 +42,7 @@ export const ColumnAttributeSelector: React.FC<ColumnAttributeSelectorProps> =
 	}: ColumnAttributeSelectorProps) {
 		const [items, setItems] = useState<IAttributesIntersection[]>([])
 		const [isLoading, setIsLoading] = useState(false)
-		const worker = useWasmWorkerValue()
+		const [manager] = useSdsManagerInstance()
 		const maxCount = useMaxCount(items)
 		const isMounted = useRef(true)
 		const stopPropagation = useStopPropagation()
@@ -61,9 +61,9 @@ export const ColumnAttributeSelector: React.FC<ColumnAttributeSelectorProps> =
 		)
 
 		useEffect(() => {
-			if (worker) {
+			if (manager) {
 				setIsLoading(true)
-				worker
+				manager.instance
 					.attributesIntersectionsByColumn(contextKey, [headerName])
 					.then(intersections => {
 						if (!isMounted.current || !intersections) {
@@ -72,8 +72,14 @@ export const ColumnAttributeSelector: React.FC<ColumnAttributeSelectorProps> =
 						setItems(intersections[columnIndex] ?? [])
 						setIsLoading(false)
 					})
+					.catch(() => {
+						if (!isMounted.current) {
+							return
+						}
+						setIsLoading(false)
+					})
 			}
-		}, [worker, setIsLoading, setItems, headerName, columnIndex, contextKey])
+		}, [manager, setIsLoading, setItems, headerName, columnIndex, contextKey])
 
 		useEffect(() => {
 			return () => {

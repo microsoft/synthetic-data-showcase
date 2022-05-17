@@ -22,14 +22,11 @@ import {
 	HeaderSelector,
 	SelectedAttributes,
 } from '~components/AttributeSelector'
-import { ContextsDropdown } from '~components/ContextsDropdown'
 import { InfoTooltip } from '~components/InfoTooltip'
+import { SynthesisDropdown } from '~components/SynthesisDropdown'
 import { Pages } from '~pages'
-import {
-	useAllContextsParametersValue,
-	useSelectedContextParameters,
-	useWasmWorkerValue,
-} from '~states'
+import { useAllFinishedSynthesisInfo } from '~pages/Synthesize'
+import { useSdsManagerInstance, useSelectedSynthesisInfo } from '~states'
 import { tooltips } from '~ui-tooltips'
 
 import {
@@ -59,22 +56,22 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 	const [isLoading, setIsLoading] = useState(true)
 	const [selectedAttributesByColumn, setSelectedAttributesByColumn] =
 		useState<ISelectedAttributesByColumn>({})
-	const worker = useWasmWorkerValue()
+	const [manager] = useSdsManagerInstance()
 	const isMounted = useRef(true)
-	const allContextsParameters = useAllContextsParametersValue()
-	const [selectedContextParameters, setSelectedContextParameters] =
-		useSelectedContextParameters()
-	const headers = selectedContextParameters?.useColumns ?? []
+	const allFinishedSynthesisInfo = useAllFinishedSynthesisInfo()
+	const [selectedSynthesis, setSelectedSynthesis] = useSelectedSynthesisInfo()
+	const headers =
+		selectedSynthesis?.parameters.csvDataParameters.useColumns ?? []
 	const initiallySelectedHeaders = useInitiallySelectedHeaders(headers)
 	const [selectedHeaders, setSelectedHeaders] = useState<boolean[]>(
 		initiallySelectedHeaders,
 	)
 	const setNewSelectedAttributesByColumn = useOnNewSelectedAttributesByColumn(
-		selectedContextParameters?.key,
+		selectedSynthesis?.key,
 		setIsLoading,
 		isMounted,
 		setSelectedAttributesByColumn,
-		worker,
+		manager,
 	)
 	const onSetSelectedAttributes = useOnSetSelectedAttributes(
 		setNewSelectedAttributesByColumn,
@@ -92,12 +89,12 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 	)
 
 	const onRunNavigate = useOnRunNavigate(
-		selectedContextParameters?.key,
+		selectedSynthesis?.key,
 		setIsLoading,
 		isMounted,
 		setSelectedHeaders,
 		initiallySelectedHeaders,
-		worker,
+		manager,
 	)
 	const theme = useTheme()
 
@@ -120,7 +117,7 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 
 	useEffect(() => {
 		onClearSelectedAttributes()
-	}, [selectedContextParameters, onClearSelectedAttributes])
+	}, [selectedSynthesis, onClearSelectedAttributes])
 
 	useEffect(() => {
 		onRunNavigate()
@@ -140,11 +137,11 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 				<InfoTooltip>{tooltips.navigate}</InfoTooltip>
 			</Stack>
 
-			<ContextsDropdown
-				selectedContextParameters={selectedContextParameters}
-				allContextsParameters={allContextsParameters}
-				onContextSelected={setSelectedContextParameters}
-				disabled={allContextsParameters.length === 0 || isLoading}
+			<SynthesisDropdown
+				selectedSynthesis={selectedSynthesis}
+				allSynthesisInfo={allFinishedSynthesisInfo}
+				onChange={setSelectedSynthesis}
+				disabled={allFinishedSynthesisInfo.length === 0 || isLoading}
 			/>
 
 			<SelectedAttributes
@@ -154,7 +151,7 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 				onClearSelectedAttributes={onClearSelectedAttributes}
 			/>
 
-			{selectedContextParameters && (
+			{selectedSynthesis && (
 				<Stack horizontal tokens={subStackTokens} horizontalAlign="center">
 					{isLoading ? (
 						<Spinner />
@@ -184,7 +181,7 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 
 							<Stack.Item grow={1}>
 								<ColumnAttributeSelectorGrid
-									contextKey={selectedContextParameters?.key}
+									contextKey={selectedSynthesis?.key}
 									viewHeight={viewHeight}
 									headers={headers}
 									selectedHeaders={selectedHeaders}

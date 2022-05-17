@@ -19,7 +19,7 @@ export function useOnSetSelectedAttributes(
 ) => Promise<void> {
 	return useCallback(
 		async (headerIndex: number, item: IAttributesIntersection | undefined) => {
-			setNewSelectedAttributesByColumn({
+			await setNewSelectedAttributesByColumn({
 				...selectedAttributesByColumn,
 				[headerIndex]:
 					item !== undefined

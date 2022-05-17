@@ -167,13 +167,13 @@ export class SdsManager {
 		)
 	}
 
-	public async attributesIntersectionByColumn(
+	public async attributesIntersectionsByColumn(
 		key: string,
 		columns: HeaderNames,
 	): Promise<IAttributesIntersectionByColumn> {
 		return await this.getSynthesizerWorkInfo(
 			key,
-		).synthesizer.attributesIntersectionByColumn(columns)
+		).synthesizer.attributesIntersectionsByColumn(columns)
 	}
 
 	public async getAggregateResult(

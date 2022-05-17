@@ -94,7 +94,7 @@ export class WasmSynthesizer extends BaseSdsWasmWorker {
 		this.getContext().selectAttributes(attributes)
 	}
 
-	public async attributesIntersectionByColumn(
+	public async attributesIntersectionsByColumn(
 		columns: HeaderNames,
 	): Promise<IAttributesIntersectionByColumn> {
 		return this.getContext().attributesIntersectionsByColumn(columns)

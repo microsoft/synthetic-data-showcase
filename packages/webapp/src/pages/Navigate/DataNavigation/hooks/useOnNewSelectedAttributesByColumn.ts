@@ -6,34 +6,40 @@ import type { MutableRefObject } from 'react'
 import { useCallback } from 'react'
 import type { ISelectedAttributesByColumn } from 'sds-wasm'
 
-import type { SdsWasmWorker } from '~workers/sds-wasm'
+import type { ISdsManagerInstance } from '~models'
 
 export function useOnNewSelectedAttributesByColumn(
 	contextKey: string | undefined,
 	setIsLoading: (value: boolean) => void,
 	isMounted: MutableRefObject<boolean>,
 	setSelectedAttributesByColumn: (value: ISelectedAttributesByColumn) => void,
-	worker: SdsWasmWorker | null,
+	manager: ISdsManagerInstance | null,
 ): (
 	newSelectedAttributesByColumn: ISelectedAttributesByColumn,
 ) => Promise<void> {
 	return useCallback(
 		async (newSelectedAttributesByColumn: ISelectedAttributesByColumn) => {
-			if (worker && contextKey) {
+			if (manager && contextKey) {
 				setIsLoading(true)
-				const result = await worker.selectAttributes(
-					contextKey,
-					newSelectedAttributesByColumn,
-				)
+				try {
+					await manager.instance.selectAttributes(
+						contextKey,
+						newSelectedAttributesByColumn,
+					)
 
-				if (isMounted.current && result) {
-					setSelectedAttributesByColumn(newSelectedAttributesByColumn)
-					setIsLoading(false)
+					if (isMounted.current) {
+						setSelectedAttributesByColumn(newSelectedAttributesByColumn)
+						setIsLoading(false)
+					}
+				} catch {
+					if (isMounted.current) {
+						setIsLoading(false)
+					}
 				}
 			}
 		},
 		[
-			worker,
+			manager,
 			setIsLoading,
 			isMounted,
 			setSelectedAttributesByColumn,
