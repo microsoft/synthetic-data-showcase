@@ -6,7 +6,7 @@ import type { ICsvContent } from '~models'
 
 import type { IRawSynthesisParameters } from '../Synthesize.types'
 
-export interface DataSynthesisParameterProps {
+export interface DataSynthesisParametersProps {
 	enableRun: boolean
 	sensitiveCsvContent: ICsvContent
 	onRun: (rawParameters: IRawSynthesisParameters) => Promise<void>

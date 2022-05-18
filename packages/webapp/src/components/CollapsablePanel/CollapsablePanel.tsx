@@ -15,28 +15,25 @@ export const CollapsablePanel: React.FC<CollapsablePanelProps> = memo(
 		const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed ?? false)
 
 		return (
-			<>
-				<Flex vertical gap={theme.spacing.s1}>
-					<Flex
-						justify="space-between"
-						align="center"
-						style={{
-							borderBottom: `1px solid ${theme.palette.neutralLighter}`,
+			<Flex vertical gap={theme.spacing.s1}>
+				<Flex
+					justify="space-between"
+					align="center"
+					style={{
+						borderBottom: `1px solid ${theme.palette.neutralLighter}`,
+					}}
+				>
+					{header}
+					<IconButton
+						iconProps={{
+							iconName: isCollapsed ? 'ChevronUp' : 'ChevronDown',
 						}}
-					>
-						{header}
-						<IconButton
-							data-selection-disabled
-							iconProps={{
-								iconName: isCollapsed ? 'ChevronUp' : 'ChevronDown',
-							}}
-							title={isCollapsed ? 'Hide' : 'Show'}
-							onClick={() => setIsCollapsed(prev => !prev)}
-						/>
-					</Flex>
-					{isCollapsed && children}
+						title={isCollapsed ? 'Hide' : 'Show'}
+						onClick={() => setIsCollapsed(prev => !prev)}
+					/>
 				</Flex>
-			</>
+				{isCollapsed && children}
+			</Flex>
 		)
 	},
 )

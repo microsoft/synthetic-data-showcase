@@ -6,13 +6,19 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { Position, PrimaryButton, useTheme } from '@fluentui/react'
-import { memo, useEffect } from 'react'
+import {
+	IconButton,
+	Panel,
+	Position,
+	PrimaryButton,
+	useTheme,
+} from '@fluentui/react'
+import { useBoolean } from '@fluentui/react-hooks'
+import { memo } from 'react'
 
 import { Flex } from '~components/Flexbox'
 import { InfoTooltip } from '~components/InfoTooltip'
 import { TooltipWrapper } from '~components/TooltipWrapper'
-import { defaultThreshold, OversamplingType } from '~models'
 import { useDropdownOnChange, useSpinButtonOnChange } from '~pages/hooks'
 import {
 	useCacheSize,
@@ -35,21 +41,15 @@ import {
 import { tooltips } from '~ui-tooltips'
 import { SynthesisMode } from '~workers/types'
 
-import {
-	useNoisyCountThresholdChange,
-	useNoisyCountThresholdTypeOptions,
-	useOversamplingTypeOptions,
-	usePrivacyBudgetProfileOptions,
-	useSynthesisModeOptions,
-	useUseSyntheticCountOptions,
-} from './DataSynthesisParameters.hooks'
+import { DataSynthesisAdvancedParameters } from './DataSynthesisAdvancedParameters'
+import { useSynthesisModeOptions } from './DataSynthesisParameters.hooks'
 import {
 	StyledDropdown,
 	StyledSpinButton,
 } from './DataSynthesisParameters.styles'
-import type { DataSynthesisParameterProps } from './DataSynthesisParameters.types'
+import type { DataSynthesisParametersProps } from './DataSynthesisParameters.types'
 
-export const DataSynthesisParameter: React.FC<DataSynthesisParameterProps> =
+export const DataSynthesisParameters: React.FC<DataSynthesisParametersProps> =
 	memo(function DataSynthesisParameter({
 		enableRun,
 		sensitiveCsvContent,
@@ -59,62 +59,35 @@ export const DataSynthesisParameter: React.FC<DataSynthesisParameterProps> =
 		const [resolution, setResolution] = useResolution()
 		const [recordLimit, setRecordLimit] = useRecordLimit()
 		const [reportingLength, setReportingLength] = useReportingLength()
-		const [cacheSize, setCacheSize] = useCacheSize()
-		const [oversamplingType, setOversamplingType] = useOversamplingType()
-		const [oversamplingRatio, setOversamplingRatio] = useOversamplingRatio()
-		const [oversamplingTries, setOversamplingTries] = useOversamplingTries()
-		const [useSyntheticCounts, setUseSyntheticCounts] = useUseSyntheticCounts()
-		const [percentilePercentage, setPercentilePercentage] =
-			usePercentilePercentage()
-		const [percentileEpsilonProportion, setPercentileEpsilonProportion] =
-			usePercentileEpsilonProportion()
+		const [cacheSize] = useCacheSize()
+		const [oversamplingType] = useOversamplingType()
+		const [oversamplingRatio] = useOversamplingRatio()
+		const [oversamplingTries] = useOversamplingTries()
+		const [useSyntheticCounts] = useUseSyntheticCounts()
+		const [percentilePercentage] = usePercentilePercentage()
+		const [percentileEpsilonProportion] = usePercentileEpsilonProportion()
 		const [noiseEpsilon, setNoiseEpsilon] = useNoiseEpsilon()
 		const [noiseDelta, setNoiseDelta] = useNoiseDelta()
-		const [noisyCountThresholdType, setNoisyCountThresholdType] =
-			useNoisyCountThresholdType()
-		const [noisyCountThreshold, setNoisyCountThreshold] =
-			useNoisyCountThreshold()
-		const [privacyBudgetProfile, setPrivacyBudgetProfile] =
-			usePrivacyBudgetProfile()
+		const [noisyCountThresholdType] = useNoisyCountThresholdType()
+		const [noisyCountThreshold] = useNoisyCountThreshold()
+		const [privacyBudgetProfile] = usePrivacyBudgetProfile()
 		const [synthesisMode, setSynthesisMode] = useSynthesisMode()
+
+		const [
+			isAdvancedParametersOpen,
+			{ setTrue: openAdvancedParameter, setFalse: dismissAdvancedParameter },
+		] = useBoolean(false)
+
 		const synthesisModeOptions = useSynthesisModeOptions()
-		const oversamplingTypeOptions = useOversamplingTypeOptions()
-		const useSyntheticCountsOptions = useUseSyntheticCountOptions()
-		const noisyCountThresholdTypeOptions = useNoisyCountThresholdTypeOptions()
-		const privacyBudgetProfileOptions = usePrivacyBudgetProfileOptions()
+
 		const handleSynthesisModeChange = useDropdownOnChange(setSynthesisMode)
 		const handleResolutionChange = useSpinButtonOnChange(setResolution)
 		const handleRecordLimitChange = useSpinButtonOnChange(setRecordLimit)
-		const handleCacheSizeChange = useSpinButtonOnChange(setCacheSize)
 		const handleReportingLengthChange =
 			useSpinButtonOnChange(setReportingLength)
-		const handleOversamplingTypeChange =
-			useDropdownOnChange(setOversamplingType)
-		const handleOversamplingRatioChange =
-			useSpinButtonOnChange(setOversamplingRatio)
-		const handleOversamplingTriesChange =
-			useSpinButtonOnChange(setOversamplingTries)
-		const handleUseSyntheticCountsChange = useDropdownOnChange(
-			setUseSyntheticCounts,
-		)
-		const handlePercentilePercentageChange = useSpinButtonOnChange(
-			setPercentilePercentage,
-		)
-		const handlePercentileEpsilonProportionChange = useSpinButtonOnChange(
-			setPercentileEpsilonProportion,
-		)
 		const handleNoiseEpsilonChange = useSpinButtonOnChange(setNoiseEpsilon)
 		const handleNoiseDeltaChange = useSpinButtonOnChange(setNoiseDelta)
-		const handleNoisyCountThresholdTypeChange = useDropdownOnChange(
-			setNoisyCountThresholdType,
-		)
-		const handleNoisyCountThresholdChange = useNoisyCountThresholdChange(
-			noisyCountThreshold,
-			setNoisyCountThreshold,
-		)
-		const handlePrivacyBudgetProfileChange = useDropdownOnChange(
-			setPrivacyBudgetProfile,
-		)
+
 		const onRunClicked = () =>
 			onRun({
 				recordLimit,
@@ -134,16 +107,6 @@ export const DataSynthesisParameter: React.FC<DataSynthesisParameterProps> =
 				threshold: noisyCountThreshold,
 				privacyBudgetProfile,
 			})
-
-		useEffect(() => {
-			if (reportingLength - 1 !== Object.keys(noisyCountThreshold).length) {
-				const newValues = {}
-				for (let i = 2; i <= reportingLength; ++i) {
-					newValues[i] = noisyCountThreshold[i] || defaultThreshold
-				}
-				setNoisyCountThreshold(newValues)
-			}
-		}, [reportingLength, setNoisyCountThreshold, noisyCountThreshold])
 
 		return (
 			<Flex gap={theme.spacing.s1} vertical wrap>
@@ -187,15 +150,6 @@ export const DataSynthesisParameter: React.FC<DataSynthesisParameterProps> =
 							onChange={handleRecordLimitChange}
 						/>
 					</TooltipWrapper>
-					<TooltipWrapper tooltip={tooltips.cacheSize} label="Cache size">
-						<StyledSpinButton
-							labelPosition={Position.top}
-							min={1}
-							step={1000}
-							value={cacheSize.toString()}
-							onChange={handleCacheSizeChange}
-						/>
-					</TooltipWrapper>
 
 					<Flex.Box align="flex-end">
 						<PrimaryButton
@@ -209,167 +163,52 @@ export const DataSynthesisParameter: React.FC<DataSynthesisParameterProps> =
 					<Flex.Box align="flex-end">
 						<InfoTooltip>{tooltips.synthesize}</InfoTooltip>
 					</Flex.Box>
+					<Flex.Box align="flex-end">
+						<IconButton
+							iconProps={{
+								iconName: 'settings',
+							}}
+							title={'Advanced parameters'}
+							onClick={openAdvancedParameter}
+						/>
+					</Flex.Box>
 				</Flex>
 
+				<Panel
+					isLightDismiss
+					headerText="Advanced parameters"
+					isOpen={isAdvancedParametersOpen}
+					onDismiss={dismissAdvancedParameter}
+					closeButtonAriaLabel="Close"
+				>
+					<DataSynthesisAdvancedParameters />
+				</Panel>
+
 				<Flex gap={theme.spacing.s1} wrap>
-					{synthesisMode === SynthesisMode.ValueSeeded && (
+					{synthesisMode === SynthesisMode.DP && (
 						<>
 							<TooltipWrapper
-								tooltip={tooltips.oversampling}
-								label="Oversampling"
+								tooltip={tooltips.noiseEpsilon}
+								label="Noise epsilon"
 							>
-								<StyledDropdown
-									selectedKey={oversamplingType}
-									onChange={handleOversamplingTypeChange}
-									placeholder="Select oversampling type"
-									options={oversamplingTypeOptions}
+								<StyledSpinButton
+									labelPosition={Position.top}
+									min={0}
+									step={0.1}
+									value={noiseEpsilon.toString()}
+									onChange={handleNoiseEpsilonChange}
 								/>
 							</TooltipWrapper>
 
-							{oversamplingType === OversamplingType.Controlled && (
-								<>
-									<TooltipWrapper
-										tooltip={tooltips.oversamplingRatio}
-										label="Oversampling ratio"
-									>
-										<StyledSpinButton
-											labelPosition={Position.top}
-											min={0}
-											step={0.1}
-											value={oversamplingRatio.toString()}
-											onChange={handleOversamplingRatioChange}
-										/>
-									</TooltipWrapper>
-
-									<TooltipWrapper
-										tooltip={tooltips.oversamplingTries}
-										label="Oversampling tries"
-									>
-										<StyledSpinButton
-											labelPosition={Position.top}
-											min={1}
-											step={1}
-											value={oversamplingTries.toString()}
-											onChange={handleOversamplingTriesChange}
-										/>
-									</TooltipWrapper>
-								</>
-							)}
-						</>
-					)}
-
-					{(synthesisMode === SynthesisMode.AggregateSeeded ||
-						synthesisMode === SynthesisMode.DP) && (
-						<>
-							<TooltipWrapper
-								tooltip={tooltips.useSyntheticCounts}
-								label="Use synthetic counts"
-							>
-								<StyledDropdown
-									selectedKey={useSyntheticCounts}
-									onChange={handleUseSyntheticCountsChange}
-									placeholder="Select"
-									options={useSyntheticCountsOptions}
+							<TooltipWrapper tooltip={tooltips.noiseDelta} label="Noise delta">
+								<StyledSpinButton
+									labelPosition={Position.top}
+									min={0}
+									step={0.1}
+									value={noiseDelta.toString()}
+									onChange={handleNoiseDeltaChange}
 								/>
 							</TooltipWrapper>
-
-							{synthesisMode === SynthesisMode.DP && (
-								<>
-									<TooltipWrapper
-										tooltip={tooltips.percentilePercentage}
-										label="Percentile percentage"
-									>
-										<StyledSpinButton
-											labelPosition={Position.top}
-											min={1}
-											max={100}
-											step={5}
-											value={percentilePercentage.toString()}
-											onChange={handlePercentilePercentageChange}
-										/>
-									</TooltipWrapper>
-
-									<TooltipWrapper
-										tooltip={tooltips.percentileEpsilonProportion}
-										label="Percentile epsilon prop"
-									>
-										<StyledSpinButton
-											labelPosition={Position.top}
-											min={0.01}
-											max={1.0}
-											step={0.01}
-											value={percentileEpsilonProportion.toString()}
-											onChange={handlePercentileEpsilonProportionChange}
-										/>
-									</TooltipWrapper>
-
-									<TooltipWrapper
-										tooltip={tooltips.noiseEpsilon}
-										label="Noise epsilon"
-									>
-										<StyledSpinButton
-											labelPosition={Position.top}
-											min={0}
-											step={0.1}
-											value={noiseEpsilon.toString()}
-											onChange={handleNoiseEpsilonChange}
-										/>
-									</TooltipWrapper>
-
-									<TooltipWrapper
-										tooltip={tooltips.noiseDelta}
-										label="Noise delta"
-									>
-										<StyledSpinButton
-											labelPosition={Position.top}
-											min={0}
-											step={0.1}
-											value={noiseDelta.toString()}
-											onChange={handleNoiseDeltaChange}
-										/>
-									</TooltipWrapper>
-
-									<TooltipWrapper
-										tooltip={tooltips.privacyBudgetProfile}
-										label="Privacy budget profile"
-									>
-										<StyledDropdown
-											selectedKey={privacyBudgetProfile}
-											onChange={handlePrivacyBudgetProfileChange}
-											placeholder="Select budget type"
-											options={privacyBudgetProfileOptions}
-										/>
-									</TooltipWrapper>
-
-									<TooltipWrapper
-										tooltip={tooltips.thresholdType}
-										label="Threshold type"
-									>
-										<StyledDropdown
-											selectedKey={noisyCountThresholdType}
-											onChange={handleNoisyCountThresholdTypeChange}
-											placeholder="Select threshold type"
-											options={noisyCountThresholdTypeOptions}
-										/>
-									</TooltipWrapper>
-
-									{Object.keys(noisyCountThreshold).map(l => (
-										<TooltipWrapper
-											key={l}
-											tooltip={tooltips.thresholdValue}
-											label={`${l}-counts threshold`}
-										>
-											<StyledSpinButton
-												labelPosition={Position.top}
-												min={0.01}
-												step={0.01}
-												value={noisyCountThreshold[l].toString()}
-												onChange={handleNoisyCountThresholdChange[l]}
-											/>
-										</TooltipWrapper>
-									))}
-								</>
-							)}
 						</>
 					)}
 				</Flex>

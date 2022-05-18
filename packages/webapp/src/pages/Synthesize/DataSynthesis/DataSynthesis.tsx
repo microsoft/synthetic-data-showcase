@@ -15,7 +15,7 @@ import {
 } from '~states'
 import { IWasmSynthesizerWorkerStatus } from '~workers/types'
 
-import { DataSynthesisParameter } from '../DataSynthesisParameters/DataSynthesisParameters'
+import { DataSynthesisParameters } from '../DataSynthesisParameters'
 import { DataSynthesisResult } from '../DataSynthesisResult'
 import { useOnRunGenerateAndEvaluate } from './DataSynthesis.hooks'
 import { Container } from './DataSynthesis.styles'
@@ -43,7 +43,7 @@ export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 
 	return (
 		<Container vertical gap={theme.spacing.s1}>
-			<DataSynthesisParameter
+			<DataSynthesisParameters
 				enableRun={canRun}
 				sensitiveCsvContent={sensitiveContent}
 				onRun={onRun}
