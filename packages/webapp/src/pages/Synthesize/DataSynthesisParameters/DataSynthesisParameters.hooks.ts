@@ -3,6 +3,7 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import type { IDropdownOption, IInputProps } from '@fluentui/react'
+import { DropdownMenuItemType } from '@fluentui/react'
 import { useCallback, useMemo } from 'react'
 import type { SetterOrUpdater } from 'recoil'
 
@@ -80,11 +81,21 @@ export function usePrivacyBudgetProfileOptions(): IDropdownOption[] {
 
 export function useSynthesisModeOptions(): IDropdownOption[] {
 	return [
-		{ key: SynthesisMode.Unseeded, text: SynthesisMode.Unseeded },
+		{
+			key: 'K-Anonymity',
+			text: 'K-Anonymity',
+			itemType: DropdownMenuItemType.Header,
+		},
 		{ key: SynthesisMode.RowSeeded, text: SynthesisMode.RowSeeded },
 		{ key: SynthesisMode.ValueSeeded, text: SynthesisMode.ValueSeeded },
 		{ key: SynthesisMode.AggregateSeeded, text: SynthesisMode.AggregateSeeded },
-		{ key: SynthesisMode.DP, text: SynthesisMode.DP },
+		{ key: SynthesisMode.Unseeded, text: SynthesisMode.Unseeded },
+		{
+			key: 'Differential Privacy Header',
+			text: SynthesisMode.DP,
+			itemType: DropdownMenuItemType.Header,
+		},
+		{ key: SynthesisMode.DP, text: `DP ${SynthesisMode.AggregateSeeded}` },
 	]
 }
 

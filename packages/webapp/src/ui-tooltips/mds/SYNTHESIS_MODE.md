@@ -10,12 +10,6 @@ Also, since precise attribute counts create a privacy risk, it is advisable to c
 - faster and better preserves statistics for visual analytics
 - ensure 0 % fabrication for all combinations lengths
 
-**`Unseeded`**:
-- synthetic records are generated in an unseeded way by randomly sampling joint attribute distributions
-- attribute counts on the sensitive microdata drive the sampling process
-- creates longer records of more uniform length that may better preserve structure for machine learning
-- ensure 0 % fabrication for all combinations lengths
-
 **`Value Seeded`**:
 - synthetic records are seeded from the single attribute counts on the sensitive microdata
 - attribute counts on the sensitive microdata drive the sampling process
@@ -29,9 +23,15 @@ Also, since precise attribute counts create a privacy risk, it is advisable to c
 - ensure 0 % fabrication up to the reporting length
 - does not need access to the original microdata, only to its aggregates
 
-### DP
+**`Unseeded`**:
+- synthetic records are generated in an unseeded way by randomly sampling joint attribute distributions
+- attribute counts on the sensitive microdata drive the sampling process
+- creates longer records of more uniform length that may better preserve structure for machine learning
+- ensure 0 % fabrication for all combinations lengths
+
+### Differential Privacy
 
 This does not provide K-Anonymity using the privacy resolution, instead, it protects the aggregate counts with differential privacy [**`(epsilon, delta)-DP`**] and uses those DP aggregate counts to create synthetic records.
 
-**`Differential Privacy`**:
+**`DP Aggregate Seeded`**:
 - based on the `Aggregate Seeded` method, but the aggregate counts are generated using a differential privacy approach

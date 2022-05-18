@@ -3,7 +3,7 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import type { IColumn } from '@fluentui/react'
-import { IconButton, Selection } from '@fluentui/react'
+import { IconButton, Selection, SelectionMode } from '@fluentui/react'
 import { useMemo } from 'react'
 
 import type { ISynthesisInfo } from '~workers/types'
@@ -110,13 +110,11 @@ export function useSynthesisInfoSelection(
 			onSelectionChanged: () => {
 				const selectedItems = selection.getSelection()
 
-				onSelected?.(
-					selectedItems.length === 1
-						? (selectedItems[0] as ISynthesisInfo)
-						: null,
-				)
+				selectedItems.length === 1 &&
+					onSelected?.(selectedItems[0] as ISynthesisInfo)
 			},
 			items: allSynthesisInfo,
+			selectionMode: SelectionMode.single,
 		})
 		return selection
 	}, [allSynthesisInfo, onSelected])
