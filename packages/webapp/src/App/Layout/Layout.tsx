@@ -9,7 +9,6 @@ import styled from 'styled-components'
 
 import { Flex } from '~components/Flexbox'
 import { Pages } from '~pages'
-import { useOnTableChange } from '~pages/hooks'
 import {
 	useAllSynthesisInfo,
 	useIsProcessingSetter,
@@ -22,6 +21,7 @@ import SdsManagerWorker from '~workers/SdsManager?worker'
 import { createWorkerProxy } from '~workers/utils'
 
 import { Header } from './Header'
+import { useOnTableChange } from './hooks'
 
 export const Layout: React.FC = memo(function Layout({ children }) {
 	const [managerInstance, setManagerInstance] = useSdsManagerInstance()

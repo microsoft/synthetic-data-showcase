@@ -7,25 +7,15 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { Position, useTheme } from '@fluentui/react'
-import { memo, useEffect } from 'react'
+import { memo } from 'react'
 
 import { Flex } from '~components/Flexbox'
 import { TooltipWrapper } from '~components/TooltipWrapper'
-import { defaultThreshold, OversamplingType } from '~models'
+import { OversamplingType } from '~models'
 import { useDropdownOnChange, useSpinButtonOnChange } from '~pages/hooks'
 import {
-	useCacheSize,
-	useNoisyCountThreshold,
-	useNoisyCountThresholdType,
-	useOversamplingRatio,
-	useOversamplingTries,
-	useOversamplingType,
-	usePercentileEpsilonProportion,
-	usePercentilePercentage,
-	usePrivacyBudgetProfile,
-	useReportingLength,
-	useSynthesisMode,
-	useUseSyntheticCounts,
+	useRawSynthesisParameters,
+	useRawSynthesisParametersPropertySetter,
 } from '~states'
 import { tooltips } from '~ui-tooltips'
 import { SynthesisMode } from '~workers/types'
@@ -45,63 +35,45 @@ import {
 export const DataSynthesisAdvancedParameters: React.FC = memo(
 	function DataSynthesisParameter() {
 		const theme = useTheme()
-		const [reportingLength] = useReportingLength()
-		const [cacheSize, setCacheSize] = useCacheSize()
-		const [oversamplingType, setOversamplingType] = useOversamplingType()
-		const [oversamplingRatio, setOversamplingRatio] = useOversamplingRatio()
-		const [oversamplingTries, setOversamplingTries] = useOversamplingTries()
-		const [useSyntheticCounts, setUseSyntheticCounts] = useUseSyntheticCounts()
-		const [percentilePercentage, setPercentilePercentage] =
-			usePercentilePercentage()
-		const [percentileEpsilonProportion, setPercentileEpsilonProportion] =
-			usePercentileEpsilonProportion()
-		const [noisyCountThresholdType, setNoisyCountThresholdType] =
-			useNoisyCountThresholdType()
-		const [noisyCountThreshold, setNoisyCountThreshold] =
-			useNoisyCountThreshold()
-		const [privacyBudgetProfile, setPrivacyBudgetProfile] =
-			usePrivacyBudgetProfile()
-		const [synthesisMode] = useSynthesisMode()
+		const [rawSynthesisParams, setRawSynthesisParams] =
+			useRawSynthesisParameters()
+
 		const oversamplingTypeOptions = useOversamplingTypeOptions()
 		const useSyntheticCountsOptions = useUseSyntheticCountOptions()
 		const noisyCountThresholdTypeOptions = useNoisyCountThresholdTypeOptions()
 		const privacyBudgetProfileOptions = usePrivacyBudgetProfileOptions()
-		const handleCacheSizeChange = useSpinButtonOnChange(setCacheSize)
-		const handleOversamplingTypeChange =
-			useDropdownOnChange(setOversamplingType)
-		const handleOversamplingRatioChange =
-			useSpinButtonOnChange(setOversamplingRatio)
-		const handleOversamplingTriesChange =
-			useSpinButtonOnChange(setOversamplingTries)
+
+		const handleCacheSizeChange = useSpinButtonOnChange(
+			useRawSynthesisParametersPropertySetter('cacheSize'),
+		)
+		const handleOversamplingTypeChange = useDropdownOnChange(
+			useRawSynthesisParametersPropertySetter('oversamplingType'),
+		)
+		const handleOversamplingRatioChange = useSpinButtonOnChange(
+			useRawSynthesisParametersPropertySetter('oversamplingRatio'),
+		)
+		const handleOversamplingTriesChange = useSpinButtonOnChange(
+			useRawSynthesisParametersPropertySetter('oversamplingTries'),
+		)
 		const handleUseSyntheticCountsChange = useDropdownOnChange(
-			setUseSyntheticCounts,
+			useRawSynthesisParametersPropertySetter('useSyntheticCounts'),
 		)
 		const handlePercentilePercentageChange = useSpinButtonOnChange(
-			setPercentilePercentage,
+			useRawSynthesisParametersPropertySetter('percentilePercentage'),
 		)
 		const handlePercentileEpsilonProportionChange = useSpinButtonOnChange(
-			setPercentileEpsilonProportion,
+			useRawSynthesisParametersPropertySetter('percentileEpsilonProportion'),
 		)
 		const handleNoisyCountThresholdTypeChange = useDropdownOnChange(
-			setNoisyCountThresholdType,
+			useRawSynthesisParametersPropertySetter('thresholdType'),
 		)
 		const handleNoisyCountThresholdChange = useNoisyCountThresholdChange(
-			noisyCountThreshold,
-			setNoisyCountThreshold,
+			rawSynthesisParams.threshold,
+			setRawSynthesisParams,
 		)
 		const handlePrivacyBudgetProfileChange = useDropdownOnChange(
-			setPrivacyBudgetProfile,
+			useRawSynthesisParametersPropertySetter('privacyBudgetProfile'),
 		)
-
-		useEffect(() => {
-			if (reportingLength - 1 !== Object.keys(noisyCountThreshold).length) {
-				const newValues = {}
-				for (let i = 2; i <= reportingLength; ++i) {
-					newValues[i] = noisyCountThreshold[i] || defaultThreshold
-				}
-				setNoisyCountThreshold(newValues)
-			}
-		}, [reportingLength, setNoisyCountThreshold, noisyCountThreshold])
 
 		return (
 			<Flex gap={theme.spacing.s1} vertical wrap>
@@ -110,26 +82,27 @@ export const DataSynthesisAdvancedParameters: React.FC = memo(
 						labelPosition={Position.top}
 						min={1}
 						step={1000}
-						value={cacheSize.toString()}
+						value={rawSynthesisParams.cacheSize.toString()}
 						onChange={handleCacheSizeChange}
 					/>
 				</TooltipWrapper>
 
-				{synthesisMode === SynthesisMode.ValueSeeded && (
+				{rawSynthesisParams.synthesisMode === SynthesisMode.ValueSeeded && (
 					<>
 						<TooltipWrapper
 							tooltip={tooltips.oversampling}
 							label="Oversampling"
 						>
 							<StyledDropdown
-								selectedKey={oversamplingType}
+								selectedKey={rawSynthesisParams.oversamplingType}
 								onChange={handleOversamplingTypeChange}
 								placeholder="Select oversampling type"
 								options={oversamplingTypeOptions}
 							/>
 						</TooltipWrapper>
 
-						{oversamplingType === OversamplingType.Controlled && (
+						{rawSynthesisParams.oversamplingType ===
+							OversamplingType.Controlled && (
 							<>
 								<TooltipWrapper
 									tooltip={tooltips.oversamplingRatio}
@@ -139,7 +112,7 @@ export const DataSynthesisAdvancedParameters: React.FC = memo(
 										labelPosition={Position.top}
 										min={0}
 										step={0.1}
-										value={oversamplingRatio.toString()}
+										value={rawSynthesisParams.oversamplingRatio.toString()}
 										onChange={handleOversamplingRatioChange}
 									/>
 								</TooltipWrapper>
@@ -152,7 +125,7 @@ export const DataSynthesisAdvancedParameters: React.FC = memo(
 										labelPosition={Position.top}
 										min={1}
 										step={1}
-										value={oversamplingTries.toString()}
+										value={rawSynthesisParams.oversamplingTries.toString()}
 										onChange={handleOversamplingTriesChange}
 									/>
 								</TooltipWrapper>
@@ -161,22 +134,22 @@ export const DataSynthesisAdvancedParameters: React.FC = memo(
 					</>
 				)}
 
-				{(synthesisMode === SynthesisMode.AggregateSeeded ||
-					synthesisMode === SynthesisMode.DP) && (
+				{(rawSynthesisParams.synthesisMode === SynthesisMode.AggregateSeeded ||
+					rawSynthesisParams.synthesisMode === SynthesisMode.DP) && (
 					<>
 						<TooltipWrapper
 							tooltip={tooltips.useSyntheticCounts}
 							label="Use synthetic counts"
 						>
 							<StyledDropdown
-								selectedKey={useSyntheticCounts}
+								selectedKey={rawSynthesisParams.useSyntheticCounts}
 								onChange={handleUseSyntheticCountsChange}
 								placeholder="Select"
 								options={useSyntheticCountsOptions}
 							/>
 						</TooltipWrapper>
 
-						{synthesisMode === SynthesisMode.DP && (
+						{rawSynthesisParams.synthesisMode === SynthesisMode.DP && (
 							<>
 								<TooltipWrapper
 									tooltip={tooltips.percentilePercentage}
@@ -187,7 +160,7 @@ export const DataSynthesisAdvancedParameters: React.FC = memo(
 										min={1}
 										max={100}
 										step={5}
-										value={percentilePercentage.toString()}
+										value={rawSynthesisParams.percentilePercentage.toString()}
 										onChange={handlePercentilePercentageChange}
 									/>
 								</TooltipWrapper>
@@ -201,7 +174,7 @@ export const DataSynthesisAdvancedParameters: React.FC = memo(
 										min={0.01}
 										max={1.0}
 										step={0.01}
-										value={percentileEpsilonProportion.toString()}
+										value={rawSynthesisParams.percentileEpsilonProportion.toString()}
 										onChange={handlePercentileEpsilonProportionChange}
 									/>
 								</TooltipWrapper>
@@ -211,7 +184,7 @@ export const DataSynthesisAdvancedParameters: React.FC = memo(
 									label="Privacy budget profile"
 								>
 									<StyledDropdown
-										selectedKey={privacyBudgetProfile}
+										selectedKey={rawSynthesisParams.privacyBudgetProfile}
 										onChange={handlePrivacyBudgetProfileChange}
 										placeholder="Select budget type"
 										options={privacyBudgetProfileOptions}
@@ -223,14 +196,14 @@ export const DataSynthesisAdvancedParameters: React.FC = memo(
 									label="Threshold type"
 								>
 									<StyledDropdown
-										selectedKey={noisyCountThresholdType}
+										selectedKey={rawSynthesisParams.thresholdType}
 										onChange={handleNoisyCountThresholdTypeChange}
 										placeholder="Select threshold type"
 										options={noisyCountThresholdTypeOptions}
 									/>
 								</TooltipWrapper>
 
-								{Object.keys(noisyCountThreshold).map(l => (
+								{Object.keys(rawSynthesisParams.threshold).map(l => (
 									<TooltipWrapper
 										key={l}
 										tooltip={tooltips.thresholdValue}
@@ -240,7 +213,7 @@ export const DataSynthesisAdvancedParameters: React.FC = memo(
 											labelPosition={Position.top}
 											min={0.01}
 											step={0.01}
-											value={noisyCountThreshold[l].toString()}
+											value={rawSynthesisParams.threshold[l].toString()}
 											onChange={handleNoisyCountThresholdChange[l]}
 										/>
 									</TooltipWrapper>

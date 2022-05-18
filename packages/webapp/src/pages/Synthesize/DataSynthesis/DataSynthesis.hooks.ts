@@ -4,7 +4,7 @@
  */
 import { useCallback, useMemo } from 'react'
 
-import type { ICsvContent } from '~models'
+import type { ICsvContent, IRawSynthesisParameters } from '~models'
 import {
 	OversamplingType,
 	PrivacyBudgetProfile,
@@ -19,8 +19,6 @@ import type {
 	IValueSeededSynthesisParameters,
 } from '~workers/types'
 import { SynthesisMode } from '~workers/types'
-
-import type { IRawSynthesisParameters } from '../Synthesize.types'
 
 export function generateContextKey(params: IRawSynthesisParameters): string {
 	switch (params.synthesisMode) {

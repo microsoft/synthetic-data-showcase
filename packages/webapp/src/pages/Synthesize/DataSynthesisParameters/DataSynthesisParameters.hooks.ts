@@ -3,21 +3,23 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import type { IDropdownOption, IInputProps } from '@fluentui/react'
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import type { SetterOrUpdater } from 'recoil'
-import type { IInputNumberByLength } from 'sds-wasm'
 
+import type { IRawSynthesisParameters } from '~models'
 import {
+	defaultThreshold,
 	NoisyCountThresholdType,
 	OversamplingType,
 	PrivacyBudgetProfile,
 	UseSyntheticCounts,
 } from '~models'
+import { useRawSynthesisParameters } from '~states'
 import { SynthesisMode } from '~workers/types'
 
 export function useNoisyCountThresholdChange(
 	noisyCountThreshold: IInputProps,
-	setNoisyCountThreshold: SetterOrUpdater<IInputNumberByLength>,
+	setRawSynthesisParams: SetterOrUpdater<IRawSynthesisParameters>,
 ): {
 	[length: number]: (
 		event: React.SyntheticEvent<HTMLElement>,
@@ -31,12 +33,18 @@ export function useNoisyCountThresholdChange(
 			handlers[+l] = (_event, newValue?) => {
 				const val = +(newValue || 0)
 				if (!isNaN(val)) {
-					setNoisyCountThreshold(prev => ({ ...prev, [l]: val }))
+					setRawSynthesisParams(prev => ({
+						...prev,
+						threshold: {
+							...prev.threshold,
+							[l]: val,
+						},
+					}))
 				}
 			}
 		}
 		return handlers
-	}, [noisyCountThreshold, setNoisyCountThreshold])
+	}, [noisyCountThreshold, setRawSynthesisParams])
 }
 
 export function useNoisyCountThresholdTypeOptions(): IDropdownOption[] {
@@ -85,4 +93,29 @@ export function useUseSyntheticCountOptions(): IDropdownOption[] {
 		{ key: UseSyntheticCounts.Yes, text: UseSyntheticCounts.Yes },
 		{ key: UseSyntheticCounts.No, text: UseSyntheticCounts.No },
 	]
+}
+
+export function useUpdateNoisyCountThreshold(): (
+	reportingLength: number,
+) => void {
+	const [, setRawSynthesisParams] = useRawSynthesisParameters()
+
+	return useCallback(
+		(reportingLength: number) => {
+			setRawSynthesisParams(prev => {
+				if (reportingLength - 1 !== Object.keys(prev.threshold).length) {
+					const newValues = {}
+					for (let i = 2; i <= reportingLength; ++i) {
+						newValues[i] = prev.threshold[i] || defaultThreshold
+					}
+					return {
+						...prev,
+						threshold: newValues,
+					}
+				}
+				return prev
+			})
+		},
+		[setRawSynthesisParams],
+	)
 }

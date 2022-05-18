@@ -4,4 +4,4 @@
  */
 export * from './dataShowcaseContext'
 export * from './globalErrorMessage'
-export * from './synthesisParameters'
+export * from './rawSynthesisParameters'

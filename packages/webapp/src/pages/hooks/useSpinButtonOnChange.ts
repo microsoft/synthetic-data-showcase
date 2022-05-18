@@ -3,7 +3,6 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { useCallback } from 'react'
-import type { SetterOrUpdater } from 'recoil'
 
 /**
  * onChange handler that only fires if the input is a valid number
@@ -11,7 +10,7 @@ import type { SetterOrUpdater } from 'recoil'
  * @returns
  */
 export function useSpinButtonOnChange(
-	setter: SetterOrUpdater<number>,
+	setter: (val: number) => void,
 ): (event: React.SyntheticEvent<HTMLElement>, newValue?: string) => void {
 	return useCallback(
 		(event, newValue?) => {

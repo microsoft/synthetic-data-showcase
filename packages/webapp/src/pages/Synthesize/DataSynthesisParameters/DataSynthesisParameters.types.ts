@@ -2,9 +2,7 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import type { ICsvContent } from '~models'
-
-import type { IRawSynthesisParameters } from '../Synthesize.types'
+import type { ICsvContent, IRawSynthesisParameters } from '~models'
 
 export interface DataSynthesisParametersProps {
 	enableRun: boolean
