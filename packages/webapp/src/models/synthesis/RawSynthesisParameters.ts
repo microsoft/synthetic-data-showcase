@@ -6,9 +6,9 @@ import type { IInputNumberByLength } from 'sds-wasm'
 
 import { SynthesisMode } from '~workers/types'
 
-import { NoisyCountThresholdType } from './NoisyCountThresholdType.js'
+import { AccuracyMode } from './AccuracyMode.js'
+import { FabricationMode } from './FabricationMode.js'
 import { OversamplingType } from './OversamplingType.js'
-import { PrivacyBudgetProfile } from './PrivacyBudgetProfile.js'
 import { UseSyntheticCounts } from './UseSyntheticCounts.js'
 
 export interface IRawSynthesisParameters {
@@ -20,14 +20,15 @@ export interface IRawSynthesisParameters {
 	oversamplingType: OversamplingType
 	oversamplingRatio: number
 	oversamplingTries: number
-	useSyntheticCounts: UseSyntheticCounts
+	aggregateSeededUseSyntheticCounts: UseSyntheticCounts
+	dpAggregateSeededUseSyntheticCounts: UseSyntheticCounts
 	percentilePercentage: number
 	percentileEpsilonProportion: number
 	noiseEpsilon: number
-	noiseDelta: number
-	thresholdType: NoisyCountThresholdType
+	deltaProportion: number
+	fabricationMode: FabricationMode
 	threshold: IInputNumberByLength
-	privacyBudgetProfile: PrivacyBudgetProfile
+	accuracyMode: AccuracyMode
 }
 
 export const defaultRawSynthesisParameters: IRawSynthesisParameters = {
@@ -39,12 +40,13 @@ export const defaultRawSynthesisParameters: IRawSynthesisParameters = {
 	oversamplingType: OversamplingType.Controlled,
 	oversamplingRatio: 0.1,
 	oversamplingTries: 10,
-	useSyntheticCounts: UseSyntheticCounts.Yes,
+	aggregateSeededUseSyntheticCounts: UseSyntheticCounts.Yes,
+	dpAggregateSeededUseSyntheticCounts: UseSyntheticCounts.No,
 	percentilePercentage: 99,
 	percentileEpsilonProportion: 0.1,
 	noiseEpsilon: 6.0,
-	noiseDelta: 0.0001,
-	thresholdType: NoisyCountThresholdType.Adaptive,
+	deltaProportion: 2,
+	fabricationMode: FabricationMode.Balanced,
 	threshold: {},
-	privacyBudgetProfile: PrivacyBudgetProfile.ProportionallyIncreasing,
+	accuracyMode: AccuracyMode.PrioritizeLargeCounts,
 }

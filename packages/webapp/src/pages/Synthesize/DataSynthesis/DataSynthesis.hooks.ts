@@ -3,11 +3,13 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { useCallback, useMemo } from 'react'
+import type { IInputNumberByLength } from 'sds-wasm'
 
 import type { ICsvContent, IRawSynthesisParameters } from '~models'
 import {
+	AccuracyMode,
+	FabricationMode,
 	OversamplingType,
-	PrivacyBudgetProfile,
 	UseSyntheticCounts,
 } from '~models'
 import { useSdsManagerInstance, useSensitiveContentValue } from '~states'
@@ -24,53 +26,88 @@ export function generateContextKey(params: IRawSynthesisParameters): string {
 	switch (params.synthesisMode) {
 		case SynthesisMode.Unseeded:
 		case SynthesisMode.RowSeeded:
-			return `K-Anon ${params.synthesisMode} (RecordLimit=${params.recordLimit}, PrivacyResolution=${params.resolution}, AggregationLimit${params.reportingLength})`
+			return `K-Anon ${params.synthesisMode} (RecordLimit=${params.recordLimit}, PrivacyResolution=${params.resolution}, AggregationLimit=${params.reportingLength})`
 		case SynthesisMode.ValueSeeded:
 			return (
-				`K-Anon ${params.synthesisMode} (RecordLimit=${params.recordLimit}, PrivacyResolution=${params.resolution}, AggregationLimit${params.reportingLength}, Oversampling=${params.oversamplingType}` +
+				`K-Anon ${params.synthesisMode} (RecordLimit=${params.recordLimit}, PrivacyResolution=${params.resolution}, AggregationLimit=${params.reportingLength}, Oversampling=${params.oversamplingType}` +
 				(params.oversamplingType === OversamplingType.Unlimited
 					? ')'
 					: `, OversamplingRatio=${params.oversamplingRatio}, OversamplingTries=${params.oversamplingTries})`)
 			)
 		case SynthesisMode.AggregateSeeded:
-			return `K-Anon ${params.synthesisMode} (RecordLimit=${params.recordLimit}, PrivacyResolution=${params.resolution}, AggregationLimit${params.reportingLength}, UseSyntheticCounts=${params.useSyntheticCounts})`
+			return `K-Anon ${params.synthesisMode} (RecordLimit=${params.recordLimit}, PrivacyResolution=${params.resolution}, AggregationLimit=${params.reportingLength}, UseSyntheticCounts=${params.aggregateSeededUseSyntheticCounts})`
 		case SynthesisMode.DP:
 			return `DP (RecordLimit=${params.recordLimit}, PrivacyResolution=${
 				params.resolution
-			}, AggregationLimit${params.reportingLength}, UseSyntheticCounts=${
-				params.useSyntheticCounts
+			}, AggregationLimit=${params.reportingLength}, UseSyntheticCounts=${
+				params.dpAggregateSeededUseSyntheticCounts
 			}, Percentile=${params.percentilePercentage}, PercentileEpsilonProp=${
 				params.percentileEpsilonProportion
-			}, Epsilon=${params.noiseEpsilon}, Delta=${
-				params.noiseDelta
-			}, Threshold=(${params.thresholdType}, [${Object.values(
+			}, Epsilon=${params.noiseEpsilon}, DeltaProportion=${
+				params.deltaProportion
+			}, FabricationMode=(${params.fabricationMode}, [${Object.values(
 				params.threshold,
-			).join(',')}]), BudgetProfile=(${params.privacyBudgetProfile}))`
+			).join(',')}]), AccuracyMode=${params.accuracyMode})`
 	}
 }
 
 function generateSigmaProportions(
 	reportingLength: number,
-	privacyBudgetProfile: PrivacyBudgetProfile,
+	accuracyMode: AccuracyMode,
 ): number[] {
 	const sigmaProportions: number[] = []
 
 	for (let i = 0; i < reportingLength; i++) {
 		let p
-		switch (privacyBudgetProfile) {
-			case PrivacyBudgetProfile.Flat:
+		switch (accuracyMode) {
+			case AccuracyMode.Balanced:
 				p = 1.0
 				break
-			case PrivacyBudgetProfile.ProportionallyIncreasing:
+			case AccuracyMode.PrioritizeLargeCounts:
 				p = 1.0 / (i + 1)
 				break
-			case PrivacyBudgetProfile.ProportionallyDecreasing:
+			case AccuracyMode.PrioritizeSmallCounts:
 				p = 1.0 / (reportingLength - i)
 				break
 		}
 		sigmaProportions.push(p)
 	}
 	return sigmaProportions
+}
+
+function generateNoisyThresholdValuesByLen(
+	fabricationMode: FabricationMode,
+	threshold: IInputNumberByLength,
+	reportingLength: number,
+): IInputNumberByLength {
+	let ret = {}
+
+	switch (fabricationMode) {
+		case FabricationMode.Balanced:
+			if (reportingLength === 2) {
+				ret[2] = 0.1
+			} else {
+				const ratio = 0.9 / (reportingLength - 2)
+				for (let i = 2; i <= reportingLength; ++i) {
+					ret[i] = Math.min(0.1 + ratio * (i - 2), 1.0)
+				}
+			}
+			break
+		case FabricationMode.Minimize:
+			for (let i = 2; i <= reportingLength; ++i) {
+				ret[i] = 0.01
+			}
+			break
+		case FabricationMode.Uncontrolled:
+			for (let i = 2; i <= reportingLength; ++i) {
+				ret[i] = 1.0
+			}
+			break
+		case FabricationMode.Custom:
+			ret = threshold
+			break
+	}
+	return ret
 }
 
 function convertRawToSynthesisParameters(
@@ -117,7 +154,8 @@ function convertRawToSynthesisParameters(
 			ret = {
 				...ret,
 				useSyntheticCounts:
-					rawParams.useSyntheticCounts === UseSyntheticCounts.Yes,
+					rawParams.aggregateSeededUseSyntheticCounts ===
+					UseSyntheticCounts.Yes,
 			} as IAggregateSeededSynthesisParameters
 			break
 		case SynthesisMode.DP:
@@ -125,20 +163,28 @@ function convertRawToSynthesisParameters(
 				...ret,
 				dpParameters: {
 					epsilon: rawParams.noiseEpsilon,
-					delta: rawParams.noiseDelta,
+					delta:
+						rawParams.recordLimit > 0
+							? 1.0 / (rawParams.deltaProportion * rawParams.recordLimit)
+							: 0.0,
 					percentilePercentage: rawParams.percentilePercentage,
 					percentileEpsilonProportion: rawParams.percentileEpsilonProportion,
 					sigmaProportions: generateSigmaProportions(
 						rawParams.reportingLength,
-						rawParams.privacyBudgetProfile,
+						rawParams.accuracyMode,
 					),
 				},
 				noiseThreshold: {
-					type: rawParams.thresholdType,
-					valuesByLen: rawParams.threshold,
+					type: 'Adaptive',
+					valuesByLen: generateNoisyThresholdValuesByLen(
+						rawParams.fabricationMode,
+						rawParams.threshold,
+						rawParams.reportingLength,
+					),
 				},
 				useSyntheticCounts:
-					rawParams.useSyntheticCounts === UseSyntheticCounts.Yes,
+					rawParams.dpAggregateSeededUseSyntheticCounts ===
+					UseSyntheticCounts.Yes,
 			} as IDpSynthesisParameters
 			break
 	}

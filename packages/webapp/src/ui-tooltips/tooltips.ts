@@ -5,22 +5,23 @@
 import { fromMarkdownStr } from '~components/Markdown'
 
 /* eslint-disable */
+import ACCURACY_MODE from './mds/ACCURACY_MODE.md?raw'
 import ANALYSIS_LENGTH from './mds/ANALYSIS_LENGTH.md?raw'
 import CACHE_SIZE from './mds/CACHE_SIZE.md?raw'
 import COUNT_MEAN_AND_ERROR from './mds/COUNT_MEAN_AND_ERROR.md?raw'
+import DELTA_PROPORTION from './mds/DELTA_PROPORTION.md?raw'
 import EVALUATE from './mds/EVALUATE.md?raw'
 import FABRICATED_COMBINATIONS from './mds/FABRICATED_COMBINATIONS.md?raw'
+import FABRICATION_MODE from './mds/FABRICATION_MODE.md?raw'
 import MEAN_PROPORTIONAL_ERROR from './mds/MEAN_PROPORTIONAL_ERROR.md?raw'
 import N_COUNT_MEAN_AND_ERROR from './mds/N_COUNT_MEAN_AND_ERROR.md?raw'
 import NAVIGATE from './mds/NAVIGATE.md?raw'
-import NOISE_DELTA from './mds/NOISE_DELTA.md?raw'
 import NOISE_EPSILON from './mds/NOISE_EPSILON.md?raw'
 import OVERSAMPLING from './mds/OVERSAMPLING.md?raw'
 import OVERSAMPLING_RATIO from './mds/OVERSAMPLING_RATIO.md?raw'
 import OVERSAMPLING_TRIES from './mds/OVERSAMPLING_TRIES.md?raw'
 import PERCENTILE_EPSILON_PROPORTION from './mds/PERCENTILE_EPSILON_PROPORTION.md?raw'
 import PERCENTILE_PERCENTAGE from './mds/PERCENTILE_PERCENTAGE.md?raw'
-import PRIVACY_BUDGET_PROFILE from './mds/PRIVACY_BUDGET_PROFILE.md?raw'
 import RARE_COMBS from './mds/RARE_COMBS.md?raw'
 import RECORD_EXPANSION from './mds/RECORD_EXPANSION.md?raw'
 import RECORD_LIMIT from './mds/RECORD_LIMIT.md?raw'
@@ -32,7 +33,6 @@ import SENSITIVE_FILE from './mds/SENSITIVE_FILE.md?raw'
 import SUPPRESSED_COMBINATIONS from './mds/SUPPRESSED_COMBINATIONS.md?raw'
 import SYNTHESIS_MODE from './mds/SYNTHESIS_MODE.md?raw'
 import SYNTHESIZE from './mds/SYNTHESIZE.md?raw'
-import THRESHOLD_TYPE from './mds/THRESHOLD_TYPE.md?raw'
 import THRESHOLD_VALUE from './mds/THRESHOLD_VALUE.md?raw'
 import UNIQUE_COMBS from './mds/UNIQUE_COMBS.md?raw'
 import USE_SYNTHETIC_COUNTS from './mds/USE_SYNTHETIC_COUNTS.md?raw'
@@ -53,7 +53,7 @@ export const tooltips = {
 	rareCombs: fromMarkdownStr(RARE_COMBS),
 	recordExpansion: fromMarkdownStr(RECORD_EXPANSION),
 	navigate: fromMarkdownStr(NAVIGATE),
-	noiseDelta: fromMarkdownStr(NOISE_DELTA),
+	deltaProportion: fromMarkdownStr(DELTA_PROPORTION),
 	noiseEpsilon: fromMarkdownStr(NOISE_EPSILON),
 	oversamplingRatio: fromMarkdownStr(OVERSAMPLING_RATIO),
 	oversamplingTries: fromMarkdownStr(OVERSAMPLING_TRIES),
@@ -67,7 +67,7 @@ export const tooltips = {
 	nCountMeanAndError: fromMarkdownStr(N_COUNT_MEAN_AND_ERROR),
 	countMeanAndError: fromMarkdownStr(COUNT_MEAN_AND_ERROR),
 	meanProportionalError: fromMarkdownStr(MEAN_PROPORTIONAL_ERROR),
-	thresholdType: fromMarkdownStr(THRESHOLD_TYPE),
+	fabricationMode: fromMarkdownStr(FABRICATION_MODE),
 	thresholdValue: fromMarkdownStr(THRESHOLD_VALUE),
-	privacyBudgetProfile: fromMarkdownStr(PRIVACY_BUDGET_PROFILE),
+	accuracyMode: fromMarkdownStr(ACCURACY_MODE),
 }

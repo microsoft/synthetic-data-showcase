@@ -68,8 +68,8 @@ export const DataSynthesisParameters: React.FC<DataSynthesisParametersProps> =
 		const handleNoiseEpsilonChange = useSpinButtonOnChange(
 			useRawSynthesisParametersPropertySetter('noiseEpsilon'),
 		)
-		const handleNoiseDeltaChange = useSpinButtonOnChange(
-			useRawSynthesisParametersPropertySetter('noiseDelta'),
+		const handleDeltaProportionChange = useSpinButtonOnChange(
+			useRawSynthesisParametersPropertySetter('deltaProportion'),
 		)
 
 		const updateNoisyCountThreshold = useUpdateNoisyCountThreshold()
@@ -77,8 +77,15 @@ export const DataSynthesisParameters: React.FC<DataSynthesisParametersProps> =
 		const onRunClicked = () => onRun(rawSynthesisParams)
 
 		useEffect(() => {
-			updateNoisyCountThreshold(rawSynthesisParams.reportingLength)
-		}, [rawSynthesisParams.reportingLength, updateNoisyCountThreshold])
+			updateNoisyCountThreshold(
+				rawSynthesisParams.fabricationMode,
+				rawSynthesisParams.reportingLength,
+			)
+		}, [
+			rawSynthesisParams.fabricationMode,
+			rawSynthesisParams.reportingLength,
+			updateNoisyCountThreshold,
+		])
 
 		return (
 			<FlexContainer gap={theme.spacing.s1} vertical wrap>
@@ -166,8 +173,8 @@ export const DataSynthesisParameters: React.FC<DataSynthesisParametersProps> =
 					{rawSynthesisParams.synthesisMode === SynthesisMode.DP && (
 						<>
 							<TooltipWrapper
-								tooltip={tooltips.noiseEpsilon}
-								label="Noise epsilon"
+								tooltip={tooltips.deltaProportion}
+								label="Epsilon"
 							>
 								<StyledSpinButton
 									labelPosition={Position.top}
@@ -178,13 +185,16 @@ export const DataSynthesisParameters: React.FC<DataSynthesisParametersProps> =
 								/>
 							</TooltipWrapper>
 
-							<TooltipWrapper tooltip={tooltips.noiseDelta} label="Noise delta">
+							<TooltipWrapper
+								tooltip={tooltips.deltaProportion}
+								label="Delta proportion"
+							>
 								<StyledSpinButton
 									labelPosition={Position.top}
-									min={0}
-									step={0.1}
-									value={rawSynthesisParams.noiseDelta.toString()}
-									onChange={handleNoiseDeltaChange}
+									min={1}
+									step={1}
+									value={rawSynthesisParams.deltaProportion.toString()}
+									onChange={handleDeltaProportionChange}
 								/>
 							</TooltipWrapper>
 						</>
