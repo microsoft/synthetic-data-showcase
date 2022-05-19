@@ -56,6 +56,7 @@ export const AttributeIntersectionValueChart: React.FC<AttributeIntersectionValu
 
 		return (
 			<Bar
+				key={actual.toString() + estimated.toString()}
 				height={height}
 				data={{
 					labels: labels.length > 0 ? labels : [' '],
@@ -104,7 +105,7 @@ export const AttributeIntersectionValueChart: React.FC<AttributeIntersectionValu
 						},
 					},
 					animation: {
-						duration: 0,
+						duration: 800,
 					},
 					onClick: handleClick,
 				}}

@@ -74,6 +74,7 @@ export const ColumnAttributeSelectorGrid: React.FC<ColumnAttributeSelectorGridPr
 										selectedAttributes={
 											selectedAttributesByColumn[i] ?? new Set()
 										}
+										selectedAttributesByColumn={selectedAttributesByColumn}
 										onSetSelectedAttributes={onSetSelectedAttributes}
 									/>
 								</Stack.Item>

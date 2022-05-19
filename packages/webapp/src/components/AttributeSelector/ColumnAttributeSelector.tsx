@@ -2,9 +2,12 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { Label, Spinner, Stack } from '@fluentui/react'
+import { Label, Stack } from '@fluentui/react'
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
-import type { IAttributesIntersection } from 'sds-wasm'
+import type {
+	IAttributesIntersection,
+	ISelectedAttributesByColumn,
+} from 'sds-wasm'
 
 import { AttributeIntersectionValueChart } from '~components/Charts/AttributeIntersectionValueChart'
 import { useStopPropagation } from '~components/Charts/hooks'
@@ -22,6 +25,7 @@ export interface ColumnAttributeSelectorProps {
 	chartBarHeight: number
 	minHeight?: string | number
 	selectedAttributes: Set<string>
+	selectedAttributesByColumn: ISelectedAttributesByColumn
 	onSetSelectedAttributes: SetSelectedAttributesCallback
 }
 
@@ -38,10 +42,10 @@ export const ColumnAttributeSelector: React.FC<ColumnAttributeSelectorProps> =
 		chartBarHeight,
 		minHeight,
 		selectedAttributes,
+		selectedAttributesByColumn,
 		onSetSelectedAttributes,
 	}: ColumnAttributeSelectorProps) {
 		const [items, setItems] = useState<IAttributesIntersection[]>([])
-		const [isLoading, setIsLoading] = useState(false)
 		const [manager] = useSdsManagerInstance()
 		const maxCount = useMaxCount(items)
 		const isMounted = useRef(true)
@@ -62,7 +66,6 @@ export const ColumnAttributeSelector: React.FC<ColumnAttributeSelectorProps> =
 
 		useEffect(() => {
 			if (manager) {
-				setIsLoading(true)
 				manager.instance
 					.attributesIntersectionsByColumn(contextKey, [headerName])
 					.then(intersections => {
@@ -70,16 +73,21 @@ export const ColumnAttributeSelector: React.FC<ColumnAttributeSelectorProps> =
 							return
 						}
 						setItems(intersections[columnIndex] ?? [])
-						setIsLoading(false)
 					})
 					.catch(() => {
 						if (!isMounted.current) {
 							return
 						}
-						setIsLoading(false)
 					})
 			}
-		}, [manager, setIsLoading, setItems, headerName, columnIndex, contextKey])
+		}, [
+			manager,
+			setItems,
+			headerName,
+			columnIndex,
+			contextKey,
+			selectedAttributesByColumn,
+		])
 
 		useEffect(() => {
 			return () => {
@@ -100,27 +108,23 @@ export const ColumnAttributeSelector: React.FC<ColumnAttributeSelectorProps> =
 				<Stack.Item>
 					<Label styles={{ root: { fontWeight: 'bold' } }}>{headerName}</Label>
 				</Stack.Item>
-				{isLoading ? (
-					<Spinner />
-				) : (
-					<Stack.Item
-						styles={{
-							root: {
-								overflowY: 'auto',
-								paddingRight: '20px',
-							},
-						}}
-						onWheel={stopPropagation}
-					>
-						<AttributeIntersectionValueChart
-							items={items}
-							onClick={handleSelection}
-							maxCount={maxCount}
-							height={chartBarHeight * Math.max(items.length, 1) + AXIS_HEIGHT}
-							selectedAttributes={selectedAttributes}
-						/>
-					</Stack.Item>
-				)}
+				<Stack.Item
+					styles={{
+						root: {
+							overflowY: 'auto',
+							paddingRight: '20px',
+						},
+					}}
+					onWheel={stopPropagation}
+				>
+					<AttributeIntersectionValueChart
+						items={items}
+						onClick={handleSelection}
+						maxCount={maxCount}
+						height={chartBarHeight * Math.max(items.length, 1) + AXIS_HEIGHT}
+						selectedAttributes={selectedAttributes}
+					/>
+				</Stack.Item>
 			</Stack>
 		)
 	})

@@ -20,7 +20,6 @@ export function useOnNewSelectedAttributesByColumn(
 	return useCallback(
 		async (newSelectedAttributesByColumn: ISelectedAttributesByColumn) => {
 			if (manager && contextKey) {
-				setIsLoading(true)
 				try {
 					await manager.instance.selectAttributes(
 						contextKey,
@@ -29,12 +28,9 @@ export function useOnNewSelectedAttributesByColumn(
 
 					if (isMounted.current) {
 						setSelectedAttributesByColumn(newSelectedAttributesByColumn)
-						setIsLoading(false)
 					}
 				} catch {
-					if (isMounted.current) {
-						setIsLoading(false)
-					}
+					setIsLoading(false)
 				}
 			}
 		},
