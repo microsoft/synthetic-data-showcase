@@ -91,7 +91,7 @@ export const DataSynthesisParameters: React.FC<DataSynthesisParametersProps> =
 							options={synthesisModeOptions}
 						/>
 					</TooltipWrapper>
-					<TooltipWrapper tooltip={tooltips.resolution} label="Resolution">
+					<TooltipWrapper tooltip={tooltips.resolution} label="Privacy resolution">
 						<StyledSpinButton
 							labelPosition={Position.top}
 							min={1}

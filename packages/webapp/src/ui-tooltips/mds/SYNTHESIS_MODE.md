@@ -1,8 +1,8 @@
 ### K-Anonymity
 
-In general, this set of methods proceeds by sampling attributes until the addition of further attributes would create a rare combination (with its corresponding count smaller than the required **`resolution`**). These privacy-preserving subsets of sensitive records are collected for output as synthetic records.
+In general, this set of methods proceeds by sampling attributes until the addition of further attributes would create a rare combination (with its corresponding count smaller than the required **`privacy resolution`**). These privacy-preserving subsets of sensitive records are collected for output as synthetic records.
 
-Also, since precise attribute counts create a privacy risk, it is advisable to create some uncertainty over the actual counts by adding noise to the synthetic data. The same **`resolution`** is used again here to suppress attributes or synthesize additional records such that synthetic attribute counts are equal to the (already imprecise) reported count.
+Also, since precise attribute counts create a privacy risk, it is advisable to create some uncertainty over the actual counts by adding noise to the synthetic data. The same **`privacy resolution`** is used again here to suppress attributes or synthesize additional records such that synthetic attribute counts are equal to the (already imprecise) reported count.
 
 **`Row Seeded`**:
 - synthetic records are seeded with a corresponding sensitive record

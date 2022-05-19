@@ -53,7 +53,7 @@ Allow the user to load data (csv or tsv files), select the wanted columns, mark 
 
 ## Synthesize
 
-Allow the user to provide the wanted resolution and synthesize the data.
+Allow the user to provide the wanted privacy resolution and synthesize the data.
 
 ## Evaluate
 
