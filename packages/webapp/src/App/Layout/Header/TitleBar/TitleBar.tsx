@@ -62,7 +62,6 @@ const StyledLink = styled(NavLink)`
 	letter-spacing: 1.5px;
 	text-decoration: none;
 	padding: ${p => p.theme.spacing.m};
-	font-style: normal;
 
 	&:hover,
 	&.active {
