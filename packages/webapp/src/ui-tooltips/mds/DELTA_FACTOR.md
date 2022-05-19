@@ -1,4 +1,4 @@
-Proportion used to calculate the delta DP parameter.
+Factor used to calculate the delta DP parameter.
 
 `Delta = 1 / ([delta proportion] * [record limit])`
 

@@ -9,7 +9,7 @@ import ACCURACY_MODE from './mds/ACCURACY_MODE.md?raw'
 import ANALYSIS_LENGTH from './mds/ANALYSIS_LENGTH.md?raw'
 import CACHE_SIZE from './mds/CACHE_SIZE.md?raw'
 import COUNT_MEAN_AND_ERROR from './mds/COUNT_MEAN_AND_ERROR.md?raw'
-import DELTA_PROPORTION from './mds/DELTA_PROPORTION.md?raw'
+import DELTA_FACTOR from './mds/DELTA_FACTOR.md?raw'
 import EVALUATE from './mds/EVALUATE.md?raw'
 import FABRICATED_COMBINATIONS from './mds/FABRICATED_COMBINATIONS.md?raw'
 import FABRICATION_MODE from './mds/FABRICATION_MODE.md?raw'
@@ -53,7 +53,7 @@ export const tooltips = {
 	rareCombs: fromMarkdownStr(RARE_COMBS),
 	recordExpansion: fromMarkdownStr(RECORD_EXPANSION),
 	navigate: fromMarkdownStr(NAVIGATE),
-	deltaProportion: fromMarkdownStr(DELTA_PROPORTION),
+	deltaFactor: fromMarkdownStr(DELTA_FACTOR),
 	noiseEpsilon: fromMarkdownStr(NOISE_EPSILON),
 	oversamplingRatio: fromMarkdownStr(OVERSAMPLING_RATIO),
 	oversamplingTries: fromMarkdownStr(OVERSAMPLING_TRIES),
