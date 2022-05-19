@@ -13,7 +13,7 @@ import styled from 'styled-components'
 import { useRawSynthesisParameters, useSensitiveContent } from '~states'
 import type { ICancelablePromise } from '~workers/types'
 
-import { useGetAggregateStatistics } from './hooks'
+import { useGetAggregateStatistics } from './hooks/index.js'
 
 interface IQueueExecution {
 	execution?: Remote<ICancelablePromise<IAggregateStatistics>>

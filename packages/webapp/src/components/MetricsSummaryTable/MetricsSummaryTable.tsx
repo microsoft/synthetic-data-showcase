@@ -15,7 +15,7 @@ import type { IMicrodataStatistics } from 'sds-wasm'
 import { InfoTooltip } from '~components/InfoTooltip'
 import type { AggregateType } from '~workers/types'
 
-import { useMicrodataMetricsItems } from './hooks'
+import { useMicrodataMetricsItems } from './hooks.js'
 
 export interface MetricsSummaryTableProps {
 	stats: IMicrodataStatistics

@@ -26,11 +26,11 @@ import {
 	useOversamplingTypeOptions,
 	usePrivacyBudgetProfileOptions,
 	useUseSyntheticCountOptions,
-} from './DataSynthesisParameters.hooks'
+} from './DataSynthesisParameters.hooks.js'
 import {
 	StyledDropdown,
 	StyledSpinButton,
-} from './DataSynthesisParameters.styles'
+} from './DataSynthesisParameters.styles.js'
 
 export const DataSynthesisAdvancedParameters: React.FC = memo(
 	function DataSynthesisParameter() {

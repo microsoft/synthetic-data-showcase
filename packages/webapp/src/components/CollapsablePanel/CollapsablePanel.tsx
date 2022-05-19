@@ -6,7 +6,7 @@ import { IconButton, useTheme } from '@fluentui/react'
 import { FlexContainer } from '@sds/components'
 import { memo, useState } from 'react'
 
-import type { CollapsablePanelProps } from './CollapsablePanel.types'
+import type { CollapsablePanelProps } from './CollapsablePanel.types.js'
 
 export const CollapsablePanel: React.FC<CollapsablePanelProps> = memo(
 	function CollapsablePanel({ header, children, defaultCollapsed }) {

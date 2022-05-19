@@ -11,7 +11,7 @@ import styled from 'styled-components'
 import type { PageDetails } from '~pages'
 import { Pages } from '~pages'
 
-import { Layout } from './Layout'
+import { Layout } from './Layout.js'
 
 function toRoute(page: PageDetails): ReactNode {
 	const Component = page.component

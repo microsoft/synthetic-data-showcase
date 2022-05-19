@@ -27,16 +27,16 @@ import {
 import { tooltips } from '~ui-tooltips'
 import { SynthesisMode } from '~workers/types'
 
-import { DataSynthesisAdvancedParameters } from './DataSynthesisAdvancedParameters'
+import { DataSynthesisAdvancedParameters } from './DataSynthesisAdvancedParameters.js'
 import {
 	useSynthesisModeOptions,
 	useUpdateNoisyCountThreshold,
-} from './DataSynthesisParameters.hooks'
+} from './DataSynthesisParameters.hooks.js'
 import {
 	StyledDropdown,
 	StyledSpinButton,
-} from './DataSynthesisParameters.styles'
-import type { DataSynthesisParametersProps } from './DataSynthesisParameters.types'
+} from './DataSynthesisParameters.styles.js'
+import type { DataSynthesisParametersProps } from './DataSynthesisParameters.types.js'
 
 export const DataSynthesisParameters: React.FC<DataSynthesisParametersProps> =
 	memo(function DataSynthesisParameter({

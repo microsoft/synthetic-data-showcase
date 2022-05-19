@@ -16,7 +16,7 @@ import styled from 'styled-components'
 
 import type { ISynthesisInfo } from '~workers/types'
 
-import { useHumanReadableSummaryItems } from './HumanReadableSummary.hooks'
+import { useHumanReadableSummaryItems } from './HumanReadableSummary.hooks.js'
 
 export interface HumanReadableSummaryProps {
 	evaluateResult: IEvaluateResult

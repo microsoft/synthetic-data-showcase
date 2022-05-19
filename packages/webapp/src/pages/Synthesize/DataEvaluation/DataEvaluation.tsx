@@ -14,14 +14,14 @@ import { useDropdownOnChange } from '~pages/hooks'
 import type { ISynthesisInfo } from '~workers/types'
 import { AggregateType } from '~workers/types'
 
-import { useAllFinishedSynthesisInfo } from '../Synthesize.hooks'
+import { useAllFinishedSynthesisInfo } from '../Synthesize.hooks.js'
 import {
 	useAggregateTypeOptions,
 	useMicrodataMaxStatistics,
 	useSelectedSynthesisOnChange,
-} from './DataEvaluation.hooks'
-import { FlexCentered } from './DataEvaluation.styles'
-import type { DataEvaluationProps } from './DataEvaluation.types'
+} from './DataEvaluation.hooks.js'
+import { FlexCentered } from './DataEvaluation.styles.js'
+import type { DataEvaluationProps } from './DataEvaluation.types.js'
 
 const aggregateTypeToStatKey = {
 	[AggregateType.Sensitive]: 'sensitiveDataStats',

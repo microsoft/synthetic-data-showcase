@@ -5,7 +5,7 @@
 import type { RefObject } from 'react'
 import { useCallback } from 'react'
 
-import type { DownloadInfo } from './DownloadInfo'
+import type { DownloadInfo } from './DownloadInfo.js'
 
 export function useDownloadOnClick(
 	downloadAnchorRef: RefObject<HTMLAnchorElement>,

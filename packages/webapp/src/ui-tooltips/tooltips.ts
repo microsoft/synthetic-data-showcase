@@ -4,6 +4,7 @@
  */
 import { fromMarkdownStr } from '~components/Markdown'
 
+/* eslint-disable */
 import ANALYSIS_LENGTH from './mds/ANALYSIS_LENGTH.md?raw'
 import CACHE_SIZE from './mds/CACHE_SIZE.md?raw'
 import COUNT_MEAN_AND_ERROR from './mds/COUNT_MEAN_AND_ERROR.md?raw'
@@ -35,6 +36,7 @@ import THRESHOLD_TYPE from './mds/THRESHOLD_TYPE.md?raw'
 import THRESHOLD_VALUE from './mds/THRESHOLD_VALUE.md?raw'
 import UNIQUE_COMBS from './mds/UNIQUE_COMBS.md?raw'
 import USE_SYNTHETIC_COUNTS from './mds/USE_SYNTHETIC_COUNTS.md?raw'
+/* eslint-enable */
 
 export const tooltips = {
 	sensitiveFile: fromMarkdownStr(SENSITIVE_FILE),

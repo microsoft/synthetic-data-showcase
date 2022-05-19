@@ -12,7 +12,7 @@ import {
 	useActualBarConfig,
 	useDataLabelsConfig,
 	useEstimatedBarConfig,
-} from './hooks'
+} from './hooks/index.js'
 
 export interface AttributeIntersectionValueChartProps {
 	items: IAttributesIntersection[]

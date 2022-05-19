@@ -8,8 +8,8 @@ import { memo } from 'react'
 import {
 	useAllSynthesisOptions,
 	useSynthesisDropdownOnChange,
-} from './SynthesisDropdown.hooks'
-import type { SynthesisDropdownProps } from './SynthesisDropdown.types'
+} from './SynthesisDropdown.hooks.js'
+import type { SynthesisDropdownProps } from './SynthesisDropdown.types.js'
 
 export const SynthesisDropdown: React.FC<SynthesisDropdownProps> = memo(
 	function SynthesisDropdown({

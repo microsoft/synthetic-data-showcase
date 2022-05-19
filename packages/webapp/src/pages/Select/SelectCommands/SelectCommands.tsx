@@ -7,10 +7,10 @@ import type { FC } from 'react'
 import { memo } from 'react'
 import styled from 'styled-components'
 
-import { MultiValueColumns } from './MultiValueColumns'
-import { SelectColumns } from './SelectColumns'
-import { SensitiveZeros } from './SensitiveZeros'
-import { SubjectId } from './SubjectId'
+import { MultiValueColumns } from './MultiValueColumns/index.js'
+import { SelectColumns } from './SelectColumns/index.js'
+import { SensitiveZeros } from './SensitiveZeros/index.js'
+import { SubjectId } from './SubjectId/index.js'
 
 export const SelectCommands: FC = memo(function SelectCommand() {
 	return (

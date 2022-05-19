@@ -16,12 +16,13 @@ import {
 	useSdsManagerInstance,
 	useSelectedTable,
 } from '~states'
-import type { SdsManager } from '~workers/SdsManager'
+import type { SdsManager } from '~workers/SdsManager.js'
+// eslint-disable-next-line
 import SdsManagerWorker from '~workers/SdsManager?worker'
 import { createWorkerProxy } from '~workers/utils'
 
-import { Header } from './Header'
-import { useOnTableChange } from './hooks'
+import { Header } from './Header/index.js'
+import { useOnTableChange } from './hooks/index.js'
 
 export const Layout: React.FC = memo(function Layout({ children }) {
 	const [managerInstance, setManagerInstance] = useSdsManagerInstance()

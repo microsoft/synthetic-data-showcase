@@ -20,7 +20,7 @@ import {
 	useOnGetAnalysisByLenCsv,
 	useOnGetDownloadInfo,
 	useOnGetMetricsSummaryCsv,
-} from './hooks'
+} from './hooks.js'
 
 export interface DataEvaluationInfoDownloaderProps {
 	contextKey: string

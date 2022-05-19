@@ -17,14 +17,14 @@ import { HumanReadableSummary } from '~components/HumanReadableSummary'
 import type { ICsvContent } from '~models'
 import { defaultCsvContent } from '~models'
 
-import { DataEvaluation } from '../DataEvaluation'
+import { DataEvaluation } from '../DataEvaluation/index.js'
 import {
 	useGetAndSetEvaluateResult,
 	useGetAndSetSyntheticCsvContent,
 	useSyntheticTableCommands,
-} from './DataSynthesisResult.hooks'
-import { StyledItem } from './DataSynthesisResult.styles'
-import type { DataSynthesisResultProps } from './DataSynthesisResult.types'
+} from './DataSynthesisResult.hooks.js'
+import { StyledItem } from './DataSynthesisResult.styles.js'
+import type { DataSynthesisResultProps } from './DataSynthesisResult.types.js'
 
 export const DataSynthesisResult: React.FC<DataSynthesisResultProps> = memo(
 	function DataSynthesisResult({ selectedSynthesis }) {

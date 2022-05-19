@@ -27,7 +27,7 @@ module.exports = {
 				{
 					files: ['**/*.{ts,tsx,js,jsx,mts,mjs}'],
 					ignorePackages: true,
-					relativeModulePrefixes: ['./', '~'],
+					relativeModulePrefixes: ['.'],
 					expectedExtensions: ['.js', '.mjs', '.cjs', '.jsx', '.css'],
 					disallowedExtensions: [],
 				}

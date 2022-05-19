@@ -23,7 +23,7 @@ export const Pages: Record<string, PageDetails> = {
 		component: lazy(
 			async () =>
 				/* webpackChunkName: "HomePage" */
-				await import('./Prepare'),
+				await import('./Prepare/index.js'),
 		),
 	},
 	Prepare: {
@@ -34,7 +34,7 @@ export const Pages: Record<string, PageDetails> = {
 		component: lazy(
 			async () =>
 				/* webpackChunkName: "PreparePage" */
-				await import('./Prepare'),
+				await import('./Prepare/index.js'),
 		),
 	},
 	Select: {
@@ -45,7 +45,7 @@ export const Pages: Record<string, PageDetails> = {
 		component: lazy(
 			async () =>
 				/* webpackChunkName: "SelectPage" */
-				await import('./Select'),
+				await import('./Select/index.js'),
 		),
 	},
 	Synthesize: {
@@ -56,7 +56,7 @@ export const Pages: Record<string, PageDetails> = {
 		component: lazy(
 			async () =>
 				/* webpackChunkName: "SynthesizePage" */
-				await import('./Synthesize'),
+				await import('./Synthesize/index.js'),
 		),
 	},
 	Navigate: {
@@ -67,7 +67,7 @@ export const Pages: Record<string, PageDetails> = {
 		component: lazy(
 			async () =>
 				/* webpackChunkName: "NavigatePage" */
-				await import('./Navigate'),
+				await import('./Navigate/index.js'),
 		),
 	},
 }

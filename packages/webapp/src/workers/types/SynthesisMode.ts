@@ -7,5 +7,5 @@ export enum SynthesisMode {
 	RowSeeded = 'Row Seeded',
 	ValueSeeded = 'Value Seeded',
 	AggregateSeeded = 'Aggregate Seeded',
-	DP = 'Differential Privacy'
+	DP = 'Differential Privacy',
 }

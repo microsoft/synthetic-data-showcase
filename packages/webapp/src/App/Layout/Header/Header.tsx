@@ -6,9 +6,9 @@ import { FlexContainer } from '@sds/components'
 import type { FC } from 'react'
 import { memo } from 'react'
 
-import { ErrorBar } from './ErrorBar'
-import { NavBar } from './NavBar'
-import { TitleBar } from './TitleBar'
+import { ErrorBar } from './ErrorBar/index.js'
+import { NavBar } from './NavBar/index.js'
+import { TitleBar } from './TitleBar/index.js'
 
 export const Header: FC = memo(function Header() {
 	return (

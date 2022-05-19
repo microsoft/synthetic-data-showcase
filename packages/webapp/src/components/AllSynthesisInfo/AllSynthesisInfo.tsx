@@ -9,9 +9,9 @@ import { memo, useEffect } from 'react'
 import {
 	useSynthesisInfoColumns,
 	useSynthesisInfoSelection,
-} from './AllSynthesisInfo.hooks'
-import { Container } from './AllSynthesisInfo.styles'
-import type { AllSynthesisInfoProps } from './AllSynthesisInfo.types'
+} from './AllSynthesisInfo.hooks.js'
+import { Container } from './AllSynthesisInfo.styles.js'
+import type { AllSynthesisInfoProps } from './AllSynthesisInfo.types.js'
 
 export const AllSynthesisInfo: React.FC<AllSynthesisInfoProps> = memo(
 	function AllSynthesisInfo({
