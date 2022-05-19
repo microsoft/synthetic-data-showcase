@@ -22,7 +22,6 @@ export function useOnTableChange(): void {
 	const setIsProcessing = useIsProcessingSetter()
 	const clearSensitiveData = useClearSensitiveData()
 	const setRecordLimit = useRawSynthesisParametersPropertySetter('recordLimit')
-	const setNoiseDelta = useRawSynthesisParametersPropertySetter('noiseDelta')
 
 	useEffect(() => {
 		async function run() {
@@ -44,9 +43,6 @@ export function useOnTableChange(): void {
 					subjectId: defaultSubjectID,
 				})
 				setRecordLimit(t.numRows())
-				if (t.numRows() > 0) {
-					setNoiseDelta(1 / (2 * t.numRows()))
-				}
 				setIsProcessing(false)
 			}
 		}
@@ -57,6 +53,5 @@ export function useOnTableChange(): void {
 		setIsProcessing,
 		clearSensitiveData,
 		setRecordLimit,
-		setNoiseDelta,
 	])
 }

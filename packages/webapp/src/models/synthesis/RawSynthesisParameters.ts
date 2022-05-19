@@ -25,7 +25,7 @@ export interface IRawSynthesisParameters {
 	percentilePercentage: number
 	percentileEpsilonProportion: number
 	noiseEpsilon: number
-	noiseDelta: number
+	deltaProportion: number
 	fabricationMode: FabricationMode
 	threshold: IInputNumberByLength
 	accuracyMode: AccuracyMode
@@ -45,7 +45,7 @@ export const defaultRawSynthesisParameters: IRawSynthesisParameters = {
 	percentilePercentage: 99,
 	percentileEpsilonProportion: 0.1,
 	noiseEpsilon: 6.0,
-	noiseDelta: 0.0001,
+	deltaProportion: 2,
 	fabricationMode: FabricationMode.Balanced,
 	threshold: {},
 	accuracyMode: AccuracyMode.PrioritizeLargeCounts,

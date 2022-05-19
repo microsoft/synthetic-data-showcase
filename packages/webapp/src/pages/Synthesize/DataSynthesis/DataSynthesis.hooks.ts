@@ -26,25 +26,25 @@ export function generateContextKey(params: IRawSynthesisParameters): string {
 	switch (params.synthesisMode) {
 		case SynthesisMode.Unseeded:
 		case SynthesisMode.RowSeeded:
-			return `K-Anon ${params.synthesisMode} (RecordLimit=${params.recordLimit}, PrivacyResolution=${params.resolution}, AggregationLimit${params.reportingLength})`
+			return `K-Anon ${params.synthesisMode} (RecordLimit=${params.recordLimit}, PrivacyResolution=${params.resolution}, AggregationLimit=${params.reportingLength})`
 		case SynthesisMode.ValueSeeded:
 			return (
-				`K-Anon ${params.synthesisMode} (RecordLimit=${params.recordLimit}, PrivacyResolution=${params.resolution}, AggregationLimit${params.reportingLength}, Oversampling=${params.oversamplingType}` +
+				`K-Anon ${params.synthesisMode} (RecordLimit=${params.recordLimit}, PrivacyResolution=${params.resolution}, AggregationLimit=${params.reportingLength}, Oversampling=${params.oversamplingType}` +
 				(params.oversamplingType === OversamplingType.Unlimited
 					? ')'
 					: `, OversamplingRatio=${params.oversamplingRatio}, OversamplingTries=${params.oversamplingTries})`)
 			)
 		case SynthesisMode.AggregateSeeded:
-			return `K-Anon ${params.synthesisMode} (RecordLimit=${params.recordLimit}, PrivacyResolution=${params.resolution}, AggregationLimit${params.reportingLength}, UseSyntheticCounts=${params.aggregateSeededUseSyntheticCounts})`
+			return `K-Anon ${params.synthesisMode} (RecordLimit=${params.recordLimit}, PrivacyResolution=${params.resolution}, AggregationLimit=${params.reportingLength}, UseSyntheticCounts=${params.aggregateSeededUseSyntheticCounts})`
 		case SynthesisMode.DP:
 			return `DP (RecordLimit=${params.recordLimit}, PrivacyResolution=${
 				params.resolution
-			}, AggregationLimit${params.reportingLength}, UseSyntheticCounts=${
+			}, AggregationLimit=${params.reportingLength}, UseSyntheticCounts=${
 				params.dpAggregateSeededUseSyntheticCounts
 			}, Percentile=${params.percentilePercentage}, PercentileEpsilonProp=${
 				params.percentileEpsilonProportion
-			}, Epsilon=${params.noiseEpsilon}, Delta=${
-				params.noiseDelta
+			}, Epsilon=${params.noiseEpsilon}, DeltaProportion=${
+				params.deltaProportion
 			}, FabricationMode=(${params.fabricationMode}, [${Object.values(
 				params.threshold,
 			).join(',')}]), AccuracyMode=${params.accuracyMode})`
@@ -163,7 +163,10 @@ function convertRawToSynthesisParameters(
 				...ret,
 				dpParameters: {
 					epsilon: rawParams.noiseEpsilon,
-					delta: rawParams.noiseDelta,
+					delta:
+						rawParams.recordLimit > 0
+							? 1.0 / (rawParams.deltaProportion * rawParams.recordLimit)
+							: 0.0,
 					percentilePercentage: rawParams.percentilePercentage,
 					percentileEpsilonProportion: rawParams.percentileEpsilonProportion,
 					sigmaProportions: generateSigmaProportions(
