@@ -10,12 +10,14 @@ import {
 	Stack,
 	useTheme,
 } from '@fluentui/react'
+import { FlexContainer, FlexItem } from '@sds/components'
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type {
 	IAttributesIntersection,
 	ISelectedAttributesByColumn,
 } from 'sds-wasm'
+import styled from 'styled-components'
 
 import {
 	ColumnAttributeSelectorGrid,
@@ -98,23 +100,6 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 	)
 	const theme = useTheme()
 
-	const mainStackStyles: IStackStyles = {
-		root: {
-			display: 'flex',
-			marginTop: theme.spacing.s2,
-			marginLeft: theme.spacing.l1,
-			marginRight: theme.spacing.l1,
-		},
-	}
-
-	const mainStackTokens: IStackTokens = {
-		childrenGap: theme.spacing.m,
-	}
-
-	const subStackTokens: IStackTokens = {
-		childrenGap: theme.spacing.s1,
-	}
-
 	useEffect(() => {
 		onClearSelectedAttributes()
 	}, [selectedSynthesis, onClearSelectedAttributes])
@@ -130,56 +115,50 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 	}, [])
 
 	return (
-		<Stack styles={mainStackStyles} tokens={mainStackTokens}>
-			<Stack horizontal verticalAlign="center" tokens={subStackTokens}>
-				<IconButton iconProps={backIcon} onClick={onGoBack} />
-				<h3>Compare sensitive and synthetic results</h3>
-				<InfoTooltip>{tooltips.navigate}</InfoTooltip>
-			</Stack>
+		<Container vertical>
+			<FlexItem style={{ padding: `0 ${theme.spacing.m}` }}>
+				<FlexContainer align="center" gap={theme.spacing.s1}>
+					<IconButton iconProps={backIcon} onClick={onGoBack} />
+					<h3>Compare sensitive and synthetic results</h3>
+					<InfoTooltip>{tooltips.navigate}</InfoTooltip>
+				</FlexContainer>
 
-			<SynthesisDropdown
-				selectedSynthesis={selectedSynthesis}
-				allSynthesisInfo={allFinishedSynthesisInfo}
-				onChange={setSelectedSynthesis}
-				disabled={allFinishedSynthesisInfo.length === 0 || isLoading}
-			/>
-
-			<SelectedAttributes
-				headers={headers}
-				selectedAttributesByColumn={selectedAttributesByColumn}
-				onSetSelectedAttributes={onSetSelectedAttributes}
-				onClearSelectedAttributes={onClearSelectedAttributes}
-			/>
+				<SynthesisDropdown
+					selectedSynthesis={selectedSynthesis}
+					allSynthesisInfo={allFinishedSynthesisInfo}
+					onChange={setSelectedSynthesis}
+					disabled={allFinishedSynthesisInfo.length === 0 || isLoading}
+				/>
+				<br />
+				<SelectedAttributes
+					headers={headers}
+					selectedAttributesByColumn={selectedAttributesByColumn}
+					onSetSelectedAttributes={onSetSelectedAttributes}
+					onClearSelectedAttributes={onClearSelectedAttributes}
+				/>
+			</FlexItem>
 
 			{selectedSynthesis && (
-				<Stack horizontal tokens={subStackTokens} horizontalAlign="center">
+				<Container>
 					{isLoading ? (
 						<Spinner />
 					) : (
 						<>
-							<Stack.Item
-								styles={{
-									root: {
-										overflow: 'auto',
-										paddingRight: '20px',
-										height: viewHeight,
-										minWidth: '80px',
-									},
-								}}
-							>
+							<Container style={{ padding: theme.spacing.m }}>
 								<HeaderSelector
 									headers={headers}
 									selectedHeaders={selectedHeaders}
 									onToggle={onToggleSelectedHeader}
 								/>
-							</Stack.Item>
+							</Container>
+							<FlexItem grow={0} shrink={0}>
+								<Separator
+									vertical={true}
+									styles={{ root: { height: viewHeight } }}
+								/>
+							</FlexItem>
 
-							<Separator
-								vertical={true}
-								styles={{ root: { height: viewHeight } }}
-							/>
-
-							<Stack.Item grow={1}>
+							<FlexItem grow={1} shrink={0}>
 								<ColumnAttributeSelectorGrid
 									contextKey={selectedSynthesis?.key}
 									viewHeight={viewHeight}
@@ -192,11 +171,16 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 									selectedAttributesByColumn={selectedAttributesByColumn}
 									onSetSelectedAttributes={onSetSelectedAttributes}
 								/>
-							</Stack.Item>
+							</FlexItem>
 						</>
 					)}
-				</Stack>
+				</Container>
 			)}
-		</Stack>
+		</Container>
 	)
 })
+
+const Container = styled(FlexContainer)`
+	height: 100%;
+	overflow-y: auto;
+`
