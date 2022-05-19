@@ -19,5 +19,5 @@ SynthesizePage.displayName = 'SynthesizePage'
 
 const Container = styled.div`
 	height: 100%;
-	overflow-y: scroll;
+	overflow-y: auto;
 `
