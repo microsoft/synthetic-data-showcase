@@ -8,10 +8,10 @@
  */
 import { Position, useTheme } from '@fluentui/react'
 import { FlexContainer } from '@sds/components'
-import { memo } from 'react'
+import { memo, useEffect } from 'react'
 
 import { TooltipWrapper } from '~components/TooltipWrapper'
-import { OversamplingType } from '~models'
+import { FabricationMode, OversamplingType } from '~models'
 import { useDropdownOnChange, useSpinButtonOnChange } from '~pages/hooks'
 import {
 	useRawSynthesisParameters,
@@ -22,9 +22,10 @@ import { SynthesisMode } from '~workers/types'
 
 import {
 	useAccuracyModeOptions,
+	useFabricationModeOptions,
 	useNoisyCountThresholdChange,
-	useNoisyCountThresholdTypeOptions,
 	useOversamplingTypeOptions,
+	useUpdateNoisyCountThreshold,
 	useUseSyntheticCountOptions,
 } from './DataSynthesisParameters.hooks.js'
 import {
@@ -40,7 +41,7 @@ export const DataSynthesisAdvancedParameters: React.FC = memo(
 
 		const oversamplingTypeOptions = useOversamplingTypeOptions()
 		const useSyntheticCountsOptions = useUseSyntheticCountOptions()
-		const noisyCountThresholdTypeOptions = useNoisyCountThresholdTypeOptions()
+		const fabricationModeOptions = useFabricationModeOptions()
 		const accuracyModeOptions = useAccuracyModeOptions()
 
 		const handleCacheSizeChange = useSpinButtonOnChange(
@@ -71,8 +72,8 @@ export const DataSynthesisAdvancedParameters: React.FC = memo(
 		const handlePercentileEpsilonProportionChange = useSpinButtonOnChange(
 			useRawSynthesisParametersPropertySetter('percentileEpsilonProportion'),
 		)
-		const handleNoisyCountThresholdTypeChange = useDropdownOnChange(
-			useRawSynthesisParametersPropertySetter('thresholdType'),
+		const handleFabricationModeChange = useDropdownOnChange(
+			useRawSynthesisParametersPropertySetter('fabricationMode'),
 		)
 		const handleNoisyCountThresholdChange = useNoisyCountThresholdChange(
 			rawSynthesisParams.threshold,
@@ -81,6 +82,19 @@ export const DataSynthesisAdvancedParameters: React.FC = memo(
 		const handleAccuracyModeChange = useDropdownOnChange(
 			useRawSynthesisParametersPropertySetter('accuracyMode'),
 		)
+
+		const updateNoisyCountThreshold = useUpdateNoisyCountThreshold()
+
+		useEffect(() => {
+			updateNoisyCountThreshold(
+				rawSynthesisParams.fabricationMode,
+				rawSynthesisParams.reportingLength,
+			)
+		}, [
+			rawSynthesisParams.fabricationMode,
+			rawSynthesisParams.reportingLength,
+			updateNoisyCountThreshold,
+		])
 
 		return (
 			<FlexContainer gap={theme.spacing.s1} vertical wrap>
@@ -189,12 +203,12 @@ export const DataSynthesisAdvancedParameters: React.FC = memo(
 
 						<TooltipWrapper
 							tooltip={tooltips.percentileEpsilonProportion}
-							label="Percentile epsilon prop"
+							label="Percentile epsilon proportion"
 						>
 							<StyledSpinButton
 								labelPosition={Position.top}
 								min={0.01}
-								max={1.0}
+								max={0.99}
 								step={0.01}
 								value={rawSynthesisParams.percentileEpsilonProportion.toString()}
 								onChange={handlePercentileEpsilonProportionChange}
@@ -214,32 +228,34 @@ export const DataSynthesisAdvancedParameters: React.FC = memo(
 						</TooltipWrapper>
 
 						<TooltipWrapper
-							tooltip={tooltips.thresholdType}
-							label="Threshold type"
+							tooltip={tooltips.fabricationMode}
+							label="Fabrication mode"
 						>
 							<StyledDropdown
-								selectedKey={rawSynthesisParams.thresholdType}
-								onChange={handleNoisyCountThresholdTypeChange}
-								placeholder="Select threshold type"
-								options={noisyCountThresholdTypeOptions}
+								selectedKey={rawSynthesisParams.fabricationMode}
+								onChange={handleFabricationModeChange}
+								placeholder="Select fabrication mode"
+								options={fabricationModeOptions}
 							/>
 						</TooltipWrapper>
 
-						{Object.keys(rawSynthesisParams.threshold).map(l => (
-							<TooltipWrapper
-								key={l}
-								tooltip={tooltips.thresholdValue}
-								label={`${l}-counts threshold`}
-							>
-								<StyledSpinButton
-									labelPosition={Position.top}
-									min={0.01}
-									step={0.01}
-									value={rawSynthesisParams.threshold[l].toString()}
-									onChange={handleNoisyCountThresholdChange[l]}
-								/>
-							</TooltipWrapper>
-						))}
+						{rawSynthesisParams.fabricationMode === FabricationMode.Custom &&
+							Object.keys(rawSynthesisParams.threshold).map(l => (
+								<TooltipWrapper
+									key={l}
+									tooltip={tooltips.thresholdValue}
+									label={`${l}-counts threshold`}
+								>
+									<StyledSpinButton
+										labelPosition={Position.top}
+										min={0.01}
+										max={1.0}
+										step={0.01}
+										value={rawSynthesisParams.threshold[l].toString()}
+										onChange={handleNoisyCountThresholdChange[l]}
+									/>
+								</TooltipWrapper>
+							))}
 					</>
 				)}
 			</FlexContainer>

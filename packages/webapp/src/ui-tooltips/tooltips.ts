@@ -11,6 +11,7 @@ import CACHE_SIZE from './mds/CACHE_SIZE.md?raw'
 import COUNT_MEAN_AND_ERROR from './mds/COUNT_MEAN_AND_ERROR.md?raw'
 import EVALUATE from './mds/EVALUATE.md?raw'
 import FABRICATED_COMBINATIONS from './mds/FABRICATED_COMBINATIONS.md?raw'
+import FABRICATION_MODE from './mds/FABRICATION_MODE.md?raw'
 import MEAN_PROPORTIONAL_ERROR from './mds/MEAN_PROPORTIONAL_ERROR.md?raw'
 import N_COUNT_MEAN_AND_ERROR from './mds/N_COUNT_MEAN_AND_ERROR.md?raw'
 import NAVIGATE from './mds/NAVIGATE.md?raw'
@@ -32,7 +33,6 @@ import SENSITIVE_FILE from './mds/SENSITIVE_FILE.md?raw'
 import SUPPRESSED_COMBINATIONS from './mds/SUPPRESSED_COMBINATIONS.md?raw'
 import SYNTHESIS_MODE from './mds/SYNTHESIS_MODE.md?raw'
 import SYNTHESIZE from './mds/SYNTHESIZE.md?raw'
-import THRESHOLD_TYPE from './mds/THRESHOLD_TYPE.md?raw'
 import THRESHOLD_VALUE from './mds/THRESHOLD_VALUE.md?raw'
 import UNIQUE_COMBS from './mds/UNIQUE_COMBS.md?raw'
 import USE_SYNTHETIC_COUNTS from './mds/USE_SYNTHETIC_COUNTS.md?raw'
@@ -67,7 +67,7 @@ export const tooltips = {
 	nCountMeanAndError: fromMarkdownStr(N_COUNT_MEAN_AND_ERROR),
 	countMeanAndError: fromMarkdownStr(COUNT_MEAN_AND_ERROR),
 	meanProportionalError: fromMarkdownStr(MEAN_PROPORTIONAL_ERROR),
-	thresholdType: fromMarkdownStr(THRESHOLD_TYPE),
+	fabricationMode: fromMarkdownStr(FABRICATION_MODE),
 	thresholdValue: fromMarkdownStr(THRESHOLD_VALUE),
 	accuracyMode: fromMarkdownStr(ACCURACY_MODE),
 }

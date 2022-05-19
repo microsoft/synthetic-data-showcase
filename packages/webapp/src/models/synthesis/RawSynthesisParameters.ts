@@ -7,7 +7,7 @@ import type { IInputNumberByLength } from 'sds-wasm'
 import { SynthesisMode } from '~workers/types'
 
 import { AccuracyMode } from './AccuracyMode.js'
-import { NoisyCountThresholdType } from './NoisyCountThresholdType.js'
+import { FabricationMode } from './FabricationMode.js'
 import { OversamplingType } from './OversamplingType.js'
 import { UseSyntheticCounts } from './UseSyntheticCounts.js'
 
@@ -26,7 +26,7 @@ export interface IRawSynthesisParameters {
 	percentileEpsilonProportion: number
 	noiseEpsilon: number
 	noiseDelta: number
-	thresholdType: NoisyCountThresholdType
+	fabricationMode: FabricationMode
 	threshold: IInputNumberByLength
 	accuracyMode: AccuracyMode
 }
@@ -46,7 +46,7 @@ export const defaultRawSynthesisParameters: IRawSynthesisParameters = {
 	percentileEpsilonProportion: 0.1,
 	noiseEpsilon: 6.0,
 	noiseDelta: 0.0001,
-	thresholdType: NoisyCountThresholdType.Adaptive,
+	fabricationMode: FabricationMode.Balanced,
 	threshold: {},
 	accuracyMode: AccuracyMode.PrioritizeLargeCounts,
 }

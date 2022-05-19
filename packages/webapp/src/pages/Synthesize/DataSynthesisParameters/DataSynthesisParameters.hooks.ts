@@ -11,7 +11,7 @@ import type { IRawSynthesisParameters } from '~models'
 import {
 	AccuracyMode,
 	defaultThreshold,
-	NoisyCountThresholdType,
+	FabricationMode,
 	OversamplingType,
 	UseSyntheticCounts,
 } from '~models'
@@ -48,13 +48,12 @@ export function useNoisyCountThresholdChange(
 	}, [noisyCountThreshold, setRawSynthesisParams])
 }
 
-export function useNoisyCountThresholdTypeOptions(): IDropdownOption[] {
+export function useFabricationModeOptions(): IDropdownOption[] {
 	return [
-		{ key: NoisyCountThresholdType.Fixed, text: NoisyCountThresholdType.Fixed },
-		{
-			key: NoisyCountThresholdType.Adaptive,
-			text: NoisyCountThresholdType.Adaptive,
-		},
+		{ key: FabricationMode.Balanced, text: FabricationMode.Balanced },
+		{ key: FabricationMode.Minimize, text: FabricationMode.Minimize },
+		{ key: FabricationMode.Uncontrolled, text: FabricationMode.Uncontrolled },
+		{ key: FabricationMode.Custom, text: FabricationMode.Custom },
 	]
 }
 
@@ -107,25 +106,33 @@ export function useUseSyntheticCountOptions(): IDropdownOption[] {
 }
 
 export function useUpdateNoisyCountThreshold(): (
+	fabricationMode: FabricationMode,
 	reportingLength: number,
 ) => void {
 	const [, setRawSynthesisParams] = useRawSynthesisParameters()
 
 	return useCallback(
-		(reportingLength: number) => {
-			setRawSynthesisParams(prev => {
-				if (reportingLength - 1 !== Object.keys(prev.threshold).length) {
-					const newValues = {}
-					for (let i = 2; i <= reportingLength; ++i) {
-						newValues[i] = prev.threshold[i] || defaultThreshold
+		(fabricationMode: FabricationMode, reportingLength: number) => {
+			if (fabricationMode === FabricationMode.Custom) {
+				setRawSynthesisParams(prev => {
+					if (reportingLength - 1 !== Object.keys(prev.threshold).length) {
+						const newValues = {}
+						for (let i = 2; i <= reportingLength; ++i) {
+							newValues[i] = prev.threshold[i] || defaultThreshold
+						}
+						return {
+							...prev,
+							threshold: newValues,
+						}
 					}
-					return {
-						...prev,
-						threshold: newValues,
-					}
-				}
-				return prev
-			})
+					return prev
+				})
+			} else {
+				setRawSynthesisParams(prev => ({
+					...prev,
+					threshold: {},
+				}))
+			}
 		},
 		[setRawSynthesisParams],
 	)

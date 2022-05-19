@@ -77,8 +77,15 @@ export const DataSynthesisParameters: React.FC<DataSynthesisParametersProps> =
 		const onRunClicked = () => onRun(rawSynthesisParams)
 
 		useEffect(() => {
-			updateNoisyCountThreshold(rawSynthesisParams.reportingLength)
-		}, [rawSynthesisParams.reportingLength, updateNoisyCountThreshold])
+			updateNoisyCountThreshold(
+				rawSynthesisParams.fabricationMode,
+				rawSynthesisParams.reportingLength,
+			)
+		}, [
+			rawSynthesisParams.fabricationMode,
+			rawSynthesisParams.reportingLength,
+			updateNoisyCountThreshold,
+		])
 
 		return (
 			<FlexContainer gap={theme.spacing.s1} vertical wrap>

@@ -3,9 +3,15 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { useCallback, useMemo } from 'react'
+import type { IInputNumberByLength } from 'sds-wasm'
 
 import type { ICsvContent, IRawSynthesisParameters } from '~models'
-import { AccuracyMode, OversamplingType, UseSyntheticCounts } from '~models'
+import {
+	AccuracyMode,
+	FabricationMode,
+	OversamplingType,
+	UseSyntheticCounts,
+} from '~models'
 import { useSdsManagerInstance, useSensitiveContentValue } from '~states'
 import { namedSpread, spreadableHeaders, usableHeaders } from '~utils'
 import type {
@@ -39,7 +45,7 @@ export function generateContextKey(params: IRawSynthesisParameters): string {
 				params.percentileEpsilonProportion
 			}, Epsilon=${params.noiseEpsilon}, Delta=${
 				params.noiseDelta
-			}, Threshold=(${params.thresholdType}, [${Object.values(
+			}, FabricationMode=(${params.fabricationMode}, [${Object.values(
 				params.threshold,
 			).join(',')}]), AccuracyMode=${params.accuracyMode})`
 	}
@@ -67,6 +73,41 @@ function generateSigmaProportions(
 		sigmaProportions.push(p)
 	}
 	return sigmaProportions
+}
+
+function generateNoisyThresholdValuesByLen(
+	fabricationMode: FabricationMode,
+	threshold: IInputNumberByLength,
+	reportingLength: number,
+): IInputNumberByLength {
+	let ret = {}
+
+	switch (fabricationMode) {
+		case FabricationMode.Balanced:
+			if (reportingLength === 2) {
+				ret[2] = 0.1
+			} else {
+				const ratio = 0.9 / (reportingLength - 2)
+				for (let i = 2; i <= reportingLength; ++i) {
+					ret[i] = Math.min(0.1 + ratio * (i - 2), 1.0)
+				}
+			}
+			break
+		case FabricationMode.Minimize:
+			for (let i = 2; i <= reportingLength; ++i) {
+				ret[i] = 0.01
+			}
+			break
+		case FabricationMode.Uncontrolled:
+			for (let i = 2; i <= reportingLength; ++i) {
+				ret[i] = 1.0
+			}
+			break
+		case FabricationMode.Custom:
+			ret = threshold
+			break
+	}
+	return ret
 }
 
 function convertRawToSynthesisParameters(
@@ -131,8 +172,12 @@ function convertRawToSynthesisParameters(
 					),
 				},
 				noiseThreshold: {
-					type: rawParams.thresholdType,
-					valuesByLen: rawParams.threshold,
+					type: 'Adaptive',
+					valuesByLen: generateNoisyThresholdValuesByLen(
+						rawParams.fabricationMode,
+						rawParams.threshold,
+						rawParams.reportingLength,
+					),
 				},
 				useSyntheticCounts:
 					rawParams.dpAggregateSeededUseSyntheticCounts ===
