@@ -1,3 +1,3 @@
 Percentage of attribute combinations that **do not exist on the sensitive microdata**, but **were created on the reportable or synthetic data** (analysis done up to the defined **`analysis length`**).
 
-By design, this should always be zero. Both the K-Anonymity and DP methods should not fabricate combinations that do not exist on the sensitive dataset. Although, for the **`Aggregate Seeded`** and **`Differential Privacy`** methods, this guarantee only holds to combinations length up to the reporting length.
+By design, this should always be zero. Both the K-Anonymity and DP methods should not fabricate combinations that do not exist on the sensitive dataset. Although, for the **`Aggregate Seeded`** and **`Differential Privacy`** methods, this guarantee only holds to combinations length up to the aggregation limit.

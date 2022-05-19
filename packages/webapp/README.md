@@ -57,7 +57,7 @@ Allow the user to provide the wanted resolution and synthesize the data.
 
 ## Evaluate
 
-Allow the user to compare the synthetic data to the sensitive data based on a reporting length, including metrics and charts about the data.
+Allow the user to compare the synthetic data to the sensitive data based on a aggregation limit, including metrics and charts about the data.
 
 ## Navigate
 

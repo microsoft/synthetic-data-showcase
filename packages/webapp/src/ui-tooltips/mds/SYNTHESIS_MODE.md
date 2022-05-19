@@ -20,7 +20,7 @@ Also, since precise attribute counts create a privacy risk, it is advisable to c
 - synthetic records are seeded from the single attribute counts on the aggregated data
 - aggregate counts on the aggregated data drive the sampling process
 - preserves statistics for visual analytics
-- ensure 0 % fabrication up to the reporting length
+- ensure 0 % fabrication up to the aggregation limit
 - does not need access to the original microdata, only to its aggregates
 
 **`Unseeded`**:

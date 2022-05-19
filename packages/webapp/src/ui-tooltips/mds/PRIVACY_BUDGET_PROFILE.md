@@ -1,10 +1,10 @@
 Choose how to split the privacy budget between the combination lengths
 
 **`Flat`**:
-Evenly split the budget between 1-counts, 2-counts... up to the reporting length
+Evenly split the budget between 1-counts, 2-counts... up to the aggregation limit
 
 **`ProportionallyIncreasing`**:
-Spend less privacy budget for the 1-counts and more for the (reporting length)-counts, in away that:
+Spend less privacy budget for the 1-counts and more for the (aggregation limit)-counts, in away that:
 
 - 1-counts budget = `b`
 - 2-counts budget = `2*b`
@@ -12,7 +12,7 @@ Spend less privacy budget for the 1-counts and more for the (reporting length)-c
 ...
 
 **`ProportionallyDecreasing`**:
-Spend more privacy budget for the 1-counts and less for the (reporting length)-counts, in away that:
+Spend more privacy budget for the 1-counts and less for the (aggregation limit)-counts, in away that:
 
 - 1-counts budget = `b`
 - 2-counts budget = `b/2`

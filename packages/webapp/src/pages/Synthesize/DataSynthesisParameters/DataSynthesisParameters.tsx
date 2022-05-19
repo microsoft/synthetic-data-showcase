@@ -102,7 +102,7 @@ export const DataSynthesisParameters: React.FC<DataSynthesisParametersProps> =
 					</TooltipWrapper>
 					<TooltipWrapper
 						tooltip={tooltips.reportingLength}
-						label="Reporting length"
+						label="Aggregation limit"
 					>
 						<StyledSpinButton
 							labelPosition={Position.top}
@@ -112,7 +112,7 @@ export const DataSynthesisParameters: React.FC<DataSynthesisParametersProps> =
 							onChange={handleReportingLengthChange}
 						/>
 					</TooltipWrapper>
-					<TooltipWrapper tooltip={tooltips.recordLimit} label="Record Limit">
+					<TooltipWrapper tooltip={tooltips.recordLimit} label="Record limit">
 						<StyledSpinButton
 							labelPosition={Position.top}
 							min={1}
