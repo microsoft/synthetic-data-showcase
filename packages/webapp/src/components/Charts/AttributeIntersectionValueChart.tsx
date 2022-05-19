@@ -108,6 +108,7 @@ export const AttributeIntersectionValueChart: React.FC<AttributeIntersectionValu
 						duration: 800,
 					},
 					onClick: handleClick,
+					responsive: false,
 				}}
 			/>
 		)

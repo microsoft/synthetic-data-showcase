@@ -2,11 +2,9 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import type { IIconProps } from '@fluentui/react'
-import { IconButton, Separator, useTheme } from '@fluentui/react'
+import { Separator, useTheme } from '@fluentui/react'
 import { FlexContainer, FlexItem } from '@sds/components'
-import { memo, useCallback, useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { memo, useEffect, useRef, useState } from 'react'
 import type {
 	IAttributesIntersection,
 	ISelectedAttributesByColumn,
@@ -18,12 +16,9 @@ import {
 	HeaderSelector,
 	SelectedAttributes,
 } from '~components/AttributeSelector'
-import { InfoTooltip } from '~components/InfoTooltip'
 import { SynthesisDropdown } from '~components/SynthesisDropdown'
-import { Pages } from '~pages'
 import { useAllFinishedSynthesisInfo } from '~pages/Synthesize'
 import { useSdsManagerInstance, useSelectedSynthesisInfo } from '~states'
-import { tooltips } from '~ui-tooltips'
 
 import {
 	useInitiallySelectedHeaders,
@@ -34,9 +29,7 @@ import {
 	useOnToggleSelectedHeader,
 } from './hooks/index.js'
 
-const backIcon: IIconProps = { iconName: 'Back' }
-
-const viewHeight = 'calc(100vh - 265px)'
+const viewHeight = 'calc(100vh - 204px)'
 
 const chartHeight = `calc((${viewHeight} / 2) - 25px)`
 
@@ -48,7 +41,6 @@ export type SetSelectedAttributesCallback = (
 export type ClearSelectedAttributesCallback = () => Promise<void>
 
 export const DataNavigation: React.FC = memo(function DataNavigation() {
-	const navigate = useNavigate()
 	const [isLoading, setIsLoading] = useState(true)
 	const [selectedAttributesByColumn, setSelectedAttributesByColumn] =
 		useState<ISelectedAttributesByColumn>({})
@@ -76,9 +68,6 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 	const onClearSelectedAttributes = useOnClearSelectedAttributes(
 		setNewSelectedAttributesByColumn,
 	)
-	const onGoBack = useCallback(() => {
-		navigate(Pages.Synthesize.path)
-	}, [navigate])
 	const onToggleSelectedHeader = useOnToggleSelectedHeader(
 		selectedHeaders,
 		setSelectedHeaders,
@@ -109,32 +98,25 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 	}, [])
 
 	return (
-		<Container vertical>
-			<FlexItem style={{ padding: `0 ${theme.spacing.m}` }}>
-				<FlexContainer align="center" gap={theme.spacing.s1}>
-					<IconButton iconProps={backIcon} onClick={onGoBack} />
-					<h3>Compare sensitive and synthetic results</h3>
-					<InfoTooltip>{tooltips.navigate}</InfoTooltip>
-				</FlexContainer>
-
+		<MainContainer vertical gap={theme.spacing.s1}>
+			<FlexContainer vertical gap={theme.spacing.s1}>
 				<SynthesisDropdown
 					selectedSynthesis={selectedSynthesis}
 					allSynthesisInfo={allFinishedSynthesisInfo}
 					onChange={setSelectedSynthesis}
 					disabled={allFinishedSynthesisInfo.length === 0 || isLoading}
 				/>
-				<br />
 				<SelectedAttributes
 					headers={headers}
 					selectedAttributesByColumn={selectedAttributesByColumn}
 					onSetSelectedAttributes={onSetSelectedAttributes}
 					onClearSelectedAttributes={onClearSelectedAttributes}
 				/>
-			</FlexItem>
+			</FlexContainer>
 
 			{selectedSynthesis && (
 				<Container key={isLoading.toString()}>
-					<Container style={{ padding: theme.spacing.m }}>
+					<Container>
 						<HeaderSelector
 							headers={headers}
 							selectedHeaders={selectedHeaders}
@@ -164,11 +146,16 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 					</FlexItem>
 				</Container>
 			)}
-		</Container>
+		</MainContainer>
 	)
 })
 
 const Container = styled(FlexContainer)`
-	height: 100%;
 	overflow-y: auto;
+`
+
+const MainContainer = styled(Container)`
+	margin-top: ${p => p.theme.spacing.s1};
+	padding-left: ${p => p.theme.spacing.m};
+	padding-right: ${p => p.theme.spacing.m};
 `

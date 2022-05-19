@@ -68,8 +68,8 @@ export const DataSynthesisParameters: React.FC<DataSynthesisParametersProps> =
 		const handleNoiseEpsilonChange = useSpinButtonOnChange(
 			useRawSynthesisParametersPropertySetter('noiseEpsilon'),
 		)
-		const handleDeltaProportionChange = useSpinButtonOnChange(
-			useRawSynthesisParametersPropertySetter('deltaProportion'),
+		const handleDeltaFactorChange = useSpinButtonOnChange(
+			useRawSynthesisParametersPropertySetter('deltaFactor'),
 		)
 
 		const updateNoisyCountThreshold = useUpdateNoisyCountThreshold()
@@ -172,10 +172,7 @@ export const DataSynthesisParameters: React.FC<DataSynthesisParametersProps> =
 				<FlexContainer gap={theme.spacing.s1} wrap>
 					{rawSynthesisParams.synthesisMode === SynthesisMode.DP && (
 						<>
-							<TooltipWrapper
-								tooltip={tooltips.deltaProportion}
-								label="Epsilon"
-							>
+							<TooltipWrapper tooltip={tooltips.deltaFactor} label="Epsilon">
 								<StyledSpinButton
 									labelPosition={Position.top}
 									min={0}
@@ -186,15 +183,15 @@ export const DataSynthesisParameters: React.FC<DataSynthesisParametersProps> =
 							</TooltipWrapper>
 
 							<TooltipWrapper
-								tooltip={tooltips.deltaProportion}
-								label="Delta proportion"
+								tooltip={tooltips.deltaFactor}
+								label="Delta factor"
 							>
 								<StyledSpinButton
 									labelPosition={Position.top}
 									min={1}
 									step={1}
-									value={rawSynthesisParams.deltaProportion.toString()}
-									onChange={handleDeltaProportionChange}
+									value={rawSynthesisParams.deltaFactor.toString()}
+									onChange={handleDeltaFactorChange}
 								/>
 							</TooltipWrapper>
 						</>
