@@ -29,12 +29,12 @@ export function generateContextKey(params: IRawSynthesisParameters): string {
 					: `, OversamplingRatio=${params.oversamplingRatio}, OversamplingTries=${params.oversamplingTries})`)
 			)
 		case SynthesisMode.AggregateSeeded:
-			return `K-Anon ${params.synthesisMode} (RecordLimit=${params.recordLimit}, PrivacyResolution=${params.resolution}, AggregationLimit${params.reportingLength}, UseSyntheticCounts=${params.useSyntheticCounts})`
+			return `K-Anon ${params.synthesisMode} (RecordLimit=${params.recordLimit}, PrivacyResolution=${params.resolution}, AggregationLimit${params.reportingLength}, UseSyntheticCounts=${params.aggregateSeededUseSyntheticCounts})`
 		case SynthesisMode.DP:
 			return `DP (RecordLimit=${params.recordLimit}, PrivacyResolution=${
 				params.resolution
 			}, AggregationLimit${params.reportingLength}, UseSyntheticCounts=${
-				params.useSyntheticCounts
+				params.dpAggregateSeededUseSyntheticCounts
 			}, Percentile=${params.percentilePercentage}, PercentileEpsilonProp=${
 				params.percentileEpsilonProportion
 			}, Epsilon=${params.noiseEpsilon}, Delta=${
@@ -113,7 +113,8 @@ function convertRawToSynthesisParameters(
 			ret = {
 				...ret,
 				useSyntheticCounts:
-					rawParams.useSyntheticCounts === UseSyntheticCounts.Yes,
+					rawParams.aggregateSeededUseSyntheticCounts ===
+					UseSyntheticCounts.Yes,
 			} as IAggregateSeededSynthesisParameters
 			break
 		case SynthesisMode.DP:
@@ -134,7 +135,8 @@ function convertRawToSynthesisParameters(
 					valuesByLen: rawParams.threshold,
 				},
 				useSyntheticCounts:
-					rawParams.useSyntheticCounts === UseSyntheticCounts.Yes,
+					rawParams.dpAggregateSeededUseSyntheticCounts ===
+					UseSyntheticCounts.Yes,
 			} as IDpSynthesisParameters
 			break
 	}

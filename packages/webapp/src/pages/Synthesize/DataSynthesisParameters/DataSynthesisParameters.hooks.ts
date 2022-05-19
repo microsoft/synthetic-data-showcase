@@ -101,8 +101,8 @@ export function useSynthesisModeOptions(): IDropdownOption[] {
 
 export function useUseSyntheticCountOptions(): IDropdownOption[] {
 	return [
-		{ key: UseSyntheticCounts.Yes, text: UseSyntheticCounts.Yes },
 		{ key: UseSyntheticCounts.No, text: UseSyntheticCounts.No },
+		{ key: UseSyntheticCounts.Yes, text: UseSyntheticCounts.Yes },
 	]
 }
 

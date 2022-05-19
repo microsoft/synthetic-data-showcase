@@ -55,8 +55,15 @@ export const DataSynthesisAdvancedParameters: React.FC = memo(
 		const handleOversamplingTriesChange = useSpinButtonOnChange(
 			useRawSynthesisParametersPropertySetter('oversamplingTries'),
 		)
-		const handleUseSyntheticCountsChange = useDropdownOnChange(
-			useRawSynthesisParametersPropertySetter('useSyntheticCounts'),
+		const handleAggregateSeededUseSyntheticCountsChange = useDropdownOnChange(
+			useRawSynthesisParametersPropertySetter(
+				'aggregateSeededUseSyntheticCounts',
+			),
+		)
+		const handleDpAggregateSeededUseSyntheticCountsChange = useDropdownOnChange(
+			useRawSynthesisParametersPropertySetter(
+				'dpAggregateSeededUseSyntheticCounts',
+			),
 		)
 		const handlePercentilePercentageChange = useSpinButtonOnChange(
 			useRawSynthesisParametersPropertySetter('percentilePercentage'),
@@ -134,92 +141,105 @@ export const DataSynthesisAdvancedParameters: React.FC = memo(
 					</>
 				)}
 
-				{(rawSynthesisParams.synthesisMode === SynthesisMode.AggregateSeeded ||
-					rawSynthesisParams.synthesisMode === SynthesisMode.DP) && (
+				{rawSynthesisParams.synthesisMode === SynthesisMode.AggregateSeeded && (
+					<TooltipWrapper
+						tooltip={tooltips.useSyntheticCounts}
+						label="Use synthetic counts"
+					>
+						<StyledDropdown
+							selectedKey={rawSynthesisParams.aggregateSeededUseSyntheticCounts}
+							onChange={handleAggregateSeededUseSyntheticCountsChange}
+							placeholder="Select"
+							options={useSyntheticCountsOptions}
+						/>
+					</TooltipWrapper>
+				)}
+
+				{rawSynthesisParams.synthesisMode === SynthesisMode.DP && (
+					<TooltipWrapper
+						tooltip={tooltips.useSyntheticCounts}
+						label="Use synthetic counts"
+					>
+						<StyledDropdown
+							selectedKey={
+								rawSynthesisParams.dpAggregateSeededUseSyntheticCounts
+							}
+							onChange={handleDpAggregateSeededUseSyntheticCountsChange}
+							placeholder="Select"
+							options={useSyntheticCountsOptions}
+						/>
+					</TooltipWrapper>
+				)}
+
+				{rawSynthesisParams.synthesisMode === SynthesisMode.DP && (
 					<>
 						<TooltipWrapper
-							tooltip={tooltips.useSyntheticCounts}
-							label="Use synthetic counts"
+							tooltip={tooltips.percentilePercentage}
+							label="Percentile percentage"
 						>
-							<StyledDropdown
-								selectedKey={rawSynthesisParams.useSyntheticCounts}
-								onChange={handleUseSyntheticCountsChange}
-								placeholder="Select"
-								options={useSyntheticCountsOptions}
+							<StyledSpinButton
+								labelPosition={Position.top}
+								min={1}
+								max={100}
+								step={5}
+								value={rawSynthesisParams.percentilePercentage.toString()}
+								onChange={handlePercentilePercentageChange}
 							/>
 						</TooltipWrapper>
 
-						{rawSynthesisParams.synthesisMode === SynthesisMode.DP && (
-							<>
-								<TooltipWrapper
-									tooltip={tooltips.percentilePercentage}
-									label="Percentile percentage"
-								>
-									<StyledSpinButton
-										labelPosition={Position.top}
-										min={1}
-										max={100}
-										step={5}
-										value={rawSynthesisParams.percentilePercentage.toString()}
-										onChange={handlePercentilePercentageChange}
-									/>
-								</TooltipWrapper>
+						<TooltipWrapper
+							tooltip={tooltips.percentileEpsilonProportion}
+							label="Percentile epsilon prop"
+						>
+							<StyledSpinButton
+								labelPosition={Position.top}
+								min={0.01}
+								max={1.0}
+								step={0.01}
+								value={rawSynthesisParams.percentileEpsilonProportion.toString()}
+								onChange={handlePercentileEpsilonProportionChange}
+							/>
+						</TooltipWrapper>
 
-								<TooltipWrapper
-									tooltip={tooltips.percentileEpsilonProportion}
-									label="Percentile epsilon prop"
-								>
-									<StyledSpinButton
-										labelPosition={Position.top}
-										min={0.01}
-										max={1.0}
-										step={0.01}
-										value={rawSynthesisParams.percentileEpsilonProportion.toString()}
-										onChange={handlePercentileEpsilonProportionChange}
-									/>
-								</TooltipWrapper>
+						<TooltipWrapper
+							tooltip={tooltips.accuracyMode}
+							label="Accuracy mode"
+						>
+							<StyledDropdown
+								selectedKey={rawSynthesisParams.accuracyMode}
+								onChange={handleAccuracyModeChange}
+								placeholder="Select accuracy mode"
+								options={accuracyModeOptions}
+							/>
+						</TooltipWrapper>
 
-								<TooltipWrapper
-									tooltip={tooltips.accuracyMode}
-									label="Accuracy mode"
-								>
-									<StyledDropdown
-										selectedKey={rawSynthesisParams.accuracyMode}
-										onChange={handleAccuracyModeChange}
-										placeholder="Select accuracy mode"
-										options={accuracyModeOptions}
-									/>
-								</TooltipWrapper>
+						<TooltipWrapper
+							tooltip={tooltips.thresholdType}
+							label="Threshold type"
+						>
+							<StyledDropdown
+								selectedKey={rawSynthesisParams.thresholdType}
+								onChange={handleNoisyCountThresholdTypeChange}
+								placeholder="Select threshold type"
+								options={noisyCountThresholdTypeOptions}
+							/>
+						</TooltipWrapper>
 
-								<TooltipWrapper
-									tooltip={tooltips.thresholdType}
-									label="Threshold type"
-								>
-									<StyledDropdown
-										selectedKey={rawSynthesisParams.thresholdType}
-										onChange={handleNoisyCountThresholdTypeChange}
-										placeholder="Select threshold type"
-										options={noisyCountThresholdTypeOptions}
-									/>
-								</TooltipWrapper>
-
-								{Object.keys(rawSynthesisParams.threshold).map(l => (
-									<TooltipWrapper
-										key={l}
-										tooltip={tooltips.thresholdValue}
-										label={`${l}-counts threshold`}
-									>
-										<StyledSpinButton
-											labelPosition={Position.top}
-											min={0.01}
-											step={0.01}
-											value={rawSynthesisParams.threshold[l].toString()}
-											onChange={handleNoisyCountThresholdChange[l]}
-										/>
-									</TooltipWrapper>
-								))}
-							</>
-						)}
+						{Object.keys(rawSynthesisParams.threshold).map(l => (
+							<TooltipWrapper
+								key={l}
+								tooltip={tooltips.thresholdValue}
+								label={`${l}-counts threshold`}
+							>
+								<StyledSpinButton
+									labelPosition={Position.top}
+									min={0.01}
+									step={0.01}
+									value={rawSynthesisParams.threshold[l].toString()}
+									onChange={handleNoisyCountThresholdChange[l]}
+								/>
+							</TooltipWrapper>
+						))}
 					</>
 				)}
 			</FlexContainer>
