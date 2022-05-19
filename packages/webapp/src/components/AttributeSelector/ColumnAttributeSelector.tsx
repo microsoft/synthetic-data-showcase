@@ -11,7 +11,7 @@ import { useStopPropagation } from '~components/Charts/hooks'
 import type { SetSelectedAttributesCallback } from '~pages/Navigate/DataNavigation'
 import { useSdsManagerInstance } from '~states'
 
-import { useMaxCount } from './hooks'
+import { useMaxCount } from './hooks.js'
 
 export interface ColumnAttributeSelectorProps {
 	contextKey: string

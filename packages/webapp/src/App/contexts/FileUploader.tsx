@@ -3,12 +3,12 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { container } from '@essex/arquero'
+import type { FileRejection } from '@sds/components'
+import { FileDrop } from '@sds/components'
 import { fromCSV } from 'arquero'
 import type { FC } from 'react'
 import { memo, useCallback } from 'react'
-import type { FileRejection } from 'react-dropzone'
 
-import { FileDrop } from '~components/FileDrop'
 import { useGlobalErrorMessage, useTables } from '~states'
 
 export const FileUploader: FC = memo(function FileUploader({ children }) {

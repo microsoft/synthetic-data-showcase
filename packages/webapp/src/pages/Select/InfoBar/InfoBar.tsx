@@ -2,11 +2,11 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import { FlexContainer } from '@sds/components'
 import type { FC } from 'react'
 import { memo, useMemo } from 'react'
 import styled from 'styled-components'
 
-import { Flex } from '~components/Flexbox'
 import { useSensitiveContent } from '~states'
 
 export const InfoBar: FC = memo(function InfoBar() {
@@ -40,7 +40,7 @@ export const InfoBar: FC = memo(function InfoBar() {
 })
 InfoBar.displayName = 'InfoBar'
 
-const Container = styled(Flex)`
+const Container = styled(FlexContainer)`
 	padding: ${p => p.theme.spacing.m};
 	font-size: ${p => p.theme.fonts.large.fontSize};
 `

@@ -6,9 +6,9 @@ import { useCallback } from 'react'
 
 import { useResetSensitiveContent } from '~states'
 
-import { useResetAllSynthesisInfo } from './allSynthesisInfo'
-import { useSdsManagerInstance } from './sdsManagerInstance'
-import { useResetSelectedSynthesisInfo } from './selectedSynthesisInfo'
+import { useResetAllSynthesisInfo } from './allSynthesisInfo.js'
+import { useSdsManagerInstance } from './sdsManagerInstance.js'
+import { useResetSelectedSynthesisInfo } from './selectedSynthesisInfo.js'
 
 export type DataClearer = () => Promise<void>
 

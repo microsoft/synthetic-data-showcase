@@ -6,10 +6,10 @@ import type { IInputNumberByLength } from 'sds-wasm'
 
 import { SynthesisMode } from '~workers/types'
 
-import { NoisyCountThresholdType } from './NoisyCountThresholdType'
-import { OversamplingType } from './OversamplingType'
-import { PrivacyBudgetProfile } from './PrivacyBudgetProfile'
-import { UseSyntheticCounts } from './UseSyntheticCounts'
+import { NoisyCountThresholdType } from './NoisyCountThresholdType.js'
+import { OversamplingType } from './OversamplingType.js'
+import { PrivacyBudgetProfile } from './PrivacyBudgetProfile.js'
+import { UseSyntheticCounts } from './UseSyntheticCounts.js'
 
 export interface IRawSynthesisParameters {
 	recordLimit: number

@@ -12,7 +12,7 @@ import type {
 	SetSelectedAttributesCallback,
 } from '~pages/Navigate/DataNavigation'
 
-import { useSelectedAttributesByColumnEntries } from './hooks'
+import { useSelectedAttributesByColumnEntries } from './hooks.js'
 
 const deleteIcon: IIconProps = { iconName: 'Delete' }
 

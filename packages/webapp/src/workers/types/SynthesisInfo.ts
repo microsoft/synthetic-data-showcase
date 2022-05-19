@@ -4,8 +4,8 @@
  */
 import type { AtomicBuffer } from '~workers/utils'
 
-import type { ISynthesisParameters } from './SynthesisParameters'
-import type { IWasmSynthesizerWorkerStatus } from './WasmSynthesizerWorkerStatus'
+import type { ISynthesisParameters } from './SynthesisParameters.js'
+import type { IWasmSynthesizerWorkerStatus } from './WasmSynthesizerWorkerStatus.js'
 
 export interface ISynthesisInfo {
 	key: string

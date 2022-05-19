@@ -10,7 +10,7 @@ import {
 	useSelectedSynthesisInfo,
 } from '~states'
 
-import { AllSynthesisInfo } from './AllSynthesisInfo'
+import { AllSynthesisInfo } from './AllSynthesisInfo.js'
 
 export const StatefulAllSynthesisInfo: React.FC = memo(
 	function StatefulAllSynthesisInfo() {

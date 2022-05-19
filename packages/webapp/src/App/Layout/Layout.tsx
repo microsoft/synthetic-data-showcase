@@ -2,12 +2,12 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import { FlexContainer } from '@sds/components'
 import { proxy } from 'comlink'
 import React, { memo, useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import styled from 'styled-components'
 
-import { Flex } from '~components/Flexbox'
 import { Pages } from '~pages'
 import {
 	useAllSynthesisInfo,
@@ -16,12 +16,13 @@ import {
 	useSdsManagerInstance,
 	useSelectedTable,
 } from '~states'
-import type { SdsManager } from '~workers/SdsManager'
+import type { SdsManager } from '~workers/SdsManager.js'
+// eslint-disable-next-line
 import SdsManagerWorker from '~workers/SdsManager?worker'
 import { createWorkerProxy } from '~workers/utils'
 
-import { Header } from './Header'
-import { useOnTableChange } from './hooks'
+import { Header } from './Header/index.js'
+import { useOnTableChange } from './hooks/index.js'
 
 export const Layout: React.FC = memo(function Layout({ children }) {
 	const [managerInstance, setManagerInstance] = useSdsManagerInstance()
@@ -77,7 +78,7 @@ export const Layout: React.FC = memo(function Layout({ children }) {
 	)
 })
 
-const Container = styled(Flex)`
+const Container = styled(FlexContainer)`
 	height: 100%;
 `
 

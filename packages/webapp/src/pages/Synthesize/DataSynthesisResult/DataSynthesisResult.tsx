@@ -8,23 +8,23 @@
  */
 import type { IPivotItemProps } from '@fluentui/react'
 import { Pivot, PivotItem, Spinner, useTheme } from '@fluentui/react'
+import { FlexContainer } from '@sds/components'
 import { memo, useEffect, useRef, useState } from 'react'
 import type { IEvaluateResult } from 'sds-wasm'
 
 import { CsvTable } from '~components/CsvTable'
-import { Flex } from '~components/Flexbox'
 import { HumanReadableSummary } from '~components/HumanReadableSummary'
 import type { ICsvContent } from '~models'
 import { defaultCsvContent } from '~models'
 
-import { DataEvaluation } from '../DataEvaluation'
+import { DataEvaluation } from '../DataEvaluation/index.js'
 import {
 	useGetAndSetEvaluateResult,
 	useGetAndSetSyntheticCsvContent,
 	useSyntheticTableCommands,
-} from './DataSynthesisResult.hooks'
-import { StyledItem } from './DataSynthesisResult.styles'
-import type { DataSynthesisResultProps } from './DataSynthesisResult.types'
+} from './DataSynthesisResult.hooks.js'
+import { StyledItem } from './DataSynthesisResult.styles.js'
+import type { DataSynthesisResultProps } from './DataSynthesisResult.types.js'
 
 export const DataSynthesisResult: React.FC<DataSynthesisResultProps> = memo(
 	function DataSynthesisResult({ selectedSynthesis }) {
@@ -71,12 +71,12 @@ export const DataSynthesisResult: React.FC<DataSynthesisResultProps> = memo(
 		}, [])
 
 		return (
-			<Flex vertical>
+			<FlexContainer vertical>
 				{isLoading ? (
 					<Spinner />
 				) : (
 					evaluateResult && (
-						<Flex vertical gap={theme.spacing.m}>
+						<FlexContainer vertical gap={theme.spacing.m}>
 							<Pivot
 								onLinkClick={setLastHeader}
 								selectedKey={lastHeader?.props.itemKey}
@@ -114,10 +114,10 @@ export const DataSynthesisResult: React.FC<DataSynthesisResultProps> = memo(
 									</PivotItem>
 								)}
 							</Pivot>
-						</Flex>
+						</FlexContainer>
 					)
 				)}
-			</Flex>
+			</FlexContainer>
 		)
 	},
 )

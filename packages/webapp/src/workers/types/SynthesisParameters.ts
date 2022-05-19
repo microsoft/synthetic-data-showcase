@@ -10,7 +10,7 @@ import type {
 	IOversamplingParameters,
 } from 'sds-wasm'
 
-import type { SynthesisMode } from './SynthesisMode'
+import type { SynthesisMode } from './SynthesisMode.js'
 
 export interface ISynthesisParameters {
 	mode: SynthesisMode

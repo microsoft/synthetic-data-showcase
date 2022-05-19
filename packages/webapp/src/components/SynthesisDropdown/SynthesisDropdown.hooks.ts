@@ -7,7 +7,7 @@ import { useCallback, useMemo } from 'react'
 
 import type { ISynthesisInfo } from '~workers/types'
 
-import type { OnSynthesisSelectedCallback } from './SynthesisDropdown.types'
+import type { OnSynthesisSelectedCallback } from './SynthesisDropdown.types.js'
 
 export function useAllSynthesisOptions(
 	allSynthesisInfo: ISynthesisInfo[],

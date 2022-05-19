@@ -4,5 +4,5 @@
  */
 export enum UseSyntheticCounts {
 	Yes = 'Yes',
-	No = 'No'
+	No = 'No',
 }

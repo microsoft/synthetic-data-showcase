@@ -15,7 +15,7 @@ import {
 	useSensitiveTableCommands,
 	useSubjectIdErrorMessage,
 	useVisibleColumnNames,
-} from './hooks'
+} from './hooks/index.js'
 
 export const DataSelect: FC = memo(function DataSelect() {
 	const [sensitiveContent, setSensitiveContent] = useSensitiveContent()

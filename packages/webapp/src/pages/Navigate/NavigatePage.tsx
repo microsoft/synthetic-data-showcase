@@ -6,7 +6,7 @@ import type { FC } from 'react'
 import { memo } from 'react'
 import styled from 'styled-components'
 
-import { DataNavigation } from './DataNavigation'
+import { DataNavigation } from './DataNavigation/index.js'
 
 export const NavigatePage: FC = memo(function NavigatePage() {
 	return (

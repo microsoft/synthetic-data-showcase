@@ -15,10 +15,10 @@ import {
 } from '~states'
 import { IWasmSynthesizerWorkerStatus } from '~workers/types'
 
-import { DataSynthesisParameters } from '../DataSynthesisParameters'
-import { DataSynthesisResult } from '../DataSynthesisResult'
-import { useOnRunGenerateAndEvaluate } from './DataSynthesis.hooks'
-import { Container } from './DataSynthesis.styles'
+import { DataSynthesisParameters } from '../DataSynthesisParameters/index.js'
+import { DataSynthesisResult } from '../DataSynthesisResult/index.js'
+import { useOnRunGenerateAndEvaluate } from './DataSynthesis.hooks.js'
+import { Container } from './DataSynthesis.styles.js'
 
 export const DataSynthesis: React.FC = memo(function DataSynthesis() {
 	const theme = useTheme()

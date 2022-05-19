@@ -22,5 +22,16 @@ module.exports = {
 		// TODO: Re-enable
 		'jsx-a11y/click-events-have-key-events': 0,
 		'jsx-a11y/no-static-element-interactions': 0,
+		'@essex/extensions': [
+			'error', [
+				{
+					files: ['**/*.{ts,tsx,js,jsx,mts,mjs}'],
+					ignorePackages: true,
+					relativeModulePrefixes: ['.'],
+					expectedExtensions: ['.js', '.mjs', '.cjs', '.jsx', '.css'],
+					disallowedExtensions: [],
+				}
+			]
+		]
 	},
 }

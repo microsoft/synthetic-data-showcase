@@ -12,7 +12,7 @@ import { useDownloadCommand } from '~pages/hooks'
 import { useSdsManagerInstance } from '~states'
 import type { ISynthesisInfo } from '~workers/types'
 
-import { useGetSyntheticCsvContent } from '../Synthesize.hooks'
+import { useGetSyntheticCsvContent } from '../Synthesize.hooks.js'
 
 export function useGetAndSetSyntheticCsvContent(
 	setSyntheticCsvContent: (content: ICsvContent) => void,

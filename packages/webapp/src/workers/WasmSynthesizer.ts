@@ -13,6 +13,7 @@ import type {
 	ReportProgressCallback,
 } from 'sds-wasm'
 
+/* eslint-disable */
 import { BaseSdsWasmWorker } from './BaseSdsWasmWorker'
 import type {
 	IAggregateSeededSynthesisParameters,
@@ -27,6 +28,7 @@ import type {
 import { AggregateType, SynthesisMode } from './types'
 import type { AtomicBuffer } from './utils'
 import { AtomicView } from './utils'
+/* eslint-enable */
 
 export class WasmSynthesizer extends BaseSdsWasmWorker {
 	public async generateAndEvaluate(

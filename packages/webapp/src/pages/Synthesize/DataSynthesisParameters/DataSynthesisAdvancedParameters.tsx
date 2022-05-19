@@ -7,9 +7,9 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { Position, useTheme } from '@fluentui/react'
+import { FlexContainer } from '@sds/components'
 import { memo } from 'react'
 
-import { Flex } from '~components/Flexbox'
 import { TooltipWrapper } from '~components/TooltipWrapper'
 import { OversamplingType } from '~models'
 import { useDropdownOnChange, useSpinButtonOnChange } from '~pages/hooks'
@@ -26,11 +26,11 @@ import {
 	useOversamplingTypeOptions,
 	usePrivacyBudgetProfileOptions,
 	useUseSyntheticCountOptions,
-} from './DataSynthesisParameters.hooks'
+} from './DataSynthesisParameters.hooks.js'
 import {
 	StyledDropdown,
 	StyledSpinButton,
-} from './DataSynthesisParameters.styles'
+} from './DataSynthesisParameters.styles.js'
 
 export const DataSynthesisAdvancedParameters: React.FC = memo(
 	function DataSynthesisParameter() {
@@ -76,7 +76,7 @@ export const DataSynthesisAdvancedParameters: React.FC = memo(
 		)
 
 		return (
-			<Flex gap={theme.spacing.s1} vertical wrap>
+			<FlexContainer gap={theme.spacing.s1} vertical wrap>
 				<TooltipWrapper tooltip={tooltips.cacheSize} label="Cache size">
 					<StyledSpinButton
 						labelPosition={Position.top}
@@ -222,7 +222,7 @@ export const DataSynthesisAdvancedParameters: React.FC = memo(
 						)}
 					</>
 				)}
-			</Flex>
+			</FlexContainer>
 		)
 	},
 )

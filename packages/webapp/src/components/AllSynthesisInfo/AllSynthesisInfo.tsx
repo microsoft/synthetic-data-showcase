@@ -3,16 +3,15 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { DetailsList, SelectionMode } from '@fluentui/react'
+import { FlexContainer, FlexItem } from '@sds/components'
 import { memo, useEffect } from 'react'
-
-import { Flex } from '~components/Flexbox'
 
 import {
 	useSynthesisInfoColumns,
 	useSynthesisInfoSelection,
-} from './AllSynthesisInfo.hooks'
-import { Container } from './AllSynthesisInfo.styles'
-import type { AllSynthesisInfoProps } from './AllSynthesisInfo.types'
+} from './AllSynthesisInfo.hooks.js'
+import { Container } from './AllSynthesisInfo.styles.js'
+import type { AllSynthesisInfoProps } from './AllSynthesisInfo.types.js'
 
 export const AllSynthesisInfo: React.FC<AllSynthesisInfoProps> = memo(
 	function AllSynthesisInfo({
@@ -32,8 +31,8 @@ export const AllSynthesisInfo: React.FC<AllSynthesisInfoProps> = memo(
 
 		return (
 			<Container>
-				<Flex vertical>
-					<Flex.Box grow={1}>
+				<FlexContainer vertical>
+					<FlexItem grow={1}>
 						<DetailsList
 							items={allSynthesisInfo}
 							columns={columns}
@@ -42,8 +41,8 @@ export const AllSynthesisInfo: React.FC<AllSynthesisInfoProps> = memo(
 							selection={selection}
 							selectionMode={SelectionMode.single}
 						/>
-					</Flex.Box>
-				</Flex>
+					</FlexItem>
+				</FlexContainer>
 			</Container>
 		)
 	},

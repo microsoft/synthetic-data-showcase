@@ -8,8 +8,8 @@ import type { FC } from 'react'
 import { useRef } from 'react'
 import styled from 'styled-components'
 
-import type { DownloadInfo } from './DownloadInfo'
-import { useDownloadOnClick } from './hooks'
+import type { DownloadInfo } from './DownloadInfo.js'
+import { useDownloadOnClick } from './hooks.js'
 
 const downloadIcon: IIconProps = { iconName: 'Download' }
 

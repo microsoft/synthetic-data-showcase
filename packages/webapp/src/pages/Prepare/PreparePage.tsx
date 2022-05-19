@@ -6,7 +6,7 @@ import type { FC } from 'react'
 import { memo } from 'react'
 import styled from 'styled-components'
 
-import { DataInput } from './DataInput'
+import { DataInput } from './DataInput/index.js'
 
 export const PreparePage: FC = memo(function PreparePage() {
 	return (

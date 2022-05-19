@@ -15,6 +15,7 @@ import type {
 	ISelectedAttributesByColumn,
 } from 'sds-wasm'
 
+/* eslint-disable */
 import type { AggregateStatisticsGenerator } from './AggregateStatisticsGenerator'
 import AggregateStatisticsGeneratorWorker from './AggregateStatisticsGenerator?worker'
 import type {
@@ -32,6 +33,7 @@ import type { IWorkerProxy } from './utils'
 import { AtomicView, createWorkerProxy } from './utils'
 import type { WasmSynthesizer } from './WasmSynthesizer'
 import WasmSynthesizerWorker from './WasmSynthesizer?worker'
+/* eslint-enable */
 
 export class SdsManager {
 	private _name: string

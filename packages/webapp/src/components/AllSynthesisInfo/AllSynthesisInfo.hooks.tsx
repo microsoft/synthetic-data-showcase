@@ -9,11 +9,11 @@ import { useMemo } from 'react'
 import type { ISynthesisInfo } from '~workers/types'
 import { AtomicView } from '~workers/utils'
 
-import { WrappedText } from './AllSynthesisInfo.styles'
+import { WrappedText } from './AllSynthesisInfo.styles.js'
 import type {
 	DeleteSynthesisInfoCallback,
 	SelectSynthesisInfoCallback,
-} from './AllSynthesisInfo.types'
+} from './AllSynthesisInfo.types.js'
 
 export function useSynthesisInfoColumns(
 	onDelete?: DeleteSynthesisInfoCallback,

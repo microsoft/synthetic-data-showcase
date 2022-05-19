@@ -4,5 +4,5 @@
  */
 export enum OversamplingType {
 	Controlled = 'Controlled',
-	Unlimited = 'Unlimited'
+	Unlimited = 'Unlimited',
 }

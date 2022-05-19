@@ -3,6 +3,7 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { useTheme } from '@fluentui/react'
+import { FlexContainer } from '@sds/components'
 import { memo } from 'react'
 import type { IMicrodataStatistics } from 'sds-wasm'
 
@@ -12,7 +13,6 @@ import {
 	useMetricsByLenLabels,
 } from '~components/Charts/hooks'
 import { DataEvaluationInfoDownloader } from '~components/DataEvaluationInfoDownloader'
-import { Flex } from '~components/Flexbox'
 import { MetricsSummaryTable } from '~components/MetricsSummaryTable'
 import type { IMicrodataMaxStatistics } from '~models'
 import type { AggregateType } from '~workers/types'
@@ -44,7 +44,7 @@ export const DataEvaluationInfo: React.FC<DataEvaluationInfoProps> = memo(
 		const theme = useTheme()
 
 		return (
-			<Flex vertical gap={theme.spacing.s1}>
+			<FlexContainer vertical gap={theme.spacing.s1}>
 				<DataEvaluationInfoDownloader
 					contextKey={contextKey}
 					stats={stats}
@@ -140,7 +140,7 @@ export const DataEvaluationInfo: React.FC<DataEvaluationInfoProps> = memo(
 					height={chartHeight}
 					width={chartWidth}
 				/>
-			</Flex>
+			</FlexContainer>
 		)
 	},
 )

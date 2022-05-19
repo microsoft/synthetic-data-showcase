@@ -4,7 +4,7 @@
  */
 import { createContext } from 'react'
 
-import type { FileDropContextType } from './types'
+import type { FileDropContextType } from './FileDrop.types.js'
 
 // eslint-disable-next-line
 export const fileDropDefaultContext: FileDropContextType = () => {}

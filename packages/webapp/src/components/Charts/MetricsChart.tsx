@@ -78,11 +78,9 @@ export const MetricsChart: React.FC<MetricsChartProps> = memo(
 					maintainAspectRatio: false,
 					scales: scales,
 				}}
-				style={
-					{
-						margin: 'auto'
-					}
-				}
+				style={{
+					margin: 'auto',
+				}}
 			/>
 		)
 	},

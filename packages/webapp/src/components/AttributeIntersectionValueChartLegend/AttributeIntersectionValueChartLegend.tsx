@@ -7,7 +7,7 @@ import { Label, Stack, useTheme } from '@fluentui/react'
 import { memo } from 'react'
 import styled from 'styled-components'
 
-import { useActualNominalColor, useEstimatedNominalColor } from './hooks'
+import { useActualNominalColor, useEstimatedNominalColor } from './hooks.js'
 
 export const AttributeIntersectionValueChartLegend: React.FC = memo(
 	function AttributeIntersectionValueChartLegend() {

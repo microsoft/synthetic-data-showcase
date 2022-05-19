@@ -5,10 +5,10 @@
 import { PrepareDataFull } from '@data-wrangling-components/react'
 import type { IStackStyles, IStackTokens } from '@fluentui/react'
 import { getTheme, Icon, Stack } from '@fluentui/react'
+import { useFileDropOpen } from '@sds/components'
 import { memo } from 'react'
 import styled from 'styled-components'
 
-import { useFileDropOpen } from '~components/FileDrop'
 import { InfoTooltip } from '~components/InfoTooltip'
 import { useSelectedTable, useSteps, useTables } from '~states'
 import { tooltips } from '~ui-tooltips'
