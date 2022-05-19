@@ -17,8 +17,8 @@
 	},
 	"prettier": "@essex/prettier-config",
 	"devDependencies": {
-		"@essex/eslint-config": "^20.3.4",
-		"@essex/eslint-plugin": "^20.3.5",
+		"@essex/eslint-config": "^20.3.5",
+		"@essex/eslint-plugin": "^20.3.6",
 		"@essex/jest-config": "^21.0.10",
 		"@essex/prettier-config": "^18.0.2",
 		"@essex/scripts": "^22.0.1",
