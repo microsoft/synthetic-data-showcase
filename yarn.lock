@@ -11748,7 +11748,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^2.9.0, vite@npm:^2.9.8":
+"vite@npm:^2.9.0":
   version: 2.9.8
   resolution: "vite@npm:2.9.8"
   dependencies:
@@ -11774,6 +11774,35 @@ __metadata:
   bin:
     vite: bin/vite.js
   checksum: 7de3450bec4caa06f4540d1d252563ef0b7e1bdd167d04abf03db72cfd8c9a93879e18861283bc7d075e1d094b78b71770ca36f9b965bdf28c66665eafdc29dc
+  languageName: node
+  linkType: hard
+
+"vite@npm:^2.9.9":
+  version: 2.9.9
+  resolution: "vite@npm:2.9.9"
+  dependencies:
+    esbuild: ^0.14.27
+    fsevents: ~2.3.2
+    postcss: ^8.4.13
+    resolve: ^1.22.0
+    rollup: ^2.59.0
+  peerDependencies:
+    less: "*"
+    sass: "*"
+    stylus: "*"
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  peerDependenciesMeta:
+    less:
+      optional: true
+    sass:
+      optional: true
+    stylus:
+      optional: true
+  bin:
+    vite: bin/vite.js
+  checksum: 9292b8ba510a393d0c61c407ebfb4eaa818b2d8d106b3476cdc94cb57a0c59348a535936d698db04b35910a1cfdb16aeaf872f0f995b54cf6d7ed31bc7886deb
   languageName: node
   linkType: hard
 
@@ -11858,7 +11887,7 @@ __metadata:
     ts-node: ^10.7.0
     typescript: ^4.6.4
     uuid: ^8.3.2
-    vite: ^2.9.8
+    vite: ^2.9.9
     vite-tsconfig-paths: ^3.4.1
     yup: ^0.32.11
   languageName: unknown
