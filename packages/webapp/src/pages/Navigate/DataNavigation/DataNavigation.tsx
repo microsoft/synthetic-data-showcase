@@ -31,7 +31,7 @@ import {
 
 const viewHeight = 'calc(100vh - 204px)'
 
-const chartHeight = `calc((${viewHeight} / 2) - 40px)`
+const chartHeight = `calc((${viewHeight} / 2) - 25px)`
 
 export type SetSelectedAttributesCallback = (
 	headerIndex: number,
