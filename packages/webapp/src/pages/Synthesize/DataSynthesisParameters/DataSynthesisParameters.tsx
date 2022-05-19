@@ -83,7 +83,10 @@ export const DataSynthesisParameters: React.FC<DataSynthesisParametersProps> =
 		return (
 			<Flex gap={theme.spacing.s1} vertical wrap>
 				<Flex gap={theme.spacing.s1} wrap>
-					<TooltipWrapper tooltip={tooltips.synthesisMode} label="Mode">
+					<TooltipWrapper
+						tooltip={tooltips.synthesisMode}
+						label="Synthesis mode"
+					>
 						<StyledDropdown
 							selectedKey={rawSynthesisParams.synthesisMode}
 							onChange={handleSynthesisModeChange}
@@ -91,7 +94,10 @@ export const DataSynthesisParameters: React.FC<DataSynthesisParametersProps> =
 							options={synthesisModeOptions}
 						/>
 					</TooltipWrapper>
-					<TooltipWrapper tooltip={tooltips.resolution} label="Privacy resolution">
+					<TooltipWrapper
+						tooltip={tooltips.resolution}
+						label="Privacy resolution"
+					>
 						<StyledSpinButton
 							labelPosition={Position.top}
 							min={1}
