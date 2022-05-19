@@ -6,11 +6,11 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { Spinner, useTheme } from '@fluentui/react'
+import type { IPivotItemProps } from '@fluentui/react'
+import { Pivot, PivotItem, Spinner, useTheme } from '@fluentui/react'
 import { memo, useEffect, useRef, useState } from 'react'
 import type { IEvaluateResult } from 'sds-wasm'
 
-import { CollapsablePanel } from '~components/CollapsablePanel'
 import { CsvTable } from '~components/CsvTable'
 import { Flex } from '~components/Flexbox'
 import { HumanReadableSummary } from '~components/HumanReadableSummary'
@@ -23,6 +23,7 @@ import {
 	useGetAndSetSyntheticCsvContent,
 	useSyntheticTableCommands,
 } from './DataSynthesisResult.hooks'
+import { StyledItem } from './DataSynthesisResult.styles'
 import type { DataSynthesisResultProps } from './DataSynthesisResult.types'
 
 export const DataSynthesisResult: React.FC<DataSynthesisResultProps> = memo(
@@ -34,6 +35,9 @@ export const DataSynthesisResult: React.FC<DataSynthesisResultProps> = memo(
 			useState<IEvaluateResult | null>(null)
 		const [syntheticCsvContent, setSyntheticCsvContent] =
 			useState<ICsvContent | null>(null)
+		const [lastHeader, setLastHeader] = useState<
+			{ props: IPivotItemProps } | undefined
+		>(undefined)
 		const tableCommands = useSyntheticTableCommands(
 			syntheticCsvContent || defaultCsvContent,
 		)
@@ -73,28 +77,43 @@ export const DataSynthesisResult: React.FC<DataSynthesisResultProps> = memo(
 				) : (
 					evaluateResult && (
 						<Flex vertical gap={theme.spacing.m}>
-							<CollapsablePanel
-								header={<h3>Evaluation summary</h3>}
-								defaultCollapsed
+							<Pivot
+								onLinkClick={setLastHeader}
+								selectedKey={lastHeader?.props.itemKey}
 							>
-								<HumanReadableSummary
-									evaluateResult={evaluateResult}
-									synthesisInfo={selectedSynthesis}
-								/>
-							</CollapsablePanel>
-
-							<CollapsablePanel header={<h3>Advanced evaluation</h3>}>
-								<DataEvaluation selectedSynthesis={selectedSynthesis} />
-							</CollapsablePanel>
-
-							{syntheticCsvContent && (
-								<CollapsablePanel header={<h3>Synthetic data</h3>}>
-									<CsvTable
-										content={syntheticCsvContent}
-										commands={tableCommands}
-									/>
-								</CollapsablePanel>
-							)}
+								<PivotItem
+									headerText="Evaluation summary"
+									itemKey="Evaluation summary"
+								>
+									<StyledItem>
+										<HumanReadableSummary
+											evaluateResult={evaluateResult}
+											synthesisInfo={selectedSynthesis}
+										/>
+									</StyledItem>
+								</PivotItem>
+								<PivotItem
+									headerText="Advanced evaluation"
+									itemKey="Advanced evaluation"
+								>
+									<StyledItem>
+										<DataEvaluation selectedSynthesis={selectedSynthesis} />
+									</StyledItem>
+								</PivotItem>
+								{syntheticCsvContent && (
+									<PivotItem
+										headerText="Synthetic data"
+										itemKey="Synthetic data"
+									>
+										<StyledItem>
+											<CsvTable
+												content={syntheticCsvContent}
+												commands={tableCommands}
+											/>
+										</StyledItem>
+									</PivotItem>
+								)}
+							</Pivot>
 						</Flex>
 					)
 				)}

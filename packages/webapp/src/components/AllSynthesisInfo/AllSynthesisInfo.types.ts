@@ -5,7 +5,7 @@
 import type { ISynthesisInfo } from '~workers/types'
 
 export type SelectSynthesisInfoCallback = (
-	newSelection: ISynthesisInfo | null,
+	newSelection: ISynthesisInfo,
 ) => void | Promise<void>
 
 export type DeleteSynthesisInfoCallback = (

@@ -4,7 +4,7 @@
  */
 import { useCallback, useMemo } from 'react'
 
-import type { ICsvContent } from '~models'
+import type { ICsvContent, IRawSynthesisParameters } from '~models'
 import {
 	OversamplingType,
 	PrivacyBudgetProfile,
@@ -20,26 +20,24 @@ import type {
 } from '~workers/types'
 import { SynthesisMode } from '~workers/types'
 
-import type { IRawSynthesisParameters } from '../Synthesize.types'
-
 export function generateContextKey(params: IRawSynthesisParameters): string {
 	switch (params.synthesisMode) {
 		case SynthesisMode.Unseeded:
 		case SynthesisMode.RowSeeded:
-			return `K-Anon ${params.synthesisMode} (RecordLimit=${params.recordLimit}, Resolution=${params.resolution}, ReportingLength=${params.reportingLength})`
+			return `K-Anon ${params.synthesisMode} (RecordLimit=${params.recordLimit}, PrivacyResolution=${params.resolution}, AggregationLimit${params.reportingLength})`
 		case SynthesisMode.ValueSeeded:
 			return (
-				`K-Anon ${params.synthesisMode} (RecordLimit=${params.recordLimit}, Resolution=${params.resolution}, ReportingLength=${params.reportingLength}, Oversampling=${params.oversamplingType}` +
+				`K-Anon ${params.synthesisMode} (RecordLimit=${params.recordLimit}, PrivacyResolution=${params.resolution}, AggregationLimit${params.reportingLength}, Oversampling=${params.oversamplingType}` +
 				(params.oversamplingType === OversamplingType.Unlimited
 					? ')'
 					: `, OversamplingRatio=${params.oversamplingRatio}, OversamplingTries=${params.oversamplingTries})`)
 			)
 		case SynthesisMode.AggregateSeeded:
-			return `K-Anon ${params.synthesisMode} (RecordLimit=${params.recordLimit}, Resolution=${params.resolution}, ReportingLength=${params.reportingLength}, UseSyntheticCounts=${params.useSyntheticCounts})`
+			return `K-Anon ${params.synthesisMode} (RecordLimit=${params.recordLimit}, PrivacyResolution=${params.resolution}, AggregationLimit${params.reportingLength}, UseSyntheticCounts=${params.useSyntheticCounts})`
 		case SynthesisMode.DP:
-			return `DP (RecordLimit=${params.recordLimit}, Resolution=${
+			return `DP (RecordLimit=${params.recordLimit}, PrivacyResolution=${
 				params.resolution
-			}, ReportingLength=${params.reportingLength}, UseSyntheticCounts=${
+			}, AggregationLimit${params.reportingLength}, UseSyntheticCounts=${
 				params.useSyntheticCounts
 			}, Percentile=${params.percentilePercentage}, PercentileEpsilonProp=${
 				params.percentileEpsilonProportion

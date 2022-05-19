@@ -5,4 +5,5 @@
 export * from './NoisyCountThresholdType'
 export * from './OversamplingType'
 export * from './PrivacyBudgetProfile'
+export * from './RawSynthesisParameters'
 export * from './UseSyntheticCounts'

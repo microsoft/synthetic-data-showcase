@@ -10,12 +10,7 @@ import type { IAggregateStatistics } from 'sds-wasm'
 import styled from 'styled-components'
 
 import { Flex } from '~components/Flexbox'
-import {
-	useRecordLimit,
-	useReportingLength,
-	useResolution,
-	useSensitiveContent,
-} from '~states'
+import { useRawSynthesisParameters, useSensitiveContent } from '~states'
 import type { ICancelablePromise } from '~workers/types'
 
 import { useGetAggregateStatistics } from './hooks'
@@ -31,17 +26,15 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 	)
 	const [queuedExecution, setQueuedExecution] = useState<IQueueExecution>({})
 	const [isLoading, setIsLoading] = useState(false)
-	const [recordLimit] = useRecordLimit()
-	const [reportingLength] = useReportingLength()
-	const [resolution] = useResolution()
+	const [rawSynthesisParams] = useRawSynthesisParameters()
 	const getAggregateStatistics = useGetAggregateStatistics()
 
 	useEffect(() => {
 		getAggregateStatistics(
 			sensitiveContent,
-			recordLimit,
-			reportingLength,
-			resolution,
+			rawSynthesisParams.recordLimit,
+			rawSynthesisParams.reportingLength,
+			rawSynthesisParams.resolution,
 		).then(aggregateStatisticsGetter => {
 			// cancel any queued execution to clear the way
 			// for the new one
@@ -52,7 +45,7 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 				}
 			})
 		})
-	}, [getAggregateStatistics, sensitiveContent, recordLimit, reportingLength, resolution, setQueuedExecution])
+	}, [getAggregateStatistics, sensitiveContent, rawSynthesisParams.recordLimit, rawSynthesisParams.reportingLength, rawSynthesisParams.resolution, setQueuedExecution])
 
 	useEffect(() => {
 		async function awaitForStats() {

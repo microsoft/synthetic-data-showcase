@@ -115,7 +115,7 @@ export function useSyntheticDataUtilityText(
 					synthesisInfo.parameters.reportingLength
 				} attributes, ${retainedCombinationsPercentage.toFixed(
 					2,
-				)}% of the combinations in the sensitive dataset are retained in the synthetic one. All released combinations were present in the sensitive dataset and the average error of counts derived from this synthetic data is ${evaluateResult.syntheticDataStats.combinationsCountMeanAbsError.toFixed(
+				)}% of the combinations in the sensitive dataset are retained in the synthetic dataset. All released combinations were present in the sensitive dataset and the average error of counts derived from this synthetic data is ${evaluateResult.syntheticDataStats.combinationsCountMeanAbsError.toFixed(
 					2,
 				)}.`
 
@@ -124,7 +124,7 @@ export function useSyntheticDataUtilityText(
 					synthesisInfo.parameters.reportingLength
 				} attributes, ${retainedCombinationsPercentage.toFixed(
 					2,
-				)}% of the combinations in the sensitive dataset are retained in the synthetic one. The average error of counts derived from this synthetic data is ${evaluateResult.syntheticDataStats.combinationsCountMeanAbsError.toFixed(
+				)}% of the combinations in the sensitive dataset are retained in the synthetic dataset. The average error of counts derived from this synthetic data is ${evaluateResult.syntheticDataStats.combinationsCountMeanAbsError.toFixed(
 					2,
 				)}.`
 		}
