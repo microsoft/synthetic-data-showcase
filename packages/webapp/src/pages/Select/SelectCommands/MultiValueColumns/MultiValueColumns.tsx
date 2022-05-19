@@ -242,12 +242,8 @@ const ListContainer = styled(FlexContainer)`
 `
 
 const StyledListItem = styled(FlexContainer)`
-	& .checkbox-209 {
-		background: ${p => p.theme.palette.white};
-	}
-	&.odd {
-		background: ${p => p.theme.palette.themeLighter};
-	}
+	padding: ${p => p.theme.spacing.s2} 0;
+	border-bottom: 1px solid ${p => p.theme.palette.neutralLight};
 `
 
 const StyledListItemInputArea = styled.div`

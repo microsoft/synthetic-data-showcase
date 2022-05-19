@@ -3,6 +3,7 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 export * from './allSynthesisInfo.js'
+export * from './charts.js'
 export * from './files.js'
 export * from './hooks.js'
 export * from './isProcessing.js'
