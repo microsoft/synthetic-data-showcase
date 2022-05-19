@@ -133,7 +133,7 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 			</FlexItem>
 
 			{selectedSynthesis && (
-				<Container>
+				<Container key={isLoading.toString()}>
 					<Container style={{ padding: theme.spacing.m }}>
 						<HeaderSelector
 							headers={headers}
