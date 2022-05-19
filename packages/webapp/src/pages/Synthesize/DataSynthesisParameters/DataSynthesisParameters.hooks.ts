@@ -9,10 +9,10 @@ import type { SetterOrUpdater } from 'recoil'
 
 import type { IRawSynthesisParameters } from '~models'
 import {
+	AccuracyMode,
 	defaultThreshold,
 	NoisyCountThresholdType,
 	OversamplingType,
-	PrivacyBudgetProfile,
 	UseSyntheticCounts,
 } from '~models'
 import { useRawSynthesisParameters } from '~states'
@@ -65,17 +65,17 @@ export function useOversamplingTypeOptions(): IDropdownOption[] {
 	]
 }
 
-export function usePrivacyBudgetProfileOptions(): IDropdownOption[] {
+export function useAccuracyModeOptions(): IDropdownOption[] {
 	return [
-		{ key: PrivacyBudgetProfile.Flat, text: PrivacyBudgetProfile.Flat },
 		{
-			key: PrivacyBudgetProfile.ProportionallyIncreasing,
-			text: PrivacyBudgetProfile.ProportionallyIncreasing,
+			key: AccuracyMode.PrioritizeLargeCounts,
+			text: AccuracyMode.PrioritizeLargeCounts,
 		},
 		{
-			key: PrivacyBudgetProfile.ProportionallyDecreasing,
-			text: PrivacyBudgetProfile.ProportionallyDecreasing,
+			key: AccuracyMode.PrioritizeSmallCounts,
+			text: AccuracyMode.PrioritizeSmallCounts,
 		},
+		{ key: AccuracyMode.Balanced, text: AccuracyMode.Balanced },
 	]
 }
 

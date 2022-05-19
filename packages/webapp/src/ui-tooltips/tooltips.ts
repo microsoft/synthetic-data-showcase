@@ -5,6 +5,7 @@
 import { fromMarkdownStr } from '~components/Markdown'
 
 /* eslint-disable */
+import ACCURACY_MODE from './mds/ACCURACY_MODE.md?raw'
 import ANALYSIS_LENGTH from './mds/ANALYSIS_LENGTH.md?raw'
 import CACHE_SIZE from './mds/CACHE_SIZE.md?raw'
 import COUNT_MEAN_AND_ERROR from './mds/COUNT_MEAN_AND_ERROR.md?raw'
@@ -20,7 +21,6 @@ import OVERSAMPLING_RATIO from './mds/OVERSAMPLING_RATIO.md?raw'
 import OVERSAMPLING_TRIES from './mds/OVERSAMPLING_TRIES.md?raw'
 import PERCENTILE_EPSILON_PROPORTION from './mds/PERCENTILE_EPSILON_PROPORTION.md?raw'
 import PERCENTILE_PERCENTAGE from './mds/PERCENTILE_PERCENTAGE.md?raw'
-import PRIVACY_BUDGET_PROFILE from './mds/PRIVACY_BUDGET_PROFILE.md?raw'
 import RARE_COMBS from './mds/RARE_COMBS.md?raw'
 import RECORD_EXPANSION from './mds/RECORD_EXPANSION.md?raw'
 import RECORD_LIMIT from './mds/RECORD_LIMIT.md?raw'
@@ -69,5 +69,5 @@ export const tooltips = {
 	meanProportionalError: fromMarkdownStr(MEAN_PROPORTIONAL_ERROR),
 	thresholdType: fromMarkdownStr(THRESHOLD_TYPE),
 	thresholdValue: fromMarkdownStr(THRESHOLD_VALUE),
-	privacyBudgetProfile: fromMarkdownStr(PRIVACY_BUDGET_PROFILE),
+	accuracyMode: fromMarkdownStr(ACCURACY_MODE),
 }

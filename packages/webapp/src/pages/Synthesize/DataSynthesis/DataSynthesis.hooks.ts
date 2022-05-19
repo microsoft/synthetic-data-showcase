@@ -5,11 +5,7 @@
 import { useCallback, useMemo } from 'react'
 
 import type { ICsvContent, IRawSynthesisParameters } from '~models'
-import {
-	OversamplingType,
-	PrivacyBudgetProfile,
-	UseSyntheticCounts,
-} from '~models'
+import { AccuracyMode, OversamplingType, UseSyntheticCounts } from '~models'
 import { useSdsManagerInstance, useSensitiveContentValue } from '~states'
 import { namedSpread, spreadableHeaders, usableHeaders } from '~utils'
 import type {
@@ -45,26 +41,26 @@ export function generateContextKey(params: IRawSynthesisParameters): string {
 				params.noiseDelta
 			}, Threshold=(${params.thresholdType}, [${Object.values(
 				params.threshold,
-			).join(',')}]), BudgetProfile=(${params.privacyBudgetProfile}))`
+			).join(',')}]), AccuracyMode=${params.accuracyMode})`
 	}
 }
 
 function generateSigmaProportions(
 	reportingLength: number,
-	privacyBudgetProfile: PrivacyBudgetProfile,
+	accuracyMode: AccuracyMode,
 ): number[] {
 	const sigmaProportions: number[] = []
 
 	for (let i = 0; i < reportingLength; i++) {
 		let p
-		switch (privacyBudgetProfile) {
-			case PrivacyBudgetProfile.Flat:
+		switch (accuracyMode) {
+			case AccuracyMode.Balanced:
 				p = 1.0
 				break
-			case PrivacyBudgetProfile.ProportionallyIncreasing:
+			case AccuracyMode.PrioritizeLargeCounts:
 				p = 1.0 / (i + 1)
 				break
-			case PrivacyBudgetProfile.ProportionallyDecreasing:
+			case AccuracyMode.PrioritizeSmallCounts:
 				p = 1.0 / (reportingLength - i)
 				break
 		}
@@ -130,7 +126,7 @@ function convertRawToSynthesisParameters(
 					percentileEpsilonProportion: rawParams.percentileEpsilonProportion,
 					sigmaProportions: generateSigmaProportions(
 						rawParams.reportingLength,
-						rawParams.privacyBudgetProfile,
+						rawParams.accuracyMode,
 					),
 				},
 				noiseThreshold: {

@@ -21,10 +21,10 @@ import { tooltips } from '~ui-tooltips'
 import { SynthesisMode } from '~workers/types'
 
 import {
+	useAccuracyModeOptions,
 	useNoisyCountThresholdChange,
 	useNoisyCountThresholdTypeOptions,
 	useOversamplingTypeOptions,
-	usePrivacyBudgetProfileOptions,
 	useUseSyntheticCountOptions,
 } from './DataSynthesisParameters.hooks.js'
 import {
@@ -41,7 +41,7 @@ export const DataSynthesisAdvancedParameters: React.FC = memo(
 		const oversamplingTypeOptions = useOversamplingTypeOptions()
 		const useSyntheticCountsOptions = useUseSyntheticCountOptions()
 		const noisyCountThresholdTypeOptions = useNoisyCountThresholdTypeOptions()
-		const privacyBudgetProfileOptions = usePrivacyBudgetProfileOptions()
+		const accuracyModeOptions = useAccuracyModeOptions()
 
 		const handleCacheSizeChange = useSpinButtonOnChange(
 			useRawSynthesisParametersPropertySetter('cacheSize'),
@@ -71,8 +71,8 @@ export const DataSynthesisAdvancedParameters: React.FC = memo(
 			rawSynthesisParams.threshold,
 			setRawSynthesisParams,
 		)
-		const handlePrivacyBudgetProfileChange = useDropdownOnChange(
-			useRawSynthesisParametersPropertySetter('privacyBudgetProfile'),
+		const handleAccuracyModeChange = useDropdownOnChange(
+			useRawSynthesisParametersPropertySetter('accuracyMode'),
 		)
 
 		return (
@@ -180,14 +180,14 @@ export const DataSynthesisAdvancedParameters: React.FC = memo(
 								</TooltipWrapper>
 
 								<TooltipWrapper
-									tooltip={tooltips.privacyBudgetProfile}
-									label="Privacy budget profile"
+									tooltip={tooltips.accuracyMode}
+									label="Accuracy mode"
 								>
 									<StyledDropdown
-										selectedKey={rawSynthesisParams.privacyBudgetProfile}
-										onChange={handlePrivacyBudgetProfileChange}
-										placeholder="Select budget type"
-										options={privacyBudgetProfileOptions}
+										selectedKey={rawSynthesisParams.accuracyMode}
+										onChange={handleAccuracyModeChange}
+										placeholder="Select accuracy mode"
+										options={accuracyModeOptions}
 									/>
 								</TooltipWrapper>
 
