@@ -2,14 +2,8 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import type { IIconProps, IStackStyles, IStackTokens } from '@fluentui/react'
-import {
-	IconButton,
-	Separator,
-	Spinner,
-	Stack,
-	useTheme,
-} from '@fluentui/react'
+import type { IIconProps } from '@fluentui/react'
+import { IconButton, Separator, useTheme } from '@fluentui/react'
 import { FlexContainer, FlexItem } from '@sds/components'
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -139,41 +133,35 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 			</FlexItem>
 
 			{selectedSynthesis && (
-				<Container>
-					{isLoading ? (
-						<Spinner />
-					) : (
-						<>
-							<Container style={{ padding: theme.spacing.m }}>
-								<HeaderSelector
-									headers={headers}
-									selectedHeaders={selectedHeaders}
-									onToggle={onToggleSelectedHeader}
-								/>
-							</Container>
-							<FlexItem grow={0} shrink={0}>
-								<Separator
-									vertical={true}
-									styles={{ root: { height: viewHeight } }}
-								/>
-							</FlexItem>
+				<Container key={isLoading.toString()}>
+					<Container style={{ padding: theme.spacing.m }}>
+						<HeaderSelector
+							headers={headers}
+							selectedHeaders={selectedHeaders}
+							onToggle={onToggleSelectedHeader}
+						/>
+					</Container>
+					<FlexItem grow={0} shrink={0}>
+						<Separator
+							vertical={true}
+							styles={{ root: { height: viewHeight } }}
+						/>
+					</FlexItem>
 
-							<FlexItem grow={1} shrink={0}>
-								<ColumnAttributeSelectorGrid
-									contextKey={selectedSynthesis?.key}
-									viewHeight={viewHeight}
-									headers={headers}
-									selectedHeaders={selectedHeaders}
-									chartHeight={chartHeight}
-									chartWidth={400}
-									chartBarHeight={40}
-									chartMinHeight={150}
-									selectedAttributesByColumn={selectedAttributesByColumn}
-									onSetSelectedAttributes={onSetSelectedAttributes}
-								/>
-							</FlexItem>
-						</>
-					)}
+					<FlexItem grow={1} shrink={0}>
+						<ColumnAttributeSelectorGrid
+							contextKey={selectedSynthesis?.key}
+							viewHeight={viewHeight}
+							headers={headers}
+							selectedHeaders={selectedHeaders}
+							chartHeight={chartHeight}
+							chartWidth={400}
+							chartBarHeight={40}
+							chartMinHeight={150}
+							selectedAttributesByColumn={selectedAttributesByColumn}
+							onSetSelectedAttributes={onSetSelectedAttributes}
+						/>
+					</FlexItem>
 				</Container>
 			)}
 		</Container>
