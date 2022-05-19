@@ -8,11 +8,11 @@
  */
 import type { IPivotItemProps } from '@fluentui/react'
 import { Pivot, PivotItem, Spinner, useTheme } from '@fluentui/react'
+import { FlexContainer } from '@sds/components'
 import { memo, useEffect, useRef, useState } from 'react'
 import type { IEvaluateResult } from 'sds-wasm'
 
 import { CsvTable } from '~components/CsvTable'
-import { Flex } from '~components/Flexbox'
 import { HumanReadableSummary } from '~components/HumanReadableSummary'
 import type { ICsvContent } from '~models'
 import { defaultCsvContent } from '~models'
@@ -71,12 +71,12 @@ export const DataSynthesisResult: React.FC<DataSynthesisResultProps> = memo(
 		}, [])
 
 		return (
-			<Flex vertical>
+			<FlexContainer vertical>
 				{isLoading ? (
 					<Spinner />
 				) : (
 					evaluateResult && (
-						<Flex vertical gap={theme.spacing.m}>
+						<FlexContainer vertical gap={theme.spacing.m}>
 							<Pivot
 								onLinkClick={setLastHeader}
 								selectedKey={lastHeader?.props.itemKey}
@@ -114,10 +114,10 @@ export const DataSynthesisResult: React.FC<DataSynthesisResultProps> = memo(
 									</PivotItem>
 								)}
 							</Pivot>
-						</Flex>
+						</FlexContainer>
 					)
 				)}
-			</Flex>
+			</FlexContainer>
 		)
 	},
 )

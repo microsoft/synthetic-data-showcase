@@ -4,11 +4,11 @@
  */
 import { Callout, Checkbox, DirectionalHint, Label } from '@fluentui/react'
 import { useBoolean, useId } from '@fluentui/react-hooks'
+import { FlexContainer } from '@sds/components'
 import type { ChangeEvent, FC } from 'react'
 import { memo, useCallback, useMemo, useState } from 'react'
 import styled from 'styled-components'
 
-import { Flex } from '~components/Flexbox'
 import { useSensitiveContent } from '~states'
 
 export const MultiValueColumns: FC = memo(function MultiValueColumns() {
@@ -144,7 +144,7 @@ export const MultiValueColumns: FC = memo(function MultiValueColumns() {
 				>
 					<Container vertical>
 						<GroupActions vertical>
-							<Flex justify="space-around" align="center">
+							<FlexContainer justify="space-around" align="center">
 								<GroupAction onClick={() => setAllOptions(true)}>
 									All
 								</GroupAction>
@@ -152,7 +152,7 @@ export const MultiValueColumns: FC = memo(function MultiValueColumns() {
 								<GroupAction onClick={() => setAllOptions(false)}>
 									None
 								</GroupAction>
-							</Flex>
+							</FlexContainer>
 							<DefaultDelimiterArea align="center" justify="space-between">
 								<Label htmlFor="default-delimiter">Default Delimiter: </Label>
 								<StyledInputWrapper>
@@ -193,7 +193,7 @@ const Action = styled.span`
 	}
 `
 
-const Container = styled(Flex)`
+const Container = styled(FlexContainer)`
 	min-width: 250px;
 	max-height: 400px;
 	border: 1px solid ${p => p.theme.palette.neutralLight};
@@ -204,7 +204,7 @@ const Container = styled(Flex)`
 	}
 `
 
-const GroupActions = styled(Flex)`
+const GroupActions = styled(FlexContainer)`
 	padding: ${p => p.theme.spacing.s1};
 	border-bottom: 1px solid ${p => p.theme.palette.neutralLight};
 	box-shadow: ${p => p.theme.effects.elevation4};
@@ -224,7 +224,7 @@ const Divider = styled.span`
 	color: ${p => p.theme.palette.neutralTertiary};
 `
 
-const ListContainer = styled(Flex)`
+const ListContainer = styled(FlexContainer)`
 	overflow-y: auto;
 	padding: ${p => p.theme.spacing.s1};
 	direction: rtl;
@@ -241,7 +241,7 @@ const ListContainer = styled(Flex)`
 	}
 `
 
-const StyledListItem = styled(Flex)`
+const StyledListItem = styled(FlexContainer)`
 	& .checkbox-209 {
 		background: ${p => p.theme.palette.white};
 	}
@@ -262,7 +262,7 @@ const StyledCheckbox = styled(Checkbox)`
 	padding: ${p => p.theme.spacing.s2};
 `
 
-const DefaultDelimiterArea = styled(Flex)`
+const DefaultDelimiterArea = styled(FlexContainer)`
 	margin-top: ${p => p.theme.spacing.m};
 
 	& label {

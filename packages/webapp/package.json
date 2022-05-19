@@ -24,6 +24,7 @@
 		"@fluentui/react": "^8.62.1",
 		"@fluentui/react-hooks": "^8.5.3",
 		"@fluentui/utilities": "^8.8.1",
+		"@sds/components": "workspace:^",
 		"@thematic/core": "^2.0.6",
 		"@thematic/d3": "^2.0.6",
 		"@thematic/fluent": "^3.0.6",

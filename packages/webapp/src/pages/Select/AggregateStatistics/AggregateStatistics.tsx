@@ -3,13 +3,13 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { Spinner } from '@fluentui/react'
+import { FlexContainer } from '@sds/components'
 import type { Remote } from 'comlink'
 import type { FC } from 'react'
 import { memo, useEffect, useState } from 'react'
 import type { IAggregateStatistics } from 'sds-wasm'
 import styled from 'styled-components'
 
-import { Flex } from '~components/Flexbox'
 import { useRawSynthesisParameters, useSensitiveContent } from '~states'
 import type { ICancelablePromise } from '~workers/types'
 
@@ -82,7 +82,7 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 })
 AggregateStatistics.displayName = 'TablePreview'
 
-const Container = styled(Flex)`
+const Container = styled(FlexContainer)`
 	padding: ${p => p.theme.spacing.m};
 	font-size: ${p => p.theme.fonts.large.fontSize};
 `

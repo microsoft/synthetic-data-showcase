@@ -4,12 +4,12 @@
  */
 import type { IIconProps } from '@fluentui/react'
 import { PrimaryButton } from '@fluentui/react'
+import { FlexContainer } from '@sds/components'
 import type { FC } from 'react'
 import { memo, useCallback, useRef } from 'react'
 import { NavLink } from 'react-router-dom'
 import styled from 'styled-components'
 
-import { Flex } from '~components/Flexbox'
 import { Pages } from '~pages'
 import { useCanRun, useOnGetAllAssetsDownloadInfo } from '~pages/hooks'
 
@@ -47,7 +47,7 @@ export const TitleBar: FC = memo(function TitleBar() {
 })
 TitleBar.displayName = 'TitleBar'
 
-const Container = styled(Flex)`
+const Container = styled(FlexContainer)`
 	z-index: 5;
 	background: ${p => p.theme.palette.themePrimary};
 	border-bottom: 1px solid ${p => p.theme.palette.themeSecondary};

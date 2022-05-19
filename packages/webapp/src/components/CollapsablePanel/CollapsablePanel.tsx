@@ -3,9 +3,8 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { IconButton, useTheme } from '@fluentui/react'
+import { FlexContainer } from '@sds/components'
 import { memo, useState } from 'react'
-
-import { Flex } from '~components/Flexbox'
 
 import type { CollapsablePanelProps } from './CollapsablePanel.types'
 
@@ -15,8 +14,8 @@ export const CollapsablePanel: React.FC<CollapsablePanelProps> = memo(
 		const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed ?? false)
 
 		return (
-			<Flex vertical gap={theme.spacing.s1}>
-				<Flex
+			<FlexContainer vertical gap={theme.spacing.s1}>
+				<FlexContainer
 					justify="space-between"
 					align="center"
 					style={{
@@ -31,9 +30,9 @@ export const CollapsablePanel: React.FC<CollapsablePanelProps> = memo(
 						title={isCollapsed ? 'Hide' : 'Show'}
 						onClick={() => setIsCollapsed(prev => !prev)}
 					/>
-				</Flex>
+				</FlexContainer>
 				{isCollapsed && children}
-			</Flex>
+			</FlexContainer>
 		)
 	},
 )

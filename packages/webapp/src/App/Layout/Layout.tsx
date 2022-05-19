@@ -2,12 +2,12 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import { FlexContainer } from '@sds/components'
 import { proxy } from 'comlink'
 import React, { memo, useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import styled from 'styled-components'
 
-import { Flex } from '~components/Flexbox'
 import { Pages } from '~pages'
 import {
 	useAllSynthesisInfo,
@@ -77,7 +77,7 @@ export const Layout: React.FC = memo(function Layout({ children }) {
 	)
 })
 
-const Container = styled(Flex)`
+const Container = styled(FlexContainer)`
 	height: 100%;
 `
 

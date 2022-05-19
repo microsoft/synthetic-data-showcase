@@ -3,12 +3,12 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { Dropdown, Label } from '@fluentui/react'
+import { FlexContainer } from '@sds/components'
 import { memo, useEffect, useRef, useState } from 'react'
 import type { IEvaluateResult } from 'sds-wasm'
 import { useTheme } from 'styled-components'
 
 import { DataEvaluationInfo } from '~components/DataEvaluationInfo'
-import { Flex } from '~components/Flexbox'
 import { SynthesisDropdown } from '~components/SynthesisDropdown'
 import { useDropdownOnChange } from '~pages/hooks'
 import type { ISynthesisInfo } from '~workers/types'
@@ -95,10 +95,10 @@ export const DataEvaluation: React.FC<DataEvaluationProps> = memo(
 		}, [])
 
 		return (
-			<Flex vertical gap={theme.spacing.s1}>
-				<Flex gap={theme.spacing.s1}>
+			<FlexContainer vertical gap={theme.spacing.s1}>
+				<FlexContainer gap={theme.spacing.s1}>
 					<FlexCentered grow={1}>
-						<Flex vertical gap={theme.spacing.s1}>
+						<FlexContainer vertical gap={theme.spacing.s1}>
 							<SynthesisDropdown
 								selectedSynthesis={leftSelectedSynthesis}
 								allSynthesisInfo={allFinishedSynthesisInfo}
@@ -115,10 +115,10 @@ export const DataEvaluation: React.FC<DataEvaluationProps> = memo(
 									leftSelectedSynthesis === undefined
 								}
 							/>
-						</Flex>
+						</FlexContainer>
 					</FlexCentered>
 					<FlexCentered grow={1}>
-						<Flex vertical gap={theme.spacing.s1}>
+						<FlexContainer vertical gap={theme.spacing.s1}>
 							<SynthesisDropdown
 								selectedSynthesis={rightSelectedSynthesis}
 								allSynthesisInfo={allFinishedSynthesisInfo}
@@ -135,11 +135,11 @@ export const DataEvaluation: React.FC<DataEvaluationProps> = memo(
 									rightSelectedSynthesis === null
 								}
 							/>
-						</Flex>
+						</FlexContainer>
 					</FlexCentered>
-				</Flex>
+				</FlexContainer>
 
-				<Flex gap={theme.spacing.s1}>
+				<FlexContainer gap={theme.spacing.s1}>
 					<FlexCentered grow={1}>
 						{leftSelectedSynthesis && leftEvaluateResult ? (
 							<DataEvaluationInfo
@@ -170,8 +170,8 @@ export const DataEvaluation: React.FC<DataEvaluationProps> = memo(
 							<Label>Nothing selected</Label>
 						)}
 					</FlexCentered>
-				</Flex>
-			</Flex>
+				</FlexContainer>
+			</FlexContainer>
 		)
 	},
 )

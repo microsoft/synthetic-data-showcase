@@ -2,12 +2,12 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import { FlexContainer } from '@sds/components'
 import type { FC } from 'react'
 import { memo } from 'react'
 import { NavLink } from 'react-router-dom'
 import styled from 'styled-components'
 
-import { Flex } from '~components/Flexbox'
 import { Pages } from '~pages'
 
 export const NavBar: FC = memo(function NavBar() {
@@ -27,7 +27,7 @@ export const NavBar: FC = memo(function NavBar() {
 
 	return (
 		<Container>
-			<Flex align="center">{links}</Flex>
+			<FlexContainer align="center">{links}</FlexContainer>
 		</Container>
 	)
 })

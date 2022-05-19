@@ -2,11 +2,10 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import { FlexContainer } from '@sds/components'
 import type { FC } from 'react'
 import { memo } from 'react'
 import styled from 'styled-components'
-
-import { Flex } from '~components/Flexbox'
 
 import { MultiValueColumns } from './MultiValueColumns'
 import { SelectColumns } from './SelectColumns'
@@ -28,7 +27,7 @@ export const SelectCommands: FC = memo(function SelectCommand() {
 })
 SelectCommands.displayName = 'SelectCommands'
 
-const Container = styled(Flex)`
+const Container = styled(FlexContainer)`
 	border-bottom: 1px solid ${p => p.theme.palette.neutralLight};
 	box-shadow: ${p => p.theme.effects.elevation4};
 `

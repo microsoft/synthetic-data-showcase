@@ -3,6 +3,7 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { useTheme } from '@fluentui/react'
+import { FlexContainer } from '@sds/components'
 import { memo } from 'react'
 import type { IMicrodataStatistics } from 'sds-wasm'
 
@@ -11,7 +12,6 @@ import {
 	useMetricsByLenLabels,
 } from '~components/Charts/hooks'
 import { DownloadButton } from '~components/controls/DownloadButton'
-import { Flex } from '~components/Flexbox'
 import type { AggregateType } from '~workers/types'
 
 import {
@@ -62,7 +62,7 @@ export const DataEvaluationInfoDownloader: React.FC<DataEvaluationInfoDownloader
 		)
 
 		return (
-			<Flex gap={theme.spacing.s1} justify="space-evenly" wrap>
+			<FlexContainer gap={theme.spacing.s1} justify="space-evenly" wrap>
 				<DownloadButton
 					label="Aggregates"
 					onGetDownloadInfo={onGetAggregatesDownloadInfo}
@@ -79,6 +79,6 @@ export const DataEvaluationInfoDownloader: React.FC<DataEvaluationInfoDownloader
 					label="Analysis by length"
 					onGetDownloadInfo={onGetAnalysisByLenDownloadInfo}
 				/>
-			</Flex>
+			</FlexContainer>
 		)
 	})

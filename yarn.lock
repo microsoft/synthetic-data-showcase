@@ -1551,7 +1551,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.0.0, @babel/runtime@npm:^7.12.13, @babel/runtime@npm:^7.17.8, @babel/runtime@npm:^7.8.4":
+"@babel/runtime@npm:^7.0.0, @babel/runtime@npm:^7.1.2, @babel/runtime@npm:^7.12.13, @babel/runtime@npm:^7.17.8, @babel/runtime@npm:^7.8.4":
   version: 7.17.9
   resolution: "@babel/runtime@npm:7.17.9"
   dependencies:
@@ -1748,6 +1748,13 @@ __metadata:
   peerDependencies:
     arquero: ^4.8.7
   checksum: 346375c06fb2820e21ac2765a3ed2d74ba5e1d333d2248e1a0bc77aed1f2c1235d09ce899ef90d90854f701d36b486be9ecb1581c46dd6dd2d02bcbccbf4d13f
+  languageName: node
+  linkType: hard
+
+"@emotion/hash@npm:^0.8.0":
+  version: 0.8.0
+  resolution: "@emotion/hash@npm:0.8.0"
+  checksum: 4b35d88a97e67275c1d990c96d3b0450451d089d1508619488fc0acb882cb1ac91e93246d471346ebd1b5402215941ef4162efe5b51534859b39d8b3a0e3ffaa
   languageName: node
   linkType: hard
 
@@ -2332,6 +2339,31 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@griffel/core@npm:^1.3.1":
+  version: 1.3.1
+  resolution: "@griffel/core@npm:1.3.1"
+  dependencies:
+    "@emotion/hash": ^0.8.0
+    csstype: ^3.0.10
+    rtl-css-js: ^1.15.0
+    stylis: ^4.0.13
+    tslib: ^2.1.0
+  checksum: e756e83e6a026b59b4ff670b842c00774e84ce76ecfa94b8ebc1588f89d8c25658029e1cfc0b65f3b9d7ec51d8c834f6ba5cd9fcc15241c1888d943d7ee29916
+  languageName: node
+  linkType: hard
+
+"@griffel/react@npm:^1.0.5":
+  version: 1.0.5
+  resolution: "@griffel/react@npm:1.0.5"
+  dependencies:
+    "@griffel/core": ^1.3.1
+    tslib: ^2.1.0
+  peerDependencies:
+    react: ">=16.8.0 <18.0.0"
+  checksum: e148bf118c8d092f7565dd69d49b76bef23b7987ebbf503abab093dad94c82ea6e4d271327f6ee8eb61f828d7ffe88b59966928090dc0c10566758f34ef5c788
+  languageName: node
+  linkType: hard
+
 "@humanwhocodes/config-array@npm:^0.9.2":
   version: 0.9.5
   resolution: "@humanwhocodes/config-array@npm:0.9.5"
@@ -2669,15 +2701,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sds/components@workspace:packages/components":
+"@sds/components@workspace:^, @sds/components@workspace:packages/components":
   version: 0.0.0-use.local
   resolution: "@sds/components@workspace:packages/components"
   dependencies:
+    "@griffel/react": ^1.0.5
+    "@types/mime": ^2.0.3
     "@types/node": ^17.0.34
+    "@types/react": ^17
+    mime: ^3.0.0
     npm-run-all: ^4.1.5
+    react: ^17.0.2
+    react-dropzone: ^14.2.1
     shx: ^0.3.4
     ts-node: ^10.7.0
     typescript: ^4.6.4
+  peerDependencies:
+    react: ^17.0.2
   languageName: unknown
   linkType: soft
 
@@ -3414,6 +3454,17 @@ __metadata:
     "@types/scheduler": "*"
     csstype: ^3.0.2
   checksum: 24d1b210b5bf3c7d49f9a7fe5490db02e005a1d989045a2d67528347557dd0bcb0d7bcf96088152697e97521ac4c9506d1357ee48a2b7d4e701c70d838dc7284
+  languageName: node
+  linkType: hard
+
+"@types/react@npm:^17":
+  version: 17.0.45
+  resolution: "@types/react@npm:17.0.45"
+  dependencies:
+    "@types/prop-types": "*"
+    "@types/scheduler": "*"
+    csstype: ^3.0.2
+  checksum: 3cc13a02824c13f6fa4807a83abd065ac1d9943359e76bd995cc7cd2b4148c1176ebd54a30a9f4eb8a0f141ff359d712876f256c4fee707e4290607ef8410b3e
   languageName: node
   linkType: hard
 
@@ -5384,6 +5435,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"csstype@npm:^3.0.10":
+  version: 3.1.0
+  resolution: "csstype@npm:3.1.0"
+  checksum: 644e986cefab86525f0b674a06889cfdbb1f117e5b7d1ce0fc55b0423ecc58807a1ea42ecc75c4f18999d14fc42d1d255f84662a45003a52bb5840e977eb2ffd
+  languageName: node
+  linkType: hard
+
 "csstype@npm:^3.0.2":
   version: 3.0.11
   resolution: "csstype@npm:3.0.11"
@@ -6764,6 +6822,15 @@ __metadata:
   dependencies:
     tslib: ^2.0.3
   checksum: 1c9986e94bd033442cb4299d10d73d98fbc0b5f1af5b47d7a27b39f1e6bbd8d677f66c2628167da387166c652ad3c2429875042b453ba62f14945d903adf88d5
+  languageName: node
+  linkType: hard
+
+"file-selector@npm:^0.6.0":
+  version: 0.6.0
+  resolution: "file-selector@npm:0.6.0"
+  dependencies:
+    tslib: ^2.4.0
+  checksum: 7d051b6e5d793f3c6e2ab287ba5e7c2c6a0971bccc9d56e044c8047ba483e18f60fc0b5771c951dc707c0d15f4f36ccb4f1f1aaf385d21ec8f7700dadf8325ba
   languageName: node
   linkType: hard
 
@@ -9724,6 +9791,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-dropzone@npm:^14.2.1":
+  version: 14.2.1
+  resolution: "react-dropzone@npm:14.2.1"
+  dependencies:
+    attr-accept: ^2.2.2
+    file-selector: ^0.6.0
+    prop-types: ^15.8.1
+  peerDependencies:
+    react: ">= 16.8 || 18.0.0"
+  checksum: 8556d997d66bad79fe165a30d6dc8f917c67d8c7d23069c417eb2a0da6df824ba71b84b532707711e184da105122f6a6e81104341dc5b8c0f96e318267fdda91
+  languageName: node
+  linkType: hard
+
 "react-fast-compare@npm:^2.0.1":
   version: 2.0.4
   resolution: "react-fast-compare@npm:2.0.4"
@@ -10277,6 +10357,15 @@ __metadata:
   bin:
     rollup: dist/bin/rollup
   checksum: 06c62933e6e81a1c8c684d7d576e507081aabdb63cc0c91bca86b7348b66df03b77827068e4990b8b6c738bd3ef66dcc8c7ed7e0ea40b736068e7618f693133e
+  languageName: node
+  linkType: hard
+
+"rtl-css-js@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "rtl-css-js@npm:1.15.0"
+  dependencies:
+    "@babel/runtime": ^7.1.2
+  checksum: e18a7b30b847def79e14636ee2096185881c4b8bab93dbb20fac2227b5a4d404a5a48d48cf357b618e113a5ebc027394f5c23ccd6f71ff0abc018a7ddbb8db54
   languageName: node
   linkType: hard
 
@@ -11021,6 +11110,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"stylis@npm:^4.0.13":
+  version: 4.1.1
+  resolution: "stylis@npm:4.1.1"
+  checksum: e9b0a086996a94c44d45933287731313f6ecdbf9334410231d882d31a1890fb36e34a7b163487e2d7f992c2044e4cb37179810fc6f758f359a431343c2374ed2
+  languageName: node
+  linkType: hard
+
 "supports-color@npm:^5.3.0, supports-color@npm:^5.5.0":
   version: 5.5.0
   resolution: "supports-color@npm:5.5.0"
@@ -11720,6 +11816,7 @@ __metadata:
     "@fluentui/react": ^8.62.1
     "@fluentui/react-hooks": ^8.5.3
     "@fluentui/utilities": ^8.8.1
+    "@sds/components": "workspace:^"
     "@thematic/core": ^2.0.6
     "@thematic/d3": ^2.0.6
     "@thematic/fluent": ^3.0.6

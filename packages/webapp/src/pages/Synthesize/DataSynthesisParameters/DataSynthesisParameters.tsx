@@ -14,9 +14,9 @@ import {
 	useTheme,
 } from '@fluentui/react'
 import { useBoolean } from '@fluentui/react-hooks'
+import { FlexContainer, FlexItem } from '@sds/components'
 import { memo, useEffect } from 'react'
 
-import { Flex } from '~components/Flexbox'
 import { InfoTooltip } from '~components/InfoTooltip'
 import { TooltipWrapper } from '~components/TooltipWrapper'
 import { useDropdownOnChange, useSpinButtonOnChange } from '~pages/hooks'
@@ -81,8 +81,8 @@ export const DataSynthesisParameters: React.FC<DataSynthesisParametersProps> =
 		}, [rawSynthesisParams.reportingLength, updateNoisyCountThreshold])
 
 		return (
-			<Flex gap={theme.spacing.s1} vertical wrap>
-				<Flex gap={theme.spacing.s1} wrap>
+			<FlexContainer gap={theme.spacing.s1} vertical wrap>
+				<FlexContainer gap={theme.spacing.s1} wrap>
 					<TooltipWrapper
 						tooltip={tooltips.synthesisMode}
 						label="Synthesis mode"
@@ -129,7 +129,7 @@ export const DataSynthesisParameters: React.FC<DataSynthesisParametersProps> =
 						/>
 					</TooltipWrapper>
 
-					<Flex.Box align="flex-end">
+					<FlexItem align="flex-end">
 						<PrimaryButton
 							type="submit"
 							onClick={onRunClicked}
@@ -137,11 +137,11 @@ export const DataSynthesisParameters: React.FC<DataSynthesisParametersProps> =
 						>
 							Run
 						</PrimaryButton>
-					</Flex.Box>
-					<Flex.Box align="flex-end">
+					</FlexItem>
+					<FlexItem align="flex-end">
 						<InfoTooltip>{tooltips.synthesize}</InfoTooltip>
-					</Flex.Box>
-					<Flex.Box align="flex-end">
+					</FlexItem>
+					<FlexItem align="flex-end">
 						<IconButton
 							iconProps={{
 								iconName: 'settings',
@@ -149,8 +149,8 @@ export const DataSynthesisParameters: React.FC<DataSynthesisParametersProps> =
 							title={'Advanced parameters'}
 							onClick={openAdvancedParameter}
 						/>
-					</Flex.Box>
-				</Flex>
+					</FlexItem>
+				</FlexContainer>
 
 				<Panel
 					isLightDismiss
@@ -162,7 +162,7 @@ export const DataSynthesisParameters: React.FC<DataSynthesisParametersProps> =
 					<DataSynthesisAdvancedParameters />
 				</Panel>
 
-				<Flex gap={theme.spacing.s1} wrap>
+				<FlexContainer gap={theme.spacing.s1} wrap>
 					{rawSynthesisParams.synthesisMode === SynthesisMode.DP && (
 						<>
 							<TooltipWrapper
@@ -189,7 +189,7 @@ export const DataSynthesisParameters: React.FC<DataSynthesisParametersProps> =
 							</TooltipWrapper>
 						</>
 					)}
-				</Flex>
-			</Flex>
+				</FlexContainer>
+			</FlexContainer>
 		)
 	})
