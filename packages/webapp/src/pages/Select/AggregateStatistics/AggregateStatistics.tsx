@@ -2,24 +2,31 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { Spinner } from '@fluentui/react'
-import { FlexContainer } from '@sds/components'
+import { Spinner, useTheme } from '@fluentui/react'
+import { FlexContainer, FlexItem } from '@sds/components'
 import type { Remote } from 'comlink'
 import type { FC } from 'react'
 import { memo, useEffect, useState } from 'react'
 import type { IAggregateStatistics } from 'sds-wasm'
-import styled from 'styled-components'
 
 import { useRawSynthesisParameters, useSensitiveContent } from '~states'
 import type { ICancelablePromise } from '~workers/types'
 
-import { useGetAggregateStatistics } from './hooks/index.js'
+import {
+	useColumnsWithRareCombinationsPercentage,
+	useColumnsWithUniqueCombinationsPercentage,
+	useGetAggregateStatistics,
+	useOnRemoveColumn,
+} from './AggregateStatistics.hooks.js'
+import { Container, StyledReport } from './AggregateStatistics.styles.js'
+import { ColumnContributionChart } from './ColumnContributionChart.js'
 
 interface IQueueExecution {
 	execution?: Remote<ICancelablePromise<IAggregateStatistics>>
 }
 
 export const AggregateStatistics: FC = memo(function AggregateStatistics() {
+	const theme = useTheme()
 	const [sensitiveContent] = useSensitiveContent()
 	const [statistics, setStatistics] = useState<IAggregateStatistics | null>(
 		null,
@@ -28,6 +35,11 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 	const [isLoading, setIsLoading] = useState(false)
 	const [rawSynthesisParams] = useRawSynthesisParameters()
 	const getAggregateStatistics = useGetAggregateStatistics()
+	const columnWithUniqueCombinationsPercentage =
+		useColumnsWithUniqueCombinationsPercentage(statistics)
+	const columnWithRareCombinationsPercentage =
+		useColumnsWithRareCombinationsPercentage(statistics)
+	const onRemoveColumn = useOnRemoveColumn()
 
 	useEffect(() => {
 		getAggregateStatistics(
@@ -71,18 +83,43 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 	}, [setQueuedExecution])
 
 	return (
-		<Container justify="center">
+		<Container vertical align="center">
 			{isLoading ? (
 				<Spinner />
 			) : statistics ? (
-				JSON.stringify(statistics, null, 4)
+				<>
+					<StyledReport>
+						Records with unique combinations:{' '}
+						{statistics.numberOfRecordsWithUniqueCombinations}.
+					</StyledReport>
+					<StyledReport>
+						Records with rare combinations (less than{' '}
+						{rawSynthesisParams.reportingLength} entries):{' '}
+						{statistics.numberOfRecordsWithRareCombinations}
+					</StyledReport>
+					<FlexContainer gap={theme.spacing.s1} style={{ width: '100%' }}>
+						<FlexItem grow={1} basis="50%">
+							<ColumnContributionChart
+								proportionPerColumn={columnWithUniqueCombinationsPercentage}
+								label="Column contribution % to unique records"
+								containerHeight={220}
+								barHeight={10}
+								// onClick={onRemoveColumn}
+							/>
+						</FlexItem>
+						<FlexItem grow={1} basis="50%">
+							<ColumnContributionChart
+								proportionPerColumn={columnWithRareCombinationsPercentage}
+								label="Column contribution % to rare records"
+								containerHeight={220}
+								barHeight={10}
+								// onClick={onRemoveColumn}
+							/>
+						</FlexItem>
+					</FlexContainer>
+				</>
 			) : null}
 		</Container>
 	)
 })
-AggregateStatistics.displayName = 'TablePreview'
-
-const Container = styled(FlexContainer)`
-	padding: ${p => p.theme.spacing.m};
-	font-size: ${p => p.theme.fonts.large.fontSize};
-`
+AggregateStatistics.displayName = 'AggregateStatistics'
