@@ -24,6 +24,12 @@ pub type AggregatedMetricByLenMap = FnvHashMap<usize, f64>;
 /// Maps a length (1,2,3... up to reporting length) to a record set
 pub type RecordsByLenMap = FnvHashMap<usize, RecordsSet>;
 
+/// Maps a column name to a record set
+pub type RecordsByColumn = FnvHashMap<String, RecordsSet>;
+
+/// Maps a column name to a record count
+pub type RecordsCountByColumn = FnvHashMap<String, usize>;
+
 /// A vector of sensitivities for each record (the vector index is the record index)
 pub type RecordsSensitivity = Vec<usize>;
 
