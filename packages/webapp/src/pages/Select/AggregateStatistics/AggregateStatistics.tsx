@@ -6,7 +6,7 @@ import { Spinner, useTheme } from '@fluentui/react'
 import { FlexContainer, FlexItem } from '@sds/components'
 import type { Remote } from 'comlink'
 import type { FC } from 'react'
-import { memo, useEffect, useState } from 'react'
+import { memo, useCallback, useEffect, useState } from 'react'
 import type { IAggregateStatistics } from 'sds-wasm'
 
 import { useRawSynthesisParameters, useSensitiveContent } from '~states'
@@ -14,9 +14,7 @@ import type { ICancelablePromise } from '~workers/types'
 
 import {
 	useColumnsWithRareCombinationsPercentage,
-	useColumnsWithUniqueCombinationsPercentage,
 	useGetAggregateStatistics,
-	useOnRemoveColumn,
 } from './AggregateStatistics.hooks.js'
 import { Container, StyledReport } from './AggregateStatistics.styles.js'
 import { ColumnContributionChart } from './ColumnContributionChart.js'
@@ -35,11 +33,11 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 	const [isLoading, setIsLoading] = useState(false)
 	const [rawSynthesisParams] = useRawSynthesisParameters()
 	const getAggregateStatistics = useGetAggregateStatistics()
-	const columnWithUniqueCombinationsPercentage =
-		useColumnsWithUniqueCombinationsPercentage(statistics)
 	const columnWithRareCombinationsPercentage =
 		useColumnsWithRareCombinationsPercentage(statistics)
-	const onRemoveColumn = useOnRemoveColumn()
+	const tooltipFormatter = useCallback(item => {
+		return `Contributing to the linkability of ${item.raw}% of small groups`
+	}, [])
 
 	useEffect(() => {
 		getAggregateStatistics(
@@ -86,39 +84,23 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 		<Container vertical align="center">
 			{isLoading ? (
 				<Spinner />
-			) : statistics ? (
-				<>
-					<StyledReport>
-						Records with unique combinations:{' '}
-						{statistics.numberOfRecordsWithUniqueCombinations}.
-					</StyledReport>
-					<StyledReport>
-						Records with rare combinations (less than{' '}
-						{rawSynthesisParams.reportingLength} entries):{' '}
-						{statistics.numberOfRecordsWithRareCombinations}
-					</StyledReport>
-					<FlexContainer gap={theme.spacing.s1} style={{ width: '100%' }}>
-						<FlexItem grow={1} basis="50%">
-							<ColumnContributionChart
-								proportionPerColumn={columnWithUniqueCombinationsPercentage}
-								label="Column contribution % to unique records"
-								containerHeight={220}
-								barHeight={10}
-								// onClick={onRemoveColumn}
-							/>
-						</FlexItem>
-						<FlexItem grow={1} basis="50%">
-							<ColumnContributionChart
-								proportionPerColumn={columnWithRareCombinationsPercentage}
-								label="Column contribution % to rare records"
-								containerHeight={220}
-								barHeight={10}
-								// onClick={onRemoveColumn}
-							/>
-						</FlexItem>
-					</FlexContainer>
-				</>
-			) : null}
+			) : statistics && statistics.numberOfRecordsWithRareCombinations > 0 ? (
+				<FlexContainer gap={theme.spacing.s1} style={{ width: '100%' }}>
+					<FlexItem grow={1}>
+						<ColumnContributionChart
+							proportionPerColumn={columnWithRareCombinationsPercentage}
+							label={`Columns contributing to linkability of ${statistics.numberOfRecordsWithRareCombinations} small groups`}
+							containerHeight={220}
+							barHeight={5}
+							tooltipFormatter={tooltipFormatter}
+						/>
+					</FlexItem>
+				</FlexContainer>
+			) : (
+				<StyledReport>
+					No small groups found based on the privacy resolution
+				</StyledReport>
+			)}
 		</Container>
 	)
 })
