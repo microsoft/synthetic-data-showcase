@@ -18,7 +18,7 @@ import {
 	useGetAggregateStatistics,
 	useOnRemoveColumn,
 } from './AggregateStatistics.hooks.js'
-import { Container } from './AggregateStatistics.styles.js'
+import { Container, StyledReport } from './AggregateStatistics.styles.js'
 import { ColumnContributionChart } from './ColumnContributionChart.js'
 
 interface IQueueExecution {
@@ -83,30 +83,41 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 	}, [setQueuedExecution])
 
 	return (
-		<Container vertical justify="center">
+		<Container vertical align="center">
 			{isLoading ? (
 				<Spinner />
 			) : statistics ? (
-				<FlexContainer gap={theme.spacing.s1}>
-					<FlexItem grow={1}>
-						<ColumnContributionChart
-							proportionPerColumn={columnWithUniqueCombinationsPercentage}
-							label="Column contribution % to unique records"
-							containerHeight={220}
-							barHeight={10}
-							onClick={onRemoveColumn}
-						/>
-					</FlexItem>
-					<FlexItem grow={1}>
-						<ColumnContributionChart
-							proportionPerColumn={columnWithRareCombinationsPercentage}
-							label="Column contribution % to rare records"
-							containerHeight={220}
-							barHeight={10}
-							onClick={onRemoveColumn}
-						/>
-					</FlexItem>
-				</FlexContainer>
+				<>
+					<StyledReport>
+						Records with unique combinations:{' '}
+						{statistics.numberOfRecordsWithUniqueCombinations}.
+					</StyledReport>
+					<StyledReport>
+						Records with rare combinations (less than{' '}
+						{rawSynthesisParams.reportingLength} entries):{' '}
+						{statistics.numberOfRecordsWithRareCombinations}
+					</StyledReport>
+					<FlexContainer gap={theme.spacing.s1} style={{ width: '100%' }}>
+						<FlexItem grow={1} basis="50%">
+							<ColumnContributionChart
+								proportionPerColumn={columnWithUniqueCombinationsPercentage}
+								label="Column contribution % to unique records"
+								containerHeight={220}
+								barHeight={10}
+								// onClick={onRemoveColumn}
+							/>
+						</FlexItem>
+						<FlexItem grow={1} basis="50%">
+							<ColumnContributionChart
+								proportionPerColumn={columnWithRareCombinationsPercentage}
+								label="Column contribution % to rare records"
+								containerHeight={220}
+								barHeight={10}
+								// onClick={onRemoveColumn}
+							/>
+						</FlexItem>
+					</FlexContainer>
+				</>
 			) : null}
 		</Container>
 	)
