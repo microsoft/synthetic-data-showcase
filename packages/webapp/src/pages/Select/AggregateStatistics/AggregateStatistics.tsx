@@ -98,7 +98,8 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 				</FlexContainer>
 			) : (
 				<StyledReport>
-					No small groups found based on the privacy resolution
+					No small groups found based on the privacy resolution and aggregation
+					limit
 				</StyledReport>
 			)}
 		</Container>
