@@ -33,7 +33,7 @@ export const AggregationControls: FC = memo(function SelectCommand() {
 				value={rawSynthesisParams.resolution.toString()}
 				onChange={handleResolutionChange}
 			/>
-			<Action>Aggregation limit</Action>
+			<Action>Aggregation Limit</Action>
 			<StyledSpinButton
 				labelPosition={Position.top}
 				min={1}
