@@ -3,6 +3,7 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { FlexContainer, FlexItem } from '@sds/components'
+import { useThematic } from '@thematic/react'
 import type { Plugin } from 'chart.js'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
 import _ from 'lodash'
@@ -15,6 +16,7 @@ import type { ColumnContributionChartProps } from './ColumnContributionChart.typ
 
 export const ColumnContributionChart: FC<ColumnContributionChartProps> = memo(
 	function ColumnContributionChart({
+		selectedColumn,
 		proportionPerColumn,
 		label,
 		containerHeight,
@@ -44,6 +46,20 @@ export const ColumnContributionChart: FC<ColumnContributionChartProps> = memo(
 			},
 			[labels, onClick],
 		)
+		const thematic = useThematic()
+		const backgroundColor = useMemo(() => {
+			const normalColor = thematic.scales().nominal().toArray()[0]
+			const selectedColor = thematic.scales().nominalBold().toArray()[0]
+
+			return labels.map(l =>
+				l === selectedColumn ? selectedColor : normalColor,
+			)
+		}, [labels, thematic, selectedColumn])
+		const labelColors = useMemo(() => {
+			const greys = thematic.scales().greys().toArray()
+
+			return labels.map(l => (selectedColumn === l ? greys[0] : greys[80]))
+		}, [labels, thematic, selectedColumn])
 
 		return (
 			<FlexContainer vertical justify="center">
@@ -63,6 +79,7 @@ export const ColumnContributionChart: FC<ColumnContributionChartProps> = memo(
 									data: data,
 									xAxisID: 'xAxis',
 									yAxisID: 'yAxis',
+									backgroundColor,
 								},
 							],
 						}}
@@ -91,6 +108,7 @@ export const ColumnContributionChart: FC<ColumnContributionChartProps> = memo(
 									align: 'end',
 									offset: 5,
 									formatter: value => `${value} %`,
+									color: labelColors,
 								},
 								tooltip: {
 									callbacks: {

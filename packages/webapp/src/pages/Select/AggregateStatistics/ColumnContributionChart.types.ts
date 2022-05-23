@@ -6,6 +6,7 @@ import type { TooltipItem } from 'chart.js'
 import type { IRecordsCountByColumn } from 'sds-wasm'
 
 export interface ColumnContributionChartProps {
+	selectedColumn?: string
 	proportionPerColumn: IRecordsCountByColumn
 	label: string
 	containerHeight: number | string
