@@ -37,11 +37,11 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 		useColumnsWithRareCombinationsPercentage(statistics)
 	const tooltipFormatter = useCallback(
 		item => {
-			return `Contribution to privacy risk from rare attribute combinations (${
+			return `Affecting ${
 				statistics?.numberOfRecordsWithRareCombinationsPerColumn[item.label]
-			}/${statistics?.numberOfRecordsWithRareCombinations} rare records, ${
-				item.raw
-			}%)`
+			}/${
+				statistics?.numberOfRecordsWithRareCombinations
+			} rare/linkable records (${item.raw}%)`
 		},
 		[statistics],
 	)
@@ -96,7 +96,7 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 					<FlexItem grow={1}>
 						<ColumnContributionChart
 							proportionPerColumn={columnWithRareCombinationsPercentage}
-							label={`Selected columns contributing to privacy risk from rare attribute combinations (${
+							label={`Selected columns contributing to privacy risk from rare/linkable attribute combinations (affecting ${
 								statistics.numberOfRecordsWithRareCombinations
 							}/${rawSynthesisParams.recordLimit} records, ${(
 								(statistics.numberOfRecordsWithRareCombinations * 100.0) /
