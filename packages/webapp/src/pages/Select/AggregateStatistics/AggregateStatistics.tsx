@@ -36,7 +36,7 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 	const columnWithRareCombinationsPercentage =
 		useColumnsWithRareCombinationsPercentage(statistics)
 	const tooltipFormatter = useCallback(item => {
-		return `Contributing to the linkability of ${item.raw}% of small groups`
+		return `Contributing ${item.raw}% of the records with rare attribute combinations`
 	}, [])
 
 	useEffect(() => {
@@ -89,7 +89,7 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 					<FlexItem grow={1}>
 						<ColumnContributionChart
 							proportionPerColumn={columnWithRareCombinationsPercentage}
-							label={`Columns contributing to linkability of ${statistics.numberOfRecordsWithRareCombinations} small groups`}
+							label={`Selected columns contributing to records with rare attribute combinations (total of ${statistics.numberOfRecordsWithRareCombinations} with rare attribute combinations)`}
 							containerHeight={220}
 							barHeight={5}
 							tooltipFormatter={tooltipFormatter}
