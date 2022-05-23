@@ -39,13 +39,12 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 		item => {
 			return `Contribution to privacy risk from rare attribute combinations (${
 				statistics?.numberOfRecordsWithRareCombinationsPerColumn[item.label]
-			}/${statistics?.numberOfRecordsWithRareCombinations} records, ${
+			}/${statistics?.numberOfRecordsWithRareCombinations} rare records, ${
 				item.raw
 			}%)`
 		},
 		[statistics],
 	)
-	const [selectedColumn, setSelectedColumn] = useState<string | null>(null)
 
 	useEffect(() => {
 		getAggregateStatistics(
@@ -71,7 +70,6 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 				setIsLoading(true)
 				setStatistics((await await queuedExecution.execution?.promise) ?? null)
 				setIsLoading(false)
-				setSelectedColumn(null)
 			} catch (err) {
 				console.error(err)
 			}
@@ -97,25 +95,16 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 				<FlexContainer gap={theme.spacing.s1} style={{ width: '100%' }}>
 					<FlexItem grow={1}>
 						<ColumnContributionChart
-							selectedColumn={selectedColumn ?? undefined}
 							proportionPerColumn={columnWithRareCombinationsPercentage}
-							label={
-								selectedColumn
-									? `Selected columns contributing to privacy risk from rare attribute combinations (${
-											statistics.numberOfRecordsWithRareCombinationsPerColumn[
-												selectedColumn
-											]
-									  }/${
-											statistics.numberOfRecordsWithRareCombinations
-									  } records, ${columnWithRareCombinationsPercentage[
-											selectedColumn
-									  ].toFixed(0)}%)`
-									: `Selected columns contributing to privacy risk from rare attribute combinations (${statistics.numberOfRecordsWithRareCombinations} records)`
-							}
+							label={`Selected columns contributing to privacy risk from rare attribute combinations (${
+								statistics.numberOfRecordsWithRareCombinations
+							}/${rawSynthesisParams.recordLimit} records, ${(
+								(statistics.numberOfRecordsWithRareCombinations * 100.0) /
+								rawSynthesisParams.recordLimit
+							).toFixed(0)}%)`}
 							containerHeight={220}
 							barHeight={5}
 							tooltipFormatter={tooltipFormatter}
-							onClick={setSelectedColumn}
 						/>
 					</FlexItem>
 				</FlexContainer>
