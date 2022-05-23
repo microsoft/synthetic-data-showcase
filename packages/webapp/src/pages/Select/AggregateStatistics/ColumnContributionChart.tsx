@@ -19,6 +19,7 @@ export const ColumnContributionChart: FC<ColumnContributionChartProps> = memo(
 		label,
 		containerHeight,
 		barHeight,
+		tooltipFormatter,
 		onClick,
 	}) {
 		const labels = useMemo(
@@ -30,7 +31,7 @@ export const ColumnContributionChart: FC<ColumnContributionChartProps> = memo(
 			[proportionPerColumn],
 		)
 		const data = useMemo(
-			() => labels.map(column => proportionPerColumn[column].toFixed(2)),
+			() => labels.map(column => proportionPerColumn[column].toFixed(0)),
 			[labels, proportionPerColumn],
 		)
 		const handleClick = useCallback(
@@ -89,6 +90,12 @@ export const ColumnContributionChart: FC<ColumnContributionChartProps> = memo(
 									anchor: 'start',
 									align: 'end',
 									offset: 5,
+									formatter: value => `${value} %`,
+								},
+								tooltip: {
+									callbacks: {
+										label: tooltipFormatter,
+									},
 								},
 							},
 							indexAxis: 'y',
