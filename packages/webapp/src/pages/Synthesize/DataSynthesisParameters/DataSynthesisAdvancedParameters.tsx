@@ -61,6 +61,9 @@ export const DataSynthesisAdvancedParameters: React.FC = memo(
 				'aggregateSeededUseSyntheticCounts',
 			),
 		)
+		const handleDeltaFactorChange = useSpinButtonOnChange(
+			useRawSynthesisParametersPropertySetter('deltaFactor'),
+		)
 		const handleDpAggregateSeededUseSyntheticCountsChange = useDropdownOnChange(
 			useRawSynthesisParametersPropertySetter(
 				'dpAggregateSeededUseSyntheticCounts',
@@ -170,19 +173,30 @@ export const DataSynthesisAdvancedParameters: React.FC = memo(
 				)}
 
 				{rawSynthesisParams.synthesisMode === SynthesisMode.DP && (
-					<TooltipWrapper
-						tooltip={tooltips.useSyntheticCounts}
-						label="Use synthetic counts"
-					>
-						<StyledDropdown
-							selectedKey={
-								rawSynthesisParams.dpAggregateSeededUseSyntheticCounts
-							}
-							onChange={handleDpAggregateSeededUseSyntheticCountsChange}
-							placeholder="Select"
-							options={useSyntheticCountsOptions}
-						/>
-					</TooltipWrapper>
+					<>
+						<TooltipWrapper tooltip={tooltips.deltaFactor} label="Delta factor">
+							<StyledSpinButton
+								labelPosition={Position.top}
+								min={1}
+								step={1}
+								value={rawSynthesisParams.deltaFactor.toString()}
+								onChange={handleDeltaFactorChange}
+							/>
+						</TooltipWrapper>
+						<TooltipWrapper
+							tooltip={tooltips.useSyntheticCounts}
+							label="Use synthetic counts"
+						>
+							<StyledDropdown
+								selectedKey={
+									rawSynthesisParams.dpAggregateSeededUseSyntheticCounts
+								}
+								onChange={handleDpAggregateSeededUseSyntheticCountsChange}
+								placeholder="Select"
+								options={useSyntheticCountsOptions}
+							/>
+						</TooltipWrapper>
+					</>
 				)}
 
 				{rawSynthesisParams.synthesisMode === SynthesisMode.DP && (
