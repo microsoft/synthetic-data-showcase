@@ -110,6 +110,7 @@ export interface IEvaluateResult {
   aggregateCountsStats: IMicrodataStatistics
   sensitiveDataStats: IMicrodataStatistics
   syntheticDataStats: IMicrodataStatistics
+  syntheticVsAggregateDataStats: IMicrodataStatistics
 }
 
 export interface ISelectedAttributesByColumn {

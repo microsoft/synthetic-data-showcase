@@ -15,6 +15,7 @@ pub struct WasmEvaluateResult {
     aggregate_counts_stats: WasmMicrodataStatistics,
     sensitive_data_stats: WasmMicrodataStatistics,
     synthetic_data_stats: WasmMicrodataStatistics,
+    synthetic_vs_aggregate_data_stats: WasmMicrodataStatistics,
     reporting_length: usize,
 }
 
@@ -41,6 +42,11 @@ impl WasmEvaluateResult {
             )?,
             synthetic_data_stats: WasmMicrodataStatistics::from_aggregate_results(
                 sensitive_aggregate_result,
+                synthetic_aggregate_result,
+                resolution,
+            )?,
+            synthetic_vs_aggregate_data_stats: WasmMicrodataStatistics::from_aggregate_results(
+                reportable_aggregate_result,
                 synthetic_aggregate_result,
                 resolution,
             )?,
@@ -73,6 +79,11 @@ impl WasmEvaluateResult {
             &result,
             &"syntheticDataStats".into(),
             &self.synthetic_data_stats.to_js()?.into(),
+        )?;
+        set(
+            &result,
+            &"syntheticVsAggregateDataStats".into(),
+            &self.synthetic_vs_aggregate_data_stats.to_js()?.into(),
         )?;
 
         Ok(JsValue::from(result).unchecked_into::<JsEvaluateResult>())
