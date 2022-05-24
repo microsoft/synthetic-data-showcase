@@ -1,3 +1,4 @@
+use log::warn;
 use std::sync::Arc;
 
 use crate::{
@@ -8,7 +9,13 @@ use crate::{
             NotAllowedAttrSet, SynthesizedRecord, SynthesizedRecords, SynthesizerSeed,
         },
     },
-    utils::reporting::{ReportProgress, SendableProgressReporter, SendableProgressReporterRef},
+    utils::{
+        collections::flat_map_unwrap_or_default,
+        reporting::{
+            ProcessingStoppedError, ReportProgress, SendableProgressReporter,
+            SendableProgressReporterRef, StoppableResult,
+        },
+    },
 };
 
 #[cfg(feature = "rayon")]
@@ -44,7 +51,8 @@ impl SeededRowsSynthesizer {
         synthesized_records: &mut SynthesizedRecords,
         rows_synthesizers: &mut Vec<SeededRowsSynthesizer>,
         progress_reporter: &mut Option<T>,
-    ) where
+    ) -> StoppableResult<()>
+    where
         T: ReportProgress,
     {
         let sendable_pr = Arc::new(Mutex::new(
@@ -53,11 +61,14 @@ impl SeededRowsSynthesizer {
                 .map(|r| SendableProgressReporter::new(total, 0.5, r)),
         ));
 
-        synthesized_records.par_extend(
+        synthesized_records.extend(flat_map_unwrap_or_default(
             rows_synthesizers
                 .par_iter_mut()
-                .flat_map(|rs| rs.synthesize_rows(&mut sendable_pr.clone())),
-        );
+                .map(|rs| rs.synthesize_rows(&mut sendable_pr.clone()))
+                .collect(),
+        )?);
+
+        Ok(())
     }
 
     #[cfg(not(feature = "rayon"))]
@@ -67,25 +78,29 @@ impl SeededRowsSynthesizer {
         synthesized_records: &mut SynthesizedRecords,
         rows_synthesizers: &mut Vec<SeededRowsSynthesizer>,
         progress_reporter: &mut Option<T>,
-    ) where
+    ) -> StoppableResult<()>
+    where
         T: ReportProgress,
     {
         let mut sendable_pr = progress_reporter
             .as_mut()
             .map(|r| SendableProgressReporter::new(total, 0.5, r));
 
-        synthesized_records.extend(
+        synthesized_records.extend(flat_map_unwrap_or_default(
             rows_synthesizers
                 .iter_mut()
-                .flat_map(|rs| rs.synthesize_rows(&mut sendable_pr)),
-        );
+                .map(|rs| rs.synthesize_rows(&mut sendable_pr))
+                .collect(),
+        )?);
+
+        Ok(())
     }
 
     #[inline]
     fn synthesize_rows<T>(
         &mut self,
         progress_reporter: &mut SendableProgressReporterRef<T>,
-    ) -> SynthesizedRecords
+    ) -> StoppableResult<SynthesizedRecords>
     where
         T: ReportProgress,
     {
@@ -94,9 +109,12 @@ impl SeededRowsSynthesizer {
 
         for seed in records.iter() {
             synthesized_records.push(self.synthesize_row(seed));
-            SendableProgressReporter::update_progress(progress_reporter, 1.0);
+            if !SendableProgressReporter::update_progress(progress_reporter, 1.0) {
+                warn!("synthesis stopped");
+                return Err(ProcessingStoppedError::default());
+            }
         }
-        synthesized_records
+        Ok(synthesized_records)
     }
 
     #[inline]

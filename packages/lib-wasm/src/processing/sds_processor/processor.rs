@@ -248,13 +248,15 @@ impl WasmSdsProcessor {
             WasmSdsProcessor::unwrap_base_synthesis_parameters_or_default(base_parameters);
 
         Ok(WasmGenerateResult::new(
-            generator.generate_row_seeded(
-                &self.data_block,
-                resolution,
-                cache_max_size,
-                &empty_value,
-                progress_reporter,
-            ),
+            generator
+                .generate_row_seeded(
+                    &self.data_block,
+                    resolution,
+                    cache_max_size,
+                    &empty_value,
+                    progress_reporter,
+                )
+                .map_err(|err| JsValue::from(err.to_string()))?,
             resolution,
         ))
     }
@@ -272,20 +274,22 @@ impl WasmSdsProcessor {
             WasmSdsProcessor::unwrap_base_synthesis_parameters_or_default(base_parameters);
 
         Ok(WasmGenerateResult::new(
-            generator.generate_value_seeded(
-                &self.data_block,
-                resolution,
-                cache_max_size,
-                &empty_value,
-                oversampling_parameters.map(|params| {
-                    OversamplingParameters::new(
-                        aggregated_result.aggregated_data.clone(),
-                        params.oversampling_ratio,
-                        params.oversampling_tries,
-                    )
-                }),
-                progress_reporter,
-            ),
+            generator
+                .generate_value_seeded(
+                    &self.data_block,
+                    resolution,
+                    cache_max_size,
+                    &empty_value,
+                    oversampling_parameters.map(|params| {
+                        OversamplingParameters::new(
+                            aggregated_result.aggregated_data.clone(),
+                            params.oversampling_ratio,
+                            params.oversampling_tries,
+                        )
+                    }),
+                    progress_reporter,
+                )
+                .map_err(|err| JsValue::from(err.to_string()))?,
             resolution,
         ))
     }
@@ -303,12 +307,14 @@ impl WasmSdsProcessor {
             WasmSdsProcessor::unwrap_base_synthesis_parameters_or_default(base_parameters);
 
         Ok(WasmGenerateResult::new(
-            generator.generate_aggregate_seeded(
-                &empty_value,
-                aggregated_result.aggregated_data.clone(),
-                use_synthetic_counts,
-                progress_reporter,
-            ),
+            generator
+                .generate_aggregate_seeded(
+                    &empty_value,
+                    aggregated_result.aggregated_data.clone(),
+                    use_synthetic_counts,
+                    progress_reporter,
+                )
+                .map_err(|err| JsValue::from(err.to_string()))?,
             resolution,
         ))
     }

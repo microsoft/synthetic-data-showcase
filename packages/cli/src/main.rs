@@ -275,15 +275,13 @@ fn main() {
                     };
                 let generator = Generator::default();
                 let generated_data = match mode.as_str() {
-                    "unseeded" => generator
-                        .generate_unseeded(
-                            &data_block,
-                            cli.resolution,
-                            cache_max_size,
-                            "",
-                            &mut progress_reporter,
-                        )
-                        .unwrap(),
+                    "unseeded" => generator.generate_unseeded(
+                        &data_block,
+                        cli.resolution,
+                        cache_max_size,
+                        "",
+                        &mut progress_reporter,
+                    ),
                     "row_seeded" => generator.generate_row_seeded(
                         &data_block,
                         cli.resolution,
@@ -311,10 +309,12 @@ fn main() {
                     }
                 };
 
-                if let Err(err) = generated_data.write_synthetic_data(
-                    &synthetic_path,
-                    synthetic_delimiter.chars().next().unwrap(),
-                ) {
+                if let Err(err) = generated_data.map(|gd| {
+                    gd.write_synthetic_data(
+                        &synthetic_path,
+                        synthetic_delimiter.chars().next().unwrap(),
+                    )
+                }) {
                     error!("error writing output file: {}", err);
                     process::exit(1);
                 }

@@ -111,7 +111,7 @@ impl SDSProcessor {
         resolution: usize,
         cache_max_size: usize,
         empty_value: &str,
-    ) -> GeneratedData {
+    ) -> StoppableResult<GeneratedData> {
         let mut progress_reporter = if log_enabled!(Debug) {
             Some(LoggerProgressReporter::new(Debug))
         } else {
@@ -156,7 +156,7 @@ impl SDSProcessor {
         cache_max_size: usize,
         empty_value: &str,
         oversampling_parameters: Option<OversamplingParameters>,
-    ) -> GeneratedData {
+    ) -> StoppableResult<GeneratedData> {
         let mut progress_reporter = if log_enabled!(Debug) {
             Some(LoggerProgressReporter::new(Debug))
         } else {
@@ -179,7 +179,7 @@ impl SDSProcessor {
         empty_value: &str,
         aggregated_data: AggregatedData,
         use_synthetic_counts: bool,
-    ) -> GeneratedData {
+    ) -> StoppableResult<GeneratedData> {
         let mut progress_reporter = if log_enabled!(Debug) {
             Some(LoggerProgressReporter::new(Debug))
         } else {

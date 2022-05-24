@@ -16,7 +16,10 @@ use crate::{
             },
         },
     },
-    utils::{math::calc_percentage, reporting::ReportProgress},
+    utils::{
+        math::calc_percentage,
+        reporting::{ReportProgress, StoppableResult},
+    },
 };
 
 /// Represents all the information required to perform the value seeded synthesis
@@ -92,7 +95,10 @@ impl ValueSeededSynthesizer {
     /// # Arguments
     /// * `progress_reporter` - Will be used to report the processing
     /// progress (`ReportProgress` trait). If `None`, nothing will be reported
-    pub fn run<T>(&mut self, progress_reporter: &mut Option<T>) -> SynthesizedRecords
+    pub fn run<T>(
+        &mut self,
+        progress_reporter: &mut Option<T>,
+    ) -> StoppableResult<SynthesizedRecords>
     where
         T: ReportProgress,
     {
@@ -107,10 +113,10 @@ impl ValueSeededSynthesizer {
                 &mut synthesized_records,
                 progress_reporter,
                 self.consolidate_parameters.clone(),
-            );
-            self.suppress(&mut synthesized_records, progress_reporter);
+            )?;
+            self.suppress(&mut synthesized_records, progress_reporter)?;
         }
-        synthesized_records
+        Ok(synthesized_records)
     }
 
     #[inline]
@@ -192,13 +198,15 @@ impl Consolidate for ValueSeededSynthesizer {
         n_processed: usize,
         total: f64,
         progress_reporter: &mut Option<T>,
-    ) where
+    ) -> bool
+    where
         T: ReportProgress,
     {
         if let Some(r) = progress_reporter {
             self.consolidate_percentage = calc_percentage(n_processed as f64, total);
-            r.report(self.calc_overall_progress());
+            return r.report(self.calc_overall_progress());
         }
+        true
     }
 }
 
@@ -209,12 +217,14 @@ impl Suppress for ValueSeededSynthesizer {
         n_processed: usize,
         total: f64,
         progress_reporter: &mut Option<T>,
-    ) where
+    ) -> bool
+    where
         T: ReportProgress,
     {
         if let Some(r) = progress_reporter {
             self.suppress_percentage = calc_percentage(n_processed as f64, total);
-            r.report(self.calc_overall_progress());
+            return r.report(self.calc_overall_progress());
         }
+        true
     }
 }

@@ -69,7 +69,7 @@ impl Generator {
         cache_max_size: usize,
         empty_value: &str,
         progress_reporter: &mut Option<T>,
-    ) -> GeneratedData
+    ) -> StoppableResult<GeneratedData>
     where
         T: ReportProgress,
     {
@@ -85,12 +85,12 @@ impl Generator {
             cache_max_size,
         );
 
-        self.build_generated_data(
+        Ok(self.build_generated_data(
             &data_block.headers,
             data_block.number_of_records(),
-            synth.run(progress_reporter),
+            synth.run(progress_reporter)?,
             empty_value_arc,
-        )
+        ))
     }
 
     /// Synthesize data using the unseeded method
@@ -151,7 +151,7 @@ impl Generator {
         empty_value: &str,
         oversampling_parameters: Option<OversamplingParameters>,
         progress_reporter: &mut Option<T>,
-    ) -> GeneratedData
+    ) -> StoppableResult<GeneratedData>
     where
         T: ReportProgress,
     {
@@ -168,12 +168,12 @@ impl Generator {
             oversampling_parameters,
         );
 
-        self.build_generated_data(
+        Ok(self.build_generated_data(
             &data_block.headers,
             data_block.number_of_records(),
-            synth.run(progress_reporter),
+            synth.run(progress_reporter)?,
             empty_value_arc,
-        )
+        ))
     }
 
     /// Synthesize data using the aggregate seeded method
@@ -190,7 +190,7 @@ impl Generator {
         aggregated_data: Arc<AggregatedData>,
         use_synthetic_counts: bool,
         progress_reporter: &mut Option<T>,
-    ) -> GeneratedData
+    ) -> StoppableResult<GeneratedData>
     where
         T: ReportProgress,
     {
@@ -202,11 +202,11 @@ impl Generator {
         let mut synth =
             AggregateSeededSynthesizer::new(aggregated_data.clone(), use_synthetic_counts);
 
-        self.build_generated_data(
+        Ok(self.build_generated_data(
             &aggregated_data.headers,
             aggregated_data.number_of_records,
-            synth.run(progress_reporter),
+            synth.run(progress_reporter)?,
             empty_value_arc,
-        )
+        ))
     }
 }

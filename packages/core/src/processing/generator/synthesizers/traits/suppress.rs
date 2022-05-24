@@ -1,13 +1,17 @@
 use super::SynthesisData;
 use fnv::FnvHashMap;
-use log::info;
+use log::{info, warn};
 use rand::{prelude::SliceRandom, thread_rng};
 use std::sync::Arc;
 
 use crate::{
     data_block::DataBlockValue,
     processing::generator::synthesizers::typedefs::{SynthesizedRecord, SynthesizedRecords},
-    utils::{math::iround_down, reporting::ReportProgress, time::ElapsedDurationLogger},
+    utils::{
+        math::iround_down,
+        reporting::{ProcessingStoppedError, ReportProgress, StoppableResult},
+        time::ElapsedDurationLogger,
+    },
 };
 
 pub trait Suppress: SynthesisData {
@@ -50,7 +54,8 @@ pub trait Suppress: SynthesisData {
         &mut self,
         synthesized_records: &mut SynthesizedRecords,
         progress_reporter: &mut Option<T>,
-    ) where
+    ) -> StoppableResult<()>
+    where
         T: ReportProgress,
     {
         let _duration_logger = ElapsedDurationLogger::new("suppression");
@@ -68,7 +73,10 @@ pub trait Suppress: SynthesisData {
         for r in synthesized_records.iter_mut() {
             let mut new_record = SynthesizedRecord::default();
 
-            self.update_suppress_progress(n_processed, total, progress_reporter);
+            if !self.update_suppress_progress(n_processed, total, progress_reporter) {
+                warn!("suppression stopped");
+                return Err(ProcessingStoppedError::default());
+            }
             n_processed += 1;
             for attr in r.iter() {
                 match targets.get(attr).cloned() {
@@ -88,6 +96,8 @@ pub trait Suppress: SynthesisData {
         }
         synthesized_records.retain(|r| !r.is_empty());
         self.update_suppress_progress(n_processed, total, progress_reporter);
+
+        Ok(())
     }
 
     fn update_suppress_progress<T>(
@@ -95,6 +105,7 @@ pub trait Suppress: SynthesisData {
         n_processed: usize,
         total: f64,
         progress_reporter: &mut Option<T>,
-    ) where
+    ) -> bool
+    where
         T: ReportProgress;
 }
