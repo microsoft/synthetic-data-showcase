@@ -212,7 +212,7 @@ async function generateAnalysisByLenCsv(
 /* eslint-disable @essex/adjacent-await */
 export function useOnGetAllAssetsDownloadInfo(
 	delimiter = ',',
-	alias = 'all_assets.zip',
+	alias = 'all_assets',
 ): () => Promise<DownloadInfo | undefined> {
 	const [manager] = useSdsManagerInstance()
 	const allSynthesisInfo = useAllFinishedSynthesisInfo()
