@@ -88,10 +88,12 @@ export function useSyntheticDataPrivacyText(
 				return `For all attribute combinations of any length, none describe groups of data subjects smaller than the privacy resolution (guaranteed by k-anonymity).`
 
 			case SynthesisMode.AggregateSeeded:
-				return `For all attribute combinations of up to 4 attributes, none describe groups of data subjects smaller than the privacy resolution (guaranteed by k-anonymity).`
+				return `For all attribute combinations of up to ${synthesisInfo.parameters.reportingLength} attributes, none describe groups of data subjects smaller than the privacy resolution (guaranteed by k-anonymity).`
 
 			case SynthesisMode.DP:
-				return `For all attribute combinations of up to 4 attributes, ${leakagePercentage.toFixed(
+				return `For all attribute combinations of up to ${
+					synthesisInfo.parameters.reportingLength
+				} attributes, ${leakagePercentage.toFixed(
 					2,
 				)}% describe groups of data subjects smaller than the privacy resolution (but protected by differential privacy).`
 		}
@@ -104,7 +106,9 @@ export function useSyntheticDataUtilityText(
 ): string {
 	return useMemo(() => {
 		const retainedCombinationsPercentage =
-			100 - evaluateResult.syntheticDataStats.percentageOfSuppressedCombinations
+			100 -
+			evaluateResult.syntheticVsAggregateDataStats
+				.percentageOfSuppressedCombinations
 
 		switch (synthesisInfo.parameters.mode) {
 			case SynthesisMode.Unseeded:
@@ -115,7 +119,7 @@ export function useSyntheticDataUtilityText(
 					synthesisInfo.parameters.reportingLength
 				} attributes, ${retainedCombinationsPercentage.toFixed(
 					2,
-				)}% of the combinations in the sensitive dataset are retained in the synthetic dataset. All released combinations were present in the sensitive dataset and the average error of counts derived from this synthetic data is ${evaluateResult.syntheticDataStats.combinationsCountMeanAbsError.toFixed(
+				)}% of the reported combinations in the aggregate dataset are retained in the synthetic dataset. All released combinations were present in the sensitive dataset and the average error of synthetic counts is ${evaluateResult.syntheticDataStats.combinationsCountMeanAbsError.toFixed(
 					2,
 				)}.`
 
@@ -124,7 +128,7 @@ export function useSyntheticDataUtilityText(
 					synthesisInfo.parameters.reportingLength
 				} attributes, ${retainedCombinationsPercentage.toFixed(
 					2,
-				)}% of the combinations in the sensitive dataset are retained in the synthetic dataset. The average error of counts derived from this synthetic data is ${evaluateResult.syntheticDataStats.combinationsCountMeanAbsError.toFixed(
+				)}% of the reported combinations in the aggregate dataset are retained in the synthetic dataset. The average error of synthetic counts is ${evaluateResult.syntheticDataStats.combinationsCountMeanAbsError.toFixed(
 					2,
 				)}.`
 		}
