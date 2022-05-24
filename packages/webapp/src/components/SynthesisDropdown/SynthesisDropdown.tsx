@@ -32,8 +32,16 @@ export const SynthesisDropdown: React.FC<SynthesisDropdownProps> = memo(
 				options={allSynthesisOptions}
 				disabled={disabled}
 				styles={{
-					dropdownOptionText: { overflow: 'visible', whiteSpace: 'normal' },
-					dropdownItem: { height: 'auto' },
+					dropdownOptionText: {
+						overflow: 'visible',
+						whiteSpace: 'normal',
+					},
+					dropdownItem: {
+						height: 'auto',
+					},
+					dropdownItemSelected: {
+						height: 'auto',
+					},
 				}}
 			/>
 		)
