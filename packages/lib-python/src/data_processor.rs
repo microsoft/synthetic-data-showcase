@@ -4,7 +4,7 @@ use pyo3::prelude::*;
 use sds_core::{
     data_block::{CsvDataBlockCreator, CsvIOError, DataBlock, DataBlockCreator},
     dp::DpParameters,
-    dp::{InputValueByLen, NoisyCountThreshold, StatsError},
+    dp::{InputValueByLen, NoisyCountThreshold},
     processing::{
         aggregator::{AggregatedData, Aggregator},
         generator::{GeneratedData, Generator, OversamplingParameters},
@@ -25,7 +25,7 @@ impl SDSProcessor {
         reporting_length: usize,
         dp_parameters: &DpParameters,
         threshold: NoisyCountThreshold,
-    ) -> Result<AggregatedData, StatsError> {
+    ) -> StoppableResult<AggregatedData> {
         let mut progress_reporter = if log_enabled!(Debug) {
             Some(LoggerProgressReporter::new(Debug))
         } else {
@@ -85,7 +85,7 @@ impl SDSProcessor {
         reporting_length: usize,
         dp_parameters: &DpParameters,
         threshold: InputValueByLen<f64>,
-    ) -> Result<AggregatedData, StatsError> {
+    ) -> StoppableResult<AggregatedData> {
         self.aggregate_with_dp(
             reporting_length,
             dp_parameters,
@@ -98,7 +98,7 @@ impl SDSProcessor {
         reporting_length: usize,
         dp_parameters: &DpParameters,
         threshold: InputValueByLen<f64>,
-    ) -> Result<AggregatedData, StatsError> {
+    ) -> StoppableResult<AggregatedData> {
         self.aggregate_with_dp(
             reporting_length,
             dp_parameters,

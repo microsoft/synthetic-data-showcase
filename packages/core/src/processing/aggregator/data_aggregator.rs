@@ -5,7 +5,7 @@ use log::info;
 use std::sync::Arc;
 
 use crate::data_block::DataBlock;
-use crate::dp::{DpParameters, NoiseAggregator, NoisyCountThreshold, StatsError};
+use crate::dp::{DpParameters, NoiseAggregator, NoisyCountThreshold};
 use crate::utils::math::calc_percentage;
 use crate::utils::reporting::{ReportProgress, StoppableResult};
 use crate::utils::threading::get_number_of_threads;
@@ -93,7 +93,7 @@ impl Aggregator {
         dp_parameters: &DpParameters,
         threshold: NoisyCountThreshold,
         progress_reporter: &mut Option<T>,
-    ) -> Result<AggregatedData, StatsError>
+    ) -> StoppableResult<AggregatedData>
     where
         T: ReportProgress,
     {
