@@ -9,7 +9,7 @@ use sds_core::{
         aggregator::{AggregatedData, Aggregator},
         generator::{GeneratedData, Generator, OversamplingParameters},
     },
-    utils::reporting::{LoggerProgressReporter, ProcessingStoppedError},
+    utils::reporting::{LoggerProgressReporter, StoppableResult},
 };
 use std::sync::Arc;
 
@@ -70,10 +70,7 @@ impl SDSProcessor {
         self.data_block.number_of_records()
     }
 
-    pub fn aggregate(
-        &self,
-        reporting_length: usize,
-    ) -> Result<AggregatedData, ProcessingStoppedError> {
+    pub fn aggregate(&self, reporting_length: usize) -> StoppableResult<AggregatedData> {
         let mut progress_reporter = if log_enabled!(Debug) {
             Some(LoggerProgressReporter::new(Debug))
         } else {
@@ -136,7 +133,7 @@ impl SDSProcessor {
         resolution: usize,
         cache_max_size: usize,
         empty_value: &str,
-    ) -> GeneratedData {
+    ) -> StoppableResult<GeneratedData> {
         let mut progress_reporter = if log_enabled!(Debug) {
             Some(LoggerProgressReporter::new(Debug))
         } else {

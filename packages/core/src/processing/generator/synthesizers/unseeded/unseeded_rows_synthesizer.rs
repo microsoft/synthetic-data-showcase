@@ -1,3 +1,4 @@
+use log::warn;
 use rand::{prelude::SliceRandom, thread_rng};
 use std::sync::Arc;
 
@@ -14,8 +15,11 @@ use crate::{
         },
     },
     utils::{
-        collections::{ordered_vec_intersection, sample_weighted},
-        reporting::{SendableProgressReporter, SendableProgressReporterRef},
+        collections::{flat_map_unwrap_or_default, ordered_vec_intersection, sample_weighted},
+        reporting::{
+            ProcessingStoppedError, SendableProgressReporter, SendableProgressReporterRef,
+            StoppableResult,
+        },
     },
 };
 
@@ -65,7 +69,8 @@ impl UnseededRowsSynthesizer {
         synthesized_records: &mut SynthesizedRecords,
         rows_synthesizers: &mut Vec<UnseededRowsSynthesizer>,
         progress_reporter: &mut Option<T>,
-    ) where
+    ) -> StoppableResult<()>
+    where
         T: ReportProgress,
     {
         let sendable_pr = Arc::new(Mutex::new(
@@ -74,11 +79,14 @@ impl UnseededRowsSynthesizer {
                 .map(|r| SendableProgressReporter::new(total, 1.0, r)),
         ));
 
-        synthesized_records.par_extend(
+        synthesized_records.extend(flat_map_unwrap_or_default(
             rows_synthesizers
                 .par_iter_mut()
-                .flat_map(|rs| rs.synthesize_rows(&mut sendable_pr.clone())),
-        );
+                .map(|rs| rs.synthesize_rows(&mut sendable_pr.clone()))
+                .collect(),
+        )?);
+
+        Ok(())
     }
 
     #[cfg(not(feature = "rayon"))]
@@ -88,25 +96,29 @@ impl UnseededRowsSynthesizer {
         synthesized_records: &mut SynthesizedRecords,
         rows_synthesizers: &mut Vec<UnseededRowsSynthesizer>,
         progress_reporter: &mut Option<T>,
-    ) where
+    ) -> StoppableResult<()>
+    where
         T: ReportProgress,
     {
         let mut sendable_pr = progress_reporter
             .as_mut()
             .map(|r| SendableProgressReporter::new(total, 1.0, r));
 
-        synthesized_records.extend(
+        synthesized_records.extend(flat_map_unwrap_or_default(
             rows_synthesizers
                 .iter_mut()
-                .flat_map(|rs| rs.synthesize_rows(&mut sendable_pr)),
-        );
+                .map(|rs| rs.synthesize_rows(&mut sendable_pr))
+                .collect(),
+        )?);
+
+        Ok(())
     }
 
     #[inline]
     fn synthesize_rows<T>(
         &mut self,
         progress_reporter: &mut SendableProgressReporterRef<T>,
-    ) -> SynthesizedRecords
+    ) -> StoppableResult<SynthesizedRecords>
     where
         T: ReportProgress,
     {
@@ -116,9 +128,13 @@ impl UnseededRowsSynthesizer {
         for _ in 0..self.chunk_size {
             shuffled_column_indexes.shuffle(&mut thread_rng());
             synthesized_records.push(self.synthesize_row(&shuffled_column_indexes));
-            SendableProgressReporter::update_progress(progress_reporter, 1.0);
+
+            if !SendableProgressReporter::update_progress(progress_reporter, 1.0) {
+                warn!("synthesis stopped");
+                return Err(ProcessingStoppedError::default());
+            }
         }
-        synthesized_records
+        Ok(synthesized_records)
     }
 
     #[inline]

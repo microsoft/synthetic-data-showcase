@@ -14,6 +14,7 @@ use crate::processing::aggregator::AggregatedData;
 use crate::processing::generator::synthesizers::AggregateSeededSynthesizer;
 use crate::processing::generator::synthesizers::SynthesizerCacheKey;
 use crate::utils::reporting::ReportProgress;
+use crate::utils::reporting::StoppableResult;
 use crate::utils::time::ElapsedDurationLogger;
 
 /// Process a data block and generates new synthetic data
@@ -107,7 +108,7 @@ impl Generator {
         cache_max_size: usize,
         empty_value: &str,
         progress_reporter: &mut Option<T>,
-    ) -> GeneratedData
+    ) -> StoppableResult<GeneratedData>
     where
         T: ReportProgress,
     {
@@ -124,12 +125,12 @@ impl Generator {
             empty_value_arc.clone(),
         );
 
-        self.build_generated_data(
+        Ok(self.build_generated_data(
             &data_block.headers,
             data_block.number_of_records(),
-            synth.run(progress_reporter),
+            synth.run(progress_reporter)?,
             empty_value_arc,
-        )
+        ))
     }
 
     /// Synthesize data using the value seeded method

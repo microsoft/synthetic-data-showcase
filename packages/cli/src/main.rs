@@ -275,13 +275,15 @@ fn main() {
                     };
                 let generator = Generator::default();
                 let generated_data = match mode.as_str() {
-                    "unseeded" => generator.generate_unseeded(
-                        &data_block,
-                        cli.resolution,
-                        cache_max_size,
-                        "",
-                        &mut progress_reporter,
-                    ),
+                    "unseeded" => generator
+                        .generate_unseeded(
+                            &data_block,
+                            cli.resolution,
+                            cache_max_size,
+                            "",
+                            &mut progress_reporter,
+                        )
+                        .unwrap(),
                     "row_seeded" => generator.generate_row_seeded(
                         &data_block,
                         cli.resolution,

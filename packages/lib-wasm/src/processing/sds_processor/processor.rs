@@ -224,13 +224,15 @@ impl WasmSdsProcessor {
             WasmSdsProcessor::unwrap_base_synthesis_parameters_or_default(base_parameters);
 
         Ok(WasmGenerateResult::new(
-            generator.generate_unseeded(
-                &self.data_block,
-                resolution,
-                cache_max_size,
-                &empty_value,
-                progress_reporter,
-            ),
+            generator
+                .generate_unseeded(
+                    &self.data_block,
+                    resolution,
+                    cache_max_size,
+                    &empty_value,
+                    progress_reporter,
+                )
+                .map_err(|err| JsValue::from(err.to_string()))?,
             resolution,
         ))
     }
