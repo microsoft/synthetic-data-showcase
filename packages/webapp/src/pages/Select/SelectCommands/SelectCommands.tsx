@@ -2,20 +2,20 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import { FlexContainer } from '@sds/components'
 import type { FC } from 'react'
 import { memo } from 'react'
 import styled from 'styled-components'
 
-import { Flex } from '~components/Flexbox'
-
-import { MultiValueColumns } from './MultiValueColumns'
-import { SelectColumns } from './SelectColumns'
-import { SensitiveZeros } from './SensitiveZeros'
-import { SubjectId } from './SubjectId'
+import { AggregationControls } from './AggregationControls/AggregationControls.js'
+import { MultiValueColumns } from './MultiValueColumns/index.js'
+import { SelectColumns } from './SelectColumns/index.js'
+import { SensitiveZeros } from './SensitiveZeros/index.js'
+import { SubjectId } from './SubjectId/index.js'
 
 export const SelectCommands: FC = memo(function SelectCommand() {
 	return (
-		<Container justify="center" align="center">
+		<Container justify="center" align="center" wrap>
 			<SelectColumns />
 			<Divider>|</Divider>
 			<SubjectId />
@@ -23,12 +23,13 @@ export const SelectCommands: FC = memo(function SelectCommand() {
 			<SensitiveZeros />
 			<Divider>|</Divider>
 			<MultiValueColumns />
+			<AggregationControls />
 		</Container>
 	)
 })
 SelectCommands.displayName = 'SelectCommands'
 
-const Container = styled(Flex)`
+const Container = styled(FlexContainer)`
 	border-bottom: 1px solid ${p => p.theme.palette.neutralLight};
 	box-shadow: ${p => p.theme.effects.elevation4};
 `

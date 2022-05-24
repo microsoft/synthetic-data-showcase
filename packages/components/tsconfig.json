@@ -1,0 +1,20 @@
+{
+	"include": ["./src/**/*"],
+	"compilerOptions": {
+		"outDir": "./dist",
+		"declaration": true,
+		"declarationDir": "./dist/types",
+		"target": "ES2020" /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */,
+		"lib": [
+			"ES2020"
+		] /* Specify a set of bundled library declaration files that describe the target runtime environment. */,
+		"jsx": "react" /* Specify what JSX code is generated. */,
+		"module": "ES2020" /* Specify what module code is generated. */,
+		"forceConsistentCasingInFileNames": true /* Ensure that casing is correct in imports. */,
+		"strict": true /* Enable all strict type-checking options. */,
+		"skipLibCheck": true /* Skip type checking all .d.ts files. */,
+		"noErrorTruncation": true,
+		"esModuleInterop": true,
+		"moduleResolution": "node"
+	}
+}

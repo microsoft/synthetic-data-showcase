@@ -4,10 +4,9 @@
  */
 import type { IDropdownOption } from '@fluentui/react'
 import { useCallback } from 'react'
-import type { SetterOrUpdater } from 'recoil'
 
 export function useDropdownOnChange<T>(
-	setter: SetterOrUpdater<T>,
+	setter: (val: T) => void,
 ): (event: React.FormEvent<HTMLDivElement>, item?: IDropdownOption) => void {
 	return useCallback(
 		(event: React.FormEvent<HTMLDivElement>, item?: IDropdownOption) => {

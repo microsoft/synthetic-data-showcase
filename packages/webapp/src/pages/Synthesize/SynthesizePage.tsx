@@ -6,7 +6,7 @@ import type { FC } from 'react'
 import { memo } from 'react'
 import styled from 'styled-components'
 
-import { DataSynthesis } from './DataSynthesis'
+import { DataSynthesis } from './DataSynthesis/index.js'
 
 export const SynthesizePage: FC = memo(function SynthesizePage() {
 	return (
@@ -19,5 +19,5 @@ SynthesizePage.displayName = 'SynthesizePage'
 
 const Container = styled.div`
 	height: 100%;
-	overflow-y: scroll;
+	overflow-y: auto;
 `

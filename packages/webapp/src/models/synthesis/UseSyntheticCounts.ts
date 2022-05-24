@@ -3,6 +3,6 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 export enum UseSyntheticCounts {
+	No = 'No',
 	Yes = 'Yes',
-	No = 'No'
 }

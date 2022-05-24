@@ -4,11 +4,11 @@
  */
 import { Callout, DirectionalHint, Icon } from '@fluentui/react'
 import { useBoolean, useId } from '@fluentui/react-hooks'
+import { FlexContainer } from '@sds/components'
 import type { FC } from 'react'
 import { memo, useCallback, useEffect, useMemo } from 'react'
 import styled from 'styled-components'
 
-import { Flex } from '~components/Flexbox'
 import { useSubjectIdErrorMessage } from '~pages/Select/DataSelect/hooks'
 import { useGlobalErrorMessage, useSensitiveContent } from '~states'
 
@@ -109,7 +109,7 @@ const Action = styled.span`
 	}
 `
 
-const Container = styled(Flex)`
+const Container = styled(FlexContainer)`
 	min-width: 250px;
 	max-height: 400px;
 	border: 1px solid ${p => p.theme.palette.neutralLight};
@@ -120,7 +120,7 @@ const Container = styled(Flex)`
 	}
 `
 
-const ListContainer = styled(Flex)`
+const ListContainer = styled(FlexContainer)`
 	overflow-y: auto;
 	padding: ${p => p.theme.spacing.s1};
 	direction: rtl;

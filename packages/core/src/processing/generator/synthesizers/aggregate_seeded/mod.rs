@@ -42,17 +42,7 @@ impl AggregateSeededSynthesizer {
         use_synthetic_counts: bool,
     ) -> AggregateSeededSynthesizer {
         AggregateSeededSynthesizer {
-            single_attr_counts: aggregated_data
-                .aggregates_count
-                .iter()
-                .filter_map(|(attr, count)| {
-                    if attr.len() == 1 {
-                        Some((attr[0].clone(), count.count))
-                    } else {
-                        None
-                    }
-                })
-                .collect(),
+            single_attr_counts: aggregated_data.calc_single_attribute_counts(),
             consolidate_parameters: ConsolidateParameters::new(
                 aggregated_data,
                 None,

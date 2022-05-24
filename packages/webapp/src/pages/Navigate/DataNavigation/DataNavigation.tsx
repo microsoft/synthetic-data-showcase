@@ -2,35 +2,23 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import type { IIconProps, IStackStyles, IStackTokens } from '@fluentui/react'
-import {
-	IconButton,
-	Separator,
-	Spinner,
-	Stack,
-	useTheme,
-} from '@fluentui/react'
-import { memo, useCallback, useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Separator, useTheme } from '@fluentui/react'
+import { FlexContainer, FlexItem } from '@sds/components'
+import { memo, useEffect, useRef, useState } from 'react'
 import type {
 	IAttributesIntersection,
 	ISelectedAttributesByColumn,
 } from 'sds-wasm'
+import styled from 'styled-components'
 
 import {
 	ColumnAttributeSelectorGrid,
 	HeaderSelector,
 	SelectedAttributes,
 } from '~components/AttributeSelector'
-import { ContextsDropdown } from '~components/ContextsDropdown'
-import { InfoTooltip } from '~components/InfoTooltip'
-import { Pages } from '~pages'
-import {
-	useAllContextsParametersValue,
-	useSelectedContextParameters,
-	useWasmWorkerValue,
-} from '~states'
-import { tooltips } from '~ui-tooltips'
+import { SynthesisDropdown } from '~components/SynthesisDropdown'
+import { useAllFinishedSynthesisInfo } from '~pages/Synthesize'
+import { useSdsManagerInstance, useSelectedSynthesisInfo } from '~states'
 
 import {
 	useInitiallySelectedHeaders,
@@ -39,11 +27,9 @@ import {
 	useOnRunNavigate,
 	useOnSetSelectedAttributes,
 	useOnToggleSelectedHeader,
-} from './hooks'
+} from './hooks/index.js'
 
-const backIcon: IIconProps = { iconName: 'Back' }
-
-const viewHeight = 'calc(100vh - 265px)'
+const viewHeight = 'calc(100vh - 204px)'
 
 const chartHeight = `calc((${viewHeight} / 2) - 25px)`
 
@@ -55,26 +41,25 @@ export type SetSelectedAttributesCallback = (
 export type ClearSelectedAttributesCallback = () => Promise<void>
 
 export const DataNavigation: React.FC = memo(function DataNavigation() {
-	const navigate = useNavigate()
 	const [isLoading, setIsLoading] = useState(true)
 	const [selectedAttributesByColumn, setSelectedAttributesByColumn] =
 		useState<ISelectedAttributesByColumn>({})
-	const worker = useWasmWorkerValue()
+	const [manager] = useSdsManagerInstance()
 	const isMounted = useRef(true)
-	const allContextsParameters = useAllContextsParametersValue()
-	const [selectedContextParameters, setSelectedContextParameters] =
-		useSelectedContextParameters()
-	const headers = selectedContextParameters?.useColumns ?? []
+	const allFinishedSynthesisInfo = useAllFinishedSynthesisInfo()
+	const [selectedSynthesis, setSelectedSynthesis] = useSelectedSynthesisInfo()
+	const headers =
+		selectedSynthesis?.parameters.csvDataParameters.useColumns ?? []
 	const initiallySelectedHeaders = useInitiallySelectedHeaders(headers)
 	const [selectedHeaders, setSelectedHeaders] = useState<boolean[]>(
 		initiallySelectedHeaders,
 	)
 	const setNewSelectedAttributesByColumn = useOnNewSelectedAttributesByColumn(
-		selectedContextParameters?.key,
+		selectedSynthesis?.key,
 		setIsLoading,
 		isMounted,
 		setSelectedAttributesByColumn,
-		worker,
+		manager,
 	)
 	const onSetSelectedAttributes = useOnSetSelectedAttributes(
 		setNewSelectedAttributesByColumn,
@@ -83,44 +68,24 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 	const onClearSelectedAttributes = useOnClearSelectedAttributes(
 		setNewSelectedAttributesByColumn,
 	)
-	const onGoBack = useCallback(() => {
-		navigate(Pages.Synthesize.path)
-	}, [navigate])
 	const onToggleSelectedHeader = useOnToggleSelectedHeader(
 		selectedHeaders,
 		setSelectedHeaders,
 	)
 
 	const onRunNavigate = useOnRunNavigate(
-		selectedContextParameters?.key,
+		selectedSynthesis?.key,
 		setIsLoading,
 		isMounted,
 		setSelectedHeaders,
 		initiallySelectedHeaders,
-		worker,
+		manager,
 	)
 	const theme = useTheme()
 
-	const mainStackStyles: IStackStyles = {
-		root: {
-			display: 'flex',
-			marginTop: theme.spacing.s2,
-			marginLeft: theme.spacing.l1,
-			marginRight: theme.spacing.l1,
-		},
-	}
-
-	const mainStackTokens: IStackTokens = {
-		childrenGap: theme.spacing.m,
-	}
-
-	const subStackTokens: IStackTokens = {
-		childrenGap: theme.spacing.s1,
-	}
-
 	useEffect(() => {
 		onClearSelectedAttributes()
-	}, [selectedContextParameters, onClearSelectedAttributes])
+	}, [selectedSynthesis, onClearSelectedAttributes])
 
 	useEffect(() => {
 		onRunNavigate()
@@ -133,73 +98,64 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 	}, [])
 
 	return (
-		<Stack styles={mainStackStyles} tokens={mainStackTokens}>
-			<Stack horizontal verticalAlign="center" tokens={subStackTokens}>
-				<IconButton iconProps={backIcon} onClick={onGoBack} />
-				<h3>Compare sensitive and synthetic results</h3>
-				<InfoTooltip>{tooltips.navigate}</InfoTooltip>
-			</Stack>
+		<MainContainer vertical gap={theme.spacing.s1}>
+			<FlexContainer vertical gap={theme.spacing.s1}>
+				<SynthesisDropdown
+					selectedSynthesis={selectedSynthesis}
+					allSynthesisInfo={allFinishedSynthesisInfo}
+					onChange={setSelectedSynthesis}
+					disabled={allFinishedSynthesisInfo.length === 0 || isLoading}
+				/>
+				<SelectedAttributes
+					headers={headers}
+					selectedAttributesByColumn={selectedAttributesByColumn}
+					onSetSelectedAttributes={onSetSelectedAttributes}
+					onClearSelectedAttributes={onClearSelectedAttributes}
+				/>
+			</FlexContainer>
 
-			<ContextsDropdown
-				selectedContextParameters={selectedContextParameters}
-				allContextsParameters={allContextsParameters}
-				onContextSelected={setSelectedContextParameters}
-				disabled={allContextsParameters.length === 0 || isLoading}
-			/>
+			{selectedSynthesis && (
+				<Container key={isLoading.toString()}>
+					<Container>
+						<HeaderSelector
+							headers={headers}
+							selectedHeaders={selectedHeaders}
+							onToggle={onToggleSelectedHeader}
+						/>
+					</Container>
+					<FlexItem grow={0} shrink={0}>
+						<Separator
+							vertical={true}
+							styles={{ root: { height: viewHeight } }}
+						/>
+					</FlexItem>
 
-			<SelectedAttributes
-				headers={headers}
-				selectedAttributesByColumn={selectedAttributesByColumn}
-				onSetSelectedAttributes={onSetSelectedAttributes}
-				onClearSelectedAttributes={onClearSelectedAttributes}
-			/>
-
-			{selectedContextParameters && (
-				<Stack horizontal tokens={subStackTokens} horizontalAlign="center">
-					{isLoading ? (
-						<Spinner />
-					) : (
-						<>
-							<Stack.Item
-								styles={{
-									root: {
-										overflow: 'auto',
-										paddingRight: '20px',
-										height: viewHeight,
-										minWidth: '80px',
-									},
-								}}
-							>
-								<HeaderSelector
-									headers={headers}
-									selectedHeaders={selectedHeaders}
-									onToggle={onToggleSelectedHeader}
-								/>
-							</Stack.Item>
-
-							<Separator
-								vertical={true}
-								styles={{ root: { height: viewHeight } }}
-							/>
-
-							<Stack.Item grow={1}>
-								<ColumnAttributeSelectorGrid
-									contextKey={selectedContextParameters?.key}
-									viewHeight={viewHeight}
-									headers={headers}
-									selectedHeaders={selectedHeaders}
-									chartHeight={chartHeight}
-									chartWidth={400}
-									chartBarHeight={40}
-									chartMinHeight={150}
-									selectedAttributesByColumn={selectedAttributesByColumn}
-									onSetSelectedAttributes={onSetSelectedAttributes}
-								/>
-							</Stack.Item>
-						</>
-					)}
-				</Stack>
+					<FlexItem grow={1} shrink={0}>
+						<ColumnAttributeSelectorGrid
+							contextKey={selectedSynthesis?.key}
+							viewHeight={viewHeight}
+							headers={headers}
+							selectedHeaders={selectedHeaders}
+							chartHeight={chartHeight}
+							chartWidth={400}
+							chartBarHeight={40}
+							chartMinHeight={150}
+							selectedAttributesByColumn={selectedAttributesByColumn}
+							onSetSelectedAttributes={onSetSelectedAttributes}
+						/>
+					</FlexItem>
+				</Container>
 			)}
-		</Stack>
+		</MainContainer>
 	)
 })
+
+const Container = styled(FlexContainer)`
+	overflow-y: auto;
+`
+
+const MainContainer = styled(Container)`
+	margin-top: ${p => p.theme.spacing.s1};
+	padding-left: ${p => p.theme.spacing.m};
+	padding-right: ${p => p.theme.spacing.m};
+`

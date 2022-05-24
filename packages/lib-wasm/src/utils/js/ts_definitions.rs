@@ -2,16 +2,74 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(typescript_custom_section)]
 const TS_APPEND_CONTENT: &'static str = r#"
-export type ReportProgressCallback = (progress: number) => void
+export type ReportProgressCallback = (progress: number) => boolean
 
 export type HeaderNames = string[]
+
+export interface ICsvDataParameters {
+  delimiter: string
+  useColumns: HeaderNames
+  sensitiveZeros: HeaderNames
+  recordLimit: number
+}
+
+export interface ISingleAttributeCounts {
+  [attr: string]: number
+}
+
+export interface IRecordsCountByColumn {
+  [headerName: string]: number
+}
+
+export interface IAggregateStatistics {
+  numberOfDistinctAttributes: number
+  singleAttributeCounts: ISingleAttributeCounts
+  numberOfUniqueCombinations: number
+  numberOfRecordsWithUniqueCombinations: number
+  numberOfRecordsWithUniqueCombinationsPerColumn: IRecordsCountByColumn
+  numberOfRareCombinations: number
+  numberOfRecordsWithRareCombinations: number
+  numberOfRecordsWithRareCombinationsPerColumn: IRecordsCountByColumn
+  numberOfRecords: number
+  numberOfDistinctCombinations: usize
+}
+
+export enum NoisyCountThresholdType {
+  Fixed = 'Fixed',
+  Adaptive = 'Adaptive'
+}
 
 export interface IInputNumberByLength {
   [length: number]: number
 }
 
+export interface INoisyCountThreshold {
+  type: NoisyCountThresholdType
+  valuesByLen: IInputNumberByLength
+}
+
+export interface IDpParameters {
+  epsilon: number
+  delta: number
+  percentilePercentage: number
+  percentileEpsilonProportion: number
+  sigmaProportions?: number[]
+}
+
+export interface IOversamplingParameters {
+  oversamplingRatio?: number
+  oversamplingTries?: number
+}
+
+export interface IBaseSynthesisParameters {
+  resolution: usize,
+  cacheMaxSize?: number
+  emptyValue?: string
+}
+
 export interface IGenerateResult {
   expansionRatio: number
+  resolution: number
   syntheticData: string
 }
 
@@ -76,8 +134,35 @@ extern "C" {
     #[wasm_bindgen(typescript_type = "HeaderNames")]
     pub type JsHeaderNames;
 
+    #[wasm_bindgen(typescript_type = "ICsvDataParameters")]
+    pub type JsCsvDataParameters;
+
+    #[wasm_bindgen(typescript_type = "ISingleAttributeCounts")]
+    pub type JsSingleAttributeCounts;
+
+    #[wasm_bindgen(typescript_type = "IRecordsCountByColumn")]
+    pub type JsRecordsCountByColumn;
+
+    #[wasm_bindgen(typescript_type = "IAggregateStatistics")]
+    pub type JsAggregateStatistics;
+
+    #[wasm_bindgen(typescript_type = "NoisyCountThresholdType")]
+    pub type JsNoisyCountThresholdType;
+
     #[wasm_bindgen(typescript_type = "IInputNumberByLength")]
     pub type JsInputNumberByLength;
+
+    #[wasm_bindgen(typescript_type = "INoisyCountThreshold")]
+    pub type JsNoisyCountThreshold;
+
+    #[wasm_bindgen(typescript_type = "IDpParameters")]
+    pub type JsDpParameters;
+
+    #[wasm_bindgen(typescript_type = "IOversamplingParameters")]
+    pub type JsOversamplingParameters;
+
+    #[wasm_bindgen(typescript_type = "IBaseSynthesisParameters")]
+    pub type JsBaseSynthesisParameters;
 
     #[wasm_bindgen(typescript_type = "IGenerateResult")]
     pub type JsGenerateResult;

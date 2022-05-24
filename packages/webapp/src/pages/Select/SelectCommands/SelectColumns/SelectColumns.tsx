@@ -4,11 +4,11 @@
  */
 import { Callout, Checkbox, DirectionalHint } from '@fluentui/react'
 import { useBoolean, useId } from '@fluentui/react-hooks'
+import { FlexContainer } from '@sds/components'
 import type { FC } from 'react'
 import { memo, useCallback, useMemo } from 'react'
 import styled from 'styled-components'
 
-import { Flex } from '~components/Flexbox'
 import { useOnUseColumnCheckToggle } from '~pages/Select/DataSelect/hooks'
 import { useSensitiveContent } from '~states'
 
@@ -91,7 +91,7 @@ const Action = styled.span`
 	}
 `
 
-const Container = styled(Flex)`
+const Container = styled(FlexContainer)`
 	min-width: 250px;
 	max-height: 400px;
 	border: 1px solid ${p => p.theme.palette.neutralLight};
@@ -102,7 +102,7 @@ const Container = styled(Flex)`
 	}
 `
 
-const GroupActions = styled(Flex)`
+const GroupActions = styled(FlexContainer)`
 	padding: ${p => p.theme.spacing.s1};
 	border-bottom: 1px solid ${p => p.theme.palette.neutralLight};
 	box-shadow: ${p => p.theme.effects.elevation4};
@@ -122,7 +122,7 @@ const Divider = styled.span`
 	color: ${p => p.theme.palette.neutralTertiary};
 `
 
-const ListContainer = styled(Flex)`
+const ListContainer = styled(FlexContainer)`
 	overflow-y: auto;
 	padding: ${p => p.theme.spacing.s1};
 	direction: rtl;

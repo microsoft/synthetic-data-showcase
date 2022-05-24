@@ -10,8 +10,8 @@ import {
 	DataContext,
 	FileUploader,
 	StyleContext,
-} from './contexts'
-import { Routes } from './Layout/Routes'
+} from './contexts/index.js'
+import { Routes } from './Layout/Routes.js'
 
 export const App: React.FC = memo(function App() {
 	return (

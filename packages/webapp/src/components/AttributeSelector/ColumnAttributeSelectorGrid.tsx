@@ -10,7 +10,7 @@ import { AttributeIntersectionValueChartLegend } from '~components/AttributeInte
 import { useHorizontalScrolling } from '~components/Charts/hooks'
 import type { SetSelectedAttributesCallback } from '~pages/Navigate/DataNavigation'
 
-import { ColumnAttributeSelector } from './ColumnAttributeSelector'
+import { ColumnAttributeSelector } from './ColumnAttributeSelector.js'
 
 export interface ColumnAttributeSelectorGridProps {
 	contextKey: string
@@ -74,6 +74,7 @@ export const ColumnAttributeSelectorGrid: React.FC<ColumnAttributeSelectorGridPr
 										selectedAttributes={
 											selectedAttributesByColumn[i] ?? new Set()
 										}
+										selectedAttributesByColumn={selectedAttributesByColumn}
 										onSetSelectedAttributes={onSetSelectedAttributes}
 									/>
 								</Stack.Item>

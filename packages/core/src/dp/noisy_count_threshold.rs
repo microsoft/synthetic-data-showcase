@@ -1,6 +1,9 @@
+use serde::{Deserialize, Serialize};
+
 use super::InputValueByLen;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type", content = "valuesByLen")]
 /// Possible thresholds when adding noise with DP
 pub enum NoisyCountThreshold {
     /// Filter combinations by combination length based on a fixed threshold

@@ -2,7 +2,6 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import essexViteConfig from '@essex/vite-config'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
@@ -21,6 +20,19 @@ export default defineConfig(({ command, mode }) => {
 				},
 			},
 		},
-		plugins: [tsconfigPaths(), react()],
+		plugins: [
+			tsconfigPaths(),
+			react(),
+			{
+				name: 'crossOriginIsolate',
+				configureServer(server) {
+					server.middlewares.use((_, res, next) => {
+						res.setHeader('Cross-Origin-Opener-Policy', 'same-origin')
+						res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp')
+						next()
+					})
+				},
+			},
+		],
 	}
 })

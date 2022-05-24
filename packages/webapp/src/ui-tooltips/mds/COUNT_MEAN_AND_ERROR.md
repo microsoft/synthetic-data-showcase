@@ -1,6 +1,6 @@
 ### Mean value
 
-Mean count of the all the attribute combinations on the **sensitive data** (up to the `reporting length`).
+Mean count of the all the attribute combinations on the **sensitive data** (up to the `aggregation limit`).
 
 
 ### Mean error

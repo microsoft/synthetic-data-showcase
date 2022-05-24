@@ -44,8 +44,8 @@ const GlobalStyle = createGlobalStyle`
 		-moz-osx-font-smoothing: grayscale;
 	}
 
-	#root, .body-109 {
-		height: 100%
+	#root, #root > div:first-child {
+		height: 100%;
 	}
 
 	code {

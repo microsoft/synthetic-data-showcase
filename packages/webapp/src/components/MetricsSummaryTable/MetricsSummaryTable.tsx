@@ -13,9 +13,9 @@ import { memo } from 'react'
 import type { IMicrodataStatistics } from 'sds-wasm'
 
 import { InfoTooltip } from '~components/InfoTooltip'
-import type { AggregateType } from '~models'
+import type { AggregateType } from '~workers/types'
 
-import { useMicrodataMetricsItems } from './hooks'
+import { useMicrodataMetricsItems } from './hooks.js'
 
 export interface MetricsSummaryTableProps {
 	stats: IMicrodataStatistics
@@ -23,7 +23,10 @@ export interface MetricsSummaryTableProps {
 }
 
 export const MetricsSummaryTable: React.FC<MetricsSummaryTableProps> = memo(
-	function MetricsSummaryTable({ stats, aggregateType }: MetricsSummaryTableProps) {
+	function MetricsSummaryTable({
+		stats,
+		aggregateType,
+	}: MetricsSummaryTableProps) {
 		const columns: IColumn[] = [
 			{
 				key: 'metric',

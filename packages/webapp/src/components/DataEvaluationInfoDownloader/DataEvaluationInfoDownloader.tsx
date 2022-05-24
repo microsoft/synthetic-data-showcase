@@ -2,8 +2,8 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import type { IStackStyles, IStackTokens } from '@fluentui/react'
-import { Stack } from '@fluentui/react'
+import { useTheme } from '@fluentui/react'
+import { FlexContainer } from '@sds/components'
 import { memo } from 'react'
 import type { IMicrodataStatistics } from 'sds-wasm'
 
@@ -12,7 +12,7 @@ import {
 	useMetricsByLenLabels,
 } from '~components/Charts/hooks'
 import { DownloadButton } from '~components/controls/DownloadButton'
-import type { AggregateType } from '~models'
+import type { AggregateType } from '~workers/types'
 
 import {
 	useOnGetAggregatesCsv,
@@ -20,16 +20,13 @@ import {
 	useOnGetAnalysisByLenCsv,
 	useOnGetDownloadInfo,
 	useOnGetMetricsSummaryCsv,
-} from './hooks'
+} from './hooks.js'
 
 export interface DataEvaluationInfoDownloaderProps {
 	contextKey: string
 	reportingLength: number
 	stats: IMicrodataStatistics
 	aggregateType: AggregateType
-	stackStyles?: IStackStyles
-	stackTokens?: IStackTokens
-	stackItemStyles?: IStackStyles
 }
 
 export const DataEvaluationInfoDownloader: React.FC<DataEvaluationInfoDownloaderProps> =
@@ -38,10 +35,9 @@ export const DataEvaluationInfoDownloader: React.FC<DataEvaluationInfoDownloader
 		reportingLength,
 		stats,
 		aggregateType,
-		stackStyles,
-		stackTokens,
-		stackItemStyles,
 	}: DataEvaluationInfoDownloaderProps) {
+		const theme = useTheme()
+
 		const onGetAggregatesDownloadInfo = useOnGetDownloadInfo(
 			useOnGetAggregatesCsv(contextKey, aggregateType),
 			`${aggregateType}_aggregates.csv`,
@@ -66,36 +62,23 @@ export const DataEvaluationInfoDownloader: React.FC<DataEvaluationInfoDownloader
 		)
 
 		return (
-			<Stack
-				horizontal
-				horizontalAlign={'center'}
-				styles={stackStyles}
-				tokens={stackTokens}
-			>
-				<Stack.Item styles={stackItemStyles}>
-					<DownloadButton
-						label="Aggregates"
-						onGetDownloadInfo={onGetAggregatesDownloadInfo}
-					/>
-				</Stack.Item>
-				<Stack.Item styles={stackItemStyles}>
-					<DownloadButton
-						label="Metrics summary"
-						onGetDownloadInfo={onGetMetricsSummaryDownloadInfo}
-					/>
-				</Stack.Item>
-				<Stack.Item styles={stackItemStyles}>
-					<DownloadButton
-						label="Analysis by count"
-						onGetDownloadInfo={onGetAnalysisByCountDownloadInfo}
-					/>
-				</Stack.Item>
-				<Stack.Item styles={stackItemStyles}>
-					<DownloadButton
-						label="Analysis by length"
-						onGetDownloadInfo={onGetAnalysisByLenDownloadInfo}
-					/>
-				</Stack.Item>
-			</Stack>
+			<FlexContainer gap={theme.spacing.s1} justify="space-evenly" wrap>
+				<DownloadButton
+					label="Aggregates"
+					onGetDownloadInfo={onGetAggregatesDownloadInfo}
+				/>
+				<DownloadButton
+					label="Metrics summary"
+					onGetDownloadInfo={onGetMetricsSummaryDownloadInfo}
+				/>
+				<DownloadButton
+					label="Analysis by count"
+					onGetDownloadInfo={onGetAnalysisByCountDownloadInfo}
+				/>
+				<DownloadButton
+					label="Analysis by length"
+					onGetDownloadInfo={onGetAnalysisByLenDownloadInfo}
+				/>
+			</FlexContainer>
 		)
 	})

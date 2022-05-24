@@ -13,7 +13,7 @@ import {
 	useSensitiveZerosCommand,
 	useSubjectIdCommand,
 	useVisibleColumnsCommand,
-} from './commands'
+} from './commands/index.js'
 
 export function useSensitiveTableCommands(
 	content: ICsvContent,

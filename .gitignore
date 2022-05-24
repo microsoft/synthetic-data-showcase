@@ -1,5 +1,5 @@
 # VSCode
-.vscode/
+# .vscode/
 
 # Rust ignores
 target/

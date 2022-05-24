@@ -2,17 +2,19 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import type { IIconProps, IStackTokens } from '@fluentui/react'
-import { CommandButton, PrimaryButton, Stack, useTheme } from '@fluentui/react'
+import type { IIconProps } from '@fluentui/react'
+import { CommandButton, PrimaryButton, useTheme } from '@fluentui/react'
+import { FlexContainer } from '@sds/components'
 import { memo } from 'react'
 import type { HeaderNames, ISelectedAttributesByColumn } from 'sds-wasm'
+import styled from 'styled-components'
 
 import type {
 	ClearSelectedAttributesCallback,
 	SetSelectedAttributesCallback,
 } from '~pages/Navigate/DataNavigation'
 
-import { useSelectedAttributesByColumnEntries } from './hooks'
+import { useSelectedAttributesByColumnEntries } from './hooks.js'
 
 const deleteIcon: IIconProps = { iconName: 'Delete' }
 
@@ -35,12 +37,8 @@ export const SelectedAttributes: React.FC<SelectedAttributesProps> = memo(
 			selectedAttributesByColumn,
 		)
 
-		const stackTokens: IStackTokens = {
-			childrenGap: theme.spacing.s2,
-		}
-
 		return (
-			<Stack tokens={stackTokens} horizontal wrap verticalAlign="center">
+			<FlexContainer gap={theme.spacing.s2} wrap align="center">
 				<PrimaryButton
 					onClick={onClearSelectedAttributes}
 					disabled={selectedEntries.length === 0}
@@ -52,7 +50,7 @@ export const SelectedAttributes: React.FC<SelectedAttributesProps> = memo(
 						.sort()
 						.map(value => {
 							return (
-								<CommandButton
+								<StyledCommandButton
 									key={`${entry[0]}:${value}`}
 									iconProps={deleteIcon}
 									text={`${headers[entry[0]]}:${value}`}
@@ -63,7 +61,11 @@ export const SelectedAttributes: React.FC<SelectedAttributesProps> = memo(
 							)
 						})
 				})}
-			</Stack>
+			</FlexContainer>
 		)
 	},
 )
+
+const StyledCommandButton = styled(CommandButton)`
+	height: 32px;
+`

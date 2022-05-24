@@ -10,9 +10,8 @@ import { defaultSubjectID } from '~models'
 import {
 	useClearSensitiveData,
 	useIsProcessingSetter,
-	useNoiseDeltaSetter,
 	usePreparedTable,
-	useRecordLimitSetter,
+	useRawSynthesisParametersPropertySetter,
 	useSensitiveContent,
 } from '~states'
 import { columnIndexesWithZeros, tableHeaders } from '~utils'
@@ -22,8 +21,8 @@ export function useOnTableChange(): void {
 	const [, setSensitiveContent] = useSensitiveContent()
 	const setIsProcessing = useIsProcessingSetter()
 	const clearSensitiveData = useClearSensitiveData()
-	const setRecordLimit = useRecordLimitSetter()
-	const setNoiseDelta = useNoiseDeltaSetter()
+	const setRecordLimit = useRawSynthesisParametersPropertySetter('recordLimit')
+
 	useEffect(() => {
 		async function run() {
 			if (preparedTable !== undefined) {
@@ -44,9 +43,6 @@ export function useOnTableChange(): void {
 					subjectId: defaultSubjectID,
 				})
 				setRecordLimit(t.numRows())
-				if (t.numRows() > 0) {
-					setNoiseDelta(1 / (2 * t.numRows()))
-				}
 				setIsProcessing(false)
 			}
 		}
@@ -57,6 +53,5 @@ export function useOnTableChange(): void {
 		setIsProcessing,
 		clearSensitiveData,
 		setRecordLimit,
-		setNoiseDelta,
 	])
 }
