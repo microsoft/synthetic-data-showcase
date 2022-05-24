@@ -6,4 +6,6 @@ export enum IWasmSynthesizerWorkerStatus {
 	RUNNING = 'RUNNING',
 	FINISHED = 'FINISHED',
 	ERROR = 'ERROR',
+	TERMINATING = 'TERMINATING',
+	TERMINATED = 'TERMINATED',
 }
