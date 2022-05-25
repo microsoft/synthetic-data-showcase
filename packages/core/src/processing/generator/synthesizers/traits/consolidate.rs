@@ -1,6 +1,6 @@
 use super::synthesis_data::SynthesisData;
 use itertools::Itertools;
-use log::{info, warn};
+use log::info;
 use std::{rc::Rc, sync::Arc};
 
 use crate::{
@@ -17,7 +17,7 @@ use crate::{
     },
     utils::{
         math::iround_down,
-        reporting::{ProcessingStoppedError, ReportProgress, StoppableResult},
+        reporting::{ReportProgress, StoppableResult},
         time::ElapsedDurationLogger,
     },
 };
@@ -233,16 +233,13 @@ pub trait Consolidate: SynthesisData {
         };
 
         while !consolidate_context.available_attrs.is_empty() {
-            if !self.update_consolidate_progress(n_processed, total_f64, progress_reporter) {
-                warn!("consolidation stopped");
-                return Err(ProcessingStoppedError::default());
-            }
+            self.update_consolidate_progress(n_processed, total_f64, progress_reporter)?;
             synthesized_records
                 .push(self.consolidate_record(&mut consolidate_context, &parameters));
             n_processed =
                 (total - consolidate_context.available_attrs.values().sum::<isize>()) as usize;
         }
-        self.update_consolidate_progress(n_processed, total_f64, progress_reporter);
+        self.update_consolidate_progress(n_processed, total_f64, progress_reporter)?;
 
         Ok(())
     }
@@ -265,7 +262,7 @@ pub trait Consolidate: SynthesisData {
         n_processed: usize,
         total: f64,
         progress_reporter: &mut Option<T>,
-    ) -> bool
+    ) -> StoppableResult<()>
     where
         T: ReportProgress;
 }

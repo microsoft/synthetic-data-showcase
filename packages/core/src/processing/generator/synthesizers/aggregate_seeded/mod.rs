@@ -233,15 +233,17 @@ impl Consolidate for AggregateSeededSynthesizer {
         n_processed: usize,
         total: f64,
         progress_reporter: &mut Option<T>,
-    ) -> bool
+    ) -> StoppableResult<()>
     where
         T: ReportProgress,
     {
-        if let Some(r) = progress_reporter {
-            self.consolidate_percentage = calc_percentage(n_processed as f64, total);
-            return r.report(self.calc_overall_progress());
-        }
-        true
+        progress_reporter
+            .as_mut()
+            .map(|r| {
+                self.consolidate_percentage = calc_percentage(n_processed as f64, total);
+                r.report(self.calc_overall_progress())
+            })
+            .unwrap_or_else(|| Ok(()))
     }
 }
 
@@ -252,14 +254,16 @@ impl Suppress for AggregateSeededSynthesizer {
         n_processed: usize,
         total: f64,
         progress_reporter: &mut Option<T>,
-    ) -> bool
+    ) -> StoppableResult<()>
     where
         T: ReportProgress,
     {
-        if let Some(r) = progress_reporter {
-            self.suppress_percentage = calc_percentage(n_processed as f64, total);
-            return r.report(self.calc_overall_progress());
-        }
-        true
+        progress_reporter
+            .as_mut()
+            .map(|r| {
+                self.suppress_percentage = calc_percentage(n_processed as f64, total);
+                r.report(self.calc_overall_progress())
+            })
+            .unwrap_or_else(|| Ok(()))
     }
 }

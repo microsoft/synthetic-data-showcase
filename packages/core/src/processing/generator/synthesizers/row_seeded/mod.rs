@@ -169,7 +169,7 @@ impl RowSeededSynthesizer {
             progress_reporter,
         )?;
 
-        self.update_synthesize_progress(self.data_block.records.len(), total, progress_reporter);
+        self.update_synthesize_progress(self.data_block.records.len(), total, progress_reporter)?;
 
         Ok(())
     }
@@ -180,13 +180,17 @@ impl RowSeededSynthesizer {
         n_processed: usize,
         total: f64,
         progress_reporter: &mut Option<T>,
-    ) where
+    ) -> StoppableResult<()>
+    where
         T: ReportProgress,
     {
-        if let Some(r) = progress_reporter {
-            self.synthesize_percentage = calc_percentage(n_processed as f64, total);
-            r.report(self.calc_overall_progress());
-        }
+        progress_reporter
+            .as_mut()
+            .map(|r| {
+                self.synthesize_percentage = calc_percentage(n_processed as f64, total);
+                r.report(self.calc_overall_progress())
+            })
+            .unwrap_or_else(|| Ok(()))
     }
 
     #[inline]
@@ -260,15 +264,17 @@ impl Consolidate for RowSeededSynthesizer {
         n_processed: usize,
         total: f64,
         progress_reporter: &mut Option<T>,
-    ) -> bool
+    ) -> StoppableResult<()>
     where
         T: ReportProgress,
     {
-        if let Some(r) = progress_reporter {
-            self.consolidate_percentage = calc_percentage(n_processed as f64, total);
-            return r.report(self.calc_overall_progress());
-        }
-        true
+        progress_reporter
+            .as_mut()
+            .map(|r| {
+                self.consolidate_percentage = calc_percentage(n_processed as f64, total);
+                r.report(self.calc_overall_progress())
+            })
+            .unwrap_or_else(|| Ok(()))
     }
 }
 
@@ -279,14 +285,16 @@ impl Suppress for RowSeededSynthesizer {
         n_processed: usize,
         total: f64,
         progress_reporter: &mut Option<T>,
-    ) -> bool
+    ) -> StoppableResult<()>
     where
         T: ReportProgress,
     {
-        if let Some(r) = progress_reporter {
-            self.suppress_percentage = calc_percentage(n_processed as f64, total);
-            return r.report(self.calc_overall_progress());
-        }
-        true
+        progress_reporter
+            .as_mut()
+            .map(|r| {
+                self.suppress_percentage = calc_percentage(n_processed as f64, total);
+                r.report(self.calc_overall_progress())
+            })
+            .unwrap_or_else(|| Ok(()))
     }
 }

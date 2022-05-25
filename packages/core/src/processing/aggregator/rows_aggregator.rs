@@ -7,7 +7,7 @@ use super::{
     AggregatedCount,
 };
 use itertools::Itertools;
-use log::{info, warn};
+use log::info;
 use std::sync::Arc;
 
 #[cfg(feature = "rayon")]
@@ -21,8 +21,7 @@ use crate::{
     utils::{
         collections::map_unwrap_or_default,
         reporting::{
-            ProcessingStoppedError, ReportProgress, SendableProgressReporter,
-            SendableProgressReporterRef, StoppableResult,
+            ReportProgress, SendableProgressReporter, SendableProgressReporterRef, StoppableResult,
         },
     },
 };
@@ -210,10 +209,7 @@ impl RowsAggregator {
                 }
             }
 
-            if !SendableProgressReporter::update_progress(progress_reporter, 1.0) {
-                warn!("row aggregation stopped");
-                return Err(ProcessingStoppedError::default());
-            }
+            SendableProgressReporter::update_progress(progress_reporter, 1.0)?;
         }
         Ok(result)
     }

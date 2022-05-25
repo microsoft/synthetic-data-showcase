@@ -1,4 +1,3 @@
-use log::warn;
 use std::sync::Arc;
 
 use crate::{
@@ -12,8 +11,7 @@ use crate::{
     utils::{
         collections::flat_map_unwrap_or_default,
         reporting::{
-            ProcessingStoppedError, ReportProgress, SendableProgressReporter,
-            SendableProgressReporterRef, StoppableResult,
+            ReportProgress, SendableProgressReporter, SendableProgressReporterRef, StoppableResult,
         },
     },
 };
@@ -109,10 +107,7 @@ impl SeededRowsSynthesizer {
 
         for seed in records.iter() {
             synthesized_records.push(self.synthesize_row(seed));
-            if !SendableProgressReporter::update_progress(progress_reporter, 1.0) {
-                warn!("synthesis stopped");
-                return Err(ProcessingStoppedError::default());
-            }
+            SendableProgressReporter::update_progress(progress_reporter, 1.0)?;
         }
         Ok(synthesized_records)
     }

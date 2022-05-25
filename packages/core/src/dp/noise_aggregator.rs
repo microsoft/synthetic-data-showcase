@@ -21,7 +21,7 @@ use crate::{
     },
     utils::{
         math::calc_percentage,
-        reporting::{ProcessingStoppedError, ReportProgress, StoppableResult},
+        reporting::{ReportProgress, StoppableResult},
     },
 };
 
@@ -377,14 +377,14 @@ impl NoiseAggregator {
         progress_reporter: &mut Option<T>,
         n_processed: usize,
         total: usize,
-    ) -> bool
+    ) -> StoppableResult<()>
     where
         T: ReportProgress,
     {
-        if let Some(r) = progress_reporter {
-            return r.report(calc_percentage(n_processed as f64, total as f64));
-        }
-        true
+        progress_reporter
+            .as_mut()
+            .map(|r| r.report(calc_percentage(n_processed as f64, total as f64)))
+            .unwrap_or_else(|| Ok(()))
     }
 }
 
@@ -480,10 +480,7 @@ impl NoiseAggregator {
 
             noisy_aggregates_by_len.insert(l, all_current_aggregates);
 
-            if !NoiseAggregator::update_progress(progress_reporter, l, self.reporting_length) {
-                warn!("dp aggregation stopped");
-                return Err(ProcessingStoppedError::default());
-            }
+            NoiseAggregator::update_progress(progress_reporter, l, self.reporting_length)?;
         }
 
         Ok(self.build_aggregated_data(noisy_aggregates_by_len))

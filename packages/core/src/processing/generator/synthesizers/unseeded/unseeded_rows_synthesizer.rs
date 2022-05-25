@@ -1,4 +1,3 @@
-use log::warn;
 use rand::{prelude::SliceRandom, thread_rng};
 use std::sync::Arc;
 
@@ -16,10 +15,7 @@ use crate::{
     },
     utils::{
         collections::{flat_map_unwrap_or_default, ordered_vec_intersection, sample_weighted},
-        reporting::{
-            ProcessingStoppedError, SendableProgressReporter, SendableProgressReporterRef,
-            StoppableResult,
-        },
+        reporting::{SendableProgressReporter, SendableProgressReporterRef, StoppableResult},
     },
 };
 
@@ -128,11 +124,7 @@ impl UnseededRowsSynthesizer {
         for _ in 0..self.chunk_size {
             shuffled_column_indexes.shuffle(&mut thread_rng());
             synthesized_records.push(self.synthesize_row(&shuffled_column_indexes));
-
-            if !SendableProgressReporter::update_progress(progress_reporter, 1.0) {
-                warn!("synthesis stopped");
-                return Err(ProcessingStoppedError::default());
-            }
+            SendableProgressReporter::update_progress(progress_reporter, 1.0)?;
         }
         Ok(synthesized_records)
     }

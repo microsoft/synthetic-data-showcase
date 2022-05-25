@@ -57,25 +57,25 @@ impl Aggregator {
             &mut self.build_rows_aggregators(normalized_reporting_length),
             progress_reporter,
         )
-        .map(|result| {
+        .and_then(|result| {
             Aggregator::update_aggregate_progress(
                 progress_reporter,
                 total_n_records,
                 total_n_records_f64,
-            );
+            )?;
 
             info!(
                 "data aggregated resulting in {} distinct combinations...",
                 result.aggregates_count.len()
             );
 
-            AggregatedData::new(
+            Ok(AggregatedData::new(
                 self.data_block.headers.clone(),
                 self.data_block.number_of_records(),
                 result.aggregates_count,
                 result.records_sensitivity_by_len,
                 normalized_reporting_length,
-            )
+            ))
         })
     }
 
@@ -154,11 +154,13 @@ impl Aggregator {
         progress_reporter: &mut Option<T>,
         n_processed: usize,
         total: f64,
-    ) where
+    ) -> StoppableResult<()>
+    where
         T: ReportProgress,
     {
-        if let Some(r) = progress_reporter {
-            r.report(calc_percentage(n_processed as f64, total));
-        }
+        progress_reporter
+            .as_mut()
+            .map(|r| r.report(calc_percentage(n_processed as f64, total)))
+            .unwrap_or_else(|| Ok(()))
     }
 }

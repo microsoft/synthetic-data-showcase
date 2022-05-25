@@ -143,7 +143,7 @@ impl UnseededSynthesizer {
             progress_reporter,
         )?;
 
-        self.update_synthesize_progress(self.data_block.records.len(), total, progress_reporter);
+        self.update_synthesize_progress(self.data_block.records.len(), total, progress_reporter)?;
 
         Ok(())
     }
@@ -154,12 +154,16 @@ impl UnseededSynthesizer {
         n_processed: usize,
         total: f64,
         progress_reporter: &mut Option<T>,
-    ) where
+    ) -> StoppableResult<()>
+    where
         T: ReportProgress,
     {
-        if let Some(r) = progress_reporter {
-            self.synthesize_percentage = calc_percentage(n_processed as f64, total);
-            r.report(self.synthesize_percentage);
-        }
+        progress_reporter
+            .as_mut()
+            .map(|r| {
+                self.synthesize_percentage = calc_percentage(n_processed as f64, total);
+                r.report(self.synthesize_percentage)
+            })
+            .unwrap_or_else(|| Ok(()))
     }
 }
