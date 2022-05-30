@@ -118,6 +118,10 @@ export interface IEvaluateResult {
   syntheticVsAggregateDataStats: IMicrodataStatistics
 }
 
+export interface INavigateResult {
+  headerNames: HeaderNames
+}
+
 export interface ISelectedAttributesByColumn {
   [columnIndex: number]: Set<string>
 }
@@ -187,6 +191,9 @@ extern "C" {
 
     #[wasm_bindgen(typescript_type = "IEvaluateResult")]
     pub type JsEvaluateResult;
+
+    #[wasm_bindgen(typescript_type = "INavigateResult")]
+    pub type JsNavigateResult;
 
     #[wasm_bindgen(typescript_type = "ISelectedAttributesByColumn")]
     pub type JsSelectedAttributesByColumn;
