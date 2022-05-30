@@ -1,4 +1,7 @@
+mod multi_value_column;
+
 use log::{error, log_enabled, trace, Level::Debug};
+use multi_value_column::MultiValueColumn;
 use sds_core::{
     data_block::{CsvDataBlockCreator, DataBlockCreator},
     dp::{DpParameters, NoisyCountThreshold},
@@ -8,7 +11,7 @@ use sds_core::{
     },
     utils::{reporting::LoggerProgressReporter, threading::set_number_of_threads},
 };
-use std::{collections::HashMap, process, sync::Arc};
+use std::{process, sync::Arc};
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
@@ -196,6 +199,9 @@ struct Cli {
     )]
     use_columns: Vec<String>,
 
+    #[structopt(long = "multi-value-columns", help = "<column name>,<delimiter>")]
+    multi_value_columns: Vec<MultiValueColumn>,
+
     #[structopt(
         long = "sensitive-zeros",
         help = "columns where zeros should not be ignored (can be set multiple times)"
@@ -230,7 +236,10 @@ fn main() {
             .delimiter(cli.sensitive_delimiter.chars().next().unwrap() as u8)
             .from_path(cli.sensitive_path),
         &cli.use_columns,
-        &HashMap::new(),
+        &cli.multi_value_columns
+            .iter()
+            .map(|mvc| (mvc.column_name.clone(), mvc.attr_delimiter.clone()))
+            .collect(),
         &cli.sensitive_zeros,
         cli.record_limit,
     ) {
