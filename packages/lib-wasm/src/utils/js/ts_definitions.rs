@@ -6,9 +6,14 @@ export type ReportProgressCallback = (progress: number) => boolean
 
 export type HeaderNames = string[]
 
+export interface IMultiValueColumns {
+  [headerName: string]: string
+}
+
 export interface ICsvDataParameters {
   delimiter: string
   useColumns: HeaderNames
+  multiValueColumns: IMultiValueColumns
   sensitiveZeros: HeaderNames
   recordLimit: number
 }
@@ -134,6 +139,9 @@ extern "C" {
 
     #[wasm_bindgen(typescript_type = "HeaderNames")]
     pub type JsHeaderNames;
+
+    #[wasm_bindgen(typescript_type = "IMultiValueColumns")]
+    pub type JsMultiValueColumns;
 
     #[wasm_bindgen(typescript_type = "ICsvDataParameters")]
     pub type JsCsvDataParameters;
