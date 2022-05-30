@@ -12,6 +12,7 @@ import type {
 	ICsvDataParameters,
 	IEvaluateResult,
 	IGenerateResult,
+	INavigateResult,
 	ISelectedAttributesByColumn,
 } from 'sds-wasm'
 
@@ -210,6 +211,12 @@ export class SdsManager {
 		return await this.getSynthesizerWorkInfo(
 			key,
 		).synthesizer.getEvaluateResult()
+	}
+
+	public async getNavigateResult(key: string): Promise<INavigateResult> {
+		return await this.getSynthesizerWorkInfo(
+			key,
+		).synthesizer.getNavigateResult()
 	}
 
 	private getAggregateStatisticsGenerator(): Remote<AggregateStatisticsGenerator> {

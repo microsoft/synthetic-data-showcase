@@ -6,6 +6,7 @@ import { Separator, useTheme } from '@fluentui/react'
 import { FlexContainer, FlexItem } from '@sds/components'
 import { memo, useEffect, useRef, useState } from 'react'
 import type {
+	HeaderNames,
 	IAttributesIntersection,
 	ISelectedAttributesByColumn,
 } from 'sds-wasm'
@@ -21,7 +22,6 @@ import { useAllFinishedSynthesisInfo } from '~pages/Synthesize'
 import { useSdsManagerInstance, useSelectedSynthesisInfo } from '~states'
 
 import {
-	useInitiallySelectedHeaders,
 	useOnClearSelectedAttributes,
 	useOnNewSelectedAttributesByColumn,
 	useOnRunNavigate,
@@ -48,12 +48,8 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 	const isMounted = useRef(true)
 	const allFinishedSynthesisInfo = useAllFinishedSynthesisInfo()
 	const [selectedSynthesis, setSelectedSynthesis] = useSelectedSynthesisInfo()
-	const headers =
-		selectedSynthesis?.parameters.csvDataParameters.useColumns ?? []
-	const initiallySelectedHeaders = useInitiallySelectedHeaders(headers)
-	const [selectedHeaders, setSelectedHeaders] = useState<boolean[]>(
-		initiallySelectedHeaders,
-	)
+	const [headers, setHeaders] = useState<HeaderNames>([])
+	const [selectedHeaders, setSelectedHeaders] = useState<boolean[]>([])
 	const setNewSelectedAttributesByColumn = useOnNewSelectedAttributesByColumn(
 		selectedSynthesis?.key,
 		setIsLoading,
@@ -77,8 +73,8 @@ export const DataNavigation: React.FC = memo(function DataNavigation() {
 		selectedSynthesis?.key,
 		setIsLoading,
 		isMounted,
+		setHeaders,
 		setSelectedHeaders,
-		initiallySelectedHeaders,
 		manager,
 	)
 	const theme = useTheme()

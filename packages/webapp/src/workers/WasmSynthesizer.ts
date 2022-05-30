@@ -9,6 +9,7 @@ import type {
 	IAttributesIntersectionByColumn,
 	IEvaluateResult,
 	IGenerateResult,
+	INavigateResult,
 	ISelectedAttributesByColumn,
 	ReportProgressCallback,
 } from 'sds-wasm'
@@ -134,6 +135,10 @@ export class WasmSynthesizer extends BaseSdsWasmWorker {
 
 	public async getEvaluateResult(): Promise<IEvaluateResult> {
 		return this.getContext().evaluateResultToJs()
+	}
+
+	public async getNavigateResult(): Promise<INavigateResult> {
+		return this.getContext().navigateResultToJs()
 	}
 
 	private generateUnseeded(
