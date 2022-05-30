@@ -5,9 +5,9 @@ use log::info;
 use std::sync::Arc;
 
 use crate::data_block::DataBlock;
-use crate::dp::{DpParameters, NoiseAggregator, NoisyCountThreshold, StatsError};
+use crate::dp::{DpParameters, NoiseAggregator, NoisyCountThreshold};
 use crate::utils::math::calc_percentage;
-use crate::utils::reporting::{ProcessingStoppedError, ReportProgress};
+use crate::utils::reporting::{ReportProgress, StoppableResult};
 use crate::utils::threading::get_number_of_threads;
 use crate::utils::time::ElapsedDurationLogger;
 
@@ -35,7 +35,7 @@ impl Aggregator {
         &mut self,
         reporting_length: usize,
         progress_reporter: &mut Option<T>,
-    ) -> Result<AggregatedData, ProcessingStoppedError>
+    ) -> StoppableResult<AggregatedData>
     where
         T: ReportProgress,
     {
@@ -57,25 +57,25 @@ impl Aggregator {
             &mut self.build_rows_aggregators(normalized_reporting_length),
             progress_reporter,
         )
-        .map(|result| {
+        .and_then(|result| {
             Aggregator::update_aggregate_progress(
                 progress_reporter,
                 total_n_records,
                 total_n_records_f64,
-            );
+            )?;
 
             info!(
                 "data aggregated resulting in {} distinct combinations...",
                 result.aggregates_count.len()
             );
 
-            AggregatedData::new(
+            Ok(AggregatedData::new(
                 self.data_block.headers.clone(),
                 self.data_block.number_of_records(),
                 result.aggregates_count,
                 result.records_sensitivity_by_len,
                 normalized_reporting_length,
-            )
+            ))
         })
     }
 
@@ -93,7 +93,7 @@ impl Aggregator {
         dp_parameters: &DpParameters,
         threshold: NoisyCountThreshold,
         progress_reporter: &mut Option<T>,
-    ) -> Result<AggregatedData, StatsError>
+    ) -> StoppableResult<AggregatedData>
     where
         T: ReportProgress,
     {
@@ -154,11 +154,13 @@ impl Aggregator {
         progress_reporter: &mut Option<T>,
         n_processed: usize,
         total: f64,
-    ) where
+    ) -> StoppableResult<()>
+    where
         T: ReportProgress,
     {
-        if let Some(r) = progress_reporter {
-            r.report(calc_percentage(n_processed as f64, total));
-        }
+        progress_reporter
+            .as_mut()
+            .map(|r| r.report(calc_percentage(n_processed as f64, total)))
+            .unwrap_or_else(|| Ok(()))
     }
 }

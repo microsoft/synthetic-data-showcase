@@ -309,10 +309,12 @@ fn main() {
                     }
                 };
 
-                if let Err(err) = generated_data.write_synthetic_data(
-                    &synthetic_path,
-                    synthetic_delimiter.chars().next().unwrap(),
-                ) {
+                if let Err(err) = generated_data.map(|gd| {
+                    gd.write_synthetic_data(
+                        &synthetic_path,
+                        synthetic_delimiter.chars().next().unwrap(),
+                    )
+                }) {
                     error!("error writing output file: {}", err);
                     process::exit(1);
                 }

@@ -10,5 +10,6 @@ export interface ISdsManagerSynthesisCallbacks {
 	started?: SynthesisCallback
 	finished?: SynthesisCallback
 	progressUpdated?: SynthesisCallback
+	terminating?: SynthesisCallback
 	terminated?: SynthesisCallback
 }

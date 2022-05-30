@@ -59,6 +59,7 @@ export const Layout: React.FC = memo(function Layout({ children }) {
 						started: updateSynthesisInfo,
 						finished: updateSynthesisInfo,
 						progressUpdated: updateSynthesisInfo,
+						terminating: updateSynthesisInfo,
 						terminated: updateSynthesisInfo,
 					}),
 				)

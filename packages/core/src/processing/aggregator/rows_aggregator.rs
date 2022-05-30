@@ -7,7 +7,7 @@ use super::{
     AggregatedCount,
 };
 use itertools::Itertools;
-use log::{info, warn};
+use log::info;
 use std::sync::Arc;
 
 #[cfg(feature = "rayon")]
@@ -18,9 +18,11 @@ use std::sync::Mutex;
 
 use crate::{
     data_block::DataBlock,
-    utils::reporting::{
-        ProcessingStoppedError, ReportProgress, SendableProgressReporter,
-        SendableProgressReporterRef,
+    utils::{
+        collections::map_unwrap_or_default,
+        reporting::{
+            ReportProgress, SendableProgressReporter, SendableProgressReporterRef, StoppableResult,
+        },
     },
 };
 
@@ -84,7 +86,7 @@ impl RowsAggregator {
         reporting_length: usize,
         rows_aggregators: &mut Vec<RowsAggregator>,
         progress_reporter: &mut Option<T>,
-    ) -> Result<RowsAggregatorResult, ProcessingStoppedError>
+    ) -> StoppableResult<RowsAggregatorResult>
     where
         T: ReportProgress,
     {
@@ -110,7 +112,7 @@ impl RowsAggregator {
         reporting_length: usize,
         rows_aggregators: &mut Vec<RowsAggregator>,
         progress_reporter: &mut Option<T>,
-    ) -> Result<RowsAggregatorResult, ProcessingStoppedError>
+    ) -> StoppableResult<RowsAggregatorResult>
     where
         T: ReportProgress,
     {
@@ -132,16 +134,11 @@ impl RowsAggregator {
     fn join_partial_results(
         total_n_records: usize,
         reporting_length: usize,
-        mut results: Vec<Result<RowsAggregatorResult, ProcessingStoppedError>>,
-    ) -> Result<RowsAggregatorResult, ProcessingStoppedError> {
+        results: Vec<StoppableResult<RowsAggregatorResult>>,
+    ) -> StoppableResult<RowsAggregatorResult> {
         info!("joining aggregated partial results...");
 
-        if results.iter().any(|r| r.is_err()) {
-            return Err(ProcessingStoppedError::default());
-        }
-
-        let mut partial_results: Vec<RowsAggregatorResult> =
-            results.drain(..).map(|r| r.unwrap()).collect();
+        let mut partial_results = map_unwrap_or_default(results)?;
 
         // take last element and the initial result
         // or use the default one if there are no results
@@ -181,7 +178,7 @@ impl RowsAggregator {
     fn aggregate_rows<T>(
         &mut self,
         progress_reporter: &mut SendableProgressReporterRef<T>,
-    ) -> Result<RowsAggregatorResult, ProcessingStoppedError>
+    ) -> StoppableResult<RowsAggregatorResult>
     where
         T: ReportProgress,
     {
@@ -212,10 +209,7 @@ impl RowsAggregator {
                 }
             }
 
-            if !SendableProgressReporter::update_progress(progress_reporter, 1.0) {
-                warn!("row aggregation stopped");
-                return Err(ProcessingStoppedError::default());
-            }
+            SendableProgressReporter::update_progress(progress_reporter, 1.0)?;
         }
         Ok(result)
     }

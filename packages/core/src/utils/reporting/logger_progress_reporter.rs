@@ -1,4 +1,4 @@
-use super::ReportProgress;
+use super::{ReportProgress, StoppableResult};
 use log::{log, Level};
 
 /// Simple progress reporter using the default logger.
@@ -22,7 +22,7 @@ impl LoggerProgressReporter {
 }
 
 impl ReportProgress for LoggerProgressReporter {
-    fn report(&mut self, new_progress: f64) -> bool {
+    fn report(&mut self, new_progress: f64) -> StoppableResult<()> {
         let p = new_progress.floor();
 
         if p > self.progress {
@@ -33,6 +33,6 @@ impl ReportProgress for LoggerProgressReporter {
                 self.progress
             );
         }
-        true
+        Ok(())
     }
 }

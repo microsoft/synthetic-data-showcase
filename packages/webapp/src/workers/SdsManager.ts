@@ -113,9 +113,14 @@ export class SdsManager {
 		const s = this.getSynthesizerWorkInfo(key)
 
 		s.shouldRun.set(false)
+		s.synthesisInfo.status = IWasmSynthesizerWorkerStatus.TERMINATING
+		this._synthesisCallbacks?.terminating?.(s.synthesisInfo)
+
 		await s.synthesizer.terminate()
 		s.synthesizerWorkerProxy.terminate()
 		this._synthesizerWorkersInfoMap.delete(key)
+
+		s.synthesisInfo.status = IWasmSynthesizerWorkerStatus.TERMINATED
 		this._synthesisCallbacks?.terminated?.(s.synthesisInfo)
 	}
 

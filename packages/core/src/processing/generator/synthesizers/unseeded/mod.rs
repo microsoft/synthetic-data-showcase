@@ -8,7 +8,9 @@ use crate::{
     data_block::{AttributeRowsByColumnMap, DataBlock},
     processing::generator::synthesizers::{cache::SynthesizerCache, typedefs::SynthesizedRecords},
     utils::{
-        math::calc_percentage, reporting::ReportProgress, threading::get_number_of_threads,
+        math::calc_percentage,
+        reporting::{ReportProgress, StoppableResult},
+        threading::get_number_of_threads,
         time::ElapsedDurationLogger,
     },
 };
@@ -60,7 +62,10 @@ impl UnseededSynthesizer {
     /// # Arguments
     /// * `progress_reporter` - Will be used to report the processing
     /// progress (`ReportProgress` trait). If `None`, nothing will be reported
-    pub fn run<T>(&mut self, progress_reporter: &mut Option<T>) -> SynthesizedRecords
+    pub fn run<T>(
+        &mut self,
+        progress_reporter: &mut Option<T>,
+    ) -> StoppableResult<SynthesizedRecords>
     where
         T: ReportProgress,
     {
@@ -76,9 +81,9 @@ impl UnseededSynthesizer {
                 &mut synthesized_records,
                 &mut rows_synthesizers,
                 progress_reporter,
-            );
+            )?;
         }
-        synthesized_records
+        Ok(synthesized_records)
     }
 
     #[inline]
@@ -118,7 +123,8 @@ impl UnseededSynthesizer {
         synthesized_records: &mut SynthesizedRecords,
         rows_synthesizers: &mut Vec<UnseededRowsSynthesizer>,
         progress_reporter: &mut Option<T>,
-    ) where
+    ) -> StoppableResult<()>
+    where
         T: ReportProgress,
     {
         let _duration_logger = ElapsedDurationLogger::new("rows synthesis");
@@ -135,9 +141,11 @@ impl UnseededSynthesizer {
             synthesized_records,
             rows_synthesizers,
             progress_reporter,
-        );
+        )?;
 
-        self.update_synthesize_progress(self.data_block.records.len(), total, progress_reporter);
+        self.update_synthesize_progress(self.data_block.records.len(), total, progress_reporter)?;
+
+        Ok(())
     }
 
     #[inline]
@@ -146,12 +154,16 @@ impl UnseededSynthesizer {
         n_processed: usize,
         total: f64,
         progress_reporter: &mut Option<T>,
-    ) where
+    ) -> StoppableResult<()>
+    where
         T: ReportProgress,
     {
-        if let Some(r) = progress_reporter {
-            self.synthesize_percentage = calc_percentage(n_processed as f64, total);
-            r.report(self.synthesize_percentage);
-        }
+        progress_reporter
+            .as_mut()
+            .map(|r| {
+                self.synthesize_percentage = calc_percentage(n_processed as f64, total);
+                r.report(self.synthesize_percentage)
+            })
+            .unwrap_or_else(|| Ok(()))
     }
 }

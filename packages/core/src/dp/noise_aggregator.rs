@@ -12,7 +12,6 @@ use std::sync::Arc;
 use crate::{
     data_block::{DataBlock, DataBlockValue},
     dp::{
-        stats_error::StatsError,
         typedefs::{CombinationsCountMap, CombinationsCountMapByLen},
         DEFAULT_TOLERANCE,
     },
@@ -20,7 +19,10 @@ use crate::{
         AggregatedCount, AggregatedData, AggregatesCountMap, RecordsSensitivityByLen, RecordsSet,
         ValueCombination,
     },
-    utils::{math::calc_percentage, reporting::ReportProgress},
+    utils::{
+        math::calc_percentage,
+        reporting::{ReportProgress, StoppableResult},
+    },
 };
 
 /// Structure capable of generating
@@ -245,16 +247,12 @@ impl NoiseAggregator {
     }
 
     #[inline]
-    fn add_gaussian_noise(
-        all_current_aggregates: &mut CombinationsCountMap,
-        current_sigma: f64,
-    ) -> Result<(), StatsError> {
-        let noise = Normal::new(0.0, 1.0).map_err(StatsError::new)?;
+    fn add_gaussian_noise(all_current_aggregates: &mut CombinationsCountMap, current_sigma: f64) {
+        let noise = Normal::new(0.0, 1.0).unwrap();
 
         for count in all_current_aggregates.values_mut() {
             (*count) += current_sigma * noise.sample(&mut thread_rng());
         }
-        Ok(())
     }
 
     #[inline]
@@ -310,7 +308,7 @@ impl NoiseAggregator {
         combinations_by_record: &CombinationsByRecord,
         comb_len: usize,
         l1_sensitivity: usize,
-    ) -> Result<(), StatsError> {
+    ) {
         info!(
             "applying gaussian noise to aggregates with length = {}, sigma = {}, l1_sensitivity = {}",
             comb_len, self.sigmas[comb_len - 1], l1_sensitivity
@@ -326,7 +324,7 @@ impl NoiseAggregator {
                 l1_sensitivity,
             );
 
-            NoiseAggregator::add_gaussian_noise(all_current_aggregates, current_sigma)?;
+            NoiseAggregator::add_gaussian_noise(all_current_aggregates, current_sigma);
 
             self.retain_based_on_threshold(all_current_aggregates, l1_sensitivity_f64, comb_len);
 
@@ -338,8 +336,6 @@ impl NoiseAggregator {
             );
             all_current_aggregates.clear();
         }
-
-        Ok(())
     }
 
     #[inline]
@@ -377,13 +373,18 @@ impl NoiseAggregator {
     }
 
     #[inline]
-    fn update_progress<T>(progress_reporter: &mut Option<T>, n_processed: usize, total: usize)
+    fn update_progress<T>(
+        progress_reporter: &mut Option<T>,
+        n_processed: usize,
+        total: usize,
+    ) -> StoppableResult<()>
     where
         T: ReportProgress,
     {
-        if let Some(r) = progress_reporter {
-            r.report(calc_percentage(n_processed as f64, total as f64));
-        }
+        progress_reporter
+            .as_mut()
+            .map(|r| r.report(calc_percentage(n_processed as f64, total as f64)))
+            .unwrap_or_else(|| Ok(()))
     }
 }
 
@@ -445,7 +446,7 @@ impl NoiseAggregator {
     pub fn generate_noisy_aggregates<T>(
         &mut self,
         progress_reporter: &mut Option<T>,
-    ) -> Result<AggregatedData, StatsError>
+    ) -> StoppableResult<AggregatedData>
     where
         T: ReportProgress,
     {
@@ -473,13 +474,13 @@ impl NoiseAggregator {
                 &combinations_by_record,
                 l,
                 allowed_sensitivity,
-            )?;
+            );
 
             debug!("generated noisy {}-counts", l);
 
             noisy_aggregates_by_len.insert(l, all_current_aggregates);
 
-            NoiseAggregator::update_progress(progress_reporter, l, self.reporting_length);
+            NoiseAggregator::update_progress(progress_reporter, l, self.reporting_length)?;
         }
 
         Ok(self.build_aggregated_data(noisy_aggregates_by_len))
