@@ -2,6 +2,8 @@ mod block;
 mod csv_block_creator;
 mod csv_io_error;
 mod data_block_creator;
+mod headers_metadata;
+mod input_value;
 mod record;
 mod typedefs;
 mod value;

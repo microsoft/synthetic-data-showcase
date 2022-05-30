@@ -6,6 +6,7 @@ use sds_core::{
     processing::aggregator::{ValueCombination, COMBINATIONS_DELIMITER},
 };
 use std::{
+    collections::HashMap,
     hash::Hash,
     path::{Path, PathBuf},
     sync::Arc,
@@ -22,6 +23,7 @@ pub fn read_test_data_block<S: AsRef<Path>>(
     path: S,
     delimiter: u8,
     use_columns: &[String],
+    multi_value_columns: &HashMap<String, String>,
     sensitive_zeros: &[String],
     record_limit: usize,
 ) -> Arc<DataBlock> {
@@ -30,6 +32,7 @@ pub fn read_test_data_block<S: AsRef<Path>>(
             .delimiter(delimiter)
             .from_path(get_path_on_resources(path)),
         use_columns,
+        multi_value_columns,
         sensitive_zeros,
         record_limit,
     )

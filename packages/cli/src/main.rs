@@ -8,7 +8,7 @@ use sds_core::{
     },
     utils::{reporting::LoggerProgressReporter, threading::set_number_of_threads},
 };
-use std::{process, sync::Arc};
+use std::{collections::HashMap, process, sync::Arc};
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
@@ -230,6 +230,7 @@ fn main() {
             .delimiter(cli.sensitive_delimiter.chars().next().unwrap() as u8)
             .from_path(cli.sensitive_path),
         &cli.use_columns,
+        &HashMap::new(),
         &cli.sensitive_zeros,
         cli.record_limit,
     ) {
