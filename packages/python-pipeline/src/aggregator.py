@@ -20,6 +20,7 @@ def aggregate(config):
     """
 
     use_columns = config['use_columns']
+    multi_value_columns = config['multi_value_columns']
     reporting_length = config['reporting_length']
     reporting_resolution = config['reporting_resolution']
     record_limit = config['record_limit']
@@ -50,6 +51,7 @@ def aggregate(config):
         sensitive_microdata_path,
         sensitive_microdata_delimiter,
         use_columns,
+        multi_value_columns,
         sensitive_zeros,
         max(record_limit, 0)
     )

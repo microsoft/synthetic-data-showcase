@@ -16,6 +16,7 @@ def generate(config):
     """
 
     use_columns = config['use_columns']
+    multi_value_columns = config['multi_value_columns']
     record_limit = config['record_limit']
     sensitive_microdata_path = config['sensitive_microdata_path']
     sensitive_microdata_delimiter = config['sensitive_microdata_delimiter']
@@ -42,6 +43,7 @@ def generate(config):
         sensitive_microdata_path,
         sensitive_microdata_delimiter,
         use_columns,
+        multi_value_columns,
         sensitive_zeros,
         max(record_limit, 0)
     )

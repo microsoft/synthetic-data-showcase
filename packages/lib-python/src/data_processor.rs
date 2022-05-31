@@ -11,7 +11,7 @@ use sds_core::{
     },
     utils::reporting::{LoggerProgressReporter, StoppableResult},
 };
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
 #[pyclass]
 pub struct SDSProcessor {
@@ -49,6 +49,7 @@ impl SDSProcessor {
         path: &str,
         delimiter: char,
         use_columns: Vec<String>,
+        multi_value_columns: HashMap<String, String>,
         sensitive_zeros: Vec<String>,
         record_limit: usize,
     ) -> Result<SDSProcessor, CsvIOError> {
@@ -57,6 +58,7 @@ impl SDSProcessor {
                 .delimiter(delimiter as u8)
                 .from_path(path),
             &use_columns,
+            &multi_value_columns,
             &sensitive_zeros,
             record_limit,
         ) {
