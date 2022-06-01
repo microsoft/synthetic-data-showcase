@@ -96,7 +96,7 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 					<FlexItem grow={1}>
 						<ColumnContributionChart
 							proportionPerColumn={columnWithRareCombinationsPercentage}
-							label={`Selected columns contributing to privacy risk from rare/linkable attribute combinations (affecting ${
+							label={`Selected columns contributing to privacy risk from small linkable groups (affecting ${
 								statistics.numberOfRecordsWithRareCombinations
 							}/${rawSynthesisParams.recordLimit} records, ${(
 								(statistics.numberOfRecordsWithRareCombinations * 100.0) /
