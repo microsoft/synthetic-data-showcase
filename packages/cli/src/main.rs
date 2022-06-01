@@ -1,7 +1,7 @@
-mod multi_value_column;
+mod multi_value_column_cmd_input;
 
 use log::{error, log_enabled, trace, Level::Debug};
-use multi_value_column::MultiValueColumn;
+use multi_value_column_cmd_input::MultiValueColumnCmdInput;
 use sds_core::{
     data_block::{CsvDataBlockCreator, DataBlockCreator},
     dp::{DpParameters, NoisyCountThreshold},
@@ -200,7 +200,7 @@ struct Cli {
     use_columns: Vec<String>,
 
     #[structopt(long = "multi-value-columns", help = "<column name>,<delimiter>")]
-    multi_value_columns: Vec<MultiValueColumn>,
+    multi_value_columns: Vec<MultiValueColumnCmdInput>,
 
     #[structopt(
         long = "sensitive-zeros",

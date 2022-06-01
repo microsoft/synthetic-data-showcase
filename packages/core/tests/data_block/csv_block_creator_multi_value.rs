@@ -75,39 +75,75 @@ fn valid_all_columns_no_sensitive_zeros() {
     let multi_value_column_metadata_map: MultiValueColumnMetadataMap = [
         (
             Arc::new("B_b1".to_owned()),
-            MultiValueColumnMetadata::new("B".to_owned(), "b1".to_owned(), ";".to_owned()),
+            MultiValueColumnMetadata::new(
+                Arc::new("B".to_owned()),
+                Arc::new("b1".to_owned()),
+                ";".to_owned(),
+            ),
         ),
         (
             Arc::new("B_b3".to_owned()),
-            MultiValueColumnMetadata::new("B".to_owned(), "b3".to_owned(), ";".to_owned()),
+            MultiValueColumnMetadata::new(
+                Arc::new("B".to_owned()),
+                Arc::new("b3".to_owned()),
+                ";".to_owned(),
+            ),
         ),
         (
             Arc::new("B_b4".to_owned()),
-            MultiValueColumnMetadata::new("B".to_owned(), "b4".to_owned(), ";".to_owned()),
+            MultiValueColumnMetadata::new(
+                Arc::new("B".to_owned()),
+                Arc::new("b4".to_owned()),
+                ";".to_owned(),
+            ),
         ),
         (
             Arc::new("C_c1".to_owned()),
-            MultiValueColumnMetadata::new("C".to_owned(), "c1".to_owned(), ";".to_owned()),
+            MultiValueColumnMetadata::new(
+                Arc::new("C".to_owned()),
+                Arc::new("c1".to_owned()),
+                ";".to_owned(),
+            ),
         ),
         (
             Arc::new("C_c2".to_owned()),
-            MultiValueColumnMetadata::new("C".to_owned(), "c2".to_owned(), ";".to_owned()),
+            MultiValueColumnMetadata::new(
+                Arc::new("C".to_owned()),
+                Arc::new("c2".to_owned()),
+                ";".to_owned(),
+            ),
         ),
         (
             Arc::new("C_c3".to_owned()),
-            MultiValueColumnMetadata::new("C".to_owned(), "c3".to_owned(), ";".to_owned()),
+            MultiValueColumnMetadata::new(
+                Arc::new("C".to_owned()),
+                Arc::new("c3".to_owned()),
+                ";".to_owned(),
+            ),
         ),
         (
             Arc::new("D_d1".to_owned()),
-            MultiValueColumnMetadata::new("D".to_owned(), "d1".to_owned(), "|".to_owned()),
+            MultiValueColumnMetadata::new(
+                Arc::new("D".to_owned()),
+                Arc::new("d1".to_owned()),
+                "|".to_owned(),
+            ),
         ),
         (
             Arc::new("D_d3".to_owned()),
-            MultiValueColumnMetadata::new("D".to_owned(), "d3".to_owned(), "|".to_owned()),
+            MultiValueColumnMetadata::new(
+                Arc::new("D".to_owned()),
+                Arc::new("d3".to_owned()),
+                "|".to_owned(),
+            ),
         ),
         (
             Arc::new("D_d4".to_owned()),
-            MultiValueColumnMetadata::new("D".to_owned(), "d4".to_owned(), "|".to_owned()),
+            MultiValueColumnMetadata::new(
+                Arc::new("D".to_owned()),
+                Arc::new("d4".to_owned()),
+                "|".to_owned(),
+            ),
         ),
     ]
     .iter()
@@ -167,27 +203,51 @@ fn valid_selected_columns_no_sensitive_zeros() {
     let multi_value_column_metadata_map: MultiValueColumnMetadataMap = [
         (
             Arc::new("C_c1".to_owned()),
-            MultiValueColumnMetadata::new("C".to_owned(), "c1".to_owned(), ";".to_owned()),
+            MultiValueColumnMetadata::new(
+                Arc::new("C".to_owned()),
+                Arc::new("c1".to_owned()),
+                ";".to_owned(),
+            ),
         ),
         (
             Arc::new("C_c2".to_owned()),
-            MultiValueColumnMetadata::new("C".to_owned(), "c2".to_owned(), ";".to_owned()),
+            MultiValueColumnMetadata::new(
+                Arc::new("C".to_owned()),
+                Arc::new("c2".to_owned()),
+                ";".to_owned(),
+            ),
         ),
         (
             Arc::new("C_c3".to_owned()),
-            MultiValueColumnMetadata::new("C".to_owned(), "c3".to_owned(), ";".to_owned()),
+            MultiValueColumnMetadata::new(
+                Arc::new("C".to_owned()),
+                Arc::new("c3".to_owned()),
+                ";".to_owned(),
+            ),
         ),
         (
             Arc::new("D_d1".to_owned()),
-            MultiValueColumnMetadata::new("D".to_owned(), "d1".to_owned(), "|".to_owned()),
+            MultiValueColumnMetadata::new(
+                Arc::new("D".to_owned()),
+                Arc::new("d1".to_owned()),
+                "|".to_owned(),
+            ),
         ),
         (
             Arc::new("D_d3".to_owned()),
-            MultiValueColumnMetadata::new("D".to_owned(), "d3".to_owned(), "|".to_owned()),
+            MultiValueColumnMetadata::new(
+                Arc::new("D".to_owned()),
+                Arc::new("d3".to_owned()),
+                "|".to_owned(),
+            ),
         ),
         (
             Arc::new("D_d4".to_owned()),
-            MultiValueColumnMetadata::new("D".to_owned(), "d4".to_owned(), "|".to_owned()),
+            MultiValueColumnMetadata::new(
+                Arc::new("D".to_owned()),
+                Arc::new("d4".to_owned()),
+                "|".to_owned(),
+            ),
         ),
     ]
     .iter()
@@ -266,31 +326,59 @@ fn valid_selected_columns_with_sensitive_zeros() {
     let multi_value_column_metadata_map: MultiValueColumnMetadataMap = [
         (
             Arc::new("B_0".to_owned()),
-            MultiValueColumnMetadata::new("B".to_owned(), "0".to_owned(), ";".to_owned()),
+            MultiValueColumnMetadata::new(
+                Arc::new("B".to_owned()),
+                Arc::new("0".to_owned()),
+                ";".to_owned(),
+            ),
         ),
         (
             Arc::new("B_b1".to_owned()),
-            MultiValueColumnMetadata::new("B".to_owned(), "b1".to_owned(), ";".to_owned()),
+            MultiValueColumnMetadata::new(
+                Arc::new("B".to_owned()),
+                Arc::new("b1".to_owned()),
+                ";".to_owned(),
+            ),
         ),
         (
             Arc::new("B_b3".to_owned()),
-            MultiValueColumnMetadata::new("B".to_owned(), "b3".to_owned(), ";".to_owned()),
+            MultiValueColumnMetadata::new(
+                Arc::new("B".to_owned()),
+                Arc::new("b3".to_owned()),
+                ";".to_owned(),
+            ),
         ),
         (
             Arc::new("B_b4".to_owned()),
-            MultiValueColumnMetadata::new("B".to_owned(), "b4".to_owned(), ";".to_owned()),
+            MultiValueColumnMetadata::new(
+                Arc::new("B".to_owned()),
+                Arc::new("b4".to_owned()),
+                ";".to_owned(),
+            ),
         ),
         (
             Arc::new("D_d1".to_owned()),
-            MultiValueColumnMetadata::new("D".to_owned(), "d1".to_owned(), "|".to_owned()),
+            MultiValueColumnMetadata::new(
+                Arc::new("D".to_owned()),
+                Arc::new("d1".to_owned()),
+                "|".to_owned(),
+            ),
         ),
         (
             Arc::new("D_d3".to_owned()),
-            MultiValueColumnMetadata::new("D".to_owned(), "d3".to_owned(), "|".to_owned()),
+            MultiValueColumnMetadata::new(
+                Arc::new("D".to_owned()),
+                Arc::new("d3".to_owned()),
+                "|".to_owned(),
+            ),
         ),
         (
             Arc::new("D_d4".to_owned()),
-            MultiValueColumnMetadata::new("D".to_owned(), "d4".to_owned(), "|".to_owned()),
+            MultiValueColumnMetadata::new(
+                Arc::new("D".to_owned()),
+                Arc::new("d4".to_owned()),
+                "|".to_owned(),
+            ),
         ),
     ]
     .iter()

@@ -31,11 +31,11 @@ pub trait DataBlockCreator {
         value: &str,
         header_index: usize,
         sensitive_zeros_set: &HashSet<usize>,
-    ) -> Option<String> {
-        let normalized_value = normalize_reserved_delimiters(value);
+    ) -> Option<Arc<String>> {
+        let normalized_value = Arc::new(normalize_reserved_delimiters(value));
 
         if !normalized_value.is_empty()
-            && (sensitive_zeros_set.contains(&header_index) || normalized_value != "0")
+            && (sensitive_zeros_set.contains(&header_index) || *normalized_value != "0")
         {
             Some(normalized_value)
         } else {
@@ -69,7 +69,7 @@ pub trait DataBlockCreator {
                     header_index,
                     &headers_metadata.sensitive_zeros_set,
                 )
-                .unwrap_or_else(|| "".to_owned()),
+                .unwrap_or_else(|| Arc::new("".to_owned())),
             )
         }
     }
@@ -142,7 +142,11 @@ pub trait DataBlockCreator {
 
                                             multi_value_column_metadata_map
                                                 .entry(multi_value_header_name.clone())
-                                                .or_insert_with(|| MultiValueColumnMetadata::new((**normalized_header).clone(), value.clone(), delim.clone()));
+                                                .or_insert_with(|| MultiValueColumnMetadata::new(
+                                                    normalized_header.clone(),
+                                                    value.clone(),
+                                                    delim.clone())
+                                                );
                                             multi_value_header_name
                                         })
                                 );
@@ -185,7 +189,7 @@ pub trait DataBlockCreator {
                             if !value.is_empty() {
                                 result_records.push(Arc::new(DataBlockValue::new(
                                     header_index_by_name[normalized_header],
-                                    Arc::new(value),
+                                    value,
                                 )));
                             }
                         }

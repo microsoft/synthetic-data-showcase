@@ -9,7 +9,8 @@ use std::sync::Arc;
 
 use crate::data_block::DataBlock;
 use crate::data_block::DataBlockHeaders;
-use crate::data_block::RawSyntheticData;
+use crate::data_block::MultiValueColumnMetadataMap;
+use crate::data_block::RawData;
 use crate::processing::aggregator::AggregatedData;
 use crate::processing::generator::synthesizers::AggregateSeededSynthesizer;
 use crate::processing::generator::synthesizers::SynthesizerCacheKey;
@@ -26,12 +27,13 @@ impl Generator {
     fn build_generated_data(
         &self,
         headers: &DataBlockHeaders,
+        multi_value_column_metadata_map: MultiValueColumnMetadataMap,
         number_of_records: usize,
         mut synthesized_records: SynthesizedRecords,
         empty_value: Arc<String>,
     ) -> GeneratedData {
-        let mut result: RawSyntheticData = RawSyntheticData::default();
-        let mut records: RawSyntheticData = synthesized_records
+        let mut result = RawData::default();
+        let mut records: RawData = synthesized_records
             .drain(..)
             .map(|r| SynthesizerCacheKey::new(headers.len(), &r).format_record(&empty_value))
             .collect();
@@ -51,7 +53,7 @@ impl Generator {
 
         info!("expansion ratio: {:.4?}", expansion_ratio);
 
-        GeneratedData::new(result, expansion_ratio)
+        GeneratedData::new(result, expansion_ratio, multi_value_column_metadata_map)
     }
 
     /// Synthesize data using the row seeded method
@@ -87,6 +89,7 @@ impl Generator {
 
         Ok(self.build_generated_data(
             &data_block.headers,
+            data_block.multi_value_column_metadata_map.clone(),
             data_block.number_of_records(),
             synth.run(progress_reporter)?,
             empty_value_arc,
@@ -127,6 +130,7 @@ impl Generator {
 
         Ok(self.build_generated_data(
             &data_block.headers,
+            data_block.multi_value_column_metadata_map.clone(),
             data_block.number_of_records(),
             synth.run(progress_reporter)?,
             empty_value_arc,
@@ -170,6 +174,7 @@ impl Generator {
 
         Ok(self.build_generated_data(
             &data_block.headers,
+            data_block.multi_value_column_metadata_map.clone(),
             data_block.number_of_records(),
             synth.run(progress_reporter)?,
             empty_value_arc,
@@ -204,6 +209,7 @@ impl Generator {
 
         Ok(self.build_generated_data(
             &aggregated_data.headers,
+            aggregated_data.multi_value_column_metadata_map.clone(),
             aggregated_data.number_of_records,
             synth.run(progress_reporter)?,
             empty_value_arc,

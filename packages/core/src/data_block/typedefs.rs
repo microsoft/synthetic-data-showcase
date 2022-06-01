@@ -49,8 +49,8 @@ pub type AttributeRowsRefMap = FnvHashMap<Arc<DataBlockValue>, Arc<AttributeRows
 /// Maps the column index -> data block value -> rows where the value appear
 pub type AttributeRowsByColumnMap = FnvHashMap<usize, AttributeRowsMap>;
 
-/// Raw synthesized data (vector of csv record references to the original data block)
-pub type RawSyntheticData = Vec<CsvRecordRef>;
+/// Raw data (vector of csv record references to the original data block)
+pub type RawData = Vec<CsvRecordRef>;
 
 /// A vector of combination comparisons
 /// (between sensitive and synthetic data)
