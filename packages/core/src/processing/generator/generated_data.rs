@@ -59,12 +59,11 @@ impl GeneratedData {
         &self,
         writer: &mut T,
         delimiter: char,
+        join_multi_value_columns: bool,
     ) -> Result<(), CsvIOError> {
         let mut wtr = WriterBuilder::new()
             .delimiter(delimiter as u8)
             .from_writer(writer);
-        // TODO: move this a parameter
-        let join_multi_value_columns = true;
         let joined_synthetic_data;
 
         let synthetic_data = if join_multi_value_columns {
@@ -113,7 +112,13 @@ impl GeneratedData {
     /// # Arguments
     /// * `path` - File path to be written
     /// * `delimiter` - Delimiter to use when writing to `path`
-    pub fn write_synthetic_data(&self, path: &str, delimiter: char) -> Result<(), CsvIOError> {
+    /// * `join_multi_value_columns` - Whether multi value columns should be joined back together or not
+    pub fn write_synthetic_data(
+        &self,
+        path: &str,
+        delimiter: char,
+        join_multi_value_columns: bool,
+    ) -> Result<(), CsvIOError> {
         let _duration_logger = ElapsedDurationLogger::new("write synthetic data");
 
         let mut file = std::io::BufWriter::new(
@@ -122,16 +127,21 @@ impl GeneratedData {
 
         info!("writing file {}", path);
 
-        self._write_synthetic_data(&mut file, delimiter)
+        self._write_synthetic_data(&mut file, delimiter, join_multi_value_columns)
     }
 
     /// Generates a CSV string from the synthetic data
     /// # Arguments
     /// * `delimiter` - CSV delimiter to use
-    pub fn synthetic_data_to_string(&self, delimiter: char) -> Result<String, CsvIOError> {
+    /// * `join_multi_value_columns` - Whether multi value columns should be joined back together or not
+    pub fn synthetic_data_to_string(
+        &self,
+        delimiter: char,
+        join_multi_value_columns: bool,
+    ) -> Result<String, CsvIOError> {
         let mut csv_data = Vec::default();
 
-        self._write_synthetic_data(&mut csv_data, delimiter)?;
+        self._write_synthetic_data(&mut csv_data, delimiter, join_multi_value_columns)?;
 
         Ok(String::from_utf8_lossy(&csv_data).to_string())
     }

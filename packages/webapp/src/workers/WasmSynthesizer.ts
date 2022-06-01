@@ -130,7 +130,7 @@ export class WasmSynthesizer extends BaseSdsWasmWorker {
 	}
 
 	public async getGenerateResult(): Promise<IGenerateResult> {
-		return this.getContext().generateResultToJs()
+		return this.getContext().generateResultToJs(false)
 	}
 
 	public async getEvaluateResult(): Promise<IEvaluateResult> {

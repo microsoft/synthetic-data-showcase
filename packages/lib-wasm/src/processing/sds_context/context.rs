@@ -259,7 +259,7 @@ impl WasmSdsContext {
         self.synthetic_processor = Some(WasmSdsProcessor::new(
             &self
                 .get_generate_result()?
-                .synthetic_data_to_js(params.delimiter)?,
+                .synthetic_data_to_js(params.delimiter, false)?,
             &params,
         )?);
         self.synthetic_aggregate_result = Some(self.get_synthetic_processor()?._aggregate(
@@ -301,9 +301,14 @@ impl WasmSdsContext {
     }
 
     #[wasm_bindgen(js_name = "generateResultToJs")]
-    pub fn generate_result_to_js(&self) -> JsResult<JsGenerateResult> {
-        self.get_generate_result()?
-            .to_js(self.get_sensitive_data_params()?.delimiter)
+    pub fn generate_result_to_js(
+        &self,
+        join_multi_value_columns: bool,
+    ) -> JsResult<JsGenerateResult> {
+        self.get_generate_result()?.to_js(
+            self.get_sensitive_data_params()?.delimiter,
+            join_multi_value_columns,
+        )
     }
 
     #[wasm_bindgen(js_name = "evaluateResultToJs")]

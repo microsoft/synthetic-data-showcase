@@ -323,6 +323,7 @@ fn main() {
                     gd.write_synthetic_data(
                         &synthetic_path,
                         synthetic_delimiter.chars().next().unwrap(),
+                        false,
                     )
                 }) {
                     error!("error writing output file: {}", err);
