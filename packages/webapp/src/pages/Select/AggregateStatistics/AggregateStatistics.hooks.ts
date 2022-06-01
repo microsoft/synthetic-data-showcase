@@ -8,7 +8,7 @@ import type { IAggregateStatistics, IRecordsCountByColumn } from 'sds-wasm'
 
 import type { ICsvContent } from '~models'
 import { useSdsManagerInstance, useSensitiveContent } from '~states'
-import { usableHeaders } from '~utils'
+import { usableHeaders, usableMultiValueColumns } from '~utils'
 import type { ICancelablePromise } from '~workers/types'
 
 export function useGetAggregateStatistics(): (
@@ -43,6 +43,7 @@ export function useGetAggregateStatistics(): (
 								.filter(h => h.hasSensitiveZeros)
 								.map(h => h.name),
 							recordLimit,
+							multiValueColumns: usableMultiValueColumns(sensitiveContent),
 						},
 						reportingLength,
 						resolution,

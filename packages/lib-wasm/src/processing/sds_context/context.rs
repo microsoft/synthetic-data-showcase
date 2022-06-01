@@ -15,15 +15,16 @@ use crate::{
         generator::WasmGenerateResult,
         navigator::WasmNavigateResult,
         sds_processor::{
-            WasmBaseSynthesisParameters, WasmCsvDataParameters, WasmOversamplingParameters,
-            WasmSdsProcessor,
+            HeaderNames, WasmBaseSynthesisParameters, WasmCsvDataParameters,
+            WasmOversamplingParameters, WasmSdsProcessor,
         },
     },
     utils::js::{
         JsAggregateResult, JsAggregateStatistics, JsAttributesIntersectionByColumn,
         JsBaseSynthesisParameters, JsCsvDataParameters, JsDpParameters, JsEvaluateResult,
-        JsGenerateResult, JsHeaderNames, JsNoisyCountThreshold, JsOversamplingParameters,
-        JsProgressReporter, JsReportProgressCallback, JsResult, JsSelectedAttributesByColumn,
+        JsGenerateResult, JsHeaderNames, JsNavigateResult, JsNoisyCountThreshold,
+        JsOversamplingParameters, JsProgressReporter, JsReportProgressCallback, JsResult,
+        JsSelectedAttributesByColumn,
     },
 };
 
@@ -251,8 +252,9 @@ impl WasmSdsContext {
             );
         }
 
-        // always process all the synthetic data
+        // always process all the synthetic data and all columns
         params.record_limit = 0;
+        params.use_columns = HeaderNames::default();
 
         self.synthetic_processor = Some(WasmSdsProcessor::new(
             &self
@@ -349,6 +351,11 @@ impl WasmSdsContext {
             self.get_generate_result()?.resolution(),
             false,
         )
+    }
+
+    #[wasm_bindgen(js_name = "navigateResultToJs")]
+    pub fn navigate_result_to_js(&self) -> JsResult<JsNavigateResult> {
+        self.get_navigate_result()?.to_js()
     }
 }
 

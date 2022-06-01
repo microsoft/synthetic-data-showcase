@@ -51,6 +51,7 @@ impl WasmSdsProcessor {
                 .delimiter(csv_data_params.delimiter as u8)
                 .from_reader(Cursor::new(csv_data))),
             &csv_data_params.use_columns,
+            &csv_data_params.multi_value_columns,
             &csv_data_params.sensitive_zeros,
             csv_data_params.record_limit,
         )

@@ -4,6 +4,7 @@
  */
 import { fromCSV, table } from 'arquero'
 import type ColumnTable from 'arquero/dist/types/table/column-table'
+import type { IMultiValueColumns } from 'sds-wasm'
 
 import type { ICsvContent, ICsvTableHeader } from '~models'
 
@@ -37,7 +38,7 @@ export function fromCsvData(
 export function columnIndexesWithZeros(table: ColumnTable): number[] {
 	return table.columnNames().reduce((acc, name, idx) => {
 		const values = table.array(name)
-		if (values.some(v => v === 0)) {
+		if (values.some(v => v?.toString()?.includes('0'))) {
 			acc.push(idx)
 		}
 		return acc
@@ -77,20 +78,25 @@ export function tableHeaders(
  * @param onlyUsed
  */
 export function usableHeaders(data: ICsvContent): ICsvTableHeader[] {
-	return data.headers.filter(
-		h => h.use && h.name !== data.subjectId && h.spreadWithDelimiter === null,
-	)
+	return data.headers.filter(h => h.use && h.name !== data.subjectId)
 }
 
 /**
- * Get a list of spreadable column names from the table
+ * Get an object mapping the multi value columns in data (Column Name -> Delimiter)
  * @param table
  * @param onlyUsed
  */
-export function spreadableHeaders(data: ICsvContent): ICsvTableHeader[] {
-	return data.headers.filter(
-		h => h.use && h.name !== data.subjectId && h.spreadWithDelimiter !== null,
-	)
+export function usableMultiValueColumns(data: ICsvContent): IMultiValueColumns {
+	const ret = {}
+
+	data.headers
+		.filter(
+			h => h.use && h.name !== data.subjectId && h.spreadWithDelimiter !== null,
+		)
+		.forEach(h => {
+			ret[h.name] = h.spreadWithDelimiter
+		})
+	return ret
 }
 
 /**

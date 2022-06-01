@@ -1,4 +1,4 @@
-use super::header_names::HeaderNames;
+use super::{header_names::HeaderNames, MultiValueColumns};
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
@@ -10,6 +10,7 @@ use crate::utils::js::JsCsvDataParameters;
 pub struct WasmCsvDataParameters {
     pub(crate) delimiter: char,
     pub(crate) use_columns: HeaderNames,
+    pub(crate) multi_value_columns: MultiValueColumns,
     pub(crate) sensitive_zeros: HeaderNames,
     pub(crate) record_limit: usize,
 }

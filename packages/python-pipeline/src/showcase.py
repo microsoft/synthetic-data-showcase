@@ -69,6 +69,7 @@ def runForConfig(config):
 
     # numeric parameters controlling synthesis and aggregation
     config['use_columns'] = config.get('use_columns', [])
+    config['multi_value_columns'] = config.get('multi_value_columns', {})
     config['record_limit'] = config.get(
         'record_limit', -1)  # use all sensitive records
     config['reporting_length'] = config.get(

@@ -1,0 +1,4 @@
+RowID,A,B,C,F:SenseZeros,G:SenseZeros,D
+1,a1,b1;b4;b3,c1;c2;0;c3,0,0,d1|d3
+2,a1,0,c1;0,0,0,d1||d4
+3,a1,b1;0,,0,"  Value;ToNormalize  ",d1

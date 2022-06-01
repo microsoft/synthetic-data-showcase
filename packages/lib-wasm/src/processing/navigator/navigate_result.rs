@@ -2,26 +2,32 @@ use super::{
     attributes_intersection::{WasmAttributesIntersection, WasmAttributesIntersectionByColumn},
     selected_attributes::{WasmSelectedAttributes, WasmSelectedAttributesByColumn},
 };
+use js_sys::{Object, Reflect::set};
 use sds_core::{
     data_block::{
         AttributeRows, AttributeRowsByColumnMap, AttributeRowsMap, ColumnIndexByName, CsvRecord,
         DataBlock, DataBlockValue,
     },
     processing::aggregator::ValueCombination,
-    utils::collections::ordered_vec_intersection,
+    utils::{collections::ordered_vec_intersection, time::ElapsedDurationLogger},
 };
 use std::{cmp::Reverse, convert::TryFrom, sync::Arc};
-use wasm_bindgen::prelude::*;
+use wasm_bindgen::{prelude::*, JsCast};
 
 use crate::{
-    processing::{aggregator::WasmAggregateResult, sds_processor::WasmSdsProcessor},
+    processing::{
+        aggregator::WasmAggregateResult,
+        sds_processor::{HeaderNames, WasmSdsProcessor},
+    },
     utils::js::{
-        JsAttributesIntersectionByColumn, JsHeaderNames, JsResult, JsSelectedAttributesByColumn,
+        JsAttributesIntersectionByColumn, JsHeaderNames, JsNavigateResult, JsResult,
+        JsSelectedAttributesByColumn,
     },
 };
 
 #[wasm_bindgen]
 pub struct WasmNavigateResult {
+    header_names: HeaderNames,
     synthetic_data_block: Arc<DataBlock>,
     attr_rows_by_column: AttributeRowsByColumnMap,
     selected_attributes: WasmSelectedAttributesByColumn,
@@ -34,6 +40,7 @@ impl WasmNavigateResult {
     #[inline]
     pub fn default() -> WasmNavigateResult {
         WasmNavigateResult::new(
+            HeaderNames::default(),
             Arc::new(DataBlock::default()),
             AttributeRowsByColumnMap::default(),
             WasmSelectedAttributesByColumn::default(),
@@ -45,6 +52,7 @@ impl WasmNavigateResult {
 
     #[inline]
     pub fn new(
+        header_names: HeaderNames,
         synthetic_data_block: Arc<DataBlock>,
         attr_rows_by_column: AttributeRowsByColumnMap,
         selected_attributes: WasmSelectedAttributesByColumn,
@@ -53,6 +61,7 @@ impl WasmNavigateResult {
         column_index_by_name: ColumnIndexByName,
     ) -> WasmNavigateResult {
         WasmNavigateResult {
+            header_names,
             synthetic_data_block,
             attr_rows_by_column,
             selected_attributes,
@@ -138,6 +147,12 @@ impl WasmNavigateResult {
     #[wasm_bindgen(constructor)]
     pub fn from_synthetic_processor(synthetic_processor: &WasmSdsProcessor) -> WasmNavigateResult {
         WasmNavigateResult::new(
+            synthetic_processor
+                .data_block
+                .headers
+                .iter()
+                .map(|h| (**h).clone())
+                .collect(),
             synthetic_processor.data_block.clone(),
             synthetic_processor
                 .data_block
@@ -222,5 +237,21 @@ impl WasmNavigateResult {
         }
 
         JsAttributesIntersectionByColumn::try_from(result)
+    }
+
+    #[wasm_bindgen(js_name = "toJs")]
+    pub fn to_js(&self) -> JsResult<JsNavigateResult> {
+        let _duration_logger =
+            ElapsedDurationLogger::new(String::from("navigate result serialization"));
+        let result = Object::new();
+
+        set(
+            &result,
+            &"headerNames".into(),
+            &JsValue::from_serde(&self.header_names)
+                .map_err(|err| JsValue::from(err.to_string()))?,
+        )?;
+
+        Ok(JsValue::from(result).unchecked_into::<JsNavigateResult>())
     }
 }

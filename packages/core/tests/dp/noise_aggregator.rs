@@ -1,6 +1,7 @@
 use sds_core::dp::{
     CombinationsCountMapByLen, DpParameters, InputValueByLen, NoiseAggregator, NoisyCountThreshold,
 };
+use std::collections::HashMap;
 
 use crate::utils::{
     assert_map_equals, gen_combinations_count_map, gen_value_combination, read_test_data_block,
@@ -12,7 +13,7 @@ const TEST_FILE_PATH: &str = "test_noise_aggregator.csv";
 
 fn get_noise_aggregator() -> NoiseAggregator {
     NoiseAggregator::new(
-        read_test_data_block(TEST_FILE_PATH, DELIMITER, &[], &[], 0),
+        read_test_data_block(TEST_FILE_PATH, DELIMITER, &[], &HashMap::default(), &[], 0),
         3,
         &DpParameters::new(1.0, 0.001, 99, 0.1, None),
         NoisyCountThreshold::Fixed(InputValueByLen::default()),

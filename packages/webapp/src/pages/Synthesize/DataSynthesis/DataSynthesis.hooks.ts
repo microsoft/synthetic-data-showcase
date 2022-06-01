@@ -2,8 +2,8 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { useCallback, useMemo } from 'react'
-import type { IInputNumberByLength } from 'sds-wasm'
+import { useCallback } from 'react'
+import type { IInputNumberByLength, IMultiValueColumns } from 'sds-wasm'
 
 import type { ICsvContent, IRawSynthesisParameters } from '~models'
 import {
@@ -13,7 +13,7 @@ import {
 	UseSyntheticCounts,
 } from '~models'
 import { useSdsManagerInstance, useSensitiveContentValue } from '~states'
-import { namedSpread, spreadableHeaders, usableHeaders } from '~utils'
+import { usableHeaders, usableMultiValueColumns } from '~utils'
 import type {
 	IAggregateSeededSynthesisParameters,
 	IDpSynthesisParameters,
@@ -115,6 +115,7 @@ function generateNoisyThresholdValuesByLen(
 function convertRawToSynthesisParameters(
 	rawParams: IRawSynthesisParameters,
 	useColumns: string[],
+	multiValueColumns: IMultiValueColumns,
 	sensitiveCsvContent: ICsvContent,
 ): ISynthesisParameters {
 	let ret: ISynthesisParameters = {
@@ -125,6 +126,7 @@ function convertRawToSynthesisParameters(
 			sensitiveZeros: sensitiveCsvContent.headers
 				.filter(h => h.hasSensitiveZeros)
 				.map(h => h.name),
+			multiValueColumns,
 			recordLimit: rawParams.recordLimit,
 		},
 		baseSynthesisParameters: {
@@ -199,36 +201,21 @@ export function useOnRunGenerateAndEvaluate(): (
 	const sensitiveContent = useSensitiveContentValue()
 	const manager = useSdsManagerInstance()[0]?.instance
 
-	const { resultTable: sensitiveTable, newColumnNames } = useMemo(
-		() =>
-			namedSpread(
-				sensitiveContent.table,
-				spreadableHeaders(sensitiveContent).map(h => ({
-					name: h.name,
-					delimiter: h.spreadWithDelimiter!,
-				})),
-			),
-		[sensitiveContent],
-	)
-
 	return useCallback(
 		async (rawParams: IRawSynthesisParameters) => {
-			const columnsToUse = new Set([
-				...usableHeaders(sensitiveContent).map(h => h.name),
-				...newColumnNames,
-			])
 			const synthesisParams = convertRawToSynthesisParameters(
 				rawParams,
-				sensitiveTable.columnNames().filter(c => columnsToUse.has(c)),
+				usableHeaders(sensitiveContent).map(h => h.name),
+				usableMultiValueColumns(sensitiveContent),
 				sensitiveContent,
 			)
 
 			await manager?.startGenerateAndEvaluate(
 				generateContextKey(rawParams),
-				sensitiveTable.toCSV({ delimiter: sensitiveContent.delimiter }),
+				sensitiveContent.table.toCSV({ delimiter: sensitiveContent.delimiter }),
 				synthesisParams,
 			)
 		},
-		[sensitiveContent, manager, newColumnNames, sensitiveTable],
+		[sensitiveContent, manager],
 	)
 }

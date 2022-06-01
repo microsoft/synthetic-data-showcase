@@ -7,9 +7,10 @@ import type { HeaderNames } from 'sds-wasm'
 
 const initiallySelectedHeaders = 6
 
+export function calcInitiallySelectedHeaders(headers: HeaderNames): boolean[] {
+	return headers.map((_, i) => i < initiallySelectedHeaders)
+}
+
 export function useInitiallySelectedHeaders(headers: HeaderNames): boolean[] {
-	return useMemo(
-		() => headers.map((_, i) => i < initiallySelectedHeaders),
-		[headers],
-	)
+	return useMemo(() => calcInitiallySelectedHeaders(headers), [headers])
 }
