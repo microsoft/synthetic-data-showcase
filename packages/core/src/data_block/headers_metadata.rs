@@ -19,8 +19,8 @@ pub struct DataBlockHeadersMetadata {
     /// Index of the original headers that contain
     /// multi value columns, mapped to the corresponding delimiter
     pub multi_value_columns_map: HashMap<usize, String>,
-    /// Normalized header names of the multi value columns
-    pub multi_value_column_normalized_names: HashSet<String>,
+    /// Normalized header names of the multi value columns and its delimiters
+    pub multi_value_column_normalized_names_delimiters_map: HashMap<String, String>,
 }
 
 impl DataBlockHeadersMetadata {
@@ -106,19 +106,17 @@ impl DataBlockHeadersMetadata {
     }
 
     #[inline]
-    fn gen_multi_value_column_normalized_names(
+    fn gen_multi_value_column_normalized_names_delimiters_map(
         raw_headers: &CsvRecordSlice,
         multi_value_columns_map: &HashMap<usize, String>,
-    ) -> HashSet<String> {
+    ) -> HashMap<String, String> {
         raw_headers
             .iter()
             .enumerate()
             .filter_map(|(i, h)| {
-                if multi_value_columns_map.contains_key(&i) {
-                    Some(normalize_reserved_delimiters(h))
-                } else {
-                    None
-                }
+                multi_value_columns_map
+                    .get(&i)
+                    .map(|delim| (normalize_reserved_delimiters(h), delim.clone()))
             })
             .collect()
     }
@@ -143,15 +141,18 @@ impl DataBlockHeadersMetadata {
         let sensitive_zeros_set = Self::gen_sensitive_zeros_set(&raw_headers, sensitive_zeros);
         let multi_value_columns_map =
             Self::gen_multi_value_columns_map(&raw_headers, multi_value_columns);
-        let multi_value_column_normalized_names =
-            Self::gen_multi_value_column_normalized_names(&raw_headers, &multi_value_columns_map);
+        let multi_value_column_normalized_names_delimiters_map =
+            Self::gen_multi_value_column_normalized_names_delimiters_map(
+                &raw_headers,
+                &multi_value_columns_map,
+            );
 
         DataBlockHeadersMetadata {
             use_columns_set,
             normalized_headers_to_be_used,
             sensitive_zeros_set,
             multi_value_columns_map,
-            multi_value_column_normalized_names,
+            multi_value_column_normalized_names_delimiters_map,
         }
     }
 }

@@ -1,4 +1,7 @@
-use super::{input_value::DataBlockInputValue, record::DataBlockRecord, value::DataBlockValue};
+use super::{
+    input_value::DataBlockInputValue, record::DataBlockRecord, value::DataBlockValue,
+    MultiValueColumnMetadata,
+};
 use fnv::FnvHashMap;
 use std::sync::Arc;
 
@@ -30,6 +33,9 @@ pub type DataBlockHeaders = CsvRecordRef;
 
 /// Slice of DataBlockHeaders
 pub type DataBlockHeadersSlice = CsvRecordRefSlice;
+
+/// Maps a normalized multi-value header name (such as A_a1) to its corresponding metadata
+pub type MultiValueColumnMetadataMap = FnvHashMap<Arc<String>, MultiValueColumnMetadata>;
 
 /// Vector of data block records, where each record represents a row
 pub type DataBlockRecords = Vec<Arc<DataBlockRecord>>;

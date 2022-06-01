@@ -4,6 +4,7 @@ use super::{
         DataBlockHeaders, DataBlockRecords,
     },
     value::DataBlockValue,
+    MultiValueColumnMetadataMap,
 };
 use fnv::FnvHashMap;
 use itertools::Itertools;
@@ -23,6 +24,8 @@ use pyo3::prelude::*;
 pub struct DataBlock {
     /// Vector of strings representing the data headers
     pub headers: DataBlockHeaders,
+    /// Maps a normalized multi-value header name (such as A_a1) to its corresponding metadata
+    pub multi_value_column_metadata_map: MultiValueColumnMetadataMap,
     /// Vector of data records, where each record represents a row (headers not included)
     pub records: DataBlockRecords,
 }
@@ -32,6 +35,7 @@ impl DataBlock {
     pub fn default() -> DataBlock {
         DataBlock {
             headers: DataBlockHeaders::default(),
+            multi_value_column_metadata_map: MultiValueColumnMetadataMap::default(),
             records: DataBlockRecords::default(),
         }
     }
@@ -39,10 +43,20 @@ impl DataBlock {
     /// Returns a new DataBlock
     /// # Arguments
     /// * `headers` - Vector of string representing the data headers
+    /// * `multi_value_column_metadata_map` - Maps a normalized multi-value header name (such as A_a1) to
+    /// its corresponding metadata
     /// * `records` - Vector of data records, where each record represents a row (headers not included)
     #[inline]
-    pub fn new(headers: DataBlockHeaders, records: DataBlockRecords) -> DataBlock {
-        DataBlock { headers, records }
+    pub fn new(
+        headers: DataBlockHeaders,
+        multi_value_column_metadata_map: MultiValueColumnMetadataMap,
+        records: DataBlockRecords,
+    ) -> DataBlock {
+        DataBlock {
+            headers,
+            multi_value_column_metadata_map,
+            records,
+        }
     }
 
     /// Returns a map of column name -> column index
