@@ -28,6 +28,12 @@ enum Command {
         synthetic_delimiter: String,
 
         #[structopt(
+            long = "join-multi-value-columns",
+            help = "join multi value columns back together when exporting to CSV file"
+        )]
+        join_multi_value_columns: bool,
+
+        #[structopt(
             long = "cache-max-size",
             help = "maximum cache size (# of combinations)",
             default_value = "100000"
@@ -247,6 +253,7 @@ fn main() {
             Command::Generate {
                 synthetic_path,
                 synthetic_delimiter,
+                join_multi_value_columns,
                 cache_max_size,
                 mode,
                 aggregates_json,
@@ -323,7 +330,7 @@ fn main() {
                     gd.write_synthetic_data(
                         &synthetic_path,
                         synthetic_delimiter.chars().next().unwrap(),
-                        false,
+                        join_multi_value_columns,
                     )
                 }) {
                     error!("error writing output file: {}", err);
