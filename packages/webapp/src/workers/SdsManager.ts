@@ -201,10 +201,13 @@ export class SdsManager {
 		)
 	}
 
-	public async getGenerateResult(key: string): Promise<IGenerateResult> {
-		return await this.getSynthesizerWorkInfo(
-			key,
-		).synthesizer.getGenerateResult()
+	public async getGenerateResult(
+		key: string,
+		joinMultiValueColumns: boolean,
+	): Promise<IGenerateResult> {
+		return await this.getSynthesizerWorkInfo(key).synthesizer.getGenerateResult(
+			joinMultiValueColumns,
+		)
 	}
 
 	public async getEvaluateResult(key: string): Promise<IEvaluateResult> {
