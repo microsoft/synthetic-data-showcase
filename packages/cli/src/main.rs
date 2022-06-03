@@ -241,6 +241,7 @@ fn main() {
         csv::ReaderBuilder::new()
             .delimiter(cli.sensitive_delimiter.chars().next().unwrap() as u8)
             .from_path(cli.sensitive_path),
+        None,
         &cli.use_columns,
         &cli.multi_value_columns
             .iter()

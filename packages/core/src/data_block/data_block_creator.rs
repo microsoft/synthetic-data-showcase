@@ -75,14 +75,12 @@ where
     #[inline]
     fn create(
         input_res: Result<Self::InputType, Self::ErrorType>,
+        subject_id: Option<String>,
         use_columns: &[String],
         multi_value_columns: &HashMap<String, String>,
         sensitive_zeros: &[String],
         record_limit: usize,
     ) -> Result<Arc<DataBlock>, DataBlockCreatorError<Self::ErrorType>> {
-        // TODO: Make this a parameter
-        let subject_id: Option<String> = None;
-
         let mut input = input_res.map_err(DataBlockCreatorError::ParsingError)?;
         let headers_metadata = DataBlockHeadersMetadata::new(
             Self::get_headers(&mut input).map_err(DataBlockCreatorError::ParsingError)?,

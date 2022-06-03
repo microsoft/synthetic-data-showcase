@@ -15,6 +15,7 @@ fn valid_all_columns_no_sensitive_zeros() {
     let data_block = read_test_data_block(
         TEST_FILE_PATH,
         DELIMITER,
+        None,
         &[],
         &[
             ("B".to_owned(), ";".to_owned()),
@@ -165,6 +166,7 @@ fn valid_selected_columns_no_sensitive_zeros() {
     let data_block = read_test_data_block(
         TEST_FILE_PATH,
         DELIMITER,
+        None,
         &["A".to_owned(), "C".to_owned(), "D".to_owned()],
         &[
             ("B".to_owned(), ";".to_owned()),
@@ -269,6 +271,7 @@ fn valid_selected_columns_with_sensitive_zeros() {
     let data_block = read_test_data_block(
         TEST_FILE_PATH,
         DELIMITER,
+        None,
         &[
             "A".to_owned(),
             "B".to_owned(),

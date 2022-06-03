@@ -57,6 +57,7 @@ impl SDSProcessor {
             ReaderBuilder::new()
                 .delimiter(delimiter as u8)
                 .from_path(path),
+            None,
             &use_columns,
             &multi_value_columns,
             &sensitive_zeros,

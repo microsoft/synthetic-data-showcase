@@ -16,6 +16,7 @@ fn validate_multi_value_column_joiner() {
     let data_block = read_test_data_block(
         TEST_FILE_PATH,
         DELIMITER,
+        None,
         &[],
         &[
             ("B".to_owned(), ";".to_owned()),
