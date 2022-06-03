@@ -1,7 +1,9 @@
 mod block;
 mod csv_block_creator;
 mod csv_io_error;
+mod csv_record_input_values;
 mod data_block_creator;
+mod data_block_creator_error;
 mod headers_metadata;
 mod input_value;
 mod multi_value_column_metadata;
@@ -14,6 +16,7 @@ pub use block::*;
 pub use csv_block_creator::*;
 pub use csv_io_error::*;
 pub use data_block_creator::*;
+pub use data_block_creator_error::*;
 pub use multi_value_column_metadata::*;
 pub use raw_data::*;
 pub use record::*;
