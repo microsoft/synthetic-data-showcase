@@ -1,4 +1,8 @@
-use super::{input_value::DataBlockInputValue, CsvRecord, CsvRecordRef, CsvRecordSlice};
+use super::{
+    csv_record_input_values::CsvRecordInputValues, input_value::DataBlockInputValue, CsvRecord,
+    CsvRecordRef, CsvRecordSlice, DataBlockHeaders, MultiValueColumnMetadata,
+    MultiValueColumnMetadataMap,
+};
 use fnv::FnvHashSet;
 use itertools::Itertools;
 use std::{
@@ -194,5 +198,62 @@ impl DataBlockHeadersMetadata {
                 }
             })
             .collect()
+    }
+
+    /// Creates the final headers array and the multi value column metadata
+    /// based on the record inputs.
+    pub fn create_headers_and_multi_value_columns_metadata(
+        &self,
+        records_inputs: &[CsvRecordInputValues],
+    ) -> (DataBlockHeaders, MultiValueColumnMetadataMap) {
+        let mut multi_value_column_metadata_map = MultiValueColumnMetadataMap::default();
+
+        (self.normalized_headers_to_be_used
+            .iter()
+            .enumerate()
+            .flat_map(|(input_index, normalized_header)| {
+                let mut values_set = HashSet::new();
+
+                if let Some(delim) = self.multi_value_column_normalized_names_delimiters_map.get(&**normalized_header) {
+                    for record_input in records_inputs.iter() {
+                        let input_value = &record_input.values[input_index];
+
+                        match input_value {
+                            DataBlockInputValue::MultiValue(values) => {
+                                values_set.extend(
+                                values
+                                        .iter()
+                                        .map(|value| {
+                                            let multi_value_header_name = Arc::new(Self::format_multi_value_header(normalized_header, value));
+
+                                            multi_value_column_metadata_map
+                                                .entry(multi_value_header_name.clone())
+                                                .or_insert_with(|| MultiValueColumnMetadata::new(
+                                                    normalized_header.clone(),
+                                                    value.clone(),
+                                                    delim.clone())
+                                                );
+                                            multi_value_header_name
+                                        })
+                                );
+                            },
+                            _ => {
+                                // this should never happen, force panic here
+                                panic!("invalid single value in multi value column, this is an implementation bug");
+                            }
+                        }
+                    }
+                } else {
+                    values_set.insert(normalized_header.clone());
+                }
+                values_set.drain().sorted()
+            }).collect(), multi_value_column_metadata_map)
+    }
+
+    /// Formats the multi value header name using the base `header` name
+    /// and the attribute `value`
+    #[inline]
+    pub fn format_multi_value_header(header: &str, value: &str) -> String {
+        format!("{header}_{value}")
     }
 }

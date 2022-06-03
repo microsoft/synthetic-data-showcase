@@ -9,6 +9,7 @@ mod input_value;
 mod multi_value_column_metadata;
 mod raw_data;
 mod record;
+mod subject_id_joiner;
 mod typedefs;
 mod value;
 
