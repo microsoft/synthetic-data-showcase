@@ -5,7 +5,7 @@ use super::{
     record::DataBlockRecord,
     typedefs::{CsvRecord, DataBlockRecords},
     value::DataBlockValue,
-    CsvRecordInputValues, DataBlockHeaders, DataBlockHeadersSlice,
+    CsvRecordInputValues, DataBlockHeaders, DataBlockHeadersSlice, MultiValueColumnMetadata,
 };
 use itertools::Itertools;
 use std::{
@@ -13,7 +13,9 @@ use std::{
     sync::Arc,
 };
 
-use crate::utils::strings::normalize_reserved_delimiters;
+use crate::{
+    data_block::MultiValueColumnMetadataMap, utils::strings::normalize_reserved_delimiters,
+};
 
 /// Trait that needs to be implement to create a data block.
 /// It already contains the logic to create the data block, so we only
@@ -29,11 +31,11 @@ pub trait DataBlockCreator {
         value: &str,
         header_index: usize,
         sensitive_zeros_set: &HashSet<usize>,
-    ) -> Option<String> {
-        let normalized_value = normalize_reserved_delimiters(value);
+    ) -> Option<Arc<String>> {
+        let normalized_value = Arc::new(normalize_reserved_delimiters(value));
 
         if !normalized_value.is_empty()
-            && (sensitive_zeros_set.contains(&header_index) || normalized_value != "0")
+            && (sensitive_zeros_set.contains(&header_index) || *normalized_value != "0")
         {
             Some(normalized_value)
         } else {
@@ -67,7 +69,7 @@ pub trait DataBlockCreator {
                     header_index,
                     &headers_metadata.sensitive_zeros_set,
                 )
-                .unwrap_or_else(|| "".to_owned()),
+                .unwrap_or_else(|| Arc::new("".to_owned())),
             )
         }
     }
@@ -114,17 +116,19 @@ pub trait DataBlockCreator {
     }
 
     #[inline]
-    fn create_headers(
+    fn create_headers_and_multi_value_columns_metadata(
         records_inputs: &[CsvRecordInputValues],
         headers_metadata: &DataBlockHeadersMetadata,
-    ) -> DataBlockHeaders {
-        headers_metadata.normalized_headers_to_be_used
+    ) -> (DataBlockHeaders, MultiValueColumnMetadataMap) {
+        let mut multi_value_column_metadata_map = MultiValueColumnMetadataMap::default();
+
+        (headers_metadata.normalized_headers_to_be_used
             .iter()
             .enumerate()
             .flat_map(|(input_index, normalized_header)| {
                 let mut values_set = HashSet::new();
 
-                if headers_metadata.multi_value_column_normalized_names.contains(&**normalized_header) {
+                if let Some(delim) = headers_metadata.multi_value_column_normalized_names_delimiters_map.get(&**normalized_header) {
                     for record_input in records_inputs.iter() {
                         let input_value = &record_input[input_index];
 
@@ -133,7 +137,18 @@ pub trait DataBlockCreator {
                                 values_set.extend(
                                 values
                                         .iter()
-                                        .map(|value| Arc::new(Self::format_multi_value_header(normalized_header, value)))
+                                        .map(|value| {
+                                            let multi_value_header_name = Arc::new(Self::format_multi_value_header(normalized_header, value));
+
+                                            multi_value_column_metadata_map
+                                                .entry(multi_value_header_name.clone())
+                                                .or_insert_with(|| MultiValueColumnMetadata::new(
+                                                    normalized_header.clone(),
+                                                    value.clone(),
+                                                    delim.clone())
+                                                );
+                                            multi_value_header_name
+                                        })
                                 );
                             },
                             _ => {
@@ -146,7 +161,7 @@ pub trait DataBlockCreator {
                     values_set.insert(normalized_header.clone());
                 }
                 values_set.drain().sorted()
-            }).collect()
+            }).collect(), multi_value_column_metadata_map)
     }
 
     #[inline]
@@ -174,7 +189,7 @@ pub trait DataBlockCreator {
                             if !value.is_empty() {
                                 result_records.push(Arc::new(DataBlockValue::new(
                                     header_index_by_name[normalized_header],
-                                    Arc::new(value),
+                                    value,
                                 )));
                             }
                         }
@@ -216,10 +231,18 @@ pub trait DataBlockCreator {
             &headers_metadata,
             record_limit,
         );
-        let headers = Self::create_headers(&records_inputs, &headers_metadata);
+        let (headers, multi_value_column_metadata_map) =
+            Self::create_headers_and_multi_value_columns_metadata(
+                &records_inputs,
+                &headers_metadata,
+            );
         let records = Self::create_records(&headers, &headers_metadata, records_inputs);
 
-        Ok(Arc::new(DataBlock::new(headers, records)))
+        Ok(Arc::new(DataBlock::new(
+            headers,
+            multi_value_column_metadata_map,
+            records,
+        )))
     }
 
     /// Should be implemented to return the CsvRecords representing the headers

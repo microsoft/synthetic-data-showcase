@@ -44,14 +44,22 @@ impl WasmGenerateResult {
     }
 
     #[wasm_bindgen(js_name = "syntheticDataToJs")]
-    pub fn synthetic_data_to_js(&self, delimiter: char) -> JsResult<String> {
+    pub fn synthetic_data_to_js(
+        &self,
+        delimiter: char,
+        join_multi_value_columns: bool,
+    ) -> JsResult<String> {
         self.generated_data
-            .synthetic_data_to_string(delimiter)
+            .synthetic_data_to_string(delimiter, join_multi_value_columns)
             .map_err(|err| JsValue::from(err.to_string()))
     }
 
     #[wasm_bindgen(js_name = "toJs")]
-    pub fn to_js(&self, delimiter: char) -> JsResult<JsGenerateResult> {
+    pub fn to_js(
+        &self,
+        delimiter: char,
+        join_multi_value_columns: bool,
+    ) -> JsResult<JsGenerateResult> {
         let _duration_logger =
             ElapsedDurationLogger::new(String::from("generate result serialization"));
         let result = Object::new();
@@ -65,7 +73,9 @@ impl WasmGenerateResult {
         set(
             &result,
             &"syntheticData".into(),
-            &self.synthetic_data_to_js(delimiter)?.into(),
+            &self
+                .synthetic_data_to_js(delimiter, join_multi_value_columns)?
+                .into(),
         )?;
 
         Ok(JsValue::from(result).unchecked_into::<JsGenerateResult>())

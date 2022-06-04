@@ -1,4 +1,6 @@
-use sds_core::data_block::{DataBlock, DataBlockRecord, DataBlockValue};
+use sds_core::data_block::{
+    DataBlock, DataBlockRecord, DataBlockValue, MultiValueColumnMetadataMap,
+};
 use std::{collections::HashMap, str::FromStr, sync::Arc};
 
 use crate::utils::read_test_data_block;
@@ -35,7 +37,14 @@ fn valid_all_columns_no_sensitive_zeros_no_record_limit() {
         )])),
     ];
 
-    assert!(*data_block == DataBlock::new(expected_headers, expected_records));
+    assert!(
+        *data_block
+            == DataBlock::new(
+                expected_headers,
+                MultiValueColumnMetadataMap::default(),
+                expected_records,
+            )
+    );
 }
 
 #[test]
@@ -72,7 +81,14 @@ fn valid_selected_columns_with_sensitive_zeros_no_record_limit() {
         ])),
     ];
 
-    assert!(*data_block == DataBlock::new(expected_headers, expected_records));
+    assert!(
+        *data_block
+            == DataBlock::new(
+                expected_headers,
+                MultiValueColumnMetadataMap::default(),
+                expected_records
+            )
+    );
 }
 
 #[test]
@@ -101,5 +117,12 @@ fn valid_selected_columns_with_sensitive_zeros_and_record_limit() {
         ])),
     ];
 
-    assert!(*data_block == DataBlock::new(expected_headers, expected_records));
+    assert!(
+        *data_block
+            == DataBlock::new(
+                expected_headers,
+                MultiValueColumnMetadataMap::default(),
+                expected_records
+            )
+    );
 }

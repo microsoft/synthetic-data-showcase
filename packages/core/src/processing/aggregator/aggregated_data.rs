@@ -20,7 +20,7 @@ use std::{
 use pyo3::prelude::*;
 
 use crate::{
-    data_block::DataBlockHeaders,
+    data_block::{DataBlockHeaders, MultiValueColumnMetadataMap},
     processing::{
         aggregator::{typedefs::RecordsSet, value_combination::ValueCombination, AggregatedCount},
         generator::AttributeCountMap,
@@ -34,6 +34,8 @@ use crate::{
 pub struct AggregatedData {
     /// Vector of strings representing the data headers
     pub headers: DataBlockHeaders,
+    /// Maps a normalized multi-value header name (such as A_a1) to its corresponding metadata
+    pub multi_value_column_metadata_map: MultiValueColumnMetadataMap,
     /// Number of records present on the original data
     pub number_of_records: usize,
     /// Maps a value combination to its aggregated count
@@ -51,6 +53,7 @@ impl AggregatedData {
     pub fn default() -> AggregatedData {
         AggregatedData {
             headers: DataBlockHeaders::default(),
+            multi_value_column_metadata_map: MultiValueColumnMetadataMap::default(),
             number_of_records: 0,
             aggregates_count: AggregatesCountMap::default(),
             records_sensitivity_by_len: RecordsSensitivityByLen::default(),
@@ -61,6 +64,8 @@ impl AggregatedData {
     /// Creates a new AggregatedData struct
     /// # Arguments:
     /// * `headers` - Vector of strings representing the data headers
+    /// * `multi_value_column_metadata_map` - Maps a normalized multi-value header name (such as A_a1)
+    /// to its corresponding metadata
     /// * `number_of_records` - Number of records present on the original data
     /// * `aggregates_count` - Computed aggregates count map
     /// * `records_sensitivity` - Computed sensitivity for the records
@@ -68,6 +73,7 @@ impl AggregatedData {
     #[inline]
     pub fn new(
         headers: DataBlockHeaders,
+        multi_value_column_metadata_map: MultiValueColumnMetadataMap,
         number_of_records: usize,
         aggregates_count: AggregatesCountMap,
         records_sensitivity_by_len: RecordsSensitivityByLen,
@@ -75,6 +81,7 @@ impl AggregatedData {
     ) -> AggregatedData {
         AggregatedData {
             headers,
+            multi_value_column_metadata_map,
             number_of_records,
             aggregates_count,
             records_sensitivity_by_len,

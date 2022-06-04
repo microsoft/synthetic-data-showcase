@@ -38,8 +38,11 @@ export const DataSynthesisResult: React.FC<DataSynthesisResultProps> = memo(
 		const [lastHeader, setLastHeader] = useState<
 			{ props: IPivotItemProps } | undefined
 		>(undefined)
+		const [joinMultiValueColumns, setJoinMultiValueColumns] = useState(false)
 		const tableCommands = useSyntheticTableCommands(
 			syntheticCsvContent || defaultCsvContent,
+			joinMultiValueColumns,
+			setJoinMultiValueColumns,
 		)
 		const getAndSetSyntheticCsvData = useGetAndSetSyntheticCsvContent(
 			setSyntheticCsvContent,
@@ -54,7 +57,7 @@ export const DataSynthesisResult: React.FC<DataSynthesisResultProps> = memo(
 			async function loadData() {
 				setIsLoading(true)
 				await Promise.all([
-					getAndSetSyntheticCsvData(selectedSynthesis),
+					getAndSetSyntheticCsvData(selectedSynthesis, joinMultiValueColumns),
 					getAndSetEvaluateResult(selectedSynthesis),
 				])
 				if (isMounted.current) {
@@ -62,7 +65,12 @@ export const DataSynthesisResult: React.FC<DataSynthesisResultProps> = memo(
 				}
 			}
 			loadData()
-		}, [selectedSynthesis, getAndSetSyntheticCsvData, getAndSetEvaluateResult])
+		}, [
+			selectedSynthesis,
+			joinMultiValueColumns,
+			getAndSetSyntheticCsvData,
+			getAndSetEvaluateResult,
+		])
 
 		useEffect(() => {
 			return () => {

@@ -1,7 +1,7 @@
-mod multi_value_column;
+mod multi_value_column_cmd_input;
 
 use log::{error, log_enabled, trace, Level::Debug};
-use multi_value_column::MultiValueColumn;
+use multi_value_column_cmd_input::MultiValueColumnCmdInput;
 use sds_core::{
     data_block::{CsvDataBlockCreator, DataBlockCreator},
     dp::{DpParameters, NoisyCountThreshold},
@@ -26,6 +26,12 @@ enum Command {
             default_value = "\t"
         )]
         synthetic_delimiter: String,
+
+        #[structopt(
+            long = "join-multi-value-columns",
+            help = "join multi value columns back together when exporting to CSV file"
+        )]
+        join_multi_value_columns: bool,
 
         #[structopt(
             long = "cache-max-size",
@@ -200,7 +206,7 @@ struct Cli {
     use_columns: Vec<String>,
 
     #[structopt(long = "multi-value-columns", help = "<column name>,<delimiter>")]
-    multi_value_columns: Vec<MultiValueColumn>,
+    multi_value_columns: Vec<MultiValueColumnCmdInput>,
 
     #[structopt(
         long = "sensitive-zeros",
@@ -247,6 +253,7 @@ fn main() {
             Command::Generate {
                 synthetic_path,
                 synthetic_delimiter,
+                join_multi_value_columns,
                 cache_max_size,
                 mode,
                 aggregates_json,
@@ -323,6 +330,7 @@ fn main() {
                     gd.write_synthetic_data(
                         &synthetic_path,
                         synthetic_delimiter.chars().next().unwrap(),
+                        join_multi_value_columns,
                     )
                 }) {
                     error!("error writing output file: {}", err);

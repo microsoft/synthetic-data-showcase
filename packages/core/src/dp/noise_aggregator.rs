@@ -359,6 +359,7 @@ impl NoiseAggregator {
 
         let mut aggregated_data = AggregatedData::new(
             self.data_block.headers.clone(),
+            self.data_block.multi_value_column_metadata_map.clone(),
             self.data_block.number_of_records(),
             aggregates_count,
             RecordsSensitivityByLen::default(),

@@ -25,13 +25,18 @@ export function useAllFinishedSynthesisInfo(): ISynthesisInfo[] {
 
 export function useGetSyntheticCsvContent(): (
 	selectedSynthesis: ISynthesisInfo,
+	joinMultiValueColumns: boolean,
 ) => Promise<ICsvContent> {
 	const [manager] = useSdsManagerInstance()
 
 	return useCallback(
-		async (selectedSynthesis: ISynthesisInfo) => {
+		async (
+			selectedSynthesis: ISynthesisInfo,
+			joinMultiValueColumns: boolean,
+		) => {
 			const generateResult = await manager?.instance.getGenerateResult(
 				selectedSynthesis.key,
+				joinMultiValueColumns,
 			)
 			const delimiter = selectedSynthesis.parameters.csvDataParameters.delimiter
 			const table = fromCsvData(generateResult?.syntheticData, delimiter)
