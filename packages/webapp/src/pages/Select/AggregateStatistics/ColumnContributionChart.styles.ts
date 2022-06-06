@@ -7,6 +7,7 @@ import styled from 'styled-components'
 
 export const ChartContainer = styled(FlexItem)`
 	overflow-y: auto;
+	overflow-x: hidden;
 	padding: ${p => p.theme.spacing.s1};
 	direction: ltr;
 	& > div {

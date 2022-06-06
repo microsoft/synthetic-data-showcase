@@ -4,7 +4,7 @@
  */
 import type { Remote } from 'comlink'
 import { useCallback, useMemo } from 'react'
-import type { IAggregateStatistics, IRecordsCountByColumn } from 'sds-wasm'
+import type { IAggregateStatistics, IRecordsCountByStringKey } from 'sds-wasm'
 
 import type { ICsvContent } from '~models'
 import { useSdsManagerInstance, useSensitiveContent } from '~states'
@@ -16,7 +16,9 @@ export function useGetAggregateStatistics(): (
 	recordLimit: number,
 	reportingLength: number,
 	resolution: number,
-) => Promise<Remote<ICancelablePromise<IAggregateStatistics>> | undefined> {
+) => Promise<
+	Remote<ICancelablePromise<IAggregateStatistics | null>> | undefined
+> {
 	const [managerInstance] = useSdsManagerInstance()
 
 	return useCallback(
@@ -28,29 +30,25 @@ export function useGetAggregateStatistics(): (
 		) => {
 			if (managerInstance) {
 				const headers = usableHeaders(sensitiveContent).map(h => h.name)
+				const instance = await managerInstance.instance
 
-				if (headers.length > 0) {
-					const instance = await managerInstance.instance
-
-					return await instance.generateAggregateStatistics(
-						sensitiveContent.table.toCSV({
-							delimiter: sensitiveContent.delimiter,
-						}),
-						{
-							delimiter: sensitiveContent.delimiter,
-							subjectId: sensitiveContent.subjectId,
-							useColumns: headers,
-							sensitiveZeros: sensitiveContent.headers
-								.filter(h => h.hasSensitiveZeros)
-								.map(h => h.name),
-							recordLimit,
-							multiValueColumns: usableMultiValueColumns(sensitiveContent),
-						},
-						reportingLength,
-						resolution,
-					)
-				}
-				return undefined
+				return await instance.generateAggregateStatistics(
+					sensitiveContent.table.toCSV({
+						delimiter: sensitiveContent.delimiter,
+					}),
+					{
+						delimiter: sensitiveContent.delimiter,
+						subjectId: sensitiveContent.subjectId,
+						useColumns: headers,
+						sensitiveZeros: sensitiveContent.headers
+							.filter(h => h.hasSensitiveZeros)
+							.map(h => h.name),
+						recordLimit,
+						multiValueColumns: usableMultiValueColumns(sensitiveContent),
+					},
+					reportingLength,
+					resolution,
+				)
 			}
 		},
 		[managerInstance],
@@ -59,7 +57,7 @@ export function useGetAggregateStatistics(): (
 
 function calcPercentages(
 	total: number | undefined,
-	counts: IRecordsCountByColumn | undefined,
+	counts: IRecordsCountByStringKey | undefined,
 ) {
 	const ret = {}
 
@@ -76,11 +74,22 @@ function calcPercentages(
 
 export function useColumnsWithRareCombinationsPercentage(
 	statistics: IAggregateStatistics | null,
-): IRecordsCountByColumn {
+): IRecordsCountByStringKey {
 	return useMemo(() => {
 		return calcPercentages(
 			statistics?.numberOfRecordsWithRareCombinations,
 			statistics?.numberOfRecordsWithRareCombinationsPerColumn,
+		)
+	}, [statistics])
+}
+
+export function useAttributesWithRareCombinationsPercentage(
+	statistics: IAggregateStatistics | null,
+): IRecordsCountByStringKey {
+	return useMemo(() => {
+		return calcPercentages(
+			statistics?.numberOfRecordsWithRareCombinations,
+			statistics?.numberOfRecordsWithRareCombinationsPerAttribute,
 		)
 	}, [statistics])
 }

@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { Spinner, useTheme } from '@fluentui/react'
+import { Spinner } from '@fluentui/react'
 import { FlexContainer, FlexItem } from '@sds/components'
 import type { Remote } from 'comlink'
 import type { FC } from 'react'
@@ -17,6 +17,7 @@ import {
 import type { ICancelablePromise } from '~workers/types'
 
 import {
+	useAttributesWithRareCombinationsPercentage,
 	useColumnsWithRareCombinationsPercentage,
 	useGetAggregateStatistics,
 } from './AggregateStatistics.hooks.js'
@@ -24,11 +25,10 @@ import { Container, StyledReport } from './AggregateStatistics.styles.js'
 import { ColumnContributionChart } from './ColumnContributionChart.js'
 
 interface IQueueExecution {
-	execution?: Remote<ICancelablePromise<IAggregateStatistics>>
+	execution?: Remote<ICancelablePromise<IAggregateStatistics | null>>
 }
 
 export const AggregateStatistics: FC = memo(function AggregateStatistics() {
-	const theme = useTheme()
 	const [sensitiveContent] = useSensitiveContent()
 	const [statistics, setStatistics] = useState<IAggregateStatistics | null>(
 		null,
@@ -40,10 +40,22 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 	const getAggregateStatistics = useGetAggregateStatistics()
 	const columnWithRareCombinationsPercentage =
 		useColumnsWithRareCombinationsPercentage(statistics)
-	const tooltipFormatter = useCallback(
+	const attributesWithRareCombinationsPercentage =
+		useAttributesWithRareCombinationsPercentage(statistics)
+	const columnTooltipFormatter = useCallback(
 		item => {
 			return `Affecting ${
 				statistics?.numberOfRecordsWithRareCombinationsPerColumn[item.label]
+			}/${
+				statistics?.numberOfRecordsWithRareCombinations
+			} rare/linkable records (${item.raw}%)`
+		},
+		[statistics],
+	)
+	const attributeTooltipFormatter = useCallback(
+		item => {
+			return `Affecting ${
+				statistics?.numberOfRecordsWithRareCombinationsPerAttribute[item.label]
 			}/${
 				statistics?.numberOfRecordsWithRareCombinations
 			} rare/linkable records (${item.raw}%)`
@@ -103,22 +115,34 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 			{isLoading ? (
 				<Spinner />
 			) : statistics && statistics.numberOfRecordsWithRareCombinations > 0 ? (
-				<FlexContainer gap={theme.spacing.s1} style={{ width: '100%' }}>
-					<FlexItem grow={1}>
-						<ColumnContributionChart
-							proportionPerColumn={columnWithRareCombinationsPercentage}
-							label={`Selected columns contributing to privacy risk (creating rare attribute combinations in ${
-								statistics.numberOfRecordsWithRareCombinations
-							}/${statistics.numberOfRecords} parsed records, ${(
-								(statistics.numberOfRecordsWithRareCombinations * 100.0) /
-								statistics.numberOfRecords
-							).toFixed(0)}%)`}
-							containerHeight={220}
-							barHeight={5}
-							tooltipFormatter={tooltipFormatter}
-						/>
-					</FlexItem>
-				</FlexContainer>
+				<>
+					<FlexItem align="center">{`Contribution to privacy risk (creating rare attribute combinations in ${
+						statistics.numberOfRecordsWithRareCombinations
+					}/${statistics.numberOfRecords} parsed records, ${(
+						(statistics.numberOfRecordsWithRareCombinations * 100.0) /
+						statistics.numberOfRecords
+					).toFixed(0)}%)`}</FlexItem>
+					<FlexContainer style={{ width: '100%' }} justify="space-between">
+						<FlexItem style={{ width: '48%' }}>
+							<ColumnContributionChart
+								proportionPerColumn={columnWithRareCombinationsPercentage}
+								label={'Selected columns'}
+								containerHeight={220}
+								barHeight={10}
+								tooltipFormatter={columnTooltipFormatter}
+							/>
+						</FlexItem>
+						<FlexItem style={{ width: '48%' }}>
+							<ColumnContributionChart
+								proportionPerColumn={attributesWithRareCombinationsPercentage}
+								label={'Attributes'}
+								containerHeight={220}
+								barHeight={10}
+								tooltipFormatter={attributeTooltipFormatter}
+							/>
+						</FlexItem>
+					</FlexContainer>
+				</>
 			) : (
 				<StyledReport>
 					No rare attribute combinations (below the privacy resolution) based on

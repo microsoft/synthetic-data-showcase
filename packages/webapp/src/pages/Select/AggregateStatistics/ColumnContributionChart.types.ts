@@ -3,11 +3,11 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import type { TooltipItem } from 'chart.js'
-import type { IRecordsCountByColumn } from 'sds-wasm'
+import type { IRecordsCountByStringKey } from 'sds-wasm'
 
 export interface ColumnContributionChartProps {
 	selectedColumn?: string
-	proportionPerColumn: IRecordsCountByColumn
+	proportionPerColumn: IRecordsCountByStringKey
 	label: string
 	containerHeight: number | string
 	barHeight: number
