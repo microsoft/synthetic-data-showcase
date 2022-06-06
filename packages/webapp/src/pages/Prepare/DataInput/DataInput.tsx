@@ -53,7 +53,17 @@ const StyledOpen = styled.span`
 	}
 `
 
+/// temporary fix for button text overflow until dwc version is updated
 const Container = styled(FlexContainer)`
 	height: 100%;
 	overflow-y: auto;
+
+	.ms-Button-textContainer {
+		overflow: hidden;
+	}
+
+	.ms-Button-label {
+		text-overflow: ellipsis;
+		overflow: hidden;
+	}
 `

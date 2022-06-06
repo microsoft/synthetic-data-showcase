@@ -38,6 +38,7 @@ export function useGetAggregateStatistics(): (
 						}),
 						{
 							delimiter: sensitiveContent.delimiter,
+							subjectId: sensitiveContent.subjectId,
 							useColumns: headers,
 							sensitiveZeros: sensitiveContent.headers
 								.filter(h => h.hasSensitiveZeros)

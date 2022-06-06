@@ -9,11 +9,12 @@ import type { FC } from 'react'
 import { memo, useCallback, useMemo } from 'react'
 import styled from 'styled-components'
 
+import { useSensitiveContent } from '~states'
+
 import {
 	useColumnsWithZeros,
 	useOnSensitiveZeroCheckToggle,
-} from '~pages/Select/DataSelect/hooks'
-import { useSensitiveContent } from '~states'
+} from './SensitiveZeros.hooks.js'
 
 export const SensitiveZeros: FC = memo(function SensitiveZeros() {
 	const [isCalloutVisible, { toggle: toggleIsCalloutVisible }] =
