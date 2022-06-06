@@ -109,9 +109,9 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 							proportionPerColumn={columnWithRareCombinationsPercentage}
 							label={`Selected columns contributing to privacy risk (creating rare attribute combinations in ${
 								statistics.numberOfRecordsWithRareCombinations
-							}/${rawSynthesisParams.recordLimit} records, ${(
+							}/${statistics.numberOfRecords} parsed records, ${(
 								(statistics.numberOfRecordsWithRareCombinations * 100.0) /
-								rawSynthesisParams.recordLimit
+								statistics.numberOfRecords
 							).toFixed(0)}%)`}
 							containerHeight={220}
 							barHeight={5}

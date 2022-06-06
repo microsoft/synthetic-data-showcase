@@ -230,6 +230,16 @@ impl AggregatedData {
         line.push('\n');
         line
     }
+
+    #[inline]
+    fn get_original_header_name(&self, index: usize) -> String {
+        let output_header_name = &self.headers[index];
+        if let Some(metadata) = self.multi_value_column_metadata_map.get(output_header_name) {
+            (*metadata.src_header_name).clone()
+        } else {
+            (**output_header_name).clone()
+        }
+    }
 }
 
 #[cfg_attr(feature = "pyo3", pymethods)]
@@ -434,7 +444,7 @@ impl AggregatedData {
             if count.count < resolution {
                 for value in agg.iter() {
                     rare_records_per_column
-                        .entry((*self.headers[value.column_index]).clone())
+                        .entry(self.get_original_header_name(value.column_index))
                         .or_insert_with(RecordsSet::default)
                         .extend(&count.contained_in_records);
                 }
@@ -566,7 +576,7 @@ impl AggregatedData {
             if count.count == 1 {
                 for value in agg.iter() {
                     unique_records_per_column
-                        .entry((*self.headers[value.column_index]).clone())
+                        .entry(self.get_original_header_name(value.column_index))
                         .or_insert_with(RecordsSet::default)
                         .extend(&count.contained_in_records);
                 }

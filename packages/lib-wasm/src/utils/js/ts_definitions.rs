@@ -28,16 +28,9 @@ export interface IRecordsCountByColumn {
 }
 
 export interface IAggregateStatistics {
-  numberOfDistinctAttributes: number
-  singleAttributeCounts: ISingleAttributeCounts
-  numberOfUniqueCombinations: number
-  numberOfRecordsWithUniqueCombinations: number
-  numberOfRecordsWithUniqueCombinationsPerColumn: IRecordsCountByColumn
-  numberOfRareCombinations: number
   numberOfRecordsWithRareCombinations: number
   numberOfRecordsWithRareCombinationsPerColumn: IRecordsCountByColumn
   numberOfRecords: number
-  numberOfDistinctCombinations: usize
 }
 
 export enum NoisyCountThresholdType {

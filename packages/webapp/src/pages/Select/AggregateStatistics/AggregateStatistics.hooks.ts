@@ -74,17 +74,6 @@ function calcPercentages(
 	return ret
 }
 
-export function useColumnsWithUniqueCombinationsPercentage(
-	statistics: IAggregateStatistics | null,
-): IRecordsCountByColumn {
-	return useMemo(() => {
-		return calcPercentages(
-			statistics?.numberOfRecordsWithUniqueCombinations,
-			statistics?.numberOfRecordsWithUniqueCombinationsPerColumn,
-		)
-	}, [statistics])
-}
-
 export function useColumnsWithRareCombinationsPercentage(
 	statistics: IAggregateStatistics | null,
 ): IRecordsCountByColumn {
