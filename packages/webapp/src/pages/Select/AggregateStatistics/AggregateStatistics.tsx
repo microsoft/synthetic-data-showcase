@@ -107,7 +107,7 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 					<FlexItem grow={1}>
 						<ColumnContributionChart
 							proportionPerColumn={columnWithRareCombinationsPercentage}
-							label={`Selected columns contributing to privacy risk from small linkable groups (affecting ${
+							label={`Selected columns contributing to privacy risk (creating rare attribute combinations in ${
 								statistics.numberOfRecordsWithRareCombinations
 							}/${rawSynthesisParams.recordLimit} records, ${(
 								(statistics.numberOfRecordsWithRareCombinations * 100.0) /
@@ -121,8 +121,8 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 				</FlexContainer>
 			) : (
 				<StyledReport>
-					No small groups found based on the privacy resolution and aggregation
-					limit
+					No rare attribute combinations (below the privacy resolution) based on
+					the current parameters
 				</StyledReport>
 			)}
 		</Container>
