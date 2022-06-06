@@ -83,10 +83,11 @@ class Evaluator:
         self.syn_sds_processor = sds.SDSProcessor(
             self.synthetic_microdata_path,
             "\t",
-            [],  # use all columns from synthetic file
+            None,   # the synthetic data does not have an ID
+            [],     # use all columns from synthetic file
             self.multi_value_columns,
             self.sensitive_zeros,
-            0  # use all records from synthetic file
+            0       # use all records from synthetic file
         )
         self.syn_aggregated_data = self.syn_sds_processor.aggregate(
             self.reporting_length

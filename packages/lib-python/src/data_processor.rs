@@ -48,6 +48,7 @@ impl SDSProcessor {
     pub fn new(
         path: &str,
         delimiter: char,
+        subject_id: Option<String>,
         use_columns: Vec<String>,
         multi_value_columns: HashMap<String, String>,
         sensitive_zeros: Vec<String>,
@@ -57,7 +58,7 @@ impl SDSProcessor {
             ReaderBuilder::new()
                 .delimiter(delimiter as u8)
                 .from_path(path),
-            None,
+            subject_id,
             &use_columns,
             &multi_value_columns,
             &sensitive_zeros,
