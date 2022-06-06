@@ -20,7 +20,9 @@ use std::{
 use pyo3::prelude::*;
 
 use crate::{
-    data_block::{DataBlockHeaders, MultiValueColumnMetadataMap},
+    data_block::{
+        DataBlockHeaders, DataBlockValue, MultiValueColumnMetadataMap, COLUMN_VALUE_DELIMITER,
+    },
     processing::{
         aggregator::{typedefs::RecordsSet, value_combination::ValueCombination, AggregatedCount},
         generator::AttributeCountMap,
@@ -238,6 +240,21 @@ impl AggregatedData {
             (*metadata.src_header_name).clone()
         } else {
             (**output_header_name).clone()
+        }
+    }
+
+    #[inline]
+    fn get_original_attribute_as_str(&self, value: &DataBlockValue) -> String {
+        if let Some(metadata) = self
+            .multi_value_column_metadata_map
+            .get(&self.headers[value.column_index])
+        {
+            format!(
+                "{}{}{}",
+                metadata.src_header_name, COLUMN_VALUE_DELIMITER, metadata.attribute_name
+            )
+        } else {
+            value.as_str_using_headers(&self.headers)
         }
     }
 }
@@ -483,7 +500,7 @@ impl AggregatedData {
             if count.count < resolution {
                 for value in agg.iter() {
                     rare_records_per_attribute
-                        .entry(value.as_str_using_headers(&self.headers))
+                        .entry(self.get_original_attribute_as_str(value))
                         .or_insert_with(RecordsSet::default)
                         .extend(&count.contained_in_records);
                 }
