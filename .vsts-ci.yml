@@ -1,0 +1,34 @@
+name: SDS Compliance CI
+pool:
+  vmImage: ubuntu-latest
+
+trigger:
+  batch: true
+  branches:
+    include:
+      - main
+      - dev
+
+stages:
+  - stage: Compliance
+    dependsOn: []
+    jobs:
+      - job: ComplianceJob
+        pool:
+          vmImage: windows-latest
+        steps:
+          - task: CredScan@3
+            inputs:
+              outputFormat: sarif
+              debugMode: false
+
+          - task: ComponentGovernanceComponentDetection@0
+            inputs:
+              scanType: 'Register'
+              verbosity: 'Verbose'
+              alertWarningLevel: 'High'
+
+          - task: PublishSecurityAnalysisLogs@3
+            inputs:
+              ArtifactName: 'CodeAnalysisLogs'
+              ArtifactType: 'Container'
