@@ -5,12 +5,12 @@
 import type { TooltipItem } from 'chart.js'
 import type { IRecordsCountByStringKey } from 'sds-wasm'
 
-export interface ColumnContributionChartProps {
-	selectedColumn?: string
-	proportionPerColumn: IRecordsCountByStringKey
+export interface ContributionChartProps {
+	selectedKey?: string
+	valuePerKey: IRecordsCountByStringKey
 	label: string
 	containerHeight: number | string
 	barHeight: number
 	tooltipFormatter?: (item: TooltipItem<'bar'>) => string
-	onClick?: (column: string) => void
+	onClick?: (key: string) => void
 }

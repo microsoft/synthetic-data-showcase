@@ -3,7 +3,6 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { Spinner } from '@fluentui/react'
-import { FlexContainer, FlexItem } from '@sds/components'
 import type { Remote } from 'comlink'
 import type { FC } from 'react'
 import { memo, useCallback, useEffect, useState } from 'react'
@@ -21,8 +20,13 @@ import {
 	useColumnsWithRareCombinationsPercentage,
 	useGetAggregateStatistics,
 } from './AggregateStatistics.hooks.js'
-import { Container, StyledReport } from './AggregateStatistics.styles.js'
-import { ColumnContributionChart } from './ColumnContributionChart.js'
+import {
+	ChartItem,
+	ChartsContainer,
+	Container,
+	StyledReport,
+} from './AggregateStatistics.styles.js'
+import { ContributionChart } from './ContributionChart.js'
 
 interface IQueueExecution {
 	execution?: Remote<ICancelablePromise<IAggregateStatistics | null>>
@@ -116,32 +120,32 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 				<Spinner />
 			) : statistics && statistics.numberOfRecordsWithRareCombinations > 0 ? (
 				<>
-					<FlexItem align="center">{`Contribution to privacy risk (creating rare attribute combinations in ${
+					<StyledReport>{`Contribution to privacy risk (creating rare attribute combinations in ${
 						statistics.numberOfRecordsWithRareCombinations
 					}/${statistics.numberOfRecords} parsed records, ${(
 						(statistics.numberOfRecordsWithRareCombinations * 100.0) /
 						statistics.numberOfRecords
-					).toFixed(0)}%)`}</FlexItem>
-					<FlexContainer style={{ width: '100%' }} justify="space-between">
-						<FlexItem style={{ width: '48%' }}>
-							<ColumnContributionChart
-								proportionPerColumn={columnWithRareCombinationsPercentage}
+					).toFixed(0)}%)`}</StyledReport>
+					<ChartsContainer justify="space-between">
+						<ChartItem>
+							<ContributionChart
+								valuePerKey={columnWithRareCombinationsPercentage}
 								label={'Selected columns'}
 								containerHeight={220}
 								barHeight={10}
 								tooltipFormatter={columnTooltipFormatter}
 							/>
-						</FlexItem>
-						<FlexItem style={{ width: '48%' }}>
-							<ColumnContributionChart
-								proportionPerColumn={attributesWithRareCombinationsPercentage}
+						</ChartItem>
+						<ChartItem>
+							<ContributionChart
+								valuePerKey={attributesWithRareCombinationsPercentage}
 								label={'Attributes'}
 								containerHeight={220}
 								barHeight={10}
 								tooltipFormatter={attributeTooltipFormatter}
 							/>
-						</FlexItem>
-					</FlexContainer>
+						</ChartItem>
+					</ChartsContainer>
 				</>
 			) : (
 				<StyledReport>
