@@ -122,6 +122,7 @@ function convertRawToSynthesisParameters(
 		mode: rawParams.synthesisMode,
 		csvDataParameters: {
 			delimiter: sensitiveCsvContent.delimiter,
+			subjectId: sensitiveCsvContent.subjectId,
 			useColumns,
 			sensitiveZeros: sensitiveCsvContent.headers
 				.filter(h => h.hasSensitiveZeros)

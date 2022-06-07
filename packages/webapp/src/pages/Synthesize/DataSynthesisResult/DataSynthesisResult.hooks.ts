@@ -80,8 +80,7 @@ export function useToggleJoinMultiValueColumnsCommand(
 		if (Object.keys(multiValueColumns).length > 0) {
 			return {
 				key: 'multi-values',
-				text: `Join Multi-values ${joinMultiValueColumns ? 'On' : 'Off'}`,
-				iconOnly: true,
+				text: `Join multi-values ${joinMultiValueColumns ? 'on' : 'off'}`,
 				iconProps: {
 					iconName: joinMultiValueColumns ? 'ToggleRight' : 'ToggleLeft',
 				},

@@ -2,7 +2,7 @@ use csv::ReaderBuilder;
 use log::{log_enabled, Level::Debug};
 use pyo3::prelude::*;
 use sds_core::{
-    data_block::{CsvDataBlockCreator, CsvIOError, DataBlock, DataBlockCreator},
+    data_block::{CsvDataBlockCreator, CsvDataBlockCreatorError, DataBlock, DataBlockCreator},
     dp::DpParameters,
     dp::{InputValueByLen, NoisyCountThreshold},
     processing::{
@@ -48,23 +48,23 @@ impl SDSProcessor {
     pub fn new(
         path: &str,
         delimiter: char,
+        subject_id: Option<String>,
         use_columns: Vec<String>,
         multi_value_columns: HashMap<String, String>,
         sensitive_zeros: Vec<String>,
         record_limit: usize,
-    ) -> Result<SDSProcessor, CsvIOError> {
-        match CsvDataBlockCreator::create(
+    ) -> Result<SDSProcessor, CsvDataBlockCreatorError> {
+        CsvDataBlockCreator::create(
             ReaderBuilder::new()
                 .delimiter(delimiter as u8)
                 .from_path(path),
+            subject_id,
             &use_columns,
             &multi_value_columns,
             &sensitive_zeros,
             record_limit,
-        ) {
-            Ok(data_block) => Ok(SDSProcessor { data_block }),
-            Err(err) => Err(CsvIOError::new(err)),
-        }
+        )
+        .map(|data_block| SDSProcessor { data_block })
     }
 
     #[inline]

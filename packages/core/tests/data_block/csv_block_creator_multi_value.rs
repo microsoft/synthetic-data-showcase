@@ -15,6 +15,7 @@ fn valid_all_columns_no_sensitive_zeros() {
     let data_block = read_test_data_block(
         TEST_FILE_PATH,
         DELIMITER,
+        None,
         &[],
         &[
             ("B".to_owned(), ";".to_owned()),
@@ -49,8 +50,8 @@ fn valid_all_columns_no_sensitive_zeros() {
             Arc::new(DataBlockValue::from_str("0:1").unwrap()),
             Arc::new(DataBlockValue::from_str("1:a1").unwrap()),
             Arc::new(DataBlockValue::from_str("2:1").unwrap()),
-            Arc::new(DataBlockValue::from_str("4:1").unwrap()),
             Arc::new(DataBlockValue::from_str("3:1").unwrap()),
+            Arc::new(DataBlockValue::from_str("4:1").unwrap()),
             Arc::new(DataBlockValue::from_str("5:1").unwrap()),
             Arc::new(DataBlockValue::from_str("6:1").unwrap()),
             Arc::new(DataBlockValue::from_str("7:1").unwrap()),
@@ -165,6 +166,7 @@ fn valid_selected_columns_no_sensitive_zeros() {
     let data_block = read_test_data_block(
         TEST_FILE_PATH,
         DELIMITER,
+        None,
         &["A".to_owned(), "C".to_owned(), "D".to_owned()],
         &[
             ("B".to_owned(), ";".to_owned()),
@@ -269,6 +271,7 @@ fn valid_selected_columns_with_sensitive_zeros() {
     let data_block = read_test_data_block(
         TEST_FILE_PATH,
         DELIMITER,
+        None,
         &[
             "A".to_owned(),
             "B".to_owned(),
@@ -302,8 +305,8 @@ fn valid_selected_columns_with_sensitive_zeros() {
         Arc::new(DataBlockRecord::new(vec![
             Arc::new(DataBlockValue::from_str("0:a1").unwrap()),
             Arc::new(DataBlockValue::from_str("2:1").unwrap()),
-            Arc::new(DataBlockValue::from_str("4:1").unwrap()),
             Arc::new(DataBlockValue::from_str("3:1").unwrap()),
+            Arc::new(DataBlockValue::from_str("4:1").unwrap()),
             Arc::new(DataBlockValue::from_str("5:0").unwrap()),
             Arc::new(DataBlockValue::from_str("6:1").unwrap()),
             Arc::new(DataBlockValue::from_str("7:1").unwrap()),
@@ -317,8 +320,8 @@ fn valid_selected_columns_with_sensitive_zeros() {
         ])),
         Arc::new(DataBlockRecord::new(vec![
             Arc::new(DataBlockValue::from_str("0:a1").unwrap()),
-            Arc::new(DataBlockValue::from_str("2:1").unwrap()),
             Arc::new(DataBlockValue::from_str("1:1").unwrap()),
+            Arc::new(DataBlockValue::from_str("2:1").unwrap()),
             Arc::new(DataBlockValue::from_str("5:Value<semicolon>ToNormalize").unwrap()),
             Arc::new(DataBlockValue::from_str("6:1").unwrap()),
         ])),

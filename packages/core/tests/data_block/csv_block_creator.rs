@@ -11,8 +11,15 @@ const TEST_FILE_PATH: &str = "test_data_block.csv";
 
 #[test]
 fn valid_all_columns_no_sensitive_zeros_no_record_limit() {
-    let data_block =
-        read_test_data_block(TEST_FILE_PATH, DELIMITER, &[], &HashMap::default(), &[], 0);
+    let data_block = read_test_data_block(
+        TEST_FILE_PATH,
+        DELIMITER,
+        None,
+        &[],
+        &HashMap::default(),
+        &[],
+        0,
+    );
     let expected_headers = ["A", "B", "C", "D<semicolon>h", "E<colon>h"]
         .map(|h| Arc::new(String::from(h)))
         .to_vec();
@@ -52,6 +59,7 @@ fn valid_selected_columns_with_sensitive_zeros_no_record_limit() {
     let data_block = read_test_data_block(
         TEST_FILE_PATH,
         DELIMITER,
+        None,
         &[String::from("A"), String::from("B"), String::from("D;h")],
         &HashMap::default(),
         &[String::from("B")],
@@ -96,6 +104,7 @@ fn valid_selected_columns_with_sensitive_zeros_and_record_limit() {
     let data_block = read_test_data_block(
         TEST_FILE_PATH,
         DELIMITER,
+        None,
         &[String::from("A"), String::from("B"), String::from("D;h")],
         &HashMap::default(),
         &[String::from("B")],

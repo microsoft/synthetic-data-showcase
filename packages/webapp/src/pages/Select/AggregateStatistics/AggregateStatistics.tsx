@@ -9,7 +9,11 @@ import type { FC } from 'react'
 import { memo, useCallback, useEffect, useState } from 'react'
 import type { IAggregateStatistics } from 'sds-wasm'
 
-import { useRawSynthesisParameters, useSensitiveContent } from '~states'
+import {
+	useGlobalErrorMessage,
+	useRawSynthesisParameters,
+	useSensitiveContent,
+} from '~states'
 import type { ICancelablePromise } from '~workers/types'
 
 import {
@@ -31,6 +35,7 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 	)
 	const [queuedExecution, setQueuedExecution] = useState<IQueueExecution>({})
 	const [isLoading, setIsLoading] = useState(false)
+	const [, setGlobalErrorMessage] = useGlobalErrorMessage()
 	const [rawSynthesisParams] = useRawSynthesisParameters()
 	const getAggregateStatistics = useGetAggregateStatistics()
 	const columnWithRareCombinationsPercentage =
@@ -68,14 +73,20 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 		async function awaitForStats() {
 			try {
 				setIsLoading(true)
+				setGlobalErrorMessage(undefined)
 				setStatistics((await await queuedExecution.execution?.promise) ?? null)
 				setIsLoading(false)
 			} catch (err) {
+				if (err !== 'processing has been stopped') {
+					setGlobalErrorMessage(err as string)
+					setStatistics(null)
+					setIsLoading(false)
+				}
 				console.error(err)
 			}
 		}
 		awaitForStats()
-	}, [queuedExecution, setStatistics, setIsLoading])
+	}, [queuedExecution, setStatistics, setIsLoading, setGlobalErrorMessage])
 
 	useEffect(() => {
 		return () => {
@@ -96,7 +107,7 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 					<FlexItem grow={1}>
 						<ColumnContributionChart
 							proportionPerColumn={columnWithRareCombinationsPercentage}
-							label={`Selected columns contributing to privacy risk from small linkable groups (affecting ${
+							label={`Selected columns contributing to privacy risk (creating rare attribute combinations in ${
 								statistics.numberOfRecordsWithRareCombinations
 							}/${rawSynthesisParams.recordLimit} records, ${(
 								(statistics.numberOfRecordsWithRareCombinations * 100.0) /
@@ -110,8 +121,8 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 				</FlexContainer>
 			) : (
 				<StyledReport>
-					No small groups found based on the privacy resolution and aggregation
-					limit
+					No rare attribute combinations (below the privacy resolution) based on
+					the current parameters
 				</StyledReport>
 			)}
 		</Container>

@@ -3,10 +3,8 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { introspect } from '@data-wrangling-components/core'
-import { op } from 'arquero'
 import { useEffect } from 'react'
 
-import { defaultSubjectID } from '~models'
 import {
 	useClearSensitiveData,
 	useIsProcessingSetter,
@@ -26,13 +24,9 @@ export function useOnTableChange(): void {
 	useEffect(() => {
 		async function run() {
 			if (preparedTable !== undefined) {
-				let t = preparedTable.table!
+				const t = preparedTable.table!
 				setIsProcessing(true)
 				await clearSensitiveData()
-
-				if (!t.column(defaultSubjectID)) {
-					t = t.derive({ [defaultSubjectID]: op.row_number() }, { before: 0 })
-				}
 
 				setSensitiveContent({
 					table: t,
@@ -40,7 +34,6 @@ export function useOnTableChange(): void {
 					columnsWithZeros: columnIndexesWithZeros(t),
 					delimiter: ',',
 					metadata: introspect(t, true),
-					subjectId: defaultSubjectID,
 				})
 				setRecordLimit(t.numRows())
 				setIsProcessing(false)

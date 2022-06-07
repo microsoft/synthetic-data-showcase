@@ -16,4 +16,4 @@ The pipeline distinguishes 'positive' attribute values that indicate the presenc
 
 ### Subject ID
 
-Each row is expected to identify a single subject, by default a column named `RowID` will be added to the table to meet this criteria. However, under the **`Subject ID`** dropdown, other columns might be set as ID.
+Each row is expected to identify a single subject, under the **`Subject ID`** dropdown, select the column representing the unique identifier. If there are multiple records with the same ID, SDS will try to join records using multi value columns.

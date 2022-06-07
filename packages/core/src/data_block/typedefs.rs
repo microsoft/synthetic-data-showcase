@@ -1,7 +1,4 @@
-use super::{
-    input_value::DataBlockInputValue, record::DataBlockRecord, value::DataBlockValue,
-    MultiValueColumnMetadata,
-};
+use super::{record::DataBlockRecord, value::DataBlockValue, MultiValueColumnMetadata};
 use fnv::FnvHashMap;
 use std::sync::Arc;
 
@@ -12,9 +9,6 @@ pub type AttributeRows = Vec<usize>;
 
 /// Slice of AttributeRows
 pub type AttributeRowsSlice = [usize];
-
-/// A record from a CSV file mapped to a vector of input values
-pub type CsvRecordInputValues = Vec<DataBlockInputValue>;
 
 /// Row read from a CSV file, indexed by column index
 pub type CsvRecord = Vec<String>;

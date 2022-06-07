@@ -19,6 +19,7 @@ def aggregate(config):
         config: options from the json config file, else default values.
     """
 
+    subject_id = config['subject_id']
     use_columns = config['use_columns']
     multi_value_columns = config['multi_value_columns']
     reporting_length = config['reporting_length']
@@ -50,6 +51,7 @@ def aggregate(config):
     sds_processor = sds.SDSProcessor(
         sensitive_microdata_path,
         sensitive_microdata_delimiter,
+        subject_id,
         use_columns,
         multi_value_columns,
         sensitive_zeros,

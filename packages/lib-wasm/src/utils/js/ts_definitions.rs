@@ -12,6 +12,7 @@ export interface IMultiValueColumns {
 
 export interface ICsvDataParameters {
   delimiter: string
+  subjectId?: string
   useColumns: HeaderNames
   multiValueColumns: IMultiValueColumns
   sensitiveZeros: HeaderNames

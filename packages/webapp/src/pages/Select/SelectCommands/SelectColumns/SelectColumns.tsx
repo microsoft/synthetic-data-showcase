@@ -9,8 +9,9 @@ import type { FC } from 'react'
 import { memo, useCallback, useMemo } from 'react'
 import styled from 'styled-components'
 
-import { useOnUseColumnCheckToggle } from '~pages/Select/DataSelect/hooks'
 import { useSensitiveContent } from '~states'
+
+import { useOnUseColumnCheckToggle } from './SelectColumns.hooks.js'
 
 export const SelectColumns: FC = memo(function SelectColumns() {
 	const [isCalloutVisible, { toggle: toggleIsCalloutVisible }] =

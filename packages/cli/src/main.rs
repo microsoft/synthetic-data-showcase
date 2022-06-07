@@ -199,6 +199,9 @@ struct Cli {
     )]
     record_limit: usize,
 
+    #[structopt(long = "subject-id", help = "column indicating the subject id")]
+    subject_id: Option<String>,
+
     #[structopt(
         long = "use-columns",
         help = "use this column (can be set multiple times)"
@@ -241,6 +244,7 @@ fn main() {
         csv::ReaderBuilder::new()
             .delimiter(cli.sensitive_delimiter.chars().next().unwrap() as u8)
             .from_path(cli.sensitive_path),
+        cli.subject_id,
         &cli.use_columns,
         &cli.multi_value_columns
             .iter()
