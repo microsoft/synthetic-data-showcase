@@ -83,7 +83,9 @@ export class SdsManager {
 		reportingLength: number,
 		resolution: number,
 		progressCallback?: Proxy<WorkerProgressCallback>,
-	): Promise<Remote<ICancelablePromise<IAggregateStatistics>> | undefined> {
+	): Promise<
+		Remote<ICancelablePromise<IAggregateStatistics | null>> | undefined
+	> {
 		const aggregateStatisticsGenerator = this.getAggregateStatisticsGenerator()
 		const continueExecutingView = new AtomicView(AtomicView.createBuffer(true))
 

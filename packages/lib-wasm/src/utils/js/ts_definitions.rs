@@ -23,21 +23,15 @@ export interface ISingleAttributeCounts {
   [attr: string]: number
 }
 
-export interface IRecordsCountByColumn {
-  [headerName: string]: number
+export interface IRecordsCountByStringKey{
+  [key: string]: number
 }
 
 export interface IAggregateStatistics {
-  numberOfDistinctAttributes: number
-  singleAttributeCounts: ISingleAttributeCounts
-  numberOfUniqueCombinations: number
-  numberOfRecordsWithUniqueCombinations: number
-  numberOfRecordsWithUniqueCombinationsPerColumn: IRecordsCountByColumn
-  numberOfRareCombinations: number
   numberOfRecordsWithRareCombinations: number
-  numberOfRecordsWithRareCombinationsPerColumn: IRecordsCountByColumn
+  numberOfRecordsWithRareCombinationsPerColumn: IRecordsCountByStringKey
+  numberOfRecordsWithRareCombinationsPerAttribute: IRecordsCountByStringKey
   numberOfRecords: number
-  numberOfDistinctCombinations: usize
 }
 
 export enum NoisyCountThresholdType {
@@ -154,8 +148,8 @@ extern "C" {
     #[wasm_bindgen(typescript_type = "ISingleAttributeCounts")]
     pub type JsSingleAttributeCounts;
 
-    #[wasm_bindgen(typescript_type = "IRecordsCountByColumn")]
-    pub type JsRecordsCountByColumn;
+    #[wasm_bindgen(typescript_type = "IRecordsCountByStringKey")]
+    pub type JsRecordsCountByStringKey;
 
     #[wasm_bindgen(typescript_type = "IAggregateStatistics")]
     pub type JsAggregateStatistics;

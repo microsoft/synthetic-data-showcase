@@ -4,7 +4,7 @@ use std::{ops::Deref, sync::Arc};
 use wasm_bindgen::{prelude::*, JsCast};
 
 use crate::{
-    processing::aggregator::{SingleAttributeCounts, WasmAggregateStatistics},
+    processing::aggregator::WasmAggregateStatistics,
     utils::js::{JsAggregateResult, JsResult},
 };
 
@@ -40,41 +40,17 @@ impl WasmAggregateResult {
 
     #[wasm_bindgen(js_name = "statistics")]
     pub fn statistics(&self, resolution: usize) -> WasmAggregateStatistics {
-        let single_attribute_counts: SingleAttributeCounts = self
-            .aggregated_data
-            .calc_single_attribute_counts()
-            .drain()
-            .map(|(attr, count)| {
-                (
-                    attr.as_str_using_headers(&self.aggregated_data.headers),
-                    count,
-                )
-            })
-            .collect();
-
         WasmAggregateStatistics {
-            number_of_distinct_attributes: single_attribute_counts.len(),
-            single_attribute_counts,
-            number_of_unique_combinations: self
-                .aggregated_data
-                .calc_number_of_unique_combinations(),
-            number_of_records_with_unique_combinations: self
-                .aggregated_data
-                .calc_number_of_records_with_unique_combinations(),
-            number_of_records_with_unique_combinations_per_column: self
-                .aggregated_data
-                .calc_number_of_records_with_unique_combinations_per_column(),
-            number_of_rare_combinations: self
-                .aggregated_data
-                .calc_number_of_rare_combinations(resolution),
             number_of_records_with_rare_combinations: self
                 .aggregated_data
                 .calc_number_of_records_with_rare_combinations(resolution),
             number_of_records_with_rare_combinations_per_column: self
                 .aggregated_data
                 .calc_number_of_records_with_rare_combinations_per_column(resolution),
+            number_of_records_with_rare_combinations_per_attribute: self
+                .aggregated_data
+                .calc_number_of_records_with_rare_combinations_per_attribute(resolution),
             number_of_records: self.aggregated_data.number_of_records,
-            number_of_distinct_combinations: self.aggregated_data.number_of_distinct_combinations(),
         }
     }
 
