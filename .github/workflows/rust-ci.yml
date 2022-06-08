@@ -67,7 +67,4 @@ jobs:
 
       - name: Run wasm-pack build
         working-directory: ./packages/lib-wasm
-        run: |
-          ls . &&
-          cat Cargo.toml &&
-          wasm-pack build --release --target web --out-dir ../../target/wasm
+        run: wasm-pack build --release --target web --out-dir ${{ github.workspace }}/target/wasm
