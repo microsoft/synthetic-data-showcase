@@ -11,7 +11,7 @@ env:
 
 jobs:
   cargo_build:
-    name: Check all packages are properly building
+    name: Check overall build
     runs-on: ubuntu-latest
 
     steps:
@@ -21,19 +21,8 @@ jobs:
       - name: Run cargo build release
         run: cargo build --verbose --release
 
-  cargo_test:
-    name: Run cargo tests
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Run cargo test
-        run: cargo test --verbose
-
   cargo_fmt:
-    name: Check code is properly formatted
+    name: Check code format
     runs-on: ubuntu-latest
 
     steps:
@@ -51,8 +40,33 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Install clippy
-        run: rustup component add clippy
-
       - name: Run cargo clippy
         run: cargo clippy -- -D warnings
+
+  cargo_test:
+    name: Run cargo tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Run cargo test
+        run: cargo test --verbose
+
+  lib_wasm_build:
+    name: Check lib-wasm build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install wasm-pack
+        run: cargo install wasm-pack
+
+      - name: Browse to lib-wasm package
+        run: cd packages/lib-wasm
+
+      - name: Run wasm-pack build
+        run: wasm-pack build --release --target web --out-dir ../../target/wasm
