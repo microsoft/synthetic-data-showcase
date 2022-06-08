@@ -17,12 +17,14 @@ import {
 	useSelectedSynthesisInfo,
 } from '~states'
 
+import { SelectedAttributes } from '../../../components/AttributeSelector/SelectedAttributes.js'
 import { useAllFinishedSynthesisInfo } from '../../Synthesize/Synthesize.hooks.js'
 import {
 	useInitiallySelectedHeaders,
 	useOnClearSelectedAttributes,
 	useOnNewSelectedAttributesByColumn,
 	useOnRunNavigate,
+	useOnSetSelectedAttributes,
 } from '../hooks/index.js'
 import { SelectColumns } from './SelectColumns/SelectColumns.js'
 
@@ -35,7 +37,8 @@ export const Commands: FC<CommandsProps> = memo(function Commands({
 }) {
 	const [isLoading, setIsLoading] = useState(true)
 	const [isFullScreen, setIsFullScreen] = useState(false)
-	const [, setSelectedAttributesByColumn] = useSelectedAttributesByColumn()
+	const [selectedAttributesByColumn, setSelectedAttributesByColumn] =
+		useSelectedAttributesByColumn()
 	const [manager] = useSdsManagerInstance()
 	const isMounted = useRef(true)
 	const allFinishedSynthesisInfo = useAllFinishedSynthesisInfo()
@@ -49,6 +52,10 @@ export const Commands: FC<CommandsProps> = memo(function Commands({
 		isMounted,
 		setSelectedAttributesByColumn,
 		manager,
+	)
+	const onSetSelectedAttributes = useOnSetSelectedAttributes(
+		setNewSelectedAttributesByColumn,
+		selectedAttributesByColumn,
 	)
 	const onClearSelectedAttributes = useOnClearSelectedAttributes(
 		setNewSelectedAttributesByColumn,
@@ -102,8 +109,14 @@ export const Commands: FC<CommandsProps> = memo(function Commands({
 					iconName={isFullScreen ? 'ChromeClose' : 'FullScreen'}
 				/>
 			</FlexContainer>
-			<FlexContainer>
+			<FlexContainer align="center">
 				<SelectColumns />
+				<SelectedAttributes
+					headers={headers}
+					selectedAttributesByColumn={selectedAttributesByColumn}
+					onSetSelectedAttributes={onSetSelectedAttributes}
+					onClearSelectedAttributes={onClearSelectedAttributes}
+				/>
 			</FlexContainer>
 		</Container>
 	)
@@ -113,11 +126,6 @@ Commands.displayName = 'NavigateCommands'
 const Container = styled(FlexContainer)`
 	border-bottom: 1px solid ${p => p.theme.palette.neutralLight};
 	box-shadow: ${p => p.theme.effects.elevation4};
-`
-
-const Divider = styled.span`
-	font-size: ${p => p.theme.fonts.smallPlus.fontSize};
-	color: ${p => p.theme.palette.neutralTertiary};
 `
 
 const StyledIcon = styled(Icon)`
