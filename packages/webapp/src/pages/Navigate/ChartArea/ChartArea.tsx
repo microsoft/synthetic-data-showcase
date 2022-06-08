@@ -12,6 +12,7 @@ import { ColumnAttributeSelectorGrid } from '~components/AttributeSelector/index
 import {
 	useAvailableHeaders,
 	useSdsManagerInstance,
+	useSelectedAttributesByColumn,
 	useSelectedHeaders,
 	useSelectedSynthesisInfo,
 } from '~states'
@@ -28,7 +29,7 @@ const chartHeight = `calc((${viewHeight} / 2) - 25px)`
 export const ChartArea: FC = memo(function ChartArea() {
 	const [, setIsLoading] = useState(true)
 	const [selectedAttributesByColumn, setSelectedAttributesByColumn] =
-		useState<ISelectedAttributesByColumn>({})
+		useSelectedAttributesByColumn()
 	const [manager] = useSdsManagerInstance()
 	const isMounted = useRef(true)
 	const [selectedSynthesis] = useSelectedSynthesisInfo()
