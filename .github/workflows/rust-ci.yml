@@ -68,3 +68,27 @@ jobs:
       - name: Run wasm-pack build
         working-directory: ./packages/lib-wasm
         run: wasm-pack build --release --target web --out-dir ${{ github.workspace }}/target/wasm
+
+  lib_python_build:
+    name: Check lib-wasm build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        working-directory: ./packages/lib-python
+        run: pip install -r requirements.txt
+
+      - name: Run python lib build
+        working-directory: ./packages/lib-python
+        run: maturin develop --release
