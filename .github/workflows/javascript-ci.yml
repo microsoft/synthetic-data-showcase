@@ -2,9 +2,9 @@ name: Javascript CI
 
 on:
   push:
-    branches: ['javascript-ci']
+    branches: ['dev', 'main']
   pull_request:
-    branches: ['javascript-ci']
+    branches: ['dev', 'main']
 
 env:
   CARGO_TERM_COLOR: always
@@ -43,5 +43,5 @@ jobs:
       - name: Build web app
         run: yarn build
 
-      - name: Verify uncommitted changes
+      - name: Check for uncommitted changes
         run: git diff-index --quiet HEAD --
