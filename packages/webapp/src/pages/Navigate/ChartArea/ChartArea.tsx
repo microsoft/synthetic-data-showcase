@@ -2,15 +2,13 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-
 import type { FC } from 'react'
 import { memo, useRef, useState } from 'react'
-import type { ISelectedAttributesByColumn } from 'sds-wasm'
 import styled from 'styled-components'
 
 import { ColumnAttributeSelectorGrid } from '~components/AttributeSelector/index'
 import {
-	useAvailableHeaders,
+	useHeaders,
 	useSdsManagerInstance,
 	useSelectedAttributesByColumn,
 	useSelectedHeaders,
@@ -22,18 +20,20 @@ import {
 	useOnSetSelectedAttributes,
 } from '../hooks/index.js'
 
-const viewHeight = 'calc(100vh - 204px)'
+export interface ChartAreaProps {
+	isFullScreen: boolean
+}
 
-const chartHeight = `calc((${viewHeight} / 2) - 25px)`
-
-export const ChartArea: FC = memo(function ChartArea() {
+export const ChartArea: FC<ChartAreaProps> = memo(function ChartArea({
+	isFullScreen,
+}) {
 	const [, setIsLoading] = useState(true)
 	const [selectedAttributesByColumn, setSelectedAttributesByColumn] =
 		useSelectedAttributesByColumn()
 	const [manager] = useSdsManagerInstance()
 	const isMounted = useRef(true)
 	const [selectedSynthesis] = useSelectedSynthesisInfo()
-	const headers = useAvailableHeaders()
+	const [headers] = useHeaders()
 	const [selectedHeaders] = useSelectedHeaders()
 	const setNewSelectedAttributesByColumn = useOnNewSelectedAttributesByColumn(
 		selectedSynthesis?.key,
@@ -46,6 +46,11 @@ export const ChartArea: FC = memo(function ChartArea() {
 		setNewSelectedAttributesByColumn,
 		selectedAttributesByColumn,
 	)
+	const viewHeight = isFullScreen
+		? 'calc(100vh - 135px)'
+		: 'calc(100vh - 215px)'
+	const chartHeight = `calc((${viewHeight} / 2) - 25px)`
+
 	return (
 		<Container>
 			<ColumnAttributeSelectorGrid

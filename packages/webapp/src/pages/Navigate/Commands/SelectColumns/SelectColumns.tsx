@@ -9,7 +9,7 @@ import type { FC } from 'react'
 import { memo, useCallback, useMemo } from 'react'
 import styled from 'styled-components'
 
-import { useAvailableHeaders, useSelectedHeaders } from '~states'
+import { useHeaders, useSelectedHeaders } from '~states'
 
 import { useOnToggleSelectedHeader } from '../../hooks/index.js'
 
@@ -18,7 +18,7 @@ export const SelectColumns: FC = memo(function SelectColumns() {
 		useBoolean(false)
 	const actionId = useId('select-columns-id')
 
-	const headers = useAvailableHeaders()
+	const [headers] = useHeaders()
 	const [selectedHeaders, setSelectedHeaders] = useSelectedHeaders()
 	const onToggleSelectedHeader = useOnToggleSelectedHeader(
 		selectedHeaders,

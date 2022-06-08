@@ -10,7 +10,7 @@ import styled from 'styled-components'
 
 import { SynthesisDropdown } from '~components/SynthesisDropdown/SynthesisDropdown'
 import {
-	useAvailableHeaders,
+	useHeaders,
 	useSdsManagerInstance,
 	useSelectedAttributesByColumn,
 	useSelectedHeaders,
@@ -20,7 +20,6 @@ import {
 import { SelectedAttributes } from '../../../components/AttributeSelector/SelectedAttributes.js'
 import { useAllFinishedSynthesisInfo } from '../../Synthesize/Synthesize.hooks.js'
 import {
-	useInitiallySelectedHeaders,
 	useOnClearSelectedAttributes,
 	useOnNewSelectedAttributesByColumn,
 	useOnRunNavigate,
@@ -43,8 +42,7 @@ export const Commands: FC<CommandsProps> = memo(function Commands({
 	const isMounted = useRef(true)
 	const allFinishedSynthesisInfo = useAllFinishedSynthesisInfo()
 	const [selectedSynthesis, setSelectedSynthesis] = useSelectedSynthesisInfo()
-	const headers = useAvailableHeaders()
-	const initiallySelectedHeaders = useInitiallySelectedHeaders(headers)
+	const [headers, setHeaders] = useHeaders()
 	const [, setSelectedHeaders] = useSelectedHeaders()
 	const setNewSelectedAttributesByColumn = useOnNewSelectedAttributesByColumn(
 		selectedSynthesis?.key,
@@ -60,24 +58,20 @@ export const Commands: FC<CommandsProps> = memo(function Commands({
 	const onClearSelectedAttributes = useOnClearSelectedAttributes(
 		setNewSelectedAttributesByColumn,
 	)
-
 	const onRunNavigate = useOnRunNavigate(
 		selectedSynthesis?.key,
 		setIsLoading,
 		isMounted,
+		setHeaders,
 		setSelectedHeaders,
-		initiallySelectedHeaders,
 		manager,
 	)
 	const theme = useTheme()
 
 	useEffect(() => {
 		onClearSelectedAttributes()
-	}, [selectedSynthesis, onClearSelectedAttributes])
-
-	useEffect(() => {
 		onRunNavigate()
-	}, [onRunNavigate])
+	}, [selectedSynthesis, onClearSelectedAttributes, onRunNavigate])
 
 	useEffect(() => {
 		return () => {
