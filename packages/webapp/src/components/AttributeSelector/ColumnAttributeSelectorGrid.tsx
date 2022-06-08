@@ -8,9 +8,9 @@ import type { HeaderNames, ISelectedAttributesByColumn } from 'sds-wasm'
 
 import { AttributeIntersectionValueChartLegend } from '~components/AttributeIntersectionValueChartLegend'
 import { useHorizontalScrolling } from '~components/Charts/hooks'
-import type { SetSelectedAttributesCallback } from '~pages/Navigate/DataNavigation'
 
 import { ColumnAttributeSelector } from './ColumnAttributeSelector.js'
+import type { SetSelectedAttributesCallback } from './SelectedAttributes.js'
 
 export interface ColumnAttributeSelectorGridProps {
 	contextKey: string

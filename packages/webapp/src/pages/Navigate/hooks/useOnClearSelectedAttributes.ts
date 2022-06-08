@@ -9,8 +9,8 @@ export function useOnClearSelectedAttributes(
 	setNewSelectedAttributesByColumn: (
 		value: ISelectedAttributesByColumn,
 	) => void,
-): () => Promise<void> {
-	return useCallback(async () => {
-		await setNewSelectedAttributesByColumn({})
+): () => void {
+	return useCallback(() => {
+		setNewSelectedAttributesByColumn({})
 	}, [setNewSelectedAttributesByColumn])
 }

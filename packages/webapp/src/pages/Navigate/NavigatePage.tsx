@@ -23,7 +23,7 @@ export const NavigatePage: FC = memo(function NavigatePage() {
 		<Container vertical className={isFullScreen ? 'fullScreen' : ''}>
 			<Commands onFullScreenToggle={handleOnFullScreen} />
 			<MainContent>
-				<ChartArea />
+				<ChartArea isFullScreen={isFullScreen} />
 			</MainContent>
 		</Container>
 	)

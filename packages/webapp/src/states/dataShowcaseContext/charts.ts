@@ -2,19 +2,17 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-
-import { useMemo } from 'react'
 import type { SetterOrUpdater } from 'recoil'
 import { atom, useRecoilState } from 'recoil'
 import type { HeaderNames, ISelectedAttributesByColumn } from 'sds-wasm'
 
-import { useSelectedSynthesisInfo } from './selectedSynthesisInfo.js'
+const headersState = atom<HeaderNames>({
+	key: 'headers',
+	default: [],
+})
 
-export function useAvailableHeaders(): HeaderNames {
-	const [selectedSynthesis] = useSelectedSynthesisInfo()
-	return useMemo(() => {
-		return selectedSynthesis?.parameters.csvDataParameters.useColumns ?? []
-	}, [selectedSynthesis])
+export function useHeaders(): [HeaderNames, SetterOrUpdater<HeaderNames>] {
+	return useRecoilState(headersState)
 }
 
 const selectedHeadersState = atom<boolean[]>({

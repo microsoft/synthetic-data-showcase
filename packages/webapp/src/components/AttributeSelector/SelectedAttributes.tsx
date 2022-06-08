@@ -4,18 +4,26 @@
  */
 import type { IIconProps } from '@fluentui/react'
 import { CommandButton, Icon } from '@fluentui/react'
-import { memo } from 'react'
-import type { HeaderNames, ISelectedAttributesByColumn } from 'sds-wasm'
-import styled from 'styled-components'
-
+import { FlexContainer } from '@sds/components'
+import _ from 'lodash'
+import { memo, useMemo } from 'react'
 import type {
-	ClearSelectedAttributesCallback,
-	SetSelectedAttributesCallback,
-} from '~pages/Navigate/DataNavigation'
+	HeaderNames,
+	IAttributesIntersection,
+	ISelectedAttributesByColumn,
+} from 'sds-wasm'
+import styled from 'styled-components'
 
 import { useSelectedAttributesByColumnEntries } from './hooks.js'
 
 const deleteIcon: IIconProps = { iconName: 'Delete' }
+
+export type SetSelectedAttributesCallback = (
+	headerIndex: number,
+	item: IAttributesIntersection | undefined,
+) => Promise<void>
+
+export type ClearSelectedAttributesCallback = () => void
 
 export interface SelectedAttributesProps {
 	headers: HeaderNames
@@ -34,6 +42,14 @@ export const SelectedAttributes: React.FC<SelectedAttributesProps> = memo(
 		const selectedEntries = useSelectedAttributesByColumnEntries(
 			selectedAttributesByColumn,
 		)
+		const isNotEmpty = useMemo(
+			() =>
+				_.some(
+					selectedEntries,
+					entry => Array.from(entry[1].keys()).length > 0,
+				),
+			[selectedEntries],
+		)
 
 		return (
 			<>
@@ -42,21 +58,20 @@ export const SelectedAttributes: React.FC<SelectedAttributesProps> = memo(
 						.sort()
 						.map(value => {
 							return (
-								<>
+								<FlexContainer key={`${entry[0]}:${value}`} align="center">
 									<Divider>|</Divider>
 									<StyledCommandButton
-										key={`${entry[0]}:${value}`}
 										iconProps={deleteIcon}
 										text={`${headers[entry[0]]}:${value}`}
 										onClick={async () =>
 											await onSetSelectedAttributes(+entry[0], undefined)
 										}
 									/>
-								</>
+								</FlexContainer>
 							)
 						})
 				})}
-				{selectedEntries.length > 0 && (
+				{isNotEmpty && (
 					<StyledIcon
 						iconName="ChromeClose"
 						onClick={onClearSelectedAttributes}
