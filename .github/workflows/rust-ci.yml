@@ -12,7 +12,10 @@ env:
 jobs:
   cargo_build:
     name: Check overall build
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.platform }}
 
     steps:
       - name: Checkout
@@ -23,7 +26,10 @@ jobs:
 
   cargo_fmt:
     name: Check code format
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.platform }}
 
     steps:
       - name: Checkout
@@ -34,7 +40,10 @@ jobs:
 
   cargo_clippy:
     name: Check clippy
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.platform }}
 
     steps:
       - name: Checkout
@@ -45,7 +54,10 @@ jobs:
 
   cargo_test:
     name: Run cargo tests
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.platform }}
 
     steps:
       - name: Checkout
@@ -56,7 +68,10 @@ jobs:
 
   lib_wasm_build:
     name: Check lib-wasm build
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.platform }}
 
     steps:
       - name: Checkout
@@ -70,11 +85,12 @@ jobs:
         run: wasm-pack build --release --target web --out-dir ${{ github.workspace }}/target/wasm
 
   lib_python_build:
-    name: Check lib-wasm build
-    runs-on: ubuntu-latest
+    name: Check lib-python build
     strategy:
       matrix:
+        platform: [ubuntu-latest, windows-latest]
         python-version: ['3.10']
+    runs-on: ${{ matrix.platform }}
 
     steps:
       - name: Checkout
