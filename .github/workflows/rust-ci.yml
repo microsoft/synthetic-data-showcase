@@ -10,14 +10,49 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  cargo_build:
+    name: Check all packages are properly building
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
-      - name: Verify core and cli build
+      - name: Run cargo build release
         run: cargo build --verbose --release
 
-      - name: Run tests
+  cargo_test:
+    name: Run cargo tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Run cargo test
         run: cargo test --verbose
+
+  cargo_fmt:
+    name: Check code is properly formatted
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Run cargo fmt
+        run: cargo fmt --all -- --check
+
+  cargo_clippy:
+    name: Check clippy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install clippy
+        run: rustup component add clippy
+
+      - name: Run cargo clippy
+        run: cargo clippy -- -D warnings
