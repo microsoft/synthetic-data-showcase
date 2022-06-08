@@ -1,0 +1,23 @@
+name: Rust CI
+
+on:
+  push:
+    branches: ['rust-ci']
+  pull_request:
+    branches: ['rust-ci']
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Verify core and cli build
+        run: cargo build --verbose --release
+
+      - name: Run tests
+        run: cargo test --verbose
