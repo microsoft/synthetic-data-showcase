@@ -52,7 +52,7 @@ export const CsvTable: React.FC<ICsvTableProps> = memo(function CsvTable({
 					table={content.table}
 					commandBar={commandBar}
 					visibleColumns={visibleColumns}
-					showColumnCount={false}
+					showColumnCount={true}
 				/>
 				<ArqueroDetailsList
 					table={content.table}

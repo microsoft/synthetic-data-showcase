@@ -289,7 +289,7 @@ class Navigator ():
         df = util.loadMicrodata(
             os.path.join(self.output_dir,
                          f"{self.prefix}_synthetic_microdata.tsv"),
-            '\t', -1, use_columns=self.use_columns)
+            '\t', -1, [])
         if len(df) == 0:
             logging.info("There is no data, Power BI template is not created")
         else:

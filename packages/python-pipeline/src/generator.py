@@ -15,7 +15,9 @@ def generate(config):
         config: options from the json config file, else default values.
     """
 
+    subject_id = config['subject_id']
     use_columns = config['use_columns']
+    multi_value_columns = config['multi_value_columns']
     record_limit = config['record_limit']
     sensitive_microdata_path = config['sensitive_microdata_path']
     sensitive_microdata_delimiter = config['sensitive_microdata_delimiter']
@@ -41,7 +43,9 @@ def generate(config):
     sds_processor = sds.SDSProcessor(
         sensitive_microdata_path,
         sensitive_microdata_delimiter,
+        subject_id,
         use_columns,
+        multi_value_columns,
         sensitive_zeros,
         max(record_limit, 0)
     )
@@ -83,7 +87,7 @@ def generate(config):
     else:
         raise ValueError(f'invalid synthesis mode: {synthesis_mode}')
 
-    generated_data.write_synthetic_data(synthetic_microdata_path, '\t')
+    generated_data.write_synthetic_data(synthetic_microdata_path, '\t', False)
     syn_ratio = generated_data.expansion_ratio
 
     config['expansion_ratio'] = syn_ratio

@@ -2,46 +2,67 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { Spinner, useTheme } from '@fluentui/react'
-import { FlexContainer, FlexItem } from '@sds/components'
+import { Spinner } from '@fluentui/react'
 import type { Remote } from 'comlink'
 import type { FC } from 'react'
 import { memo, useCallback, useEffect, useState } from 'react'
 import type { IAggregateStatistics } from 'sds-wasm'
 
-import { useRawSynthesisParameters, useSensitiveContent } from '~states'
+import {
+	useGlobalErrorMessage,
+	useRawSynthesisParameters,
+	useSensitiveContent,
+} from '~states'
 import type { ICancelablePromise } from '~workers/types'
 
 import {
+	useAttributesWithRareCombinationsPercentage,
 	useColumnsWithRareCombinationsPercentage,
 	useGetAggregateStatistics,
 } from './AggregateStatistics.hooks.js'
-import { Container, StyledReport } from './AggregateStatistics.styles.js'
-import { ColumnContributionChart } from './ColumnContributionChart.js'
+import {
+	ChartItem,
+	ChartsContainer,
+	Container,
+	StyledReport,
+} from './AggregateStatistics.styles.js'
+import { ContributionChart } from './ContributionChart.js'
 
 interface IQueueExecution {
-	execution?: Remote<ICancelablePromise<IAggregateStatistics>>
+	execution?: Remote<ICancelablePromise<IAggregateStatistics | null>>
 }
 
 export const AggregateStatistics: FC = memo(function AggregateStatistics() {
-	const theme = useTheme()
 	const [sensitiveContent] = useSensitiveContent()
 	const [statistics, setStatistics] = useState<IAggregateStatistics | null>(
 		null,
 	)
 	const [queuedExecution, setQueuedExecution] = useState<IQueueExecution>({})
 	const [isLoading, setIsLoading] = useState(false)
+	const [, setGlobalErrorMessage] = useGlobalErrorMessage()
 	const [rawSynthesisParams] = useRawSynthesisParameters()
 	const getAggregateStatistics = useGetAggregateStatistics()
 	const columnWithRareCombinationsPercentage =
 		useColumnsWithRareCombinationsPercentage(statistics)
-	const tooltipFormatter = useCallback(
+	const attributesWithRareCombinationsPercentage =
+		useAttributesWithRareCombinationsPercentage(statistics)
+	const columnTooltipFormatter = useCallback(
 		item => {
 			return `Affecting ${
 				statistics?.numberOfRecordsWithRareCombinationsPerColumn[item.label]
 			}/${
 				statistics?.numberOfRecordsWithRareCombinations
-			} rare/linkable records (${item.raw}%)`
+			} rare/linkable subjects (${item.raw}%)`
+		},
+		[statistics],
+	)
+	const attributeTooltipFormatter = useCallback(
+		item => {
+			return `Affecting ${
+				statistics?.numberOfRecordsWithRareCombinationsPerAttribute[item.label]
+			}/${
+				statistics?.numberOfRecordsWithRareCombinations
+			} rare/linkable subjects (${item.raw}%)`
 		},
 		[statistics],
 	)
@@ -68,14 +89,20 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 		async function awaitForStats() {
 			try {
 				setIsLoading(true)
+				setGlobalErrorMessage(undefined)
 				setStatistics((await await queuedExecution.execution?.promise) ?? null)
 				setIsLoading(false)
 			} catch (err) {
+				if (err !== 'processing has been stopped') {
+					setGlobalErrorMessage(err as string)
+					setStatistics(null)
+					setIsLoading(false)
+				}
 				console.error(err)
 			}
 		}
 		awaitForStats()
-	}, [queuedExecution, setStatistics, setIsLoading])
+	}, [queuedExecution, setStatistics, setIsLoading, setGlobalErrorMessage])
 
 	useEffect(() => {
 		return () => {
@@ -92,26 +119,38 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 			{isLoading ? (
 				<Spinner />
 			) : statistics && statistics.numberOfRecordsWithRareCombinations > 0 ? (
-				<FlexContainer gap={theme.spacing.s1} style={{ width: '100%' }}>
-					<FlexItem grow={1}>
-						<ColumnContributionChart
-							proportionPerColumn={columnWithRareCombinationsPercentage}
-							label={`Selected columns contributing to privacy risk from rare/linkable attribute combinations (affecting ${
-								statistics.numberOfRecordsWithRareCombinations
-							}/${rawSynthesisParams.recordLimit} records, ${(
-								(statistics.numberOfRecordsWithRareCombinations * 100.0) /
-								rawSynthesisParams.recordLimit
-							).toFixed(0)}%)`}
-							containerHeight={220}
-							barHeight={5}
-							tooltipFormatter={tooltipFormatter}
-						/>
-					</FlexItem>
-				</FlexContainer>
+				<>
+					<StyledReport>{`Contribution to privacy risk (creating rare attribute combinations in ${
+						statistics.numberOfRecordsWithRareCombinations
+					}/${statistics.numberOfRecords} subjects, ${(
+						(statistics.numberOfRecordsWithRareCombinations * 100.0) /
+						statistics.numberOfRecords
+					).toFixed(0)}%)`}</StyledReport>
+					<ChartsContainer justify="space-between">
+						<ChartItem>
+							<ContributionChart
+								valuePerKey={columnWithRareCombinationsPercentage}
+								label={'Selected columns'}
+								containerHeight={220}
+								barHeight={10}
+								tooltipFormatter={columnTooltipFormatter}
+							/>
+						</ChartItem>
+						<ChartItem>
+							<ContributionChart
+								valuePerKey={attributesWithRareCombinationsPercentage}
+								label={'Attributes of selected columns'}
+								containerHeight={220}
+								barHeight={10}
+								tooltipFormatter={attributeTooltipFormatter}
+							/>
+						</ChartItem>
+					</ChartsContainer>
+				</>
 			) : (
 				<StyledReport>
-					No small groups found based on the privacy resolution and aggregation
-					limit
+					No rare attribute combinations (below the privacy resolution) based on
+					the current parameters
 				</StyledReport>
 			)}
 		</Container>

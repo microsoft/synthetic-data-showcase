@@ -4,15 +4,18 @@
  */
 import type { MutableRefObject } from 'react'
 import { useCallback } from 'react'
+import type { HeaderNames } from 'sds-wasm'
 
 import type { ISdsManagerInstance } from '~models'
+
+import { calcInitiallySelectedHeaders } from './useInitiallySelectedHeaders.js'
 
 export function useOnRunNavigate(
 	contextKey: string | undefined,
 	setIsLoading: (value: boolean) => void,
 	isMounted: MutableRefObject<boolean>,
+	setHeaders: (value: HeaderNames) => void,
 	setSelectedHeaders: (value: boolean[]) => void,
-	initiallySelectedHeaders: boolean[],
 	manager: ISdsManagerInstance | null,
 ): () => Promise<void> {
 	return useCallback(async () => {
@@ -21,9 +24,15 @@ export function useOnRunNavigate(
 
 			try {
 				await manager.instance.navigate(contextKey)
-
+				// eslint-disable-next-line @essex/adjacent-await
+				const navigateResult = await manager.instance.getNavigateResult(
+					contextKey,
+				)
 				if (isMounted.current) {
-					setSelectedHeaders(initiallySelectedHeaders)
+					setHeaders(navigateResult.headerNames)
+					setSelectedHeaders(
+						calcInitiallySelectedHeaders(navigateResult.headerNames),
+					)
 					setIsLoading(false)
 				}
 			} catch {
@@ -38,8 +47,8 @@ export function useOnRunNavigate(
 		setIsLoading,
 		manager,
 		isMounted,
+		setHeaders,
 		setSelectedHeaders,
-		initiallySelectedHeaders,
 		contextKey,
 	])
 }

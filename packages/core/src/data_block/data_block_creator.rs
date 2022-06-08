@@ -1,161 +1,111 @@
 use super::{
     block::DataBlock,
+    csv_record_input_values::CsvRecordInputValues,
+    headers_metadata::DataBlockHeadersMetadata,
+    input_value::DataBlockInputValue,
     record::DataBlockRecord,
-    typedefs::{CsvRecord, CsvRecordRef, CsvRecordRefSlice, CsvRecordSlice, DataBlockRecords},
+    subject_id_joiner::SubjectIdJoiner,
+    typedefs::{CsvRecord, DataBlockRecords},
     value::DataBlockValue,
+    DataBlockCreatorError, DataBlockHeadersSlice,
 };
-use std::{collections::HashSet, sync::Arc};
+use itertools::Itertools;
+use std::{collections::HashMap, fmt::Display, sync::Arc};
 
 /// Trait that needs to be implement to create a data block.
 /// It already contains the logic to create the data block, so we only
 /// need to worry about mapping the headers and records from InputType
-pub trait DataBlockCreator {
+pub trait DataBlockCreator
+where
+    Self::ErrorType: Display,
+{
     /// Creator input type, it can be a File Reader, another data structure...
     type InputType;
     /// The error type that can be generated when parsing headers/records
     type ErrorType;
 
     #[inline]
-    fn gen_use_columns_set(headers: &CsvRecordSlice, use_columns: &[String]) -> HashSet<usize> {
-        let use_columns_str_set: HashSet<String> = use_columns
-            .iter()
-            .map(|c| c.trim().to_lowercase())
-            .collect();
-        headers
-            .iter()
-            .enumerate()
-            .filter_map(|(i, h)| {
-                if use_columns_str_set.is_empty()
-                    || use_columns_str_set.contains(&h.trim().to_lowercase())
-                {
-                    Some(i)
-                } else {
-                    None
-                }
-            })
-            .collect()
-    }
-
-    #[inline]
-    fn gen_sensitive_zeros_set(
-        filtered_headers: &CsvRecordRefSlice,
-        sensitive_zeros: &[String],
-    ) -> HashSet<usize> {
-        let sensitive_zeros_str_set: HashSet<String> = sensitive_zeros
-            .iter()
-            .map(|c| c.trim().to_lowercase())
-            .collect();
-        filtered_headers
-            .iter()
-            .enumerate()
-            .filter_map(|(i, h)| {
-                if sensitive_zeros_str_set.contains(&h.trim().to_lowercase()) {
-                    Some(i)
-                } else {
-                    None
-                }
-            })
-            .collect()
-    }
-
-    #[inline]
-    fn normalize_value(value: &str) -> String {
-        value
-            .trim()
-            // replace reserved delimiters
-            .replace(';', "<semicolon>")
-            .replace(':', "<colon>")
-    }
-
-    #[inline]
-    fn map_headers(
-        headers: &mut CsvRecord,
-        use_columns: &[String],
-        sensitive_zeros: &[String],
-    ) -> (CsvRecordRef, HashSet<usize>, HashSet<usize>) {
-        let use_columns_set = Self::gen_use_columns_set(headers, use_columns);
-        let filtered_headers: CsvRecordRef = headers
-            .iter()
-            .enumerate()
-            .filter_map(|(i, h)| {
-                if use_columns_set.contains(&i) {
-                    Some(Arc::new(Self::normalize_value(h)))
-                } else {
-                    None
-                }
-            })
-            .collect();
-        let sensitive_zeros_set = Self::gen_sensitive_zeros_set(&filtered_headers, sensitive_zeros);
-
-        (filtered_headers, use_columns_set, sensitive_zeros_set)
-    }
-
-    #[inline]
-    fn map_records(
-        records: &[CsvRecord],
-        use_columns_set: &HashSet<usize>,
-        sensitive_zeros_set: &HashSet<usize>,
-        record_limit: usize,
+    fn create_records(
+        headers: &DataBlockHeadersSlice,
+        headers_metadata: &DataBlockHeadersMetadata,
+        mut records_inputs: Vec<CsvRecordInputValues>,
     ) -> DataBlockRecords {
-        let map_result = |record: &CsvRecord| {
-            let values: CsvRecord = record
-                .iter()
-                .enumerate()
-                .filter_map(|(i, h)| {
-                    if use_columns_set.contains(&i) {
-                        Some(h.trim().to_string())
-                    } else {
-                        None
-                    }
-                })
-                .collect();
+        let header_index_by_name: HashMap<Arc<String>, usize> = headers
+            .iter()
+            .enumerate()
+            .map(|(i, h)| (h.clone(), i))
+            .collect();
 
-            Arc::new(DataBlockRecord::new(
-                values
-                    .iter()
-                    .enumerate()
-                    .filter_map(|(i, r)| {
-                        let record_val = Self::normalize_value(r);
-                        if !record_val.is_empty()
-                            && (sensitive_zeros_set.contains(&i) || record_val != "0")
-                        {
-                            Some(Arc::new(DataBlockValue::new(i, Arc::new(record_val))))
-                        } else {
-                            None
+        records_inputs
+            .drain(..)
+            .map(|mut record_input| {
+                let mut result_records: Vec<Arc<DataBlockValue>> = Vec::new();
+
+                for (i, input_value) in record_input.values.drain(..).enumerate() {
+                    let normalized_header = &headers_metadata.normalized_headers_to_be_used[i];
+
+                    match input_value {
+                        DataBlockInputValue::SingleValue(value) => {
+                            if !value.is_empty() {
+                                result_records.push(Arc::new(DataBlockValue::new(
+                                    header_index_by_name[normalized_header],
+                                    value,
+                                )));
+                            }
                         }
-                    })
-                    .collect(),
-            ))
-        };
-
-        if record_limit > 0 {
-            records.iter().take(record_limit).map(map_result).collect()
-        } else {
-            records.iter().map(map_result).collect()
-        }
+                        DataBlockInputValue::MultiValue(mut values) => {
+                            result_records.extend(values.drain().sorted().map(|value| {
+                                Arc::new(DataBlockValue::new(
+                                    header_index_by_name
+                                        [&DataBlockHeadersMetadata::format_multi_value_header(
+                                            normalized_header,
+                                            &value,
+                                        )],
+                                    Arc::new("1".to_owned()),
+                                ))
+                            }));
+                        }
+                    }
+                }
+                Arc::new(DataBlockRecord::new(result_records))
+            })
+            .collect()
     }
 
     #[inline]
     fn create(
         input_res: Result<Self::InputType, Self::ErrorType>,
+        subject_id: Option<String>,
         use_columns: &[String],
+        multi_value_columns: &HashMap<String, String>,
         sensitive_zeros: &[String],
         record_limit: usize,
-    ) -> Result<Arc<DataBlock>, Self::ErrorType> {
-        let mut input = input_res?;
-        let (headers, use_columns_set, sensitive_zeros_set) = Self::map_headers(
-            &mut Self::get_headers(&mut input)?,
+    ) -> Result<Arc<DataBlock>, DataBlockCreatorError<Self::ErrorType>> {
+        let mut input = input_res.map_err(DataBlockCreatorError::ParsingError)?;
+        let headers_metadata = DataBlockHeadersMetadata::new(
+            Self::get_headers(&mut input).map_err(DataBlockCreatorError::ParsingError)?,
+            subject_id,
             use_columns,
+            multi_value_columns,
             sensitive_zeros,
         );
-        let records = Self::map_records(
-            &Self::get_records(&mut input)?,
-            &use_columns_set,
-            &sensitive_zeros_set,
-            record_limit,
-        );
+        let records_inputs = SubjectIdJoiner::join_records_by_subject_id(
+            CsvRecordInputValues::create_records_input_values(
+                Self::get_records(&mut input).map_err(DataBlockCreatorError::ParsingError)?,
+                &headers_metadata,
+                record_limit,
+            ),
+            &headers_metadata,
+        )?;
+        let (headers, multi_value_column_metadata_map) =
+            headers_metadata.create_headers_and_multi_value_columns_metadata(&records_inputs);
+        let records = Self::create_records(&headers, &headers_metadata, records_inputs);
 
-        Ok(Arc::new(DataBlock::new(headers, records)))
+        Ok(Arc::new(DataBlock::new(
+            headers,
+            multi_value_column_metadata_map,
+            records,
+        )))
     }
 
     /// Should be implemented to return the CsvRecords representing the headers

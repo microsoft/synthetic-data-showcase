@@ -6,8 +6,6 @@ import type { TableMetadata } from '@data-wrangling-components/core'
 import { table } from 'arquero'
 import type ColumnTable from 'arquero/dist/types/table/column-table'
 
-export const defaultSubjectID = 'RowID'
-
 export interface ICsvTableHeader {
 	name: string
 	fieldName: string
@@ -30,5 +28,5 @@ export const defaultCsvContent: ICsvContent = {
 	columnsWithZeros: undefined,
 	delimiter: ',',
 	table: table({}),
-	subjectId: defaultSubjectID,
+	subjectId: undefined,
 }

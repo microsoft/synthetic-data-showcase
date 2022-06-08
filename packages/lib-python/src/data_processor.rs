@@ -2,16 +2,16 @@ use csv::ReaderBuilder;
 use log::{log_enabled, Level::Debug};
 use pyo3::prelude::*;
 use sds_core::{
-    data_block::{CsvDataBlockCreator, CsvIOError, DataBlock, DataBlockCreator},
+    data_block::{CsvDataBlockCreator, CsvDataBlockCreatorError, DataBlock, DataBlockCreator},
     dp::DpParameters,
-    dp::{InputValueByLen, NoisyCountThreshold, StatsError},
+    dp::{InputValueByLen, NoisyCountThreshold},
     processing::{
         aggregator::{AggregatedData, Aggregator},
         generator::{GeneratedData, Generator, OversamplingParameters},
     },
-    utils::reporting::{LoggerProgressReporter, ProcessingStoppedError},
+    utils::reporting::{LoggerProgressReporter, StoppableResult},
 };
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
 #[pyclass]
 pub struct SDSProcessor {
@@ -25,7 +25,7 @@ impl SDSProcessor {
         reporting_length: usize,
         dp_parameters: &DpParameters,
         threshold: NoisyCountThreshold,
-    ) -> Result<AggregatedData, StatsError> {
+    ) -> StoppableResult<AggregatedData> {
         let mut progress_reporter = if log_enabled!(Debug) {
             Some(LoggerProgressReporter::new(Debug))
         } else {
@@ -48,21 +48,23 @@ impl SDSProcessor {
     pub fn new(
         path: &str,
         delimiter: char,
+        subject_id: Option<String>,
         use_columns: Vec<String>,
+        multi_value_columns: HashMap<String, String>,
         sensitive_zeros: Vec<String>,
         record_limit: usize,
-    ) -> Result<SDSProcessor, CsvIOError> {
-        match CsvDataBlockCreator::create(
+    ) -> Result<SDSProcessor, CsvDataBlockCreatorError> {
+        CsvDataBlockCreator::create(
             ReaderBuilder::new()
                 .delimiter(delimiter as u8)
                 .from_path(path),
+            subject_id,
             &use_columns,
+            &multi_value_columns,
             &sensitive_zeros,
             record_limit,
-        ) {
-            Ok(data_block) => Ok(SDSProcessor { data_block }),
-            Err(err) => Err(CsvIOError::new(err)),
-        }
+        )
+        .map(|data_block| SDSProcessor { data_block })
     }
 
     #[inline]
@@ -70,10 +72,7 @@ impl SDSProcessor {
         self.data_block.number_of_records()
     }
 
-    pub fn aggregate(
-        &self,
-        reporting_length: usize,
-    ) -> Result<AggregatedData, ProcessingStoppedError> {
+    pub fn aggregate(&self, reporting_length: usize) -> StoppableResult<AggregatedData> {
         let mut progress_reporter = if log_enabled!(Debug) {
             Some(LoggerProgressReporter::new(Debug))
         } else {
@@ -88,7 +87,7 @@ impl SDSProcessor {
         reporting_length: usize,
         dp_parameters: &DpParameters,
         threshold: InputValueByLen<f64>,
-    ) -> Result<AggregatedData, StatsError> {
+    ) -> StoppableResult<AggregatedData> {
         self.aggregate_with_dp(
             reporting_length,
             dp_parameters,
@@ -101,7 +100,7 @@ impl SDSProcessor {
         reporting_length: usize,
         dp_parameters: &DpParameters,
         threshold: InputValueByLen<f64>,
-    ) -> Result<AggregatedData, StatsError> {
+    ) -> StoppableResult<AggregatedData> {
         self.aggregate_with_dp(
             reporting_length,
             dp_parameters,
@@ -114,7 +113,7 @@ impl SDSProcessor {
         resolution: usize,
         cache_max_size: usize,
         empty_value: &str,
-    ) -> GeneratedData {
+    ) -> StoppableResult<GeneratedData> {
         let mut progress_reporter = if log_enabled!(Debug) {
             Some(LoggerProgressReporter::new(Debug))
         } else {
@@ -136,7 +135,7 @@ impl SDSProcessor {
         resolution: usize,
         cache_max_size: usize,
         empty_value: &str,
-    ) -> GeneratedData {
+    ) -> StoppableResult<GeneratedData> {
         let mut progress_reporter = if log_enabled!(Debug) {
             Some(LoggerProgressReporter::new(Debug))
         } else {
@@ -159,7 +158,7 @@ impl SDSProcessor {
         cache_max_size: usize,
         empty_value: &str,
         oversampling_parameters: Option<OversamplingParameters>,
-    ) -> GeneratedData {
+    ) -> StoppableResult<GeneratedData> {
         let mut progress_reporter = if log_enabled!(Debug) {
             Some(LoggerProgressReporter::new(Debug))
         } else {
@@ -182,7 +181,7 @@ impl SDSProcessor {
         empty_value: &str,
         aggregated_data: AggregatedData,
         use_synthetic_counts: bool,
-    ) -> GeneratedData {
+    ) -> StoppableResult<GeneratedData> {
         let mut progress_reporter = if log_enabled!(Debug) {
             Some(LoggerProgressReporter::new(Debug))
         } else {

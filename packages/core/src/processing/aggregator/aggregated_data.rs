@@ -5,7 +5,7 @@ use super::{
         AggregatesCountStringMap, RecordsByLenMap, RecordsSensitivityByLen,
         ALL_SENSITIVITIES_INDEX,
     },
-    RecordsByColumn, RecordsCountByColumn,
+    RecordsByStringKey, RecordsCountByStringKey,
 };
 use fnv::FnvHashMap;
 use itertools::Itertools;
@@ -20,7 +20,9 @@ use std::{
 use pyo3::prelude::*;
 
 use crate::{
-    data_block::DataBlockHeaders,
+    data_block::{
+        DataBlockHeaders, DataBlockValue, MultiValueColumnMetadataMap, COLUMN_VALUE_DELIMITER,
+    },
     processing::{
         aggregator::{typedefs::RecordsSet, value_combination::ValueCombination, AggregatedCount},
         generator::AttributeCountMap,
@@ -34,6 +36,8 @@ use crate::{
 pub struct AggregatedData {
     /// Vector of strings representing the data headers
     pub headers: DataBlockHeaders,
+    /// Maps a normalized multi-value header name (such as A_a1) to its corresponding metadata
+    pub multi_value_column_metadata_map: MultiValueColumnMetadataMap,
     /// Number of records present on the original data
     pub number_of_records: usize,
     /// Maps a value combination to its aggregated count
@@ -51,6 +55,7 @@ impl AggregatedData {
     pub fn default() -> AggregatedData {
         AggregatedData {
             headers: DataBlockHeaders::default(),
+            multi_value_column_metadata_map: MultiValueColumnMetadataMap::default(),
             number_of_records: 0,
             aggregates_count: AggregatesCountMap::default(),
             records_sensitivity_by_len: RecordsSensitivityByLen::default(),
@@ -61,6 +66,8 @@ impl AggregatedData {
     /// Creates a new AggregatedData struct
     /// # Arguments:
     /// * `headers` - Vector of strings representing the data headers
+    /// * `multi_value_column_metadata_map` - Maps a normalized multi-value header name (such as A_a1)
+    /// to its corresponding metadata
     /// * `number_of_records` - Number of records present on the original data
     /// * `aggregates_count` - Computed aggregates count map
     /// * `records_sensitivity` - Computed sensitivity for the records
@@ -68,6 +75,7 @@ impl AggregatedData {
     #[inline]
     pub fn new(
         headers: DataBlockHeaders,
+        multi_value_column_metadata_map: MultiValueColumnMetadataMap,
         number_of_records: usize,
         aggregates_count: AggregatesCountMap,
         records_sensitivity_by_len: RecordsSensitivityByLen,
@@ -75,6 +83,7 @@ impl AggregatedData {
     ) -> AggregatedData {
         AggregatedData {
             headers,
+            multi_value_column_metadata_map,
             number_of_records,
             aggregates_count,
             records_sensitivity_by_len,
@@ -222,6 +231,31 @@ impl AggregatedData {
         }
         line.push('\n');
         line
+    }
+
+    #[inline]
+    fn get_original_header_name(&self, index: usize) -> String {
+        let output_header_name = &self.headers[index];
+        if let Some(metadata) = self.multi_value_column_metadata_map.get(output_header_name) {
+            (*metadata.src_header_name).clone()
+        } else {
+            (**output_header_name).clone()
+        }
+    }
+
+    #[inline]
+    fn get_original_attribute_as_str(&self, value: &DataBlockValue) -> String {
+        if let Some(metadata) = self
+            .multi_value_column_metadata_map
+            .get(&self.headers[value.column_index])
+        {
+            format!(
+                "{}{}{}",
+                metadata.src_header_name, COLUMN_VALUE_DELIMITER, metadata.attribute_name
+            )
+        } else {
+            value.as_str_using_headers(&self.headers)
+        }
     }
 }
 
@@ -420,14 +454,14 @@ impl AggregatedData {
     pub fn calc_records_with_rare_combinations_per_column(
         &self,
         resolution: usize,
-    ) -> RecordsByColumn {
-        let mut rare_records_per_column = RecordsByColumn::default();
+    ) -> RecordsByStringKey {
+        let mut rare_records_per_column = RecordsByStringKey::default();
 
         for (agg, count) in self.aggregates_count.iter() {
             if count.count < resolution {
                 for value in agg.iter() {
                     rare_records_per_column
-                        .entry((*self.headers[value.column_index]).clone())
+                        .entry(self.get_original_header_name(value.column_index))
                         .or_insert_with(RecordsSet::default)
                         .extend(&count.contained_in_records);
                 }
@@ -444,8 +478,47 @@ impl AggregatedData {
     pub fn calc_number_of_records_with_rare_combinations_per_column(
         &self,
         resolution: usize,
-    ) -> RecordsCountByColumn {
+    ) -> RecordsCountByStringKey {
         self.calc_records_with_rare_combinations_per_column(resolution)
+            .drain()
+            .map(|(h, records)| (h, records.len()))
+            .collect()
+    }
+
+    /// Calculates the records that contain rare combinations grouped by attribute.
+    /// This might contain duplicated records for different attribute names.
+    /// Unique combinations are also contained in this.
+    /// # Arguments:
+    /// * `resolution` - Reporting resolution used for data synthesis
+    pub fn calc_records_with_rare_combinations_per_attribute(
+        &self,
+        resolution: usize,
+    ) -> RecordsByStringKey {
+        let mut rare_records_per_attribute = RecordsByStringKey::default();
+
+        for (agg, count) in self.aggregates_count.iter() {
+            if count.count < resolution {
+                for value in agg.iter() {
+                    rare_records_per_attribute
+                        .entry(self.get_original_attribute_as_str(value))
+                        .or_insert_with(RecordsSet::default)
+                        .extend(&count.contained_in_records);
+                }
+            }
+        }
+        rare_records_per_attribute
+    }
+
+    /// Calculates the number of records that contain rare combinations grouped by attribute.
+    /// This might contain duplicated records for different attribute names.
+    /// Unique combinations are also contained in this.
+    /// # Arguments:
+    /// * `resolution` - Reporting resolution used for data synthesis
+    pub fn calc_number_of_records_with_rare_combinations_per_attribute(
+        &self,
+        resolution: usize,
+    ) -> RecordsCountByStringKey {
+        self.calc_records_with_rare_combinations_per_attribute(resolution)
             .drain()
             .map(|(h, records)| (h, records.len()))
             .collect()
@@ -552,14 +625,14 @@ impl AggregatedData {
 
     /// Calculates the records that contain unique combinations grouped by column name.
     /// This might contain duplicated records on different column names.
-    pub fn calc_records_with_unique_combinations_per_column(&self) -> RecordsByColumn {
-        let mut unique_records_per_column = RecordsByColumn::default();
+    pub fn calc_records_with_unique_combinations_per_column(&self) -> RecordsByStringKey {
+        let mut unique_records_per_column = RecordsByStringKey::default();
 
         for (agg, count) in self.aggregates_count.iter() {
             if count.count == 1 {
                 for value in agg.iter() {
                     unique_records_per_column
-                        .entry((*self.headers[value.column_index]).clone())
+                        .entry(self.get_original_header_name(value.column_index))
                         .or_insert_with(RecordsSet::default)
                         .extend(&count.contained_in_records);
                 }
@@ -572,7 +645,7 @@ impl AggregatedData {
     /// This might contain duplicated records on different column names.
     pub fn calc_number_of_records_with_unique_combinations_per_column(
         &self,
-    ) -> RecordsCountByColumn {
+    ) -> RecordsCountByStringKey {
         self.calc_records_with_unique_combinations_per_column()
             .drain()
             .map(|(h, records)| (h, records.len()))

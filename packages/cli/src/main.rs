@@ -1,4 +1,7 @@
+mod multi_value_column_cmd_input;
+
 use log::{error, log_enabled, trace, Level::Debug};
+use multi_value_column_cmd_input::MultiValueColumnCmdInput;
 use sds_core::{
     data_block::{CsvDataBlockCreator, DataBlockCreator},
     dp::{DpParameters, NoisyCountThreshold},
@@ -23,6 +26,12 @@ enum Command {
             default_value = "\t"
         )]
         synthetic_delimiter: String,
+
+        #[structopt(
+            long = "join-multi-value-columns",
+            help = "join multi value columns back together when exporting to CSV file"
+        )]
+        join_multi_value_columns: bool,
 
         #[structopt(
             long = "cache-max-size",
@@ -190,11 +199,17 @@ struct Cli {
     )]
     record_limit: usize,
 
+    #[structopt(long = "subject-id", help = "column indicating the subject id")]
+    subject_id: Option<String>,
+
     #[structopt(
         long = "use-columns",
         help = "use this column (can be set multiple times)"
     )]
     use_columns: Vec<String>,
+
+    #[structopt(long = "multi-value-columns", help = "<column name>,<delimiter>")]
+    multi_value_columns: Vec<MultiValueColumnCmdInput>,
 
     #[structopt(
         long = "sensitive-zeros",
@@ -229,7 +244,12 @@ fn main() {
         csv::ReaderBuilder::new()
             .delimiter(cli.sensitive_delimiter.chars().next().unwrap() as u8)
             .from_path(cli.sensitive_path),
+        cli.subject_id,
         &cli.use_columns,
+        &cli.multi_value_columns
+            .iter()
+            .map(|mvc| (mvc.column_name.clone(), mvc.attr_delimiter.clone()))
+            .collect(),
         &cli.sensitive_zeros,
         cli.record_limit,
     ) {
@@ -237,6 +257,7 @@ fn main() {
             Command::Generate {
                 synthetic_path,
                 synthetic_delimiter,
+                join_multi_value_columns,
                 cache_max_size,
                 mode,
                 aggregates_json,
@@ -309,10 +330,13 @@ fn main() {
                     }
                 };
 
-                if let Err(err) = generated_data.write_synthetic_data(
-                    &synthetic_path,
-                    synthetic_delimiter.chars().next().unwrap(),
-                ) {
+                if let Err(err) = generated_data.map(|gd| {
+                    gd.write_synthetic_data(
+                        &synthetic_path,
+                        synthetic_delimiter.chars().next().unwrap(),
+                        join_multi_value_columns,
+                    )
+                }) {
                     error!("error writing output file: {}", err);
                     process::exit(1);
                 }

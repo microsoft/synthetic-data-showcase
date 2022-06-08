@@ -11,13 +11,13 @@ import type { FC } from 'react'
 import { memo, useCallback, useMemo } from 'react'
 import { Bar } from 'react-chartjs-2'
 
-import { ChartContainer } from './ColumnContributionChart.styles.js'
-import type { ColumnContributionChartProps } from './ColumnContributionChart.types.js'
+import { ChartContainer } from './ContributionChart.styles.js'
+import type { ContributionChartProps } from './ContributionChart.types.js'
 
-export const ColumnContributionChart: FC<ColumnContributionChartProps> = memo(
-	function ColumnContributionChart({
-		selectedColumn,
-		proportionPerColumn,
+export const ContributionChart: FC<ContributionChartProps> = memo(
+	function ContributionChart({
+		selectedKey,
+		valuePerKey,
 		label,
 		containerHeight,
 		barHeight,
@@ -26,23 +26,23 @@ export const ColumnContributionChart: FC<ColumnContributionChartProps> = memo(
 	}) {
 		const labels = useMemo(
 			() =>
-				_(proportionPerColumn)
+				_(valuePerKey)
 					.keys()
-					.sortBy(column => -proportionPerColumn[column])
+					.sortBy(k => -valuePerKey[k])
 					.value(),
-			[proportionPerColumn],
+			[valuePerKey],
 		)
 		const data = useMemo(
-			() => labels.map(column => proportionPerColumn[column].toFixed(0)),
-			[labels, proportionPerColumn],
+			() => labels.map(k => valuePerKey[k].toFixed(0)),
+			[labels, valuePerKey],
 		)
 		const handleClick = useCallback(
 			(evt, elements, chart) => {
 				// either bar click fires off the same item
 				const clicked = elements && elements[0]
-				const column = clicked ? labels[clicked.index] : undefined
+				const key = clicked ? labels[clicked.index] : undefined
 				// only triggers the event if we clicked a bar
-				column && onClick?.(column)
+				key && onClick?.(key)
 			},
 			[labels, onClick],
 		)
@@ -51,15 +51,13 @@ export const ColumnContributionChart: FC<ColumnContributionChartProps> = memo(
 			const normalColor = thematic.scales().nominal().toArray()[0]
 			const selectedColor = thematic.scales().nominalBold().toArray()[0]
 
-			return labels.map(l =>
-				l === selectedColumn ? selectedColor : normalColor,
-			)
-		}, [labels, thematic, selectedColumn])
+			return labels.map(l => (l === selectedKey ? selectedColor : normalColor))
+		}, [labels, thematic, selectedKey])
 		const labelColors = useMemo(() => {
 			const greys = thematic.scales().greys().toArray()
 
-			return labels.map(l => (selectedColumn === l ? greys[0] : greys[80]))
-		}, [labels, thematic, selectedColumn])
+			return labels.map(l => (selectedKey === l ? greys[0] : greys[80]))
+		}, [labels, thematic, selectedKey])
 
 		return (
 			<FlexContainer vertical justify="center">
@@ -138,4 +136,4 @@ export const ColumnContributionChart: FC<ColumnContributionChartProps> = memo(
 		)
 	},
 )
-ColumnContributionChart.displayName = 'ColumnContributionChart'
+ContributionChart.displayName = 'ContributionChart'

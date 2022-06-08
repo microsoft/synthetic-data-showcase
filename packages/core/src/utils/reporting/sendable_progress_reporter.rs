@@ -1,3 +1,5 @@
+use super::StoppableResult;
+
 #[cfg(feature = "rayon")]
 use std::sync::{Arc, Mutex};
 
@@ -43,7 +45,10 @@ where
     /// Updates `reporter` by adding `value_to_add` and reporting
     /// to the main reporter in a thread safe way
     #[inline]
-    pub fn update_progress(reporter: &mut SendableProgressReporterRef<T>, value_to_add: f64) -> bool
+    pub fn update_progress(
+        reporter: &mut SendableProgressReporterRef<T>,
+        value_to_add: f64,
+    ) -> StoppableResult<()>
     where
         T: ReportProgress,
     {
@@ -57,7 +62,7 @@ where
         if let Some(r) = reporter {
             return r.report(value_to_add);
         }
-        true
+        Ok(())
     }
 }
 
@@ -67,7 +72,7 @@ where
 {
     /// Will add `value_to_add` to `n_processed` and call the main reporter with
     /// `proportion * (n_processed * 100.0 / total)`
-    fn report(&mut self, value_to_add: f64) -> bool {
+    fn report(&mut self, value_to_add: f64) -> StoppableResult<()> {
         self.n_processed += value_to_add;
         self.main_reporter
             .report(self.proportion * calc_percentage(self.n_processed, self.total))

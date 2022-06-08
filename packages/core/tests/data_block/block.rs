@@ -1,5 +1,5 @@
 use sds_core::data_block::DataBlockValue;
-use std::{str::FromStr, sync::Arc};
+use std::{collections::HashMap, str::FromStr, sync::Arc};
 
 use crate::utils::{assert_map_equals, read_test_data_block};
 
@@ -9,7 +9,15 @@ const TEST_FILE_PATH: &str = "test_block.csv";
 
 #[test]
 fn validate_calc_column_index_by_name() {
-    let db = read_test_data_block(TEST_FILE_PATH, DELIMITER, &[], &[], 0);
+    let db = read_test_data_block(
+        TEST_FILE_PATH,
+        DELIMITER,
+        None,
+        &[],
+        &HashMap::default(),
+        &[],
+        0,
+    );
 
     assert_map_equals(
         &db.calc_column_index_by_name(),
@@ -27,7 +35,15 @@ fn validate_calc_column_index_by_name() {
 
 #[test]
 fn validate_calc_attr_rows() {
-    let db = read_test_data_block(TEST_FILE_PATH, DELIMITER, &[], &[], 0);
+    let db = read_test_data_block(
+        TEST_FILE_PATH,
+        DELIMITER,
+        None,
+        &[],
+        &HashMap::default(),
+        &[],
+        0,
+    );
 
     assert_map_equals(
         &db.calc_attr_rows(),
@@ -55,7 +71,15 @@ fn validate_calc_attr_rows() {
 
 #[test]
 fn validate_calc_attr_rows_by_column_with_no_empty_values() {
-    let db = read_test_data_block(TEST_FILE_PATH, DELIMITER, &[], &[], 0);
+    let db = read_test_data_block(
+        TEST_FILE_PATH,
+        DELIMITER,
+        None,
+        &[],
+        &HashMap::default(),
+        &[],
+        0,
+    );
 
     assert_map_equals(
         &db.calc_attr_rows_by_column_with_no_empty_values(),
@@ -113,7 +137,15 @@ fn validate_calc_attr_rows_by_column_with_no_empty_values() {
 
 #[test]
 fn validate_calc_attr_rows_by_column_with_empty_values() {
-    let db = read_test_data_block(TEST_FILE_PATH, DELIMITER, &[], &[], 0);
+    let db = read_test_data_block(
+        TEST_FILE_PATH,
+        DELIMITER,
+        None,
+        &[],
+        &HashMap::default(),
+        &[],
+        0,
+    );
 
     assert_map_equals(
         &db.calc_attr_rows_by_column_with_empty_values(&Arc::new("".to_owned())),
@@ -180,21 +212,45 @@ fn validate_calc_attr_rows_by_column_with_empty_values() {
 
 #[test]
 fn validate_number_of_records() {
-    let db = read_test_data_block(TEST_FILE_PATH, DELIMITER, &[], &[], 0);
+    let db = read_test_data_block(
+        TEST_FILE_PATH,
+        DELIMITER,
+        None,
+        &[],
+        &HashMap::default(),
+        &[],
+        0,
+    );
 
     assert_eq!(db.number_of_records(), 3);
 }
 
 #[test]
 fn validate_protected_number_of_records() {
-    let db = read_test_data_block(TEST_FILE_PATH, DELIMITER, &[], &[], 0);
+    let db = read_test_data_block(
+        TEST_FILE_PATH,
+        DELIMITER,
+        None,
+        &[],
+        &HashMap::default(),
+        &[],
+        0,
+    );
 
     assert_eq!(db.protected_number_of_records(2), 2);
 }
 
 #[test]
 fn validate_normalize_reporting_length() {
-    let db = read_test_data_block(TEST_FILE_PATH, DELIMITER, &[], &[], 0);
+    let db = read_test_data_block(
+        TEST_FILE_PATH,
+        DELIMITER,
+        None,
+        &[],
+        &HashMap::default(),
+        &[],
+        0,
+    );
 
     assert_eq!(db.normalize_reporting_length(0), 4);
     assert_eq!(db.normalize_reporting_length(10), 4);

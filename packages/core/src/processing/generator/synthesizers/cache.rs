@@ -1,4 +1,3 @@
-use super::typedefs::SynthesizedRecord;
 use fnv::FnvBuildHasher;
 use lru::LruCache;
 use std::sync::Arc;
@@ -21,13 +20,16 @@ impl SynthesizerCacheKey {
     /// * `num_columns` - Number of columns in the data block
     /// * `records` - Synthesized record to build the key for
     #[inline]
-    pub fn new(num_columns: usize, values: &SynthesizedRecord) -> SynthesizerCacheKey {
+    pub fn new<'value, I>(num_columns: usize, values: I) -> SynthesizerCacheKey
+    where
+        I: IntoIterator<Item = &'value Arc<DataBlockValue>>,
+    {
         let mut key = SynthesizerCacheKey {
             columns: Vec::with_capacity(num_columns),
         };
         key.columns.resize_with(num_columns, || None);
 
-        for v in values.iter() {
+        for v in values.into_iter() {
             key.columns[v.column_index] = Some(v.value.clone());
         }
         key

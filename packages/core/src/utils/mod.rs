@@ -7,6 +7,9 @@ pub mod collections;
 /// Module for math utilities
 pub mod math;
 
+/// Module for strings utilities
+pub mod strings;
+
 /// Module for threading utilities
 pub mod threading;
 

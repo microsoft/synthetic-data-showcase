@@ -1,6 +1,6 @@
 use js_sys::Function;
-use log::error;
-use sds_core::utils::reporting::ReportProgress;
+use log::{error, warn};
+use sds_core::utils::reporting::{ProcessingStoppedError, ReportProgress, StoppableResult};
 use wasm_bindgen::JsValue;
 
 type MutateProgressExpr = dyn Fn(f64) -> f64;
@@ -25,23 +25,27 @@ impl<'js_callback, 'mutate_expr> JsProgressReporter<'js_callback, 'mutate_expr> 
 }
 
 impl<'js_callback, 'mutate_expr> ReportProgress for JsProgressReporter<'js_callback, 'mutate_expr> {
-    fn report(&mut self, new_progress: f64) -> bool {
+    fn report(&mut self, new_progress: f64) -> StoppableResult<()> {
         let p = (self.mutate_expr)(new_progress);
 
         if p.floor() > self.progress {
             self.progress = p;
-            match self
-                .js_callback
+            self.js_callback
                 .call1(&JsValue::NULL, &JsValue::from_f64(p))
-            {
-                Ok(continue_processing) => continue_processing.as_bool().unwrap_or(false),
-                Err(_) => {
+                .map_err(|_| {
                     error!("error reporting progress to js");
-                    false
-                }
-            }
+                    ProcessingStoppedError::default()
+                })
+                .and_then(|continue_processing| {
+                    if continue_processing.as_bool().unwrap_or(false) {
+                        Ok(())
+                    } else {
+                        warn!("user asked for the processing to be stopped");
+                        Err(ProcessingStoppedError::default())
+                    }
+                })
         } else {
-            true
+            Ok(())
         }
     }
 }

@@ -21,7 +21,9 @@ use crate::{
         },
     },
     utils::{
-        math::calc_percentage, reporting::ReportProgress, threading::get_number_of_threads,
+        math::calc_percentage,
+        reporting::{ReportProgress, StoppableResult},
+        threading::get_number_of_threads,
         time::ElapsedDurationLogger,
     },
 };
@@ -89,7 +91,10 @@ impl RowSeededSynthesizer {
     /// # Arguments
     /// * `progress_reporter` - Will be used to report the processing
     /// progress (`ReportProgress` trait). If `None`, nothing will be reported
-    pub fn run<T>(&mut self, progress_reporter: &mut Option<T>) -> SynthesizedRecords
+    pub fn run<T>(
+        &mut self,
+        progress_reporter: &mut Option<T>,
+    ) -> StoppableResult<SynthesizedRecords>
     where
         T: ReportProgress,
     {
@@ -106,17 +111,17 @@ impl RowSeededSynthesizer {
                 &mut synthesized_records,
                 &mut rows_synthesizers,
                 progress_reporter,
-            );
+            )?;
 
             self.consolidate_sampler.clear_cache();
             self.consolidate(
                 &mut synthesized_records,
                 progress_reporter,
                 ConsolidateParameters::default(),
-            );
-            self.suppress(&mut synthesized_records, progress_reporter);
+            )?;
+            self.suppress(&mut synthesized_records, progress_reporter)?;
         }
-        synthesized_records
+        Ok(synthesized_records)
     }
 
     #[inline]
@@ -144,7 +149,8 @@ impl RowSeededSynthesizer {
         synthesized_records: &mut SynthesizedRecords,
         rows_synthesizers: &mut Vec<SeededRowsSynthesizer>,
         progress_reporter: &mut Option<T>,
-    ) where
+    ) -> StoppableResult<()>
+    where
         T: ReportProgress,
     {
         let _duration_logger = ElapsedDurationLogger::new("rows synthesis");
@@ -161,9 +167,11 @@ impl RowSeededSynthesizer {
             synthesized_records,
             rows_synthesizers,
             progress_reporter,
-        );
+        )?;
 
-        self.update_synthesize_progress(self.data_block.records.len(), total, progress_reporter);
+        self.update_synthesize_progress(self.data_block.records.len(), total, progress_reporter)?;
+
+        Ok(())
     }
 
     #[inline]
@@ -172,13 +180,17 @@ impl RowSeededSynthesizer {
         n_processed: usize,
         total: f64,
         progress_reporter: &mut Option<T>,
-    ) where
+    ) -> StoppableResult<()>
+    where
         T: ReportProgress,
     {
-        if let Some(r) = progress_reporter {
-            self.synthesize_percentage = calc_percentage(n_processed as f64, total);
-            r.report(self.calc_overall_progress());
-        }
+        progress_reporter
+            .as_mut()
+            .map(|r| {
+                self.synthesize_percentage = calc_percentage(n_processed as f64, total);
+                r.report(self.calc_overall_progress())
+            })
+            .unwrap_or_else(|| Ok(()))
     }
 
     #[inline]
@@ -252,13 +264,17 @@ impl Consolidate for RowSeededSynthesizer {
         n_processed: usize,
         total: f64,
         progress_reporter: &mut Option<T>,
-    ) where
+    ) -> StoppableResult<()>
+    where
         T: ReportProgress,
     {
-        if let Some(r) = progress_reporter {
-            self.consolidate_percentage = calc_percentage(n_processed as f64, total);
-            r.report(self.calc_overall_progress());
-        }
+        progress_reporter
+            .as_mut()
+            .map(|r| {
+                self.consolidate_percentage = calc_percentage(n_processed as f64, total);
+                r.report(self.calc_overall_progress())
+            })
+            .unwrap_or_else(|| Ok(()))
     }
 }
 
@@ -269,12 +285,16 @@ impl Suppress for RowSeededSynthesizer {
         n_processed: usize,
         total: f64,
         progress_reporter: &mut Option<T>,
-    ) where
+    ) -> StoppableResult<()>
+    where
         T: ReportProgress,
     {
-        if let Some(r) = progress_reporter {
-            self.suppress_percentage = calc_percentage(n_processed as f64, total);
-            r.report(self.calc_overall_progress());
-        }
+        progress_reporter
+            .as_mut()
+            .map(|r| {
+                self.suppress_percentage = calc_percentage(n_processed as f64, total);
+                r.report(self.calc_overall_progress())
+            })
+            .unwrap_or_else(|| Ok(()))
     }
 }

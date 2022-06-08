@@ -2,6 +2,7 @@ use fnv::FnvHashMap;
 use itertools::Itertools;
 use rand::Rng;
 use std::cmp::Ordering;
+use std::fmt::Debug;
 use std::hash::Hash;
 
 /// Given two sorted vectors, calculates the intersection between them.
@@ -83,4 +84,30 @@ where
         }
     }
     res
+}
+
+/// Turns a Vec of Result into a Result of Vec if all results are Ok.
+/// Otherwise, returns `E::default()`
+#[inline]
+pub fn map_unwrap_or_default<T, E>(mut results: Vec<Result<T, E>>) -> Result<Vec<T>, E>
+where
+    E: Default + Debug,
+{
+    if results.iter().any(|r| r.is_err()) {
+        return Err(E::default());
+    }
+    Ok(results.drain(..).map(|r| r.unwrap()).collect())
+}
+
+/// Flattens a Vec of Result into a Result of Vec if all results are Ok.
+/// Otherwise, returns `E::default()`
+#[inline]
+pub fn flat_map_unwrap_or_default<T, E>(mut results: Vec<Result<Vec<T>, E>>) -> Result<Vec<T>, E>
+where
+    E: Default + Debug,
+{
+    if results.iter().any(|r| r.is_err()) {
+        return Err(E::default());
+    }
+    Ok(results.drain(..).flat_map(|r| r.unwrap()).collect())
 }

@@ -11,6 +11,7 @@ class Evaluator:
         self.config = config
         self.sds_evaluator = sds.Evaluator()
         self.use_columns = config['use_columns']
+        self.multi_value_columns = config['multi_value_columns']
         self.record_limit = max(config['record_limit'], 0)
         self.reporting_length = max(config['reporting_length'], 0)
         self.reporting_resolution = config['reporting_resolution']
@@ -82,9 +83,11 @@ class Evaluator:
         self.syn_sds_processor = sds.SDSProcessor(
             self.synthetic_microdata_path,
             "\t",
-            self.use_columns,
+            None,   # the synthetic data does not have an ID
+            [],     # use all columns from synthetic file
+            self.multi_value_columns,
             self.sensitive_zeros,
-            self.record_limit
+            0       # use all records from synthetic file
         )
         self.syn_aggregated_data = self.syn_sds_processor.aggregate(
             self.reporting_length

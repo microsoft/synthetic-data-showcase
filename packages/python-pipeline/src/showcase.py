@@ -56,7 +56,7 @@ def runForConfig(config):
         config: options from the json config file, else default values.
     """
 
-    # if no cmd options set, we do everyting
+    # if no cmd options set, we do everything
     if not config['aggregate'] and not config['generate'] and not config['evaluate'] and not config['navigate']:
         config['aggregate'] = True
         config['generate'] = True
@@ -68,7 +68,9 @@ def runForConfig(config):
     config['cache_max_size'] = config.get('cache_max_size', 100000)
 
     # numeric parameters controlling synthesis and aggregation
+    config['subject_id'] = config.get('subject_id', None)
     config['use_columns'] = config.get('use_columns', [])
+    config['multi_value_columns'] = config.get('multi_value_columns', {})
     config['record_limit'] = config.get(
         'record_limit', -1)  # use all sensitive records
     config['reporting_length'] = config.get(

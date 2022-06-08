@@ -15,15 +15,16 @@ use crate::{
         generator::WasmGenerateResult,
         navigator::WasmNavigateResult,
         sds_processor::{
-            WasmBaseSynthesisParameters, WasmCsvDataParameters, WasmOversamplingParameters,
-            WasmSdsProcessor,
+            HeaderNames, WasmBaseSynthesisParameters, WasmCsvDataParameters,
+            WasmOversamplingParameters, WasmSdsProcessor,
         },
     },
     utils::js::{
         JsAggregateResult, JsAggregateStatistics, JsAttributesIntersectionByColumn,
         JsBaseSynthesisParameters, JsCsvDataParameters, JsDpParameters, JsEvaluateResult,
-        JsGenerateResult, JsHeaderNames, JsNoisyCountThreshold, JsOversamplingParameters,
-        JsProgressReporter, JsReportProgressCallback, JsResult, JsSelectedAttributesByColumn,
+        JsGenerateResult, JsHeaderNames, JsNavigateResult, JsNoisyCountThreshold,
+        JsOversamplingParameters, JsProgressReporter, JsReportProgressCallback, JsResult,
+        JsSelectedAttributesByColumn,
     },
 };
 
@@ -251,13 +252,14 @@ impl WasmSdsContext {
             );
         }
 
-        // always process all the synthetic data
+        // always process all the synthetic data and all columns
         params.record_limit = 0;
+        params.use_columns = HeaderNames::default();
 
         self.synthetic_processor = Some(WasmSdsProcessor::new(
             &self
                 .get_generate_result()?
-                .synthetic_data_to_js(params.delimiter)?,
+                .synthetic_data_to_js(params.delimiter, false)?,
             &params,
         )?);
         self.synthetic_aggregate_result = Some(self.get_synthetic_processor()?._aggregate(
@@ -299,9 +301,14 @@ impl WasmSdsContext {
     }
 
     #[wasm_bindgen(js_name = "generateResultToJs")]
-    pub fn generate_result_to_js(&self) -> JsResult<JsGenerateResult> {
-        self.get_generate_result()?
-            .to_js(self.get_sensitive_data_params()?.delimiter)
+    pub fn generate_result_to_js(
+        &self,
+        join_multi_value_columns: bool,
+    ) -> JsResult<JsGenerateResult> {
+        self.get_generate_result()?.to_js(
+            self.get_sensitive_data_params()?.delimiter,
+            join_multi_value_columns,
+        )
     }
 
     #[wasm_bindgen(js_name = "evaluateResultToJs")]
@@ -349,6 +356,11 @@ impl WasmSdsContext {
             self.get_generate_result()?.resolution(),
             false,
         )
+    }
+
+    #[wasm_bindgen(js_name = "navigateResultToJs")]
+    pub fn navigate_result_to_js(&self) -> JsResult<JsNavigateResult> {
+        self.get_navigate_result()?.to_js()
     }
 }
 

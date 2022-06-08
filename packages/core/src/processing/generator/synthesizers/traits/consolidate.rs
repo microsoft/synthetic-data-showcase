@@ -15,7 +15,11 @@ use crate::{
             },
         },
     },
-    utils::{math::iround_down, reporting::ReportProgress, time::ElapsedDurationLogger},
+    utils::{
+        math::iround_down,
+        reporting::{ReportProgress, StoppableResult},
+        time::ElapsedDurationLogger,
+    },
 };
 
 pub struct ConsolidateContext {
@@ -209,7 +213,8 @@ pub trait Consolidate: SynthesisData {
         synthesized_records: &mut SynthesizedRecords,
         progress_reporter: &mut Option<T>,
         parameters: ConsolidateParameters,
-    ) where
+    ) -> StoppableResult<()>
+    where
         T: ReportProgress,
     {
         let _duration_logger = ElapsedDurationLogger::new("consolidation");
@@ -228,13 +233,15 @@ pub trait Consolidate: SynthesisData {
         };
 
         while !consolidate_context.available_attrs.is_empty() {
-            self.update_consolidate_progress(n_processed, total_f64, progress_reporter);
+            self.update_consolidate_progress(n_processed, total_f64, progress_reporter)?;
             synthesized_records
                 .push(self.consolidate_record(&mut consolidate_context, &parameters));
             n_processed =
                 (total - consolidate_context.available_attrs.values().sum::<isize>()) as usize;
         }
-        self.update_consolidate_progress(n_processed, total_f64, progress_reporter);
+        self.update_consolidate_progress(n_processed, total_f64, progress_reporter)?;
+
+        Ok(())
     }
 
     fn get_not_used_attrs(
@@ -255,6 +262,7 @@ pub trait Consolidate: SynthesisData {
         n_processed: usize,
         total: f64,
         progress_reporter: &mut Option<T>,
-    ) where
+    ) -> StoppableResult<()>
+    where
         T: ReportProgress;
 }

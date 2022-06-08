@@ -1,4 +1,4 @@
-use super::{data_block_creator::DataBlockCreator, typedefs::CsvRecord};
+use super::{data_block_creator::DataBlockCreator, typedefs::CsvRecord, DataBlockCreatorError};
 use csv::{Error, Reader, StringRecord};
 use std::{io::Read, marker::PhantomData};
 
@@ -34,3 +34,7 @@ impl<T: Read> DataBlockCreator for CsvDataBlockCreator<T> {
             .collect::<Result<Vec<CsvRecord>, Error>>()
     }
 }
+
+/// Error that could be generated when creating a data block
+/// from a CSV file
+pub type CsvDataBlockCreatorError = DataBlockCreatorError<Error>;

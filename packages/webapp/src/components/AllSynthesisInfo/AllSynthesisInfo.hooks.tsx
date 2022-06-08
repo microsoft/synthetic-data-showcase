@@ -7,9 +7,10 @@ import { IconButton, Selection, SelectionMode } from '@fluentui/react'
 import { useMemo } from 'react'
 
 import type { ISynthesisInfo } from '~workers/types'
+import { IWasmSynthesizerWorkerStatus } from '~workers/types'
 import { AtomicView } from '~workers/utils'
 
-import { WrappedText } from './AllSynthesisInfo.styles.js'
+import { StyledSpinner, WrappedText } from './AllSynthesisInfo.styles.js'
 import type {
 	DeleteSynthesisInfoCallback,
 	SelectSynthesisInfoCallback,
@@ -82,7 +83,7 @@ export function useSynthesisInfoColumns(
 				{
 					name: 'Delete',
 					onRender: (item: ISynthesisInfo) => {
-						return (
+						return item.status !== IWasmSynthesizerWorkerStatus.TERMINATING ? (
 							<IconButton
 								data-selection-disabled
 								text="Delete/Terminate synthesis"
@@ -90,6 +91,8 @@ export function useSynthesisInfoColumns(
 								title="Delete/Terminate synthesis"
 								onClick={() => onDelete?.(item)}
 							/>
+						) : (
+							<StyledSpinner />
 						)
 					},
 					key: 'delete',

@@ -233,7 +233,7 @@ export function useOnGetAllAssetsDownloadInfo(
 		)
 
 		for (const s of allSynthesisInfo) {
-			const syntheticContent = await getSyntheticCsvContent(s)
+			const syntheticContent = await getSyntheticCsvContent(s, false)
 			const evaluateResult = await manager?.instance.getEvaluateResult(s.key)
 			const countLabels = getMetricsByCountLabels(
 				evaluateResult?.sensitiveDataStats.meanProportionalErrorByBucket,

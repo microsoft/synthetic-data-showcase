@@ -6,7 +6,8 @@ use std::{
     sync::Arc,
 };
 
-const VALUE_DELIMITER: char = ':';
+/// Delimiter between column name and attribute value
+pub const COLUMN_VALUE_DELIMITER: char = ':';
 
 /// Represents a value of a given data block for a particular row and column
 #[derive(Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
@@ -40,7 +41,7 @@ impl DataBlockValue {
     pub fn as_str_using_headers(&self, headers: &DataBlockHeadersSlice) -> String {
         format!(
             "{}{}{}",
-            headers[self.column_index], VALUE_DELIMITER, self.value
+            headers[self.column_index], COLUMN_VALUE_DELIMITER, self.value
         )
     }
 }
@@ -51,7 +52,7 @@ impl Display for DataBlockValue {
         Ok(write!(
             f,
             "{}{}{}",
-            self.column_index, VALUE_DELIMITER, self.value
+            self.column_index, COLUMN_VALUE_DELIMITER, self.value
         )?)
     }
 }
@@ -82,7 +83,7 @@ impl FromStr for DataBlockValue {
 
     /// Creates a new DataBlockValue by parsing `str_value`
     fn from_str(str_value: &str) -> Result<Self, Self::Err> {
-        if let Some(pos) = str_value.find(VALUE_DELIMITER) {
+        if let Some(pos) = str_value.find(COLUMN_VALUE_DELIMITER) {
             Ok(DataBlockValue::new(
                 str_value[..pos]
                     .parse::<usize>()
@@ -92,7 +93,7 @@ impl FromStr for DataBlockValue {
         } else {
             Err(ParseDataBlockValueError::new(format!(
                 "data block value missing '{}'",
-                VALUE_DELIMITER
+                COLUMN_VALUE_DELIMITER
             )))
         }
     }

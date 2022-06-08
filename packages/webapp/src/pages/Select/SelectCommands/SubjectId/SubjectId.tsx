@@ -6,19 +6,16 @@ import { Callout, DirectionalHint, Icon } from '@fluentui/react'
 import { useBoolean, useId } from '@fluentui/react-hooks'
 import { FlexContainer } from '@sds/components'
 import type { FC } from 'react'
-import { memo, useCallback, useEffect, useMemo } from 'react'
+import { memo, useCallback, useMemo } from 'react'
 import styled from 'styled-components'
 
-import { useSubjectIdErrorMessage } from '~pages/Select/DataSelect/hooks'
-import { useGlobalErrorMessage, useSensitiveContent } from '~states'
+import { useSensitiveContent } from '~states'
 
 export const SubjectId: FC = memo(function SubjectId() {
 	const [isCalloutVisible, { toggle: toggleIsCalloutVisible }] =
 		useBoolean(false)
 	const actionId = useId('select-columns-id')
 	const [sensitiveContent, setSensitiveContent] = useSensitiveContent()
-	const subjectIdErrorMessage = useSubjectIdErrorMessage(sensitiveContent)
-	const [, setGlobalErrorMessage] = useGlobalErrorMessage()
 
 	const visibleColumns = useMemo(() => {
 		return sensitiveContent.headers.filter(h => h.use)
@@ -40,7 +37,7 @@ export const SubjectId: FC = memo(function SubjectId() {
 		(key: string) => {
 			setSensitiveContent(previous => ({
 				...previous,
-				subjectId: key,
+				subjectId: key === previous.subjectId ? undefined : key,
 			}))
 		},
 		[setSensitiveContent],
@@ -60,10 +57,6 @@ export const SubjectId: FC = memo(function SubjectId() {
 			)
 		})
 	}, [subjectId, visibleColumns, handleSubjectIdChange])
-
-	useEffect(() => {
-		setGlobalErrorMessage(subjectIdErrorMessage)
-	}, [subjectIdErrorMessage, setGlobalErrorMessage])
 
 	return (
 		<>

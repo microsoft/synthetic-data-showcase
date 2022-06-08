@@ -12,6 +12,7 @@ import type {
 	ICsvDataParameters,
 	IEvaluateResult,
 	IGenerateResult,
+	INavigateResult,
 	ISelectedAttributesByColumn,
 } from 'sds-wasm'
 
@@ -82,7 +83,9 @@ export class SdsManager {
 		reportingLength: number,
 		resolution: number,
 		progressCallback?: Proxy<WorkerProgressCallback>,
-	): Promise<Remote<ICancelablePromise<IAggregateStatistics>> | undefined> {
+	): Promise<
+		Remote<ICancelablePromise<IAggregateStatistics | null>> | undefined
+	> {
 		const aggregateStatisticsGenerator = this.getAggregateStatisticsGenerator()
 		const continueExecutingView = new AtomicView(AtomicView.createBuffer(true))
 
@@ -113,9 +116,14 @@ export class SdsManager {
 		const s = this.getSynthesizerWorkInfo(key)
 
 		s.shouldRun.set(false)
+		s.synthesisInfo.status = IWasmSynthesizerWorkerStatus.TERMINATING
+		this._synthesisCallbacks?.terminating?.(s.synthesisInfo)
+
 		await s.synthesizer.terminate()
 		s.synthesizerWorkerProxy.terminate()
 		this._synthesizerWorkersInfoMap.delete(key)
+
+		s.synthesisInfo.status = IWasmSynthesizerWorkerStatus.TERMINATED
 		this._synthesisCallbacks?.terminated?.(s.synthesisInfo)
 	}
 
@@ -195,16 +203,25 @@ export class SdsManager {
 		)
 	}
 
-	public async getGenerateResult(key: string): Promise<IGenerateResult> {
-		return await this.getSynthesizerWorkInfo(
-			key,
-		).synthesizer.getGenerateResult()
+	public async getGenerateResult(
+		key: string,
+		joinMultiValueColumns: boolean,
+	): Promise<IGenerateResult> {
+		return await this.getSynthesizerWorkInfo(key).synthesizer.getGenerateResult(
+			joinMultiValueColumns,
+		)
 	}
 
 	public async getEvaluateResult(key: string): Promise<IEvaluateResult> {
 		return await this.getSynthesizerWorkInfo(
 			key,
 		).synthesizer.getEvaluateResult()
+	}
+
+	public async getNavigateResult(key: string): Promise<INavigateResult> {
+		return await this.getSynthesizerWorkInfo(
+			key,
+		).synthesizer.getNavigateResult()
 	}
 
 	private getAggregateStatisticsGenerator(): Remote<AggregateStatisticsGenerator> {
