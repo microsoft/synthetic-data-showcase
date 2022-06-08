@@ -65,8 +65,9 @@ jobs:
       - name: Install wasm-pack
         run: cargo install wasm-pack
 
-      - name: Browse to lib-wasm package
-        run: cd packages/lib-wasm
-
       - name: Run wasm-pack build
-        run: wasm-pack build --release --target web --out-dir ../../target/wasm
+        working-directory: ./packages/lib-wasm
+        run: |
+          ls . &&
+          cat Cargo.toml &&
+          wasm-pack build --release --target web --out-dir ../../target/wasm
