@@ -65,7 +65,7 @@ jobs:
       - name: Install wasm-pack
         run: cargo install wasm-pack
 
-      - name: Run wasm-pack build
+      - name: Run lib-wasm build
         working-directory: ./packages/lib-wasm
         run: wasm-pack build --release --target web --out-dir ${{ github.workspace }}/target/wasm
 
@@ -89,6 +89,6 @@ jobs:
         working-directory: ./packages/lib-python
         run: pip install -r requirements.txt
 
-      - name: Run python lib build
+      - name: Run lib-python build
         working-directory: ./packages/lib-python
-        run: maturin develop --release
+        run: maturin build --release
