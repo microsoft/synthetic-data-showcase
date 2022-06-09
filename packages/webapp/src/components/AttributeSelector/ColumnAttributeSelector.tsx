@@ -11,10 +11,10 @@ import type {
 
 import { AttributeIntersectionValueChart } from '~components/Charts/AttributeIntersectionValueChart'
 import { useStopPropagation } from '~components/Charts/hooks'
-import type { SetSelectedAttributesCallback } from '~pages/Navigate/DataNavigation'
 import { useSdsManagerInstance } from '~states'
 
 import { useMaxCount } from './hooks.js'
+import type { SetSelectedAttributesCallback } from './SelectedAttributes.js'
 
 export interface ColumnAttributeSelectorProps {
 	contextKey: string

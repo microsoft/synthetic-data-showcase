@@ -1,3 +1,6 @@
+[![Rust CI](https://github.com/microsoft/synthetic-data-showcase/actions/workflows/rust-ci.yml/badge.svg?branch=main&event=push)](https://github.com/microsoft/synthetic-data-showcase/actions/workflows/rust-ci.yml)
+[![Javascript CI](https://github.com/microsoft/synthetic-data-showcase/actions/workflows/javascript-ci.yml/badge.svg?branch=main&event=push)](https://github.com/microsoft/synthetic-data-showcase/actions/workflows/javascript-ci.yml)
+
 # Synthetic data showcase
 
 > Generates synthetic data and user interfaces for privacy-preserving data sharing and analysis.

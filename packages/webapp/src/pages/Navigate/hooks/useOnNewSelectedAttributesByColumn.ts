@@ -31,6 +31,7 @@ export function useOnNewSelectedAttributesByColumn(
 					}
 				} catch {
 					setIsLoading(false)
+					setSelectedAttributesByColumn({})
 				}
 			}
 		},

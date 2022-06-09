@@ -1,0 +1,92 @@
+name: Rust CI
+
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    branches: ['dev', 'main']
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  cargo_build:
+    name: Check overall build
+    strategy:
+      matrix:
+        platform: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Run cargo build release
+        run: cargo build --verbose --release
+
+  cargo_fmt:
+    name: Check code format
+    strategy:
+      matrix:
+        platform: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Run cargo fmt
+        run: cargo fmt --all -- --check
+
+  cargo_clippy:
+    name: Check clippy
+    strategy:
+      matrix:
+        platform: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Run cargo clippy
+        run: cargo clippy -- -D warnings
+
+  cargo_test:
+    name: Run cargo tests
+    strategy:
+      matrix:
+        platform: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Run cargo test
+        run: cargo test --verbose
+
+  lib_python_build:
+    name: Check lib-python build
+    strategy:
+      matrix:
+        platform: [ubuntu-latest, windows-latest]
+        python-version: ['3.10']
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        working-directory: ./packages/lib-python
+        run: pip install -r requirements.txt
+
+      - name: Run lib-python build
+        working-directory: ./packages/lib-python
+        run: maturin build --release

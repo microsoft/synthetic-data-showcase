@@ -1,20 +1,8 @@
 # --- compile wasm bindings from rust ---
-FROM rust:1.58 as wasm-builder
+FROM rust:1.61 as wasm-builder
 
-WORKDIR /usr/src/wasm-pack
-
-# compile wasm pack from source
-RUN \
-	# generate md5 file to validate wasm pack
-	echo "9e6c24fa47e415330d50b29427c30942 v0.10.2.tar.gz" > wasm_pack_0_10_2.md5 && \
-	# get wasm pack sources
-	wget https://github.com/rustwasm/wasm-pack/archive/refs/tags/v0.10.2.tar.gz && \
-	# validate checksum
-	md5sum -c wasm_pack_0_10_2.md5 && \
-	# extract
-	tar -xvf v0.10.2.tar.gz && \
-	cd wasm-pack-0.10.2 && \
-	cargo install --path .
+# install wasm-pack to build wasm bindings
+RUN cargo install wasm-pack
 
 WORKDIR /usr/src/sds
 
@@ -33,7 +21,6 @@ COPY --from=wasm-builder /usr/src/sds ./
 
 # setting sds env vars
 ENV VITE_SDS_WASM_LOG_LEVEL=warn
-ENV VITE_SDS_CONTEXT_CACHE_SIZE=4
 
 # install dependencies and build
 RUN yarn install && yarn build
