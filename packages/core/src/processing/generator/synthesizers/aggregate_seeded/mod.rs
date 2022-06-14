@@ -96,6 +96,63 @@ impl AggregateSeededSynthesizer {
     fn calc_overall_progress(&self) -> f64 {
         self.consolidate_percentage * 0.7 + self.suppress_percentage * 0.3
     }
+
+    #[inline]
+    fn calc_weight_for_single_combination(
+        &self,
+        consolidate_context: &ConsolidateContext,
+        value_combination: &ValueCombination,
+    ) -> Option<usize> {
+        let local_count = self
+            .consolidate_parameters
+            .aggregated_data
+            .aggregates_count
+            .get(value_combination)?;
+
+        if self.consolidate_parameters.use_synthetic_counts {
+            let synthetic_count = consolidate_context
+                .synthetic_counts
+                .get(value_combination)
+                .unwrap_or(&0);
+
+            if local_count.count > *synthetic_count {
+                // get the aggregate count
+                // that will be used in the weighted sampling
+                // and remove the count already synthesized
+                Some(local_count.count - synthetic_count)
+            } else {
+                None
+            }
+        } else {
+            // get the aggregate count
+            // that will be used in the weighted sampling
+            Some(local_count.count)
+        }
+    }
+
+    #[inline]
+    fn calc_weight_for_all_combinations(
+        &self,
+        consolidate_context: &ConsolidateContext,
+        current_comb: &ValueCombination,
+        attr: &Arc<DataBlockValue>,
+        ratio: f64,
+    ) -> Option<usize> {
+        let mut weight = 0.0;
+
+        for l in 1..=self.consolidate_parameters.aggregated_data.reporting_length {
+            for mut comb in current_comb.iter().combinations(l) {
+                if comb.contains(&attr) {
+                    let w = self.calc_weight_for_single_combination(
+                        consolidate_context,
+                        &ValueCombination::new(comb.drain(..).cloned().collect()),
+                    )?;
+                    weight += ratio * (w as f64) * (l as f64);
+                }
+            }
+        }
+        Some(weight.round() as usize)
+    }
 }
 
 impl SynthesisData for AggregateSeededSynthesizer {
@@ -149,6 +206,8 @@ impl Consolidate for AggregateSeededSynthesizer {
         synthesized_record: &SynthesizedRecord,
         not_allowed_attr_set: &NotAllowedAttrSet,
     ) -> Option<Arc<DataBlockValue>> {
+        let ratio = 1.0 / (self.consolidate_parameters.aggregated_data.reporting_length as f64);
+
         let counts: AttributeCountMap = consolidate_context
             .available_attrs
             .iter()
@@ -157,67 +216,31 @@ impl Consolidate for AggregateSeededSynthesizer {
                     && !synthesized_record.contains(attr)
                     && !not_allowed_attr_set.contains(attr)
                 {
-                    // find the minimum value between the new record
-                    // length and the combination length
-                    let combination_length = usize::min(
-                        synthesized_record.len() + 1,
-                        self.consolidate_parameters.aggregated_data.reporting_length,
-                    );
                     let mut current_comb = last_processed.clone();
-                    let mut sensitive_count = 0;
 
                     current_comb.extend(
                         attr.clone(),
                         &self.consolidate_parameters.aggregated_data.headers,
                     );
 
-                    // check if the combinations
-                    // from this record are valid according
-                    // to the resolution
-                    for mut comb in current_comb.iter().combinations(combination_length) {
-                        let value_combination =
-                            ValueCombination::new(comb.drain(..).cloned().collect());
-
-                        if let Some(local_count) = self
-                            .consolidate_parameters
-                            .aggregated_data
-                            .aggregates_count
-                            .get(&value_combination)
+                    Some((
+                        attr.clone(),
+                        if current_comb.len()
+                            > self.consolidate_parameters.aggregated_data.reporting_length
                         {
-                            if self.consolidate_parameters.use_synthetic_counts {
-                                let synthetic_count = consolidate_context
-                                    .synthetic_counts
-                                    .get(&value_combination)
-                                    .unwrap_or(&0);
-
-                                if *synthetic_count == 0 {
-                                    // burst contribution if the combination has not
-                                    // been used just yet
-                                    sensitive_count += 2 * self
-                                        .consolidate_parameters
-                                        .aggregated_data
-                                        .number_of_records;
-                                } else {
-                                    if *synthetic_count > local_count.count {
-                                        return None;
-                                    }
-
-                                    // get the aggregate count
-                                    // that will be used in the weighted sampling
-                                    // and remove the count already synthesized
-                                    sensitive_count += local_count.count - synthetic_count;
-                                }
-                            } else {
-                                // get the aggregate count
-                                // that will be used in the weighted sampling
-                                sensitive_count += local_count.count;
-                            }
+                            self.calc_weight_for_all_combinations(
+                                consolidate_context,
+                                &current_comb,
+                                attr,
+                                ratio,
+                            )?
                         } else {
-                            return None;
-                        }
-                    }
-
-                    Some((attr.clone(), sensitive_count))
+                            self.calc_weight_for_single_combination(
+                                consolidate_context,
+                                &current_comb,
+                            )?
+                        },
+                    ))
                 } else {
                     None
                 }

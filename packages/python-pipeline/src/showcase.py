@@ -113,6 +113,9 @@ def runForConfig(config):
     config['reportable_aggregates_path'] = path.join(
         config['output_dir'],
         config['prefix'] + '_reportable_aggregates.tsv')
+    config['synthetic_aggregates_path'] = path.join(
+        config['output_dir'],
+        config['prefix'] + '_synthetic_aggregates.tsv')
     config['synthetic_microdata_path'] = path.join(
         config['output_dir'],
         config['prefix'] + '_synthetic_microdata.tsv')
