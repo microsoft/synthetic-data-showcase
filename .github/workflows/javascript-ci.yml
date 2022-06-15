@@ -34,6 +34,11 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
+      - name: Rename wasm package
+        run: |
+          npm install replace -g 
+          replace "sds-wasm" "@essex/sds-core" ./target/wasm/package.json
+
       - name: Install dependencies
         run: yarn install
 
