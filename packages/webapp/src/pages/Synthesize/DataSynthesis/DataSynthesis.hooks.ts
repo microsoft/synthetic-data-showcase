@@ -2,8 +2,8 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import type { IInputNumberByLength, IMultiValueColumns } from '@essex/sds-core'
 import { useCallback } from 'react'
-import type { IInputNumberByLength, IMultiValueColumns } from 'sds-wasm'
 
 import type { ICsvContent, IRawSynthesisParameters } from '~models'
 import {

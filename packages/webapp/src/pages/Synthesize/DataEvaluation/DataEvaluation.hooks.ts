@@ -2,11 +2,11 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import type { IEvaluateResult, IMicrodataStatistics } from '@essex/sds-core'
 import type { IDropdownOption } from '@fluentui/react'
 import _ from 'lodash'
 import type { MutableRefObject } from 'react'
 import { useCallback, useMemo } from 'react'
-import type { IEvaluateResult, IMicrodataStatistics } from 'sds-wasm'
 
 import type { IMicrodataMaxStatistics } from '~models'
 import { useSdsManagerInstance } from '~states'

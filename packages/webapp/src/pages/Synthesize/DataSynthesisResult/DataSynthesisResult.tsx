@@ -6,11 +6,11 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import type { IEvaluateResult } from '@essex/sds-core'
 import type { IPivotItemProps } from '@fluentui/react'
 import { Pivot, PivotItem, Spinner, useTheme } from '@fluentui/react'
 import { FlexContainer } from '@sds/components'
 import { memo, useEffect, useRef, useState } from 'react'
-import type { IEvaluateResult } from 'sds-wasm'
 
 import { CsvTable } from '~components/CsvTable'
 import { HumanReadableSummary } from '~components/HumanReadableSummary'

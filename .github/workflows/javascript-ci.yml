@@ -37,11 +37,14 @@ jobs:
       - name: Install dependencies
         run: yarn install
 
-      - name: Run lint
-        run: yarn lint
-
-      - name: Build web app
-        run: yarn build
+      - name: CI
+        run: yarn git:ci
 
       - name: Check for uncommitted changes
         run: git diff-index --quiet HEAD --
+
+      - name: Publish wasm core
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: yarn release

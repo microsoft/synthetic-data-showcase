@@ -2,8 +2,8 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import type { IMicrodataStatistics } from '@essex/sds-core'
 import { useCallback } from 'react'
-import type { IMicrodataStatistics } from 'sds-wasm'
 
 import type { DownloadInfo } from '~components/controls/DownloadButton'
 import type { IMicrodataMetricItem } from '~components/MetricsSummaryTable'

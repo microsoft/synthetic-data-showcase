@@ -2,7 +2,6 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { expose } from 'comlink'
 import type {
 	HeaderNames,
 	IAggregateResult,
@@ -12,7 +11,8 @@ import type {
 	INavigateResult,
 	ISelectedAttributesByColumn,
 	ReportProgressCallback,
-} from 'sds-wasm'
+} from '@essex/sds-core'
+import { expose } from 'comlink'
 
 /* eslint-disable */
 import { BaseSdsWasmWorker } from './BaseSdsWasmWorker'

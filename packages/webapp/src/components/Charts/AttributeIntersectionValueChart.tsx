@@ -2,11 +2,11 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import type { IAttributesIntersection } from '@essex/sds-core'
 import type { Plugin } from 'chart.js'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
 import { memo, useCallback } from 'react'
 import { Bar } from 'react-chartjs-2'
-import type { IAttributesIntersection } from 'sds-wasm'
 
 import {
 	useActualBarConfig,

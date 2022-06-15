@@ -26,7 +26,10 @@ COPY --from=wasm-builder /usr/src/sds ./
 ENV VITE_SDS_WASM_LOG_LEVEL=warn
 
 # install dependencies and build
-RUN yarn install && yarn build
+RUN npm install replace -g 
+RUN replace "sds-wasm" "@essex/sds-core" ./target/wasm/package.json
+RUN yarn install
+RUN yarn build
 
 # --- statically serve built application with nginx ---
 FROM ${REGISTRY}nginx:1.21

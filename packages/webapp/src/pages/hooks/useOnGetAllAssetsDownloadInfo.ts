@@ -6,8 +6,8 @@ import {
 	FileCollection,
 	FileWithPath,
 } from '@data-wrangling-components/utilities'
+import type { IEvaluateResult } from '@essex/sds-core'
 import { useCallback } from 'react'
-import type { IEvaluateResult } from 'sds-wasm'
 
 import {
 	getMetricsByCountLabels,

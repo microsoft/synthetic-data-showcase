@@ -2,8 +2,8 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import init, { init_logger, WasmSdsContext } from 'sds-wasm'
-import wasmPath from 'sds-wasm/sds_wasm_bg.wasm?url'
+import init, { init_logger, WasmSdsContext } from '@essex/sds-core'
+import wasmPath from '@essex/sds-core/sds_wasm_bg.wasm?url'
 
 export class BaseSdsWasmWorker {
 	private _context: WasmSdsContext | null
