@@ -2,16 +2,16 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import type {
+	HeaderNames,
+	IAttributesIntersection,
+	ISelectedAttributesByColumn,
+} from '@essex/sds-core'
 import type { IIconProps } from '@fluentui/react'
 import { CommandButton, Icon } from '@fluentui/react'
 import { FlexContainer } from '@sds/components'
 import _ from 'lodash'
 import { memo, useMemo } from 'react'
-import type {
-	HeaderNames,
-	IAttributesIntersection,
-	ISelectedAttributesByColumn,
-} from 'sds-wasm'
 import styled from 'styled-components'
 
 import { useSelectedAttributesByColumnEntries } from './hooks.js'

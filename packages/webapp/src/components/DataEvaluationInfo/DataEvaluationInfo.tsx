@@ -2,10 +2,10 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import type { IMicrodataStatistics } from '@essex/sds-core'
 import { useTheme } from '@fluentui/react'
 import { FlexContainer } from '@sds/components'
 import { memo } from 'react'
-import type { IMicrodataStatistics } from 'sds-wasm'
 
 import { MetricsChart } from '~components/Charts'
 import {

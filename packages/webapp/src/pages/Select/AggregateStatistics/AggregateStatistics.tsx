@@ -2,11 +2,11 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import type { IAggregateStatistics } from '@essex/sds-core'
 import { Spinner } from '@fluentui/react'
 import type { Remote } from 'comlink'
 import type { FC } from 'react'
 import { memo, useCallback, useEffect, useState } from 'react'
-import type { IAggregateStatistics } from 'sds-wasm'
 
 import {
 	useGlobalErrorMessage,

@@ -2,8 +2,8 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import type { IAggregateStatistics, ICsvDataParameters } from '@essex/sds-core'
 import { expose } from 'comlink'
-import type { IAggregateStatistics, ICsvDataParameters } from 'sds-wasm'
 
 /* eslint-disable */
 import { BaseSdsWasmWorker } from './BaseSdsWasmWorker'

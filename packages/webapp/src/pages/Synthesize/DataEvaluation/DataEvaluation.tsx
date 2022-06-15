@@ -2,10 +2,10 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import type { IEvaluateResult } from '@essex/sds-core'
 import { Dropdown, Label } from '@fluentui/react'
 import { FlexContainer } from '@sds/components'
 import { memo, useEffect, useRef, useState } from 'react'
-import type { IEvaluateResult } from 'sds-wasm'
 import { useTheme } from 'styled-components'
 
 import { DataEvaluationInfo } from '~components/DataEvaluationInfo'

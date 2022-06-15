@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import type { IInputNumberByLength } from 'sds-wasm'
+import type { IInputNumberByLength } from '@essex/sds-core'
 
 import { SynthesisMode } from '~workers/types'
 

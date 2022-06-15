@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import type { IEvaluateResult } from '@essex/sds-core'
 import type { IColumn, IDetailsRowStyles } from '@fluentui/react'
 import {
 	DetailsList,
@@ -11,7 +12,6 @@ import {
 	useTheme,
 } from '@fluentui/react'
 import { memo, useCallback } from 'react'
-import type { IEvaluateResult } from 'sds-wasm'
 import styled from 'styled-components'
 
 import type { ISynthesisInfo } from '~workers/types'

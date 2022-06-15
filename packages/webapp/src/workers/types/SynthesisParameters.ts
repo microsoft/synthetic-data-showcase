@@ -8,7 +8,7 @@ import type {
 	IDpParameters,
 	INoisyCountThreshold,
 	IOversamplingParameters,
-} from 'sds-wasm'
+} from '@essex/sds-core'
 
 import type { SynthesisMode } from './SynthesisMode.js'
 

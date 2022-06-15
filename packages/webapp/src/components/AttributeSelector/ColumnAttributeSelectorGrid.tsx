@@ -2,9 +2,9 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import type { HeaderNames, ISelectedAttributesByColumn } from '@essex/sds-core'
 import { Stack, useTheme } from '@fluentui/react'
 import { memo } from 'react'
-import type { HeaderNames, ISelectedAttributesByColumn } from 'sds-wasm'
 
 import { AttributeIntersectionValueChartLegend } from '~components/AttributeIntersectionValueChartLegend'
 import { useHorizontalScrolling } from '~components/Charts/hooks'

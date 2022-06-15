@@ -2,10 +2,10 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import type { IEvaluateResult, IMultiValueColumns } from '@essex/sds-core'
 import type { ICommandBarItemProps } from '@fluentui/react'
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react'
 import { useCallback, useMemo } from 'react'
-import type { IEvaluateResult, IMultiValueColumns } from 'sds-wasm'
 
 import type { ICsvContent } from '~models'
 import { useDownloadCommand } from '~pages/hooks'

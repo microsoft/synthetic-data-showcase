@@ -2,9 +2,9 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import type { HeaderNames } from '@essex/sds-core'
 import type { MutableRefObject } from 'react'
 import { useCallback } from 'react'
-import type { HeaderNames } from 'sds-wasm'
 
 import type { ISdsManagerInstance } from '~models'
 

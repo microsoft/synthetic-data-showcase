@@ -1,6 +1,7 @@
 {
 	"name": "@sds/components",
 	"version": "0.0.1",
+	"private": true,
 	"description": "Components for SDS",
 	"type": "module",
 	"main": "./dist/index.js",
@@ -13,7 +14,6 @@
 		"./package.json": "./package.json"
 	},
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1",
 		"clean": "shx rm -rf ./dist",
 		"build": "tsc",
 		"start": "run-s \"build --watch --preserveWatchOutput\""
