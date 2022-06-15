@@ -100,6 +100,8 @@ def runForConfig(config):
     config['oversampling_tries'] = config.get('oversampling_tries', None)
     config['use_synthetic_counts'] = config.get(
         'use_synthetic_counts', False)
+    config['weight_selection_percentile'] = config.get(
+        'weight_selection_percentile', None)
 
     # specified parameters affecting file I/O
     config['prefix'] = config.get('prefix', 'my')
