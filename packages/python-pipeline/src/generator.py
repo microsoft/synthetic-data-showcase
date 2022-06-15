@@ -34,6 +34,7 @@ def generate(config):
     oversampling_ratio = config['oversampling_ratio']
     oversampling_tries = config['oversampling_tries']
     use_synthetic_counts = config['use_synthetic_counts']
+    weight_selection_percentile = config['weight_selection_percentile']
 
     logging.info(f'Generate {sensitive_microdata_path}')
     start_time = time.time()
@@ -83,6 +84,7 @@ def generate(config):
             "",
             sds.AggregatedData.read_from_json(aggregated_data_json),
             use_synthetic_counts,
+            weight_selection_percentile
         )
     else:
         raise ValueError(f'invalid synthesis mode: {synthesis_mode}')

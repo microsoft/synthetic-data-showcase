@@ -35,7 +35,7 @@ export function generateContextKey(params: IRawSynthesisParameters): string {
 					: `, OversamplingRatio=${params.oversamplingRatio}, OversamplingTries=${params.oversamplingTries})`)
 			)
 		case SynthesisMode.AggregateSeeded:
-			return `K-Anonymity ${params.synthesisMode} (RecordLimit=${params.recordLimit}, PrivacyResolution=${params.resolution}, AggregationLimit=${params.reportingLength}, UseSyntheticCounts=${params.aggregateSeededUseSyntheticCounts})`
+			return `K-Anonymity ${params.synthesisMode} (RecordLimit=${params.recordLimit}, PrivacyResolution=${params.resolution}, AggregationLimit=${params.reportingLength}, UseSyntheticCounts=${params.aggregateSeededUseSyntheticCounts}, WeightSelectionPercentile=${params.weightSelectionPercentile})`
 		case SynthesisMode.DP:
 			return `Differential Privacy (RecordLimit=${
 				params.recordLimit
@@ -43,6 +43,8 @@ export function generateContextKey(params: IRawSynthesisParameters): string {
 				params.reportingLength
 			}, UseSyntheticCounts=${
 				params.dpAggregateSeededUseSyntheticCounts
+			}, WeightSelectionPercentile=${
+				params.weightSelectionPercentile
 			}, Percentile=${params.percentilePercentage}, PercentileEpsilonProp=${
 				params.percentileEpsilonProportion
 			}, Epsilon=${params.noiseEpsilon}, DeltaFactor=${
@@ -161,6 +163,7 @@ function convertRawToSynthesisParameters(
 				useSyntheticCounts:
 					rawParams.aggregateSeededUseSyntheticCounts ===
 					UseSyntheticCounts.Yes,
+				weightSelectionPercentile: rawParams.weightSelectionPercentile,
 			} as IAggregateSeededSynthesisParameters
 			break
 		case SynthesisMode.DP:
@@ -190,6 +193,7 @@ function convertRawToSynthesisParameters(
 				useSyntheticCounts:
 					rawParams.dpAggregateSeededUseSyntheticCounts ===
 					UseSyntheticCounts.Yes,
+				weightSelectionPercentile: rawParams.weightSelectionPercentile,
 			} as IDpSynthesisParameters
 			break
 	}

@@ -1,4 +1,5 @@
 use itertools::Itertools;
+use statrs::statistics::{Data, OrderStatistics};
 use std::sync::Arc;
 
 use crate::{
@@ -15,17 +16,21 @@ use crate::{
         },
     },
     utils::{
-        collections::sample_weighted,
+        collections::{sample_weighted, sort_unstable_f64},
         math::calc_percentage,
         reporting::{ReportProgress, StoppableResult},
     },
 };
+
+const DEFAULT_WEIGHT_SELECTION_PERCENTILE: usize = 95;
 
 /// Represents all the information required to perform aggregated
 /// seeded synthesis
 pub struct AggregateSeededSynthesizer {
     /// Parameters used for data consolidation
     consolidate_parameters: ConsolidateParameters,
+    // Percentile used for the weight selection
+    weight_selection_percentile: usize,
     /// Cached single attribute counts
     single_attr_counts: AttributeCountMap,
     /// Percentage already completed on the consolidation step
@@ -39,14 +44,18 @@ impl AggregateSeededSynthesizer {
     /// # Arguments
     /// * `aggregated_data` - Aggregated data to synthesize from
     /// * `use_synthetic_counts` - Whether synthetic counts should be used to balance
+    /// * `weight_selection_percentile` - Percentile used for the weight selection (default of 95 if none)
     /// the sampling process or not
     #[inline]
     pub fn new(
         aggregated_data: Arc<AggregatedData>,
         use_synthetic_counts: bool,
+        weight_selection_percentile: Option<usize>,
     ) -> AggregateSeededSynthesizer {
         AggregateSeededSynthesizer {
             single_attr_counts: aggregated_data.calc_single_attribute_counts(),
+            weight_selection_percentile: weight_selection_percentile
+                .unwrap_or(DEFAULT_WEIGHT_SELECTION_PERCENTILE),
             consolidate_parameters: ConsolidateParameters::new(
                 aggregated_data,
                 None,
@@ -136,22 +145,30 @@ impl AggregateSeededSynthesizer {
         consolidate_context: &ConsolidateContext,
         current_comb: &ValueCombination,
         attr: &Arc<DataBlockValue>,
-        ratio: f64,
+        percentile: usize,
     ) -> Option<usize> {
-        let mut weight = 0.0;
+        let mut weights = Vec::default();
 
         for l in 1..=self.consolidate_parameters.aggregated_data.reporting_length {
             for mut comb in current_comb.iter().combinations(l) {
                 if comb.contains(&attr) {
-                    let w = self.calc_weight_for_single_combination(
+                    weights.push(self.calc_weight_for_single_combination(
                         consolidate_context,
                         &ValueCombination::new(comb.drain(..).cloned().collect()),
-                    )?;
-                    weight += ratio * (w as f64) * (l as f64);
+                    )? as f64);
                 }
             }
         }
-        Some(weight.round() as usize)
+
+        sort_unstable_f64(&mut weights);
+
+        let weight = Data::new(weights).percentile(percentile);
+
+        if weight.is_nan() {
+            None
+        } else {
+            Some(weight.round() as usize)
+        }
     }
 }
 
@@ -206,8 +223,6 @@ impl Consolidate for AggregateSeededSynthesizer {
         synthesized_record: &SynthesizedRecord,
         not_allowed_attr_set: &NotAllowedAttrSet,
     ) -> Option<Arc<DataBlockValue>> {
-        let ratio = 1.0 / (self.consolidate_parameters.aggregated_data.reporting_length as f64);
-
         let counts: AttributeCountMap = consolidate_context
             .available_attrs
             .iter()
@@ -215,6 +230,7 @@ impl Consolidate for AggregateSeededSynthesizer {
                 if *count > 0
                     && !synthesized_record.contains(attr)
                     && !not_allowed_attr_set.contains(attr)
+                    && !last_processed.contains_column(attr.column_index)
                 {
                     let mut current_comb = last_processed.clone();
 
@@ -232,7 +248,7 @@ impl Consolidate for AggregateSeededSynthesizer {
                                 consolidate_context,
                                 &current_comb,
                                 attr,
-                                ratio,
+                                self.weight_selection_percentile,
                             )?
                         } else {
                             self.calc_weight_for_single_combination(

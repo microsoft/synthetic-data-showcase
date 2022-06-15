@@ -36,6 +36,7 @@ import SYNTHESIZE from './mds/SYNTHESIZE.md?raw'
 import THRESHOLD_VALUE from './mds/THRESHOLD_VALUE.md?raw'
 import UNIQUE_COMBS from './mds/UNIQUE_COMBS.md?raw'
 import USE_SYNTHETIC_COUNTS from './mds/USE_SYNTHETIC_COUNTS.md?raw'
+import WEIGHT_SELECTION_PERCENTILE from './mds/WEIGHT_SELECTION_PERCENTILE.md?raw'
 /* eslint-enable */
 
 export const tooltips = {
@@ -70,4 +71,5 @@ export const tooltips = {
 	fabricationMode: fromMarkdownStr(FABRICATION_MODE),
 	thresholdValue: fromMarkdownStr(THRESHOLD_VALUE),
 	accuracyMode: fromMarkdownStr(ACCURACY_MODE),
+	weightSelectionPercentile: fromMarkdownStr(WEIGHT_SELECTION_PERCENTILE),
 }

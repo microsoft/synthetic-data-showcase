@@ -22,6 +22,7 @@ export interface IRawSynthesisParameters {
 	oversamplingTries: number
 	aggregateSeededUseSyntheticCounts: UseSyntheticCounts
 	dpAggregateSeededUseSyntheticCounts: UseSyntheticCounts
+	weightSelectionPercentile: number
 	percentilePercentage: number
 	percentileEpsilonProportion: number
 	noiseEpsilon: number
@@ -42,6 +43,7 @@ export const defaultRawSynthesisParameters: IRawSynthesisParameters = {
 	oversamplingTries: 10,
 	aggregateSeededUseSyntheticCounts: UseSyntheticCounts.Yes,
 	dpAggregateSeededUseSyntheticCounts: UseSyntheticCounts.No,
+	weightSelectionPercentile: 95,
 	percentilePercentage: 99,
 	percentileEpsilonProportion: 0.1,
 	noiseEpsilon: 6.0,

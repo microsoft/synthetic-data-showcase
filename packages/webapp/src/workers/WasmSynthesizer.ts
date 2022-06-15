@@ -183,6 +183,7 @@ export class WasmSynthesizer extends BaseSdsWasmWorker {
 			parameters.baseSynthesisParameters,
 			parameters.reportingLength,
 			parameters.useSyntheticCounts,
+			parameters.weightSelectionPercentile,
 			progressCallback,
 		)
 	}
@@ -197,6 +198,7 @@ export class WasmSynthesizer extends BaseSdsWasmWorker {
 			parameters.dpParameters,
 			parameters.noiseThreshold,
 			parameters.useSyntheticCounts,
+			parameters.weightSelectionPercentile,
 			progressCallback,
 		)
 	}
