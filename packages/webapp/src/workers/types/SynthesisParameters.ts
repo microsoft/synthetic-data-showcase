@@ -36,6 +36,7 @@ export interface IAggregateSeededSynthesisParameters
 	extends ISynthesisParameters {
 	mode: SynthesisMode.AggregateSeeded
 	useSyntheticCounts: boolean
+	weightSelectionPercentile?: number
 }
 
 export interface IDpSynthesisParameters extends ISynthesisParameters {
@@ -43,4 +44,5 @@ export interface IDpSynthesisParameters extends ISynthesisParameters {
 	dpParameters: IDpParameters
 	noiseThreshold: INoisyCountThreshold
 	useSyntheticCounts: boolean
+	weightSelectionPercentile?: number
 }

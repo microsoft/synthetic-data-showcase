@@ -61,6 +61,9 @@ export const DataSynthesisAdvancedParameters: React.FC = memo(
 				'aggregateSeededUseSyntheticCounts',
 			),
 		)
+		const handleWeightSelectionPercentileChange = useSpinButtonOnChange(
+			useRawSynthesisParametersPropertySetter('weightSelectionPercentile'),
+		)
 		const handleDeltaFactorChange = useSpinButtonOnChange(
 			useRawSynthesisParametersPropertySetter('deltaFactor'),
 		)
@@ -168,6 +171,23 @@ export const DataSynthesisAdvancedParameters: React.FC = memo(
 							onChange={handleAggregateSeededUseSyntheticCountsChange}
 							placeholder="Select"
 							options={useSyntheticCountsOptions}
+						/>
+					</TooltipWrapper>
+				)}
+
+				{(rawSynthesisParams.synthesisMode === SynthesisMode.AggregateSeeded ||
+					rawSynthesisParams.synthesisMode === SynthesisMode.DP) && (
+					<TooltipWrapper
+						tooltip={tooltips.weightSelectionPercentile}
+						label="Weight selection percentile"
+					>
+						<StyledSpinButton
+							labelPosition={Position.top}
+							min={1}
+							max={100}
+							step={5}
+							value={rawSynthesisParams.weightSelectionPercentile.toString()}
+							onChange={handleWeightSelectionPercentileChange}
 						/>
 					</TooltipWrapper>
 				)}
