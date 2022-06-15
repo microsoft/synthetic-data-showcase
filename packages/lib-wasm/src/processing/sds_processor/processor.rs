@@ -151,6 +151,7 @@ impl WasmSdsProcessor {
         base_parameters: &WasmBaseSynthesisParameters,
         aggregated_result: &WasmAggregateResult,
         use_synthetic_counts: bool,
+        weight_selection_percentile: Option<usize>,
         progress_callback: JsReportProgressCallback,
     ) -> JsResult<WasmGenerateResult> {
         let js_callback: Function = progress_callback.dyn_into()?;
@@ -159,6 +160,7 @@ impl WasmSdsProcessor {
             base_parameters,
             aggregated_result,
             use_synthetic_counts,
+            weight_selection_percentile,
             &mut Some(JsProgressReporter::new(&js_callback, &|p| p)),
         )
     }
@@ -302,6 +304,7 @@ impl WasmSdsProcessor {
         base_parameters: &WasmBaseSynthesisParameters,
         aggregated_result: &WasmAggregateResult,
         use_synthetic_counts: bool,
+        weight_selection_percentile: Option<usize>,
         progress_reporter: &mut Option<JsProgressReporter>,
     ) -> JsResult<WasmGenerateResult> {
         let generator = Generator::default();
@@ -314,6 +317,7 @@ impl WasmSdsProcessor {
                     &empty_value,
                     aggregated_result.aggregated_data.clone(),
                     use_synthetic_counts,
+                    weight_selection_percentile,
                     progress_reporter,
                 )
                 .map_err(|err| JsValue::from(err.to_string()))?,

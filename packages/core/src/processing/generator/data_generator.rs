@@ -187,6 +187,8 @@ impl Generator {
     /// * `aggregated_data` - Aggregated data where data should be synthesized from
     /// * `use_synthetic_counts` - Whether synthetic counts should be used to balance
     /// the sampling process or not
+    /// * `weight_selection_percentile` - Percentile used for the weight selection
+    ///  (default of 95 if `None`)
     /// * `progress_reporter` - Will be used to report the processing
     /// progress (`ReportProgress` trait). If `None`, nothing will be reported
     pub fn generate_aggregate_seeded<T>(
@@ -194,6 +196,7 @@ impl Generator {
         empty_value: &str,
         aggregated_data: Arc<AggregatedData>,
         use_synthetic_counts: bool,
+        weight_selection_percentile: Option<usize>,
         progress_reporter: &mut Option<T>,
     ) -> StoppableResult<GeneratedData>
     where
@@ -204,8 +207,11 @@ impl Generator {
         info!("starting aggregate seeded generation...");
 
         let empty_value_arc = Arc::new(empty_value.to_owned());
-        let mut synth =
-            AggregateSeededSynthesizer::new(aggregated_data.clone(), use_synthetic_counts);
+        let mut synth = AggregateSeededSynthesizer::new(
+            aggregated_data.clone(),
+            use_synthetic_counts,
+            weight_selection_percentile,
+        );
 
         Ok(self.build_generated_data(
             &aggregated_data.headers,

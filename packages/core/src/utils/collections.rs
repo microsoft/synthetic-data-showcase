@@ -55,6 +55,12 @@ where
     cloned
 }
 
+/// Sorts a f64 slice (unstable sort)
+#[inline]
+pub fn sort_unstable_f64(v: &mut [f64]) {
+    v.sort_unstable_by(|a, b| a.partial_cmp(b).unwrap());
+}
+
 /// Samples a key from the map using its count
 /// (the higher the count the greater the chance for the
 /// key to be selected).
