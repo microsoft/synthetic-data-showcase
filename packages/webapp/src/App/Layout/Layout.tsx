@@ -4,6 +4,7 @@
  */
 import { FlexContainer } from '@sds/components'
 import { proxy } from 'comlink'
+import type { PropsWithChildren } from 'react'
 import React, { memo, useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import styled from 'styled-components'
@@ -24,7 +25,11 @@ import { createWorkerProxy } from '~workers/utils'
 import { Header } from './Header/index.js'
 import { useOnTableChange } from './hooks/index.js'
 
-export const Layout: React.FC = memo(function Layout({ children }) {
+export const Layout: React.FC<
+	PropsWithChildren<{
+		/* nothing */
+	}>
+> = memo(function Layout({ children }) {
 	const [managerInstance, setManagerInstance] = useSdsManagerInstance()
 	const setIsProcessing = useIsProcessingSetter()
 	const location = useLocation()

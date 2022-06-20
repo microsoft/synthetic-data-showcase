@@ -87,7 +87,7 @@ const NavBarStackItem = styled(Stack.Item)`
 	margin: 0px;
 `
 
-const NavBarPrimaryButton = styled(PrimaryButton)`
+const NavBarPrimaryButton = styled(PrimaryButton as any)`
 	height: 100%;
 	padding: 0;
 	margin: 0;

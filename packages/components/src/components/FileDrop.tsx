@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import type { FC } from 'react'
+import type { FC, PropsWithChildren } from 'react'
 import React, { forwardRef, memo, useImperativeHandle, useMemo } from 'react'
 
 import { FileDropContext } from './FileDrop.context.js'
@@ -20,7 +20,11 @@ export const FileDrop: FC<FileDropProps> = memo(
 				props.divOverlay ??
 				((({ children }) => {
 					return <div className={classes.Overlay}>{children}</div>
-				}) as FC)
+				}) as FC<
+					PropsWithChildren<{
+						/* nothing */
+					}>
+				>)
 			)
 		}, [props.divOverlay, classes])
 

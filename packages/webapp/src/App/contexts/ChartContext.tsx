@@ -7,13 +7,18 @@ import 'chart.js/auto'
 import { useThematic } from '@thematic/react'
 import { Chart } from 'chart.js'
 import { merge } from 'lodash'
+import type { FC, PropsWithChildren } from 'react'
 import { memo, useEffect } from 'react'
 
 /**
  * Establishes default color mappings for Chart.js + thematic.
  * Note that this should be nested inside of another context that instantiates thematic.
  */
-export const ChartContext = memo(function ChartContext({ children }) {
+export const ChartContext: FC<
+	PropsWithChildren<{
+		/* nothing */
+	}>
+> = memo(function ChartContext({ children }) {
 	const thematic = useThematic()
 	useEffect(() => {
 		const nominal = thematic.scales().nominal().toArray()

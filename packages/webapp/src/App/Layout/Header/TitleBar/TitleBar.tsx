@@ -73,7 +73,7 @@ const StyledSpan = styled.span`
 	margin-right: ${p => p.theme.spacing.m};
 `
 
-const StyledDownload = styled(PrimaryButton)`
+const StyledDownload = styled(PrimaryButton as any)`
 	font-size: ${p => p.theme.fonts.mediumPlus.fontSize};
 `
 
