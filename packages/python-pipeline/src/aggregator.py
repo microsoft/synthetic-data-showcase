@@ -41,7 +41,7 @@ def aggregate(config):
     percentile_epsilon_proportion = config['percentile_epsilon_proportion']
     sigma_proportions = config['sigma_proportions']
     noise_epsilon = config['noise_epsilon']
-    noise_delta = config['noise_delta']
+    delta_factor = config['delta_factor']
     noise_threshold_type = config['noise_threshold_type']
     noise_threshold_values = config['noise_threshold_values']
 
@@ -75,8 +75,8 @@ def aggregate(config):
     aggregated_data.write_to_json(sensitive_aggregated_data_json)
 
     if dp_aggregates:
-        if not noise_delta:
-            noise_delta = 1 / (2 * sds_processor.number_of_records())
+        noise_delta = 1 / \
+            (delta_factor * sds_processor.number_of_records())
 
         if noise_threshold_type == 'fixed':
             aggregated_data = sds_processor.aggregate_with_dp_fixed_threshold(
