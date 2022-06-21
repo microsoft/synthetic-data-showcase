@@ -45,10 +45,10 @@ export const defaultRawSynthesisParameters: IRawSynthesisParameters = {
 	dpAggregateSeededUseSyntheticCounts: UseSyntheticCounts.No,
 	weightSelectionPercentile: 95,
 	percentilePercentage: 99,
-	percentileEpsilonProportion: 0.1,
+	percentileEpsilonProportion: 0.01,
 	noiseEpsilon: 6.0,
 	deltaFactor: 2,
-	fabricationMode: FabricationMode.Balanced,
+	fabricationMode: FabricationMode.Uncontrolled,
 	threshold: {},
 	accuracyMode: AccuracyMode.PrioritizeLargeCounts,
 }
