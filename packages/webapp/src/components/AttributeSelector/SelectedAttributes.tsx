@@ -60,7 +60,7 @@ export const SelectedAttributes: React.FC<SelectedAttributesProps> = memo(
 							return (
 								<FlexContainer key={`${entry[0]}:${value}`} align="center">
 									<Divider>|</Divider>
-									<StyledCommandButton
+									<CommandButton
 										iconProps={deleteIcon}
 										text={`${headers[entry[0]]}:${value}`}
 										onClick={async () =>
@@ -81,8 +81,6 @@ export const SelectedAttributes: React.FC<SelectedAttributesProps> = memo(
 		)
 	},
 )
-
-const StyledCommandButton = styled(CommandButton)``
 
 const StyledIcon = styled(Icon)`
 	color: ${p => p.theme.palette.themePrimary};

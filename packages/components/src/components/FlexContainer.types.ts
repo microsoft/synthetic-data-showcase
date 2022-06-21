@@ -3,9 +3,9 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 
-import type { CSSProperties, ElementType } from 'react'
+import type { CSSProperties, ElementType, PropsWithChildren } from 'react'
 
-export type FlexContainerProps = {
+export type FlexContainerProps = PropsWithChildren<{
 	as?: ElementType
 	vertical?: boolean
 	wrap?: boolean
@@ -20,4 +20,4 @@ export type FlexContainerProps = {
 	gap?: string
 	className?: string
 	style?: CSSProperties
-}
+}>

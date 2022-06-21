@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import type { ElementType, RefObject } from 'react'
+import type { ElementType, PropsWithChildren, RefObject } from 'react'
 import type { DropzoneOptions } from 'react-dropzone'
 
 import type { Expand } from '../types/expand.js'
@@ -13,13 +13,14 @@ export type FileDropRef = {
 }
 
 export type FileDropProps = Expand<
-	Omit<DropzoneOptions, 'accept'> & {
-		accept?: string | string[]
-		onDragMessage?: ElementType
-		divOverlay?: ElementType
-		ref?: RefObject<FileDropRef>
-		slotClassNames?: FileDropSlotClassNames
-	}
+	Omit<DropzoneOptions, 'accept'> &
+		PropsWithChildren<{
+			accept?: string | string[]
+			onDragMessage?: ElementType
+			divOverlay?: ElementType
+			ref?: RefObject<FileDropRef>
+			slotClassNames?: FileDropSlotClassNames
+		}>
 >
 
 export enum FileDropSlots {

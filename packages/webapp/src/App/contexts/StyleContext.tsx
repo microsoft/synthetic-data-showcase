@@ -4,13 +4,20 @@
  */
 import { loadFluentTheme, ThematicFluentProvider } from '@thematic/fluent'
 import { ApplicationStyles, useThematic } from '@thematic/react'
+import type { PropsWithChildren } from 'react'
 import React, { memo, useMemo } from 'react'
 import {
 	createGlobalStyle,
-	ThemeProvider as StyledProvider,
+	ThemeProvider as StyledProviderRaw,
 } from 'styled-components'
 
-export const StyleContext: React.FC = memo(function StyleContext({ children }) {
+const StyledProvider = StyledProviderRaw as any
+
+export const StyleContext: React.FC<
+	PropsWithChildren<{
+		/* nothing */
+	}>
+> = memo(function StyleContext({ children }) {
 	const theme = useThematic()
 	const fluentTheme = useMemo(() => loadFluentTheme(theme), [theme])
 	return (
@@ -52,4 +59,4 @@ const GlobalStyle = createGlobalStyle`
 		font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
 			monospace;
 	}
-`
+` as any

@@ -6,12 +6,16 @@ import { container } from '@essex/arquero'
 import type { FileRejection } from '@sds/components'
 import { FileDrop } from '@sds/components'
 import { fromCSV } from 'arquero'
-import type { FC } from 'react'
+import type { FC, PropsWithChildren } from 'react'
 import { memo, useCallback } from 'react'
 
 import { useGlobalErrorMessage, useTables } from '~states'
 
-export const FileUploader: FC = memo(function FileUploader({ children }) {
+export const FileUploader: FC<
+	PropsWithChildren<{
+		/* nothing */
+	}>
+> = memo(function FileUploader({ children }) {
 	const [, setGlobalError] = useGlobalErrorMessage()
 	const [, updateTables] = useTables()
 
