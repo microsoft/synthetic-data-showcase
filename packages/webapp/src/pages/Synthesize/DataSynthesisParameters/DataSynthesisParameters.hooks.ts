@@ -50,9 +50,9 @@ export function useNoisyCountThresholdChange(
 
 export function useFabricationModeOptions(): IDropdownOption[] {
 	return [
+		{ key: FabricationMode.Uncontrolled, text: FabricationMode.Uncontrolled },
 		{ key: FabricationMode.Balanced, text: FabricationMode.Balanced },
 		{ key: FabricationMode.Minimize, text: FabricationMode.Minimize },
-		{ key: FabricationMode.Uncontrolled, text: FabricationMode.Uncontrolled },
 		{ key: FabricationMode.Custom, text: FabricationMode.Custom },
 	]
 }
