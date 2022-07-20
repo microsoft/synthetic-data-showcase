@@ -91,6 +91,8 @@ def runForConfig(config):
         config['noise_threshold_type'] = config['noise_threshold_type'].lower()
     config['noise_threshold_values'] = {
         int(l): t for l, t in config.get('noise_threshold_values', {}).items()}
+    config['number_of_records_epsilon'] = config.get(
+        'number_of_records_epsilon', None)
 
     # parameters affecting the representation and interpretation of values
     config['sensitive_zeros'] = config.get('sensitive_zeros', [])
