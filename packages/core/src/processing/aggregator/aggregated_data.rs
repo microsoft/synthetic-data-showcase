@@ -12,6 +12,7 @@ use itertools::Itertools;
 use log::info;
 use serde::{Deserialize, Serialize};
 use std::{
+    fmt::Write as FmtWrite,
     io::{BufReader, BufWriter, Error, Write},
     sync::Arc,
 };
@@ -201,10 +202,15 @@ impl AggregatedData {
         );
 
         for l in 1..=self.reporting_length {
-            headers.push_str(&format!(
-                "{}record_sensitivity_length_{}",
-                records_sensitivity_delimiter, l
-            ));
+            assert!(
+                write!(
+                    &mut headers,
+                    "{}record_sensitivity_length_{}",
+                    records_sensitivity_delimiter, l
+                )
+                .is_ok(),
+                "error writing records sensitivity headers"
+            );
         }
         headers.push('\n');
         headers
@@ -224,10 +230,15 @@ impl AggregatedData {
         );
 
         for l in 1..=self.reporting_length {
-            line.push_str(&format!(
-                "{}{}",
-                records_sensitivity_delimiter, self.records_sensitivity_by_len[l][record_index]
-            ));
+            assert!(
+                write!(
+                    &mut line,
+                    "{}{}",
+                    records_sensitivity_delimiter, self.records_sensitivity_by_len[l][record_index]
+                )
+                .is_ok(),
+                "error writing records sensitivity line"
+            );
         }
         line.push('\n');
         line
