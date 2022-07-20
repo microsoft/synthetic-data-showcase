@@ -41,6 +41,8 @@ pub struct AggregatedData {
     pub multi_value_column_metadata_map: MultiValueColumnMetadataMap,
     /// Number of records present on the original data
     pub number_of_records: usize,
+    /// Number of records protected with K-Anonymity or DP (if any)
+    pub protected_number_of_records: Option<usize>,
     /// Maps a value combination to its aggregated count
     pub aggregates_count: AggregatesCountMap,
     /// A vector of sensitivities for each record (the vector index is the record index)
@@ -58,6 +60,7 @@ impl AggregatedData {
             headers: DataBlockHeaders::default(),
             multi_value_column_metadata_map: MultiValueColumnMetadataMap::default(),
             number_of_records: 0,
+            protected_number_of_records: None,
             aggregates_count: AggregatesCountMap::default(),
             records_sensitivity_by_len: RecordsSensitivityByLen::default(),
             reporting_length: 0,
@@ -70,6 +73,7 @@ impl AggregatedData {
     /// * `multi_value_column_metadata_map` - Maps a normalized multi-value header name (such as A_a1)
     /// to its corresponding metadata
     /// * `number_of_records` - Number of records present on the original data
+    /// * `protected_number_of_records` - Number of records protected with K-Anonymity or DP (if any)
     /// * `aggregates_count` - Computed aggregates count map
     /// * `records_sensitivity` - Computed sensitivity for the records
     /// * `reporting_length` - Maximum length used to compute attribute combinations
@@ -78,6 +82,7 @@ impl AggregatedData {
         headers: DataBlockHeaders,
         multi_value_column_metadata_map: MultiValueColumnMetadataMap,
         number_of_records: usize,
+        protected_number_of_records: Option<usize>,
         aggregates_count: AggregatesCountMap,
         records_sensitivity_by_len: RecordsSensitivityByLen,
         reporting_length: usize,
@@ -86,6 +91,7 @@ impl AggregatedData {
             headers,
             multi_value_column_metadata_map,
             number_of_records,
+            protected_number_of_records,
             aggregates_count,
             records_sensitivity_by_len,
             reporting_length,
@@ -157,29 +163,24 @@ impl AggregatedData {
         writer: &mut T,
         aggregates_delimiter: char,
         combination_delimiter: &str,
-        resolution: usize,
-        protected: bool,
     ) -> Result<(), Error> {
+        let n_records;
+        let n_records_label;
+
+        if let Some(protected_number_of_records) = self.protected_number_of_records {
+            n_records = protected_number_of_records;
+            n_records_label = "protected_count";
+        } else {
+            n_records = self.number_of_records;
+            n_records_label = "count";
+        }
+
         writer.write_all(
-            format!(
-                "selections{}{}\n",
-                aggregates_delimiter,
-                if protected {
-                    "protected_count"
-                } else {
-                    "count"
-                }
-            )
-            .as_bytes(),
+            format!("selections{}{}\n", aggregates_delimiter, n_records_label).as_bytes(),
         )?;
-        writer.write_all(
-            format!(
-                "selections{}{}\n",
-                aggregates_delimiter,
-                uround_down(self.number_of_records as f64, resolution as f64)
-            )
-            .as_bytes(),
-        )?;
+        writer
+            .write_all(format!("selections{}{}\n", aggregates_delimiter, n_records).as_bytes())?;
+
         for aggregate in self.aggregates_count.keys() {
             writer.write_all(
                 format!(
@@ -419,7 +420,11 @@ impl AggregatedData {
         for count in self.aggregates_count.values_mut() {
             count.count = uround_down(count.count as f64, resolution as f64);
         }
-        self.remove_zero_counts()
+        self.remove_zero_counts();
+        self.protected_number_of_records = Some(uround_down(
+            self.number_of_records as f64,
+            resolution as f64,
+        ));
     }
 
     /// Calculates the records that contain rare combinations grouped by length.
@@ -837,15 +842,11 @@ impl AggregatedData {
     /// * `aggregates_delimiter` - Delimiter to use when writing to `aggregates_path`
     /// * `combination_delimiter` - Delimiter used to join combinations and format then
     /// as strings
-    /// * `resolution` - Reporting resolution used for data synthesis
-    /// * `protected` - Whether or not the counts were protected before calling this
     pub fn write_aggregates_count(
         &self,
         aggregates_path: &str,
         aggregates_delimiter: char,
         combination_delimiter: &str,
-        resolution: usize,
-        protected: bool,
     ) -> Result<(), Error> {
         info!("writing file {}", aggregates_path);
 
@@ -855,8 +856,6 @@ impl AggregatedData {
             &mut std::io::BufWriter::new(std::fs::File::create(aggregates_path)?),
             aggregates_delimiter,
             combination_delimiter,
-            resolution,
-            protected,
         )
     }
 
@@ -865,14 +864,10 @@ impl AggregatedData {
     /// * `aggregates_delimiter` - Delimiter to used for the CSV file
     /// * `combination_delimiter` - Delimiter used to join combinations and format then
     /// as strings
-    /// * `resolution` - Reporting resolution used for data synthesis
-    /// * `protected` - Whether or not the counts were protected before calling this
     pub fn write_aggregates_to_string(
         &self,
         aggregates_delimiter: char,
         combination_delimiter: &str,
-        resolution: usize,
-        protected: bool,
     ) -> Result<String, Error> {
         let mut csv_aggregates = Vec::default();
 
@@ -880,8 +875,6 @@ impl AggregatedData {
             &mut csv_aggregates,
             aggregates_delimiter,
             combination_delimiter,
-            resolution,
-            protected,
         )?;
 
         Ok(String::from_utf8_lossy(&csv_aggregates).to_string())

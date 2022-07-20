@@ -441,8 +441,6 @@ fn main() {
                     &aggregates_path,
                     aggregates_delimiter.chars().next().unwrap(),
                     ";",
-                    cli.resolution,
-                    !not_protect || dp,
                 ) {
                     error!("error writing output file: {}", err);
                     process::exit(1);

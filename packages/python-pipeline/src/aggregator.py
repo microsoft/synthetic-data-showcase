@@ -69,8 +69,6 @@ def aggregate(config):
         sensitive_aggregates_path,
         '\t',
         ';',
-        reporting_resolution,
-        False
     )
     aggregated_data.write_to_json(sensitive_aggregated_data_json)
 
@@ -112,8 +110,6 @@ def aggregate(config):
         reportable_aggregates_path,
         '\t',
         ';',
-        reporting_resolution,
-        True
     )
     aggregated_data.write_to_json(reportable_aggregated_data_json)
 

@@ -327,12 +327,8 @@ impl WasmSdsContext {
         aggregates_delimiter: char,
         combination_delimiter: &str,
     ) -> JsResult<JsAggregateResult> {
-        self.get_sensitive_aggregate_result()?.to_js(
-            aggregates_delimiter,
-            combination_delimiter,
-            self.get_generate_result()?.resolution(),
-            false,
-        )
+        self.get_sensitive_aggregate_result()?
+            .to_js(aggregates_delimiter, combination_delimiter)
     }
 
     #[wasm_bindgen(js_name = "reportableAggregateResultToJs")]
@@ -341,12 +337,8 @@ impl WasmSdsContext {
         aggregates_delimiter: char,
         combination_delimiter: &str,
     ) -> JsResult<JsAggregateResult> {
-        self.get_reportable_aggregate_result()?.to_js(
-            aggregates_delimiter,
-            combination_delimiter,
-            self.get_generate_result()?.resolution(),
-            true,
-        )
+        self.get_reportable_aggregate_result()?
+            .to_js(aggregates_delimiter, combination_delimiter)
     }
 
     #[wasm_bindgen(js_name = "syntheticAggregateResultToJs")]
@@ -355,12 +347,8 @@ impl WasmSdsContext {
         aggregates_delimiter: char,
         combination_delimiter: &str,
     ) -> JsResult<JsAggregateResult> {
-        self.get_synthetic_aggregate_result()?.to_js(
-            aggregates_delimiter,
-            combination_delimiter,
-            self.get_generate_result()?.resolution(),
-            false,
-        )
+        self.get_synthetic_aggregate_result()?
+            .to_js(aggregates_delimiter, combination_delimiter)
     }
 
     #[wasm_bindgen(js_name = "navigateResultToJs")]

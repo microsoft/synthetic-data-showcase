@@ -65,16 +65,9 @@ impl WasmAggregateResult {
         &self,
         aggregates_delimiter: char,
         combination_delimiter: &str,
-        resolution: usize,
-        counts_are_protected: bool,
     ) -> JsResult<String> {
         self.aggregated_data
-            .write_aggregates_to_string(
-                aggregates_delimiter,
-                combination_delimiter,
-                resolution,
-                counts_are_protected,
-            )
+            .write_aggregates_to_string(aggregates_delimiter, combination_delimiter)
             .map_err(|err| JsValue::from(err.to_string()))
     }
 
@@ -83,8 +76,6 @@ impl WasmAggregateResult {
         &self,
         aggregates_delimiter: char,
         combination_delimiter: &str,
-        resolution: usize,
-        counts_are_protected: bool,
     ) -> JsResult<JsAggregateResult> {
         let _duration_logger =
             ElapsedDurationLogger::new(String::from("aggregate result serialization"));
@@ -99,12 +90,7 @@ impl WasmAggregateResult {
             &result,
             &"aggregatesData".into(),
             &self
-                .aggregates_count_to_js(
-                    aggregates_delimiter,
-                    combination_delimiter,
-                    resolution,
-                    counts_are_protected,
-                )?
+                .aggregates_count_to_js(aggregates_delimiter, combination_delimiter)?
                 .into(),
         )?;
 

@@ -361,6 +361,8 @@ impl NoiseAggregator {
             self.data_block.headers.clone(),
             self.data_block.multi_value_column_metadata_map.clone(),
             self.data_block.number_of_records(),
+            // TODO: add laplacian noise to this
+            Some(0),
             aggregates_count,
             RecordsSensitivityByLen::default(),
             self.reporting_length,
