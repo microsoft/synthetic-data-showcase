@@ -8,7 +8,7 @@ use crate::{
         aggregator::{AggregatedData, ValueCombination},
         generator::synthesizers::{
             consolidate_parameters::ConsolidateParameters,
-            traits::{Consolidate, ConsolidateContext, Suppress, SynthesisData},
+            traits::{Consolidate, ConsolidateContext, SynthesisData},
             typedefs::{
                 AttributeCountMap, AvailableAttrsMap, NotAllowedAttrSet, SynthesizedRecord,
                 SynthesizedRecords, SynthesizedRecordsSlice,
@@ -35,8 +35,6 @@ pub struct AggregateSeededSynthesizer {
     single_attr_counts: AttributeCountMap,
     /// Percentage already completed on the consolidation step
     consolidate_percentage: f64,
-    /// Percentage already completed on the suppression step
-    suppress_percentage: f64,
 }
 
 impl AggregateSeededSynthesizer {
@@ -46,11 +44,14 @@ impl AggregateSeededSynthesizer {
     /// * `use_synthetic_counts` - Whether synthetic counts should be used to balance
     /// * `weight_selection_percentile` - Percentile used for the weight selection (default of 95 if none)
     /// the sampling process or not
+    /// * `target_number_of_records` - Total number of records to be synthesized.
+    /// If `None` sample from all available counts
     #[inline]
     pub fn new(
         aggregated_data: Arc<AggregatedData>,
         use_synthetic_counts: bool,
         weight_selection_percentile: Option<usize>,
+        target_number_of_records: Option<usize>,
     ) -> AggregateSeededSynthesizer {
         AggregateSeededSynthesizer {
             single_attr_counts: aggregated_data.calc_single_attribute_counts(),
@@ -60,10 +61,10 @@ impl AggregateSeededSynthesizer {
                 aggregated_data,
                 None,
                 None,
+                target_number_of_records,
                 use_synthetic_counts,
             ),
             consolidate_percentage: 0.0,
-            suppress_percentage: 0.0,
         }
     }
 
@@ -89,21 +90,14 @@ impl AggregateSeededSynthesizer {
             > 0
         {
             self.consolidate_percentage = 0.0;
-            self.suppress_percentage = 0.0;
 
             self.consolidate(
                 &mut synthesized_records,
                 progress_reporter,
                 self.consolidate_parameters.clone(),
             )?;
-            self.suppress(&mut synthesized_records, progress_reporter)?;
         }
         Ok(synthesized_records)
-    }
-
-    #[inline]
-    fn calc_overall_progress(&self) -> f64 {
-        self.consolidate_percentage * 0.7 + self.suppress_percentage * 0.3
     }
 
     #[inline]
@@ -280,28 +274,7 @@ impl Consolidate for AggregateSeededSynthesizer {
             .as_mut()
             .map(|r| {
                 self.consolidate_percentage = calc_percentage(n_processed as f64, total);
-                r.report(self.calc_overall_progress())
-            })
-            .unwrap_or_else(|| Ok(()))
-    }
-}
-
-impl Suppress for AggregateSeededSynthesizer {
-    #[inline]
-    fn update_suppress_progress<T>(
-        &mut self,
-        n_processed: usize,
-        total: f64,
-        progress_reporter: &mut Option<T>,
-    ) -> StoppableResult<()>
-    where
-        T: ReportProgress,
-    {
-        progress_reporter
-            .as_mut()
-            .map(|r| {
-                self.suppress_percentage = calc_percentage(n_processed as f64, total);
-                r.report(self.calc_overall_progress())
+                r.report(self.consolidate_percentage)
             })
             .unwrap_or_else(|| Ok(()))
     }

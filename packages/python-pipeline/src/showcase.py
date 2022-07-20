@@ -102,6 +102,10 @@ def runForConfig(config):
         'use_synthetic_counts', False)
     config['weight_selection_percentile'] = config.get(
         'weight_selection_percentile', None)
+    config['aggregate_seeded_counts_scale_factor'] = config.get(
+        'aggregate_seeded_counts_scale_factor', None)
+    config['aggregate_seeded_target_number_of_records'] = config.get(
+        'aggregate_seeded_target_number_of_records', None)
 
     # specified parameters affecting file I/O
     config['prefix'] = config.get('prefix', 'my')
