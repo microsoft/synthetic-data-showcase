@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import type { IInputNumberByLength } from 'sds-wasm'
+import type { IInputNumberByLength } from '@essex/sds-core'
 
 import { SynthesisMode } from '~workers/types'
 
@@ -22,6 +22,7 @@ export interface IRawSynthesisParameters {
 	oversamplingTries: number
 	aggregateSeededUseSyntheticCounts: UseSyntheticCounts
 	dpAggregateSeededUseSyntheticCounts: UseSyntheticCounts
+	weightSelectionPercentile: number
 	percentilePercentage: number
 	percentileEpsilonProportion: number
 	noiseEpsilon: number
@@ -42,11 +43,12 @@ export const defaultRawSynthesisParameters: IRawSynthesisParameters = {
 	oversamplingTries: 10,
 	aggregateSeededUseSyntheticCounts: UseSyntheticCounts.Yes,
 	dpAggregateSeededUseSyntheticCounts: UseSyntheticCounts.No,
+	weightSelectionPercentile: 95,
 	percentilePercentage: 99,
-	percentileEpsilonProportion: 0.1,
+	percentileEpsilonProportion: 0.01,
 	noiseEpsilon: 6.0,
 	deltaFactor: 2,
-	fabricationMode: FabricationMode.Balanced,
+	fabricationMode: FabricationMode.Uncontrolled,
 	threshold: {},
 	accuracyMode: AccuracyMode.PrioritizeLargeCounts,
 }

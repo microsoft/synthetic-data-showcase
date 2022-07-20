@@ -2,9 +2,9 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import type { IMultiValueColumns } from '@essex/sds-core'
 import { fromCSV, table } from 'arquero'
 import type ColumnTable from 'arquero/dist/types/table/column-table'
-import type { IMultiValueColumns } from 'sds-wasm'
 
 import type { ICsvContent, ICsvTableHeader } from '~models'
 

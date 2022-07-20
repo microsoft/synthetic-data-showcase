@@ -18,6 +18,7 @@ class Evaluator:
         self.sensitive_microdata_path = config['sensitive_microdata_path']
         self.sensitive_microdata_delimiter = config['sensitive_microdata_delimiter']
         self.synthetic_microdata_path = config['synthetic_microdata_path']
+        self.synthetic_aggregates_path = config['synthetic_aggregates_path']
         self.sensitive_zeros = config['sensitive_zeros']
         self.output_dir = config['output_dir']
         self.prefix = config['prefix']
@@ -91,6 +92,13 @@ class Evaluator:
         )
         self.syn_aggregated_data = self.syn_sds_processor.aggregate(
             self.reporting_length
+        )
+        self.syn_aggregated_data.write_aggregates_count(
+            self.synthetic_aggregates_path,
+            '\t',
+            ';',
+            self.reporting_resolution,
+            False
         )
 
     def _do_records_analysis(self):

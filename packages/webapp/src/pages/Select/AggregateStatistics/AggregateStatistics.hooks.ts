@@ -2,9 +2,12 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import type {
+	IAggregateStatistics,
+	IRecordsCountByStringKey,
+} from '@essex/sds-core'
 import type { Remote } from 'comlink'
 import { useCallback, useMemo } from 'react'
-import type { IAggregateStatistics, IRecordsCountByStringKey } from 'sds-wasm'
 
 import type { ICsvContent } from '~models'
 import { useSdsManagerInstance, useSensitiveContent } from '~states'

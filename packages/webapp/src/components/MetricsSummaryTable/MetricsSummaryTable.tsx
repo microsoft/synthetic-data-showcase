@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import type { IMicrodataStatistics } from '@essex/sds-core'
 import type { IColumn } from '@fluentui/react'
 import {
 	DetailsList,
@@ -10,7 +11,6 @@ import {
 	Stack,
 } from '@fluentui/react'
 import { memo } from 'react'
-import type { IMicrodataStatistics } from 'sds-wasm'
 
 import { InfoTooltip } from '~components/InfoTooltip'
 import type { AggregateType } from '~workers/types'

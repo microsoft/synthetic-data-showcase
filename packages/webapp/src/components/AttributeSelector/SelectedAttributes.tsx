@@ -2,16 +2,16 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import type {
+	HeaderNames,
+	IAttributesIntersection,
+	ISelectedAttributesByColumn,
+} from '@essex/sds-core'
 import type { IIconProps } from '@fluentui/react'
 import { CommandButton, Icon } from '@fluentui/react'
 import { FlexContainer } from '@sds/components'
 import _ from 'lodash'
 import { memo, useMemo } from 'react'
-import type {
-	HeaderNames,
-	IAttributesIntersection,
-	ISelectedAttributesByColumn,
-} from 'sds-wasm'
 import styled from 'styled-components'
 
 import { useSelectedAttributesByColumnEntries } from './hooks.js'
@@ -60,7 +60,7 @@ export const SelectedAttributes: React.FC<SelectedAttributesProps> = memo(
 							return (
 								<FlexContainer key={`${entry[0]}:${value}`} align="center">
 									<Divider>|</Divider>
-									<StyledCommandButton
+									<CommandButton
 										iconProps={deleteIcon}
 										text={`${headers[entry[0]]}:${value}`}
 										onClick={async () =>
@@ -81,8 +81,6 @@ export const SelectedAttributes: React.FC<SelectedAttributesProps> = memo(
 		)
 	},
 )
-
-const StyledCommandButton = styled(CommandButton)``
 
 const StyledIcon = styled(Icon)`
 	color: ${p => p.theme.palette.themePrimary};

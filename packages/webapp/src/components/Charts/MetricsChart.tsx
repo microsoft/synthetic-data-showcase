@@ -2,9 +2,9 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import type { IMetricByKey } from '@essex/sds-core'
 import { memo } from 'react'
 import { Chart } from 'react-chartjs-2'
-import type { IMetricByKey } from 'sds-wasm'
 
 export interface IMetricsChart {
 	label: string

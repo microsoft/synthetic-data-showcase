@@ -85,7 +85,7 @@ def runForConfig(config):
         'percentile_epsilon_proportion', None)
     config['sigma_proportions'] = config.get('sigma_proportions', None)
     config['noise_epsilon'] = config.get('noise_epsilon', None)
-    config['noise_delta'] = config.get('noise_delta', None)
+    config['delta_factor'] = config.get('delta_factor', 2.0)
     config['noise_threshold_type'] = config.get('noise_threshold_type', None)
     if config['noise_threshold_type'] != None:
         config['noise_threshold_type'] = config['noise_threshold_type'].lower()
@@ -100,6 +100,8 @@ def runForConfig(config):
     config['oversampling_tries'] = config.get('oversampling_tries', None)
     config['use_synthetic_counts'] = config.get(
         'use_synthetic_counts', False)
+    config['weight_selection_percentile'] = config.get(
+        'weight_selection_percentile', None)
 
     # specified parameters affecting file I/O
     config['prefix'] = config.get('prefix', 'my')
@@ -113,6 +115,9 @@ def runForConfig(config):
     config['reportable_aggregates_path'] = path.join(
         config['output_dir'],
         config['prefix'] + '_reportable_aggregates.tsv')
+    config['synthetic_aggregates_path'] = path.join(
+        config['output_dir'],
+        config['prefix'] + '_synthetic_aggregates.tsv')
     config['synthetic_microdata_path'] = path.join(
         config['output_dir'],
         config['prefix'] + '_synthetic_microdata.tsv')

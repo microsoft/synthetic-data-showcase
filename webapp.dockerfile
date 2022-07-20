@@ -1,5 +1,8 @@
+# Registry to pull images from
+ARG REGISTRY
+
 # --- compile wasm bindings from rust ---
-FROM rust:1.61 as wasm-builder
+FROM ${REGISTRY}rust:1.60 as wasm-builder
 
 # install wasm-pack to build wasm bindings
 RUN cargo install wasm-pack
@@ -12,7 +15,7 @@ COPY . .
 RUN cd packages/lib-wasm && wasm-pack build --release --target web --out-dir ../../target/wasm
 
 # --- compile application from typescript ---
-FROM node:16 as app-builder
+FROM ${REGISTRY}node:16 as app-builder
 
 WORKDIR /usr/src/sds
 
@@ -23,10 +26,13 @@ COPY --from=wasm-builder /usr/src/sds ./
 ENV VITE_SDS_WASM_LOG_LEVEL=warn
 
 # install dependencies and build
-RUN yarn install && yarn build
+RUN npm install replace -g 
+RUN replace "sds-wasm" "@essex/sds-core" ./target/wasm/package.json
+RUN yarn install
+RUN yarn build
 
 # --- statically serve built application with nginx ---
-FROM nginx:1.21
+FROM ${REGISTRY}nginx:1.21
 
 COPY --from=app-builder /usr/src/sds/packages/webapp/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/nginx.conf

@@ -2,12 +2,12 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { Label, Stack } from '@fluentui/react'
-import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import type {
 	IAttributesIntersection,
 	ISelectedAttributesByColumn,
-} from 'sds-wasm'
+} from '@essex/sds-core'
+import { Label, Stack } from '@fluentui/react'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 
 import { AttributeIntersectionValueChart } from '~components/Charts/AttributeIntersectionValueChart'
 import { useStopPropagation } from '~components/Charts/hooks'

@@ -2,8 +2,8 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import type { IMetricByKey } from '@essex/sds-core'
 import { useMemo } from 'react'
-import type { IMetricByKey } from 'sds-wasm'
 
 export function getMetricsByCountLabels(
 	metricsByKey?: IMetricByKey | null,

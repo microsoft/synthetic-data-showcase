@@ -2,8 +2,6 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import type { Remote } from 'comlink'
-import { expose, proxy } from 'comlink'
 import type {
 	HeaderNames,
 	IAggregateResult,
@@ -14,7 +12,9 @@ import type {
 	IGenerateResult,
 	INavigateResult,
 	ISelectedAttributesByColumn,
-} from 'sds-wasm'
+} from '@essex/sds-core'
+import type { Remote } from 'comlink'
+import { expose, proxy } from 'comlink'
 
 /* eslint-disable */
 import type { AggregateStatisticsGenerator } from './AggregateStatisticsGenerator'

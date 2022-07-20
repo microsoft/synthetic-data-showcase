@@ -173,6 +173,7 @@ impl WasmSdsContext {
         base_parameters: JsBaseSynthesisParameters,
         reporting_length: usize,
         use_synthetic_counts: bool,
+        weight_selection_percentile: Option<usize>,
         progress_callback: JsReportProgressCallback,
     ) -> JsResult<()> {
         let base_params = WasmBaseSynthesisParameters::try_from(base_parameters)?;
@@ -189,6 +190,7 @@ impl WasmSdsContext {
             &base_params,
             self.get_reportable_aggregate_result()?,
             use_synthetic_counts,
+            weight_selection_percentile,
             &mut Some(JsProgressReporter::new(&js_callback, &|p| 50.0 + 0.5 * p)),
         )?);
         self.pre_computed_aggregates = true;
@@ -197,6 +199,7 @@ impl WasmSdsContext {
     }
 
     #[wasm_bindgen(js_name = "generateDp")]
+    #[allow(clippy::too_many_arguments)]
     pub fn generate_dp(
         &mut self,
         base_parameters: JsBaseSynthesisParameters,
@@ -204,6 +207,7 @@ impl WasmSdsContext {
         dp_parameters: JsDpParameters,
         threshold: JsNoisyCountThreshold,
         use_synthetic_counts: bool,
+        weight_selection_percentile: Option<usize>,
         progress_callback: JsReportProgressCallback,
     ) -> JsResult<()> {
         let js_callback: Function = progress_callback.dyn_into()?;
@@ -223,6 +227,7 @@ impl WasmSdsContext {
             &WasmBaseSynthesisParameters::try_from(base_parameters)?,
             self.get_reportable_aggregate_result()?,
             use_synthetic_counts,
+            weight_selection_percentile,
             &mut Some(JsProgressReporter::new(&js_callback, &|p| 50.0 + 0.5 * p)),
         )?);
         self.pre_computed_aggregates = true;

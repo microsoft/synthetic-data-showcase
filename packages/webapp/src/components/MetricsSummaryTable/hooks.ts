@@ -2,8 +2,8 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
+import type { IMicrodataStatistics } from '@essex/sds-core'
 import { useMemo } from 'react'
-import type { IMicrodataStatistics } from 'sds-wasm'
 
 import { tooltips } from '~ui-tooltips'
 import { AggregateType } from '~workers/types'

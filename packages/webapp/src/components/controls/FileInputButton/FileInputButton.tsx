@@ -4,15 +4,15 @@
  */
 import type { IIconProps } from '@fluentui/react'
 import { ActionButton } from '@fluentui/react'
-import type { ChangeEvent, FC } from 'react'
+import type { ChangeEvent, FC, PropsWithChildren } from 'react'
 import { useRef } from 'react'
 
 const openFileIcon: IIconProps = { iconName: 'FabricOpenFolderHorizontal' }
 
-export interface FileInputButtonProps {
+export type FileInputButtonProps = PropsWithChildren<{
 	onChange: (e: ChangeEvent<HTMLInputElement>) => void
 	disabled?: boolean
-}
+}>
 
 export const FileInputButton: FC<FileInputButtonProps> = ({
 	onChange,

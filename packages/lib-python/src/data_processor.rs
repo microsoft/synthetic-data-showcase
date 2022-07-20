@@ -181,6 +181,7 @@ impl SDSProcessor {
         empty_value: &str,
         aggregated_data: AggregatedData,
         use_synthetic_counts: bool,
+        weight_selection_percentile: Option<usize>,
     ) -> StoppableResult<GeneratedData> {
         let mut progress_reporter = if log_enabled!(Debug) {
             Some(LoggerProgressReporter::new(Debug))
@@ -193,6 +194,7 @@ impl SDSProcessor {
             empty_value,
             Arc::new(aggregated_data),
             use_synthetic_counts,
+            weight_selection_percentile,
             &mut progress_reporter,
         )
     }
