@@ -39,58 +39,69 @@ impl DpAggregateSeededParametersBuilder {
     }
 
     #[inline]
-    pub fn reporting_length(&mut self, value: usize) {
-        self._reporting_length = value;
+    pub fn reporting_length(slf: Py<Self>, py: Python, value: usize) -> Py<Self> {
+        slf.borrow_mut(py)._reporting_length = value;
+        slf
     }
 
     #[inline]
-    pub fn epsilon(&mut self, value: f64) {
-        self._epsilon = value;
+    pub fn epsilon(slf: Py<Self>, py: Python, value: f64) -> Py<Self> {
+        slf.borrow_mut(py)._epsilon = value;
+        slf
     }
 
     #[inline]
-    pub fn delta(&mut self, value: f64) {
-        self._delta = Some(value);
+    pub fn delta(slf: Py<Self>, py: Python, value: f64) -> Py<Self> {
+        slf.borrow_mut(py)._delta = Some(value);
+        slf
     }
 
     #[inline]
-    pub fn percentile_percentage(&mut self, value: usize) {
-        self._percentile_percentage = value;
+    pub fn percentile_percentage(slf: Py<Self>, py: Python, value: usize) -> Py<Self> {
+        slf.borrow_mut(py)._percentile_percentage = value;
+        slf
     }
 
     #[inline]
-    pub fn percentile_epsilon_proportion(&mut self, value: f64) {
-        self._percentile_epsilon_proportion = value;
+    pub fn percentile_epsilon_proportion(slf: Py<Self>, py: Python, value: f64) -> Py<Self> {
+        slf.borrow_mut(py)._percentile_epsilon_proportion = value;
+        slf
     }
 
     #[inline]
-    pub fn accuracy_mode(&mut self, value: AccuracyMode) {
-        self._accuracy_mode = value;
+    pub fn accuracy_mode(slf: Py<Self>, py: Python, value: AccuracyMode) -> Py<Self> {
+        slf.borrow_mut(py)._accuracy_mode = value;
+        slf
     }
 
     #[inline]
-    pub fn number_of_records_epsilon(&mut self, value: f64) {
-        self._number_of_records_epsilon = value
+    pub fn number_of_records_epsilon(slf: Py<Self>, py: Python, value: f64) -> Py<Self> {
+        slf.borrow_mut(py)._number_of_records_epsilon = value;
+        slf
     }
 
     #[inline]
-    pub fn fabrication_mode(&mut self, value: FabricationMode) {
-        self._fabrication_mode = value;
+    pub fn fabrication_mode(slf: Py<Self>, py: Python, value: FabricationMode) -> Py<Self> {
+        slf.borrow_mut(py)._fabrication_mode = value;
+        slf
     }
 
     #[inline]
-    pub fn empty_value(&mut self, value: String) {
-        self._empty_value = value
+    pub fn empty_value(slf: Py<Self>, py: Python, value: String) -> Py<Self> {
+        slf.borrow_mut(py)._empty_value = value;
+        slf
     }
 
     #[inline]
-    pub fn weight_selection_percentile(&mut self, value: usize) {
-        self._weight_selection_percentile = value;
+    pub fn weight_selection_percentile(slf: Py<Self>, py: Python, value: usize) -> Py<Self> {
+        slf.borrow_mut(py)._weight_selection_percentile = value;
+        slf
     }
 
     #[inline]
-    pub fn aggregate_counts_scale_factor(&mut self, value: f64) {
-        self._aggregate_counts_scale_factor = Some(value);
+    pub fn aggregate_counts_scale_factor(slf: Py<Self>, py: Python, value: f64) -> Py<Self> {
+        slf.borrow_mut(py)._aggregate_counts_scale_factor = Some(value);
+        slf
     }
 
     pub fn validate(&self) -> PyResult<()> {
