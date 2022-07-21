@@ -1,5 +1,5 @@
 use super::{AccuracyMode, FabricationMode};
-use pyo3::prelude::*;
+use pyo3::{exceptions::PyValueError, prelude::*};
 use serde::Serialize;
 
 #[pyclass]
@@ -91,6 +91,55 @@ impl DpAggregateSeededParametersBuilder {
     #[inline]
     pub fn aggregate_counts_scale_factor(&mut self, value: f64) {
         self._aggregate_counts_scale_factor = Some(value);
+    }
+
+    pub fn validate(&self) -> PyResult<()> {
+        if self._epsilon <= 0.0 {
+            return Err(PyValueError::new_err("epsilon must be > 0"));
+        }
+
+        if let Some(delta) = self._delta {
+            if delta <= 0.0 {
+                return Err(PyValueError::new_err("delta must be > 0"));
+            }
+        }
+
+        if self._percentile_percentage > 100 {
+            return Err(PyValueError::new_err("percentile_percentage must be < 100"));
+        }
+
+        if self._percentile_epsilon_proportion <= 0.0 || self._percentile_epsilon_proportion >= 1.0
+        {
+            return Err(PyValueError::new_err(
+                "percentile_epsilon_proportion must be > 0 and < 1",
+            ));
+        }
+
+        self._accuracy_mode.validate(self._reporting_length)?;
+
+        if self._number_of_records_epsilon <= 0.0 {
+            return Err(PyValueError::new_err(
+                "number_of_records_epsilon must be > 0",
+            ));
+        }
+
+        self._fabrication_mode.validate(self._reporting_length)?;
+
+        if self._weight_selection_percentile > 100 {
+            return Err(PyValueError::new_err(
+                "weight_selection_percentile must be < 100",
+            ));
+        }
+
+        if let Some(aggregate_counts_scale_factor) = self._delta {
+            if aggregate_counts_scale_factor <= 0.0 {
+                return Err(PyValueError::new_err(
+                    "aggregate_counts_scale_factor must be > 0",
+                ));
+            }
+        }
+
+        Ok(())
     }
 
     fn __str__(&self) -> String {

@@ -1,4 +1,4 @@
-use pyo3::prelude::*;
+use pyo3::{exceptions::PyValueError, prelude::*};
 use sds_core::dp::{InputValueByLen, NoisyCountThreshold};
 use serde::Serialize;
 
@@ -55,6 +55,38 @@ impl FabricationMode {
     pub fn custom_adaptive(thresholds: InputValueByLen<f64>) -> Self {
         Self {
             mode: FabricationModeEnum::Custom(NoisyCountThreshold::Adaptive(thresholds)),
+        }
+    }
+
+    pub fn validate(&self, reporting_length: usize) -> PyResult<()> {
+        match &self.mode {
+            FabricationModeEnum::Custom(thresholds) => match thresholds {
+                NoisyCountThreshold::Fixed(values) => {
+                    if values.keys().any(|v| *v == 0 || *v > reporting_length) {
+                        return Err(PyValueError::new_err(
+                            "fixed threshold keys must be > 0 and <= reporting_length",
+                        ));
+                    }
+                    if values.values().any(|v| *v < 0.0) {
+                        return Err(PyValueError::new_err("fixed threshold values must be >= 0"));
+                    }
+                    Ok(())
+                }
+                NoisyCountThreshold::Adaptive(values) => {
+                    if values.keys().any(|v| *v == 0 || *v > reporting_length) {
+                        return Err(PyValueError::new_err(
+                            "adaptive threshold keys must be > 0 and <= reporting_length",
+                        ));
+                    }
+                    if values.values().any(|v| *v < 0.0 || *v > 1.0) {
+                        return Err(PyValueError::new_err(
+                            "adaptive threshold values must be >= 0 and <= 1",
+                        ));
+                    }
+                    Ok(())
+                }
+            },
+            _ => Ok(()),
         }
     }
 }
