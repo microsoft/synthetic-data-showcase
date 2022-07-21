@@ -57,10 +57,12 @@ impl FabricationMode {
             mode: FabricationModeEnum::Custom(NoisyCountThreshold::Adaptive(thresholds)),
         }
     }
+}
 
-    pub fn validate(&self, reporting_length: usize) -> PyResult<()> {
+impl FabricationMode {
+    pub(crate) fn validate(&self, reporting_length: usize) -> PyResult<()> {
         match &self.mode {
-            FabricationModeEnum::Custom(thresholds) => match thresholds {
+            FabricationModeEnum::Custom(threshold) => match threshold {
                 NoisyCountThreshold::Fixed(values) => {
                     if values.keys().any(|v| *v == 0 || *v > reporting_length) {
                         return Err(PyValueError::new_err(
@@ -87,6 +89,28 @@ impl FabricationMode {
                 }
             },
             _ => Ok(()),
+        }
+    }
+
+    pub(crate) fn extract_threshold(&self, reporting_length: usize) -> NoisyCountThreshold {
+        match &self.mode {
+            FabricationModeEnum::Uncontrolled => {
+                NoisyCountThreshold::Adaptive((2..=reporting_length).map(|i| (i, 1.0)).collect())
+            }
+            FabricationModeEnum::Balanced => {
+                NoisyCountThreshold::Adaptive(if reporting_length == 2 {
+                    [(2, 0.1)].iter().cloned().collect()
+                } else {
+                    let ratio = 0.9 / ((reporting_length - 2) as f64);
+                    (2..=reporting_length)
+                        .map(|i| (i, f64::min(1.0, 0.1 + ratio * ((i - 2) as f64))))
+                        .collect()
+                })
+            }
+            FabricationModeEnum::Minimize => {
+                NoisyCountThreshold::Adaptive((2..=reporting_length).map(|i| (i, 0.01)).collect())
+            }
+            FabricationModeEnum::Custom(threshold) => threshold.clone(),
         }
     }
 }
