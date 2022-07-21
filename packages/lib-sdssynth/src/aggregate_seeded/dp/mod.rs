@@ -11,14 +11,9 @@ pub use fabrication_mode::*;
 pub use parameters::*;
 
 pub(crate) fn register(py: Python<'_>, parent_module: &PyModule) -> PyResult<()> {
-    let child_module = PyModule::new(py, "dp")?;
-
-    accuracy_mode::register(py, child_module)?;
-    builder::register(py, child_module)?;
-    fabrication_mode::register(py, child_module)?;
-    parameters::register(py, child_module)?;
-
-    parent_module.add_submodule(child_module)?;
-
+    accuracy_mode::register(py, parent_module)?;
+    builder::register(py, parent_module)?;
+    fabrication_mode::register(py, parent_module)?;
+    parameters::register(py, parent_module)?;
     Ok(())
 }
