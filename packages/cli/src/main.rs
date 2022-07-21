@@ -82,6 +82,20 @@ enum Command {
             requires = "aggregates-json"
         )]
         weight_selection_percentile: Option<usize>,
+
+        #[structopt(
+            long = "aggregate-counts-scale-factor",
+            help = "multiplier for aggregate counts before synthesis (\"aggregate_seeded\" mode), if not provided, use raw counts",
+            requires = "aggregates-json"
+        )]
+        aggregate_counts_scale_factor: Option<f64>,
+
+        #[structopt(
+            long = "target-number-of-records",
+            help = "total number of records do be synthesized (\"aggregate_seeded\" mode), if not provided, sample from all available counts",
+            requires = "aggregates-json"
+        )]
+        target_number_of_records: Option<usize>,
     },
     Aggregate {
         #[structopt(long = "aggregates-path", help = "generated aggregates file path")]
@@ -272,6 +286,8 @@ fn main() {
                 oversampling_tries,
                 use_synthetic_counts,
                 weight_selection_percentile,
+                aggregate_counts_scale_factor,
+                target_number_of_records,
             } => {
                 let aggregated_data = aggregates_json.map(|json_path| {
                     match AggregatedData::read_from_json(&json_path) {
@@ -331,6 +347,8 @@ fn main() {
                         aggregated_data.unwrap(),
                         use_synthetic_counts,
                         weight_selection_percentile,
+                        aggregate_counts_scale_factor,
+                        target_number_of_records,
                         &mut progress_reporter,
                     ),
                     _ => {

@@ -318,6 +318,10 @@ impl WasmSdsProcessor {
                     aggregated_result.aggregated_data.clone(),
                     use_synthetic_counts,
                     weight_selection_percentile,
+                    // for now, the UI does not allow setting this
+                    None,
+                    // for now, the UI does not allow setting this
+                    None,
                     progress_reporter,
                 )
                 .map_err(|err| JsValue::from(err.to_string()))?,

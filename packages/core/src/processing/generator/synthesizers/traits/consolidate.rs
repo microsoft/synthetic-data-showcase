@@ -208,6 +208,73 @@ pub trait Consolidate: SynthesisData {
         synthesized_record
     }
 
+    #[inline]
+    fn consolidate_with_available_attributes<T>(
+        &mut self,
+        synthesized_records: &mut SynthesizedRecords,
+        parameters: ConsolidateParameters,
+        mut consolidate_context: ConsolidateContext,
+        progress_reporter: &mut Option<T>,
+    ) -> StoppableResult<()>
+    where
+        T: ReportProgress,
+    {
+        info!("consolidating based on available attributes...");
+
+        let total = consolidate_context.available_attrs.values().sum::<isize>();
+        let total_f64 = total as f64;
+        let mut n_processed = 0;
+
+        while !consolidate_context.available_attrs.is_empty() {
+            self.update_consolidate_progress(n_processed, total_f64, progress_reporter)?;
+            synthesized_records
+                .push(self.consolidate_record(&mut consolidate_context, &parameters));
+            n_processed =
+                (total - consolidate_context.available_attrs.values().sum::<isize>()) as usize;
+        }
+        self.update_consolidate_progress(n_processed, total_f64, progress_reporter)?;
+
+        Ok(())
+    }
+
+    #[inline]
+    fn consolidate_with_target_number_of_records<T>(
+        &mut self,
+        synthesized_records: &mut SynthesizedRecords,
+        parameters: ConsolidateParameters,
+        original_available_attrs: AvailableAttrsMap,
+        mut consolidate_context: ConsolidateContext,
+        progress_reporter: &mut Option<T>,
+    ) -> StoppableResult<()>
+    where
+        T: ReportProgress,
+    {
+        let total = parameters.target_number_of_records.unwrap();
+
+        info!("consolidating to match target record count of {}...", total);
+
+        let total_f64 = total as f64;
+        let mut n_processed = 0;
+
+        while n_processed < total {
+            // if there are no more attributes available, reset the counts
+            // to the original ones
+            if consolidate_context.available_attrs.is_empty() {
+                consolidate_context.available_attrs = original_available_attrs.clone();
+                // make sure to clean the synthetic counts as well
+                consolidate_context.synthetic_counts.clear();
+            }
+
+            self.update_consolidate_progress(n_processed, total_f64, progress_reporter)?;
+            synthesized_records
+                .push(self.consolidate_record(&mut consolidate_context, &parameters));
+            n_processed += 1;
+        }
+        self.update_consolidate_progress(n_processed, total_f64, progress_reporter)?;
+
+        Ok(())
+    }
+
     fn consolidate<T>(
         &mut self,
         synthesized_records: &mut SynthesizedRecords,
@@ -223,25 +290,28 @@ pub trait Consolidate: SynthesisData {
 
         let available_attrs = self.calc_available_attrs(synthesized_records);
         let current_seed: SynthesizerSeed = available_attrs.keys().cloned().collect();
-        let total = available_attrs.values().sum::<isize>();
-        let total_f64 = total as f64;
-        let mut n_processed = 0;
-        let mut consolidate_context = ConsolidateContext {
+        let consolidate_context = ConsolidateContext {
             current_seed,
             available_attrs,
             synthetic_counts: RawCombinationsCountMap::default(),
         };
 
-        while !consolidate_context.available_attrs.is_empty() {
-            self.update_consolidate_progress(n_processed, total_f64, progress_reporter)?;
-            synthesized_records
-                .push(self.consolidate_record(&mut consolidate_context, &parameters));
-            n_processed =
-                (total - consolidate_context.available_attrs.values().sum::<isize>()) as usize;
+        if parameters.target_number_of_records.is_none() {
+            self.consolidate_with_available_attributes(
+                synthesized_records,
+                parameters,
+                consolidate_context,
+                progress_reporter,
+            )
+        } else {
+            self.consolidate_with_target_number_of_records(
+                synthesized_records,
+                parameters,
+                consolidate_context.available_attrs.clone(),
+                consolidate_context,
+                progress_reporter,
+            )
         }
-        self.update_consolidate_progress(n_processed, total_f64, progress_reporter)?;
-
-        Ok(())
     }
 
     fn get_not_used_attrs(

@@ -189,36 +189,67 @@ impl Generator {
     /// the sampling process or not
     /// * `weight_selection_percentile` - Percentile used for the weight selection
     ///  (default of 95 if `None`)
+    /// * `aggregate_counts_scale_factor` - Multiplier for aggregate counts before synthesis.
+    /// If `None` use raw counts
+    /// * `target_number_of_records` - Total number of records to be synthesized.
+    /// If `None` sample from all available counts
     /// * `progress_reporter` - Will be used to report the processing
     /// progress (`ReportProgress` trait). If `None`, nothing will be reported
+    #[allow(clippy::too_many_arguments)]
     pub fn generate_aggregate_seeded<T>(
         &self,
         empty_value: &str,
         aggregated_data: Arc<AggregatedData>,
         use_synthetic_counts: bool,
         weight_selection_percentile: Option<usize>,
+        aggregate_counts_scale_factor: Option<f64>,
+        target_number_of_records: Option<usize>,
         progress_reporter: &mut Option<T>,
     ) -> StoppableResult<GeneratedData>
     where
         T: ReportProgress,
     {
         let _duration_logger = ElapsedDurationLogger::new("aggregate seeded generation");
+        let scaled_aggregated_data =
+            Self::scale_aggregates_if_necessary(aggregated_data, aggregate_counts_scale_factor);
 
         info!("starting aggregate seeded generation...");
 
         let empty_value_arc = Arc::new(empty_value.to_owned());
         let mut synth = AggregateSeededSynthesizer::new(
-            aggregated_data.clone(),
+            scaled_aggregated_data.clone(),
             use_synthetic_counts,
             weight_selection_percentile,
+            target_number_of_records,
         );
 
         Ok(self.build_generated_data(
-            &aggregated_data.headers,
-            aggregated_data.multi_value_column_metadata_map.clone(),
-            aggregated_data.number_of_records,
+            &scaled_aggregated_data.headers,
+            scaled_aggregated_data
+                .multi_value_column_metadata_map
+                .clone(),
+            scaled_aggregated_data.number_of_records,
             synth.run(progress_reporter)?,
             empty_value_arc,
         ))
+    }
+
+    #[inline]
+    fn scale_aggregates_if_necessary(
+        aggregated_data: Arc<AggregatedData>,
+        aggregate_counts_scale_factor: Option<f64>,
+    ) -> Arc<AggregatedData> {
+        if let Some(factor) = aggregate_counts_scale_factor {
+            let mut new_aggregated_data = (*aggregated_data).clone();
+
+            info!("scaling aggregate counts using factor of {}", factor);
+
+            for c in new_aggregated_data.aggregates_count.values_mut() {
+                c.count = ((c.count as f64) * factor).ceil() as usize;
+            }
+            Arc::new(new_aggregated_data)
+        } else {
+            aggregated_data
+        }
     }
 }
