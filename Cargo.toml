@@ -3,7 +3,8 @@ members = [
 	"packages/core",
 	"packages/cli",
 	"packages/lib-wasm",
-	"packages/lib-python"
+	"packages/lib-python",
+	"packages/lib-sdssynth"
 ]
 
 [profile.release]

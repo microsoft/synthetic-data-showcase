@@ -1,0 +1,20 @@
+[package]
+name = "sdssynth"
+version = "0.0.1"
+license = "MIT"
+description = "Synthetic Sata Showcase Synthesizers"
+repository = "https://github.com/microsoft/synthetic-data-showcase"
+edition = "2021"
+
+[lib]
+name = "sdssynth"
+crate-type = ["cdylib"]
+
+[dependencies]
+log = { version = "0.4", features = ["std"] }
+csv = { version = "1.1" }
+pyo3 = { version = "0.16", features = ["extension-module"] }
+sds-core = { path = "../core", features = ["pyo3", "rayon"] }
+serde = { version = "1.0", features = [ "derive", "rc" ] }
+serde_json = { version = "1.0" }
+env_logger = { version = "0.9" }
