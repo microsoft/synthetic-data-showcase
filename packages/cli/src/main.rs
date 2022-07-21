@@ -183,6 +183,13 @@ enum Command {
         sigma_proportions: Option<Vec<f64>>,
 
         #[structopt(
+            long = "number-of-records-epsilon",
+            help = "epsilon used to add noise to the protected number of records in the aggregated data (default is 0.1)",
+            requires = "dp"
+        )]
+        number_of_records_epsilon: Option<f64>,
+
+        #[structopt(
             long = "aggregates-json",
             help = "serialize aggregated data to json file (sensitive)"
         )]
@@ -382,6 +389,7 @@ fn main() {
                 noise_threshold_type,
                 noise_threshold_values,
                 sigma_proportions,
+                number_of_records_epsilon,
                 aggregates_json,
             } => {
                 let mut aggregator = Aggregator::new(data_block.clone());
@@ -412,6 +420,7 @@ fn main() {
                             sensitivities_percentile.unwrap(),
                             sensitivities_epsilon_proportion.unwrap(),
                             sigma_proportions,
+                            number_of_records_epsilon,
                         ),
                         threshold,
                         &mut progress_reporter,
@@ -441,8 +450,6 @@ fn main() {
                     &aggregates_path,
                     aggregates_delimiter.chars().next().unwrap(),
                     ";",
-                    cli.resolution,
-                    !not_protect || dp,
                 ) {
                     error!("error writing output file: {}", err);
                     process::exit(1);

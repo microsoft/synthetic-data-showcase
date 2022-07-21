@@ -32,6 +32,7 @@ import { AggregateType } from '~workers/types'
 async function generateAggregatesCsv(
 	manager: ISdsManagerInstance,
 	key: string,
+	path: string,
 ): Promise<FileWithPath[]> {
 	return [
 		new FileWithPath(
@@ -41,8 +42,8 @@ async function generateAggregatesCsv(
 					type: 'text/csv',
 				},
 			),
-			`${key}/${AggregateType.Sensitive}_aggregates.csv`,
-			`${key}/${AggregateType.Sensitive}_aggregates.csv`,
+			`${path}/${AggregateType.Sensitive}_aggregates.csv`,
+			`${path}/${AggregateType.Sensitive}_aggregates.csv`,
 		),
 		new FileWithPath(
 			new Blob(
@@ -51,8 +52,8 @@ async function generateAggregatesCsv(
 					type: 'text/csv',
 				},
 			),
-			`${key}/${AggregateType.Aggregated}_aggregates.csv`,
-			`${key}/${AggregateType.Aggregated}_aggregates.csv`,
+			`${path}/${AggregateType.Aggregated}_aggregates.csv`,
+			`${path}/${AggregateType.Aggregated}_aggregates.csv`,
 		),
 		new FileWithPath(
 			new Blob(
@@ -61,15 +62,15 @@ async function generateAggregatesCsv(
 					type: 'text/csv',
 				},
 			),
-			`${key}/${AggregateType.Synthetic}_aggregates.csv`,
-			`${key}/${AggregateType.Synthetic}_aggregates.csv`,
+			`${path}/${AggregateType.Synthetic}_aggregates.csv`,
+			`${path}/${AggregateType.Synthetic}_aggregates.csv`,
 		),
 	]
 }
 
 async function generateMetricsSummaryCsv(
 	evaluateResult: IEvaluateResult,
-	key: string,
+	path: string,
 ): Promise<FileWithPath[]> {
 	return [
 		new FileWithPath(
@@ -86,8 +87,8 @@ async function generateMetricsSummaryCsv(
 					type: 'text/csv',
 				},
 			),
-			`${key}/${AggregateType.Sensitive}_metrics_summary.csv`,
-			`${key}/${AggregateType.Sensitive}_metrics_summary.csv`,
+			`${path}/${AggregateType.Sensitive}_metrics_summary.csv`,
+			`${path}/${AggregateType.Sensitive}_metrics_summary.csv`,
 		),
 		new FileWithPath(
 			new Blob(
@@ -103,8 +104,8 @@ async function generateMetricsSummaryCsv(
 					type: 'text/csv',
 				},
 			),
-			`${key}/${AggregateType.Aggregated}_metrics_summary.csv`,
-			`${key}/${AggregateType.Aggregated}_metrics_summary.csv`,
+			`${path}/${AggregateType.Aggregated}_metrics_summary.csv`,
+			`${path}/${AggregateType.Aggregated}_metrics_summary.csv`,
 		),
 		new FileWithPath(
 			new Blob(
@@ -120,8 +121,8 @@ async function generateMetricsSummaryCsv(
 					type: 'text/csv',
 				},
 			),
-			`${key}/${AggregateType.Synthetic}_metrics_summary.csv`,
-			`${key}/${AggregateType.Synthetic}_metrics_summary.csv`,
+			`${path}/${AggregateType.Synthetic}_metrics_summary.csv`,
+			`${path}/${AggregateType.Synthetic}_metrics_summary.csv`,
 		),
 	]
 }
@@ -129,7 +130,7 @@ async function generateMetricsSummaryCsv(
 async function generateAnalysisByCountCsv(
 	evaluateResult: IEvaluateResult,
 	countLabels: number[],
-	key: string,
+	path: string,
 ): Promise<FileWithPath[]> {
 	return [
 		new FileWithPath(
@@ -139,8 +140,8 @@ async function generateAnalysisByCountCsv(
 					type: 'text/csv',
 				},
 			),
-			`${key}/${AggregateType.Sensitive}_analysis_by_count.csv`,
-			`${key}/${AggregateType.Sensitive}_analysis_by_count.csv`,
+			`${path}/${AggregateType.Sensitive}_analysis_by_count.csv`,
+			`${path}/${AggregateType.Sensitive}_analysis_by_count.csv`,
 		),
 		new FileWithPath(
 			new Blob(
@@ -154,8 +155,8 @@ async function generateAnalysisByCountCsv(
 					type: 'text/csv',
 				},
 			),
-			`${key}/${AggregateType.Aggregated}_analysis_by_count.csv`,
-			`${key}/${AggregateType.Aggregated}_analysis_by_count.csv`,
+			`${path}/${AggregateType.Aggregated}_analysis_by_count.csv`,
+			`${path}/${AggregateType.Aggregated}_analysis_by_count.csv`,
 		),
 		new FileWithPath(
 			new Blob(
@@ -164,8 +165,8 @@ async function generateAnalysisByCountCsv(
 					type: 'text/csv',
 				},
 			),
-			`${key}/${AggregateType.Synthetic}_analysis_by_count.csv`,
-			`${key}/${AggregateType.Synthetic}_analysis_by_count.csv`,
+			`${path}/${AggregateType.Synthetic}_analysis_by_count.csv`,
+			`${path}/${AggregateType.Synthetic}_analysis_by_count.csv`,
 		),
 	]
 }
@@ -173,7 +174,7 @@ async function generateAnalysisByCountCsv(
 async function generateAnalysisByLenCsv(
 	evaluateResult: IEvaluateResult,
 	lenLabels: number[],
-	key: string,
+	path: string,
 ): Promise<FileWithPath[]> {
 	return [
 		new FileWithPath(
@@ -183,8 +184,8 @@ async function generateAnalysisByLenCsv(
 					type: 'text/csv',
 				},
 			),
-			`${key}/${AggregateType.Sensitive}_analysis_by_length.csv`,
-			`${key}/${AggregateType.Sensitive}_analysis_by_length.csv`,
+			`${path}/${AggregateType.Sensitive}_analysis_by_length.csv`,
+			`${path}/${AggregateType.Sensitive}_analysis_by_length.csv`,
 		),
 		new FileWithPath(
 			new Blob(
@@ -193,8 +194,8 @@ async function generateAnalysisByLenCsv(
 					type: 'text/csv',
 				},
 			),
-			`${key}/${AggregateType.Aggregated}_analysis_by_length.csv`,
-			`${key}/${AggregateType.Aggregated}_analysis_by_length.csv`,
+			`${path}/${AggregateType.Aggregated}_analysis_by_length.csv`,
+			`${path}/${AggregateType.Aggregated}_analysis_by_length.csv`,
 		),
 		new FileWithPath(
 			new Blob(
@@ -203,8 +204,8 @@ async function generateAnalysisByLenCsv(
 					type: 'text/csv',
 				},
 			),
-			`${key}/${AggregateType.Synthetic}_analysis_by_length.csv`,
-			`${key}/${AggregateType.Synthetic}_analysis_by_length.csv`,
+			`${path}/${AggregateType.Synthetic}_analysis_by_length.csv`,
+			`${path}/${AggregateType.Synthetic}_analysis_by_length.csv`,
 		),
 	]
 }
@@ -232,7 +233,10 @@ export function useOnGetAllAssetsDownloadInfo(
 			),
 		)
 
+		let synthesisIndex = 1
+
 		for (const s of allSynthesisInfo) {
+			const path = `Synthesis - ${synthesisIndex}`
 			const syntheticContent = await getSyntheticCsvContent(s, false)
 			const evaluateResult = await manager?.instance.getEvaluateResult(s.key)
 			const countLabels = getMetricsByCountLabels(
@@ -240,28 +244,41 @@ export function useOnGetAllAssetsDownloadInfo(
 			)
 			const lenLabels = getMetricsByLenLabels(evaluateResult?.reportingLength)
 
+			// TODO: maybe dump this as a JSON file
+			await collection.add(
+				new FileWithPath(
+					new Blob([s.key], {
+						type: 'text/plain',
+					}),
+					`${path}/synthesis_info.txt`,
+					`${path}/synthesis_info.txt`,
+				),
+			)
+
 			await collection.add(
 				new FileWithPath(
 					new Blob([syntheticContent.table.toCSV({ delimiter })], {
 						type: 'text/csv',
 					}),
-					`${s.key}/synthetic_data.csv`,
-					`${s.key}/synthetic_data.csv`,
+					`${path}/synthetic_data.csv`,
+					`${path}/synthetic_data.csv`,
 				),
 			)
 
 			if (evaluateResult && manager) {
 				await collection.add([
-					...(await generateAggregatesCsv(manager, s.key)),
-					...(await generateMetricsSummaryCsv(evaluateResult, s.key)),
+					...(await generateAggregatesCsv(manager, s.key, path)),
+					...(await generateMetricsSummaryCsv(evaluateResult, path)),
 					...(await generateAnalysisByCountCsv(
 						evaluateResult,
 						countLabels,
-						s.key,
+						path,
 					)),
-					...(await generateAnalysisByLenCsv(evaluateResult, lenLabels, s.key)),
+					...(await generateAnalysisByLenCsv(evaluateResult, lenLabels, path)),
 				])
 			}
+
+			synthesisIndex++
 		}
 
 		await collection.toZip(alias)

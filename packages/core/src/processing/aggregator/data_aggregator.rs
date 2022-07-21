@@ -73,6 +73,7 @@ impl Aggregator {
                 self.data_block.headers.clone(),
                 self.data_block.multi_value_column_metadata_map.clone(),
                 self.data_block.number_of_records(),
+                None,
                 result.aggregates_count,
                 result.records_sensitivity_by_len,
                 normalized_reporting_length,

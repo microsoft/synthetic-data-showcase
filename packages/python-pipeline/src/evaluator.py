@@ -97,8 +97,6 @@ class Evaluator:
             self.synthetic_aggregates_path,
             '\t',
             ';',
-            self.reporting_resolution,
-            False
         )
 
     def _do_records_analysis(self):
