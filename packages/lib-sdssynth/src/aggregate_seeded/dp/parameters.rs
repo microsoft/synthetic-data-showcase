@@ -10,7 +10,7 @@ pub struct DpAggregateSeededParameters {
     pub(crate) delta: Option<f64>,
     pub(crate) percentile_percentage: usize,
     pub(crate) percentile_epsilon_proportion: f64,
-    pub(crate) sigma_proportions: Option<Vec<f64>>,
+    pub(crate) sigma_proportions: Vec<f64>,
     pub(crate) number_of_records_epsilon: f64,
     pub(crate) threshold: NoisyCountThreshold,
     pub(crate) empty_value: String,

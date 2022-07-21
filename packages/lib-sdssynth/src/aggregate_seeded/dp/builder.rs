@@ -1,4 +1,4 @@
-use super::{AccuracyMode, FabricationMode};
+use super::{AccuracyMode, DpAggregateSeededParameters, FabricationMode};
 use pyo3::{exceptions::PyValueError, prelude::*};
 use serde::Serialize;
 
@@ -151,6 +151,27 @@ impl DpAggregateSeededParametersBuilder {
         }
 
         Ok(())
+    }
+
+    pub fn build(&self) -> PyResult<DpAggregateSeededParameters> {
+        self.validate()?;
+        Ok(DpAggregateSeededParameters {
+            reporting_length: self._reporting_length,
+            epsilon: self._epsilon,
+            delta: self._delta,
+            percentile_percentage: self._percentile_percentage,
+            percentile_epsilon_proportion: self._percentile_epsilon_proportion,
+            sigma_proportions: self
+                ._accuracy_mode
+                .extract_sigma_proportions(self._reporting_length),
+            number_of_records_epsilon: self._number_of_records_epsilon,
+            threshold: self
+                ._fabrication_mode
+                .extract_threshold(self._reporting_length),
+            empty_value: self._empty_value.clone(),
+            weight_selection_percentile: self._weight_selection_percentile,
+            aggregate_counts_scale_factor: self._aggregate_counts_scale_factor,
+        })
     }
 
     fn __str__(&self) -> String {
