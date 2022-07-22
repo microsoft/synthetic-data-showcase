@@ -1,23 +1,24 @@
 use super::{DpAggregateSeededParameters, DpAggregateSeededParametersBuilder};
-use log::{log_enabled, Level::Debug};
 use pyo3::{exceptions::PyRuntimeError, prelude::*};
 use sds_core::{
     data_block::DataBlock,
     dp::DpParameters,
     processing::{
-        aggregator::{AggregatedData, Aggregator},
+        aggregator::{AggregatedData, AggregatesCountStringMap, Aggregator},
         generator::Generator,
     },
-    utils::reporting::LoggerProgressReporter,
 };
 use std::sync::Arc;
 
-use crate::dataset::{Dataset, DatasetRawData};
+use crate::{
+    dataset::{Dataset, DatasetRawData},
+    utils::create_progress_reporter,
+};
 
 #[pyclass]
 pub struct DpAggregatedSeededSynthesizer {
-    parameters: DpAggregateSeededParameters,
-    aggregated_data: Option<Arc<AggregatedData>>,
+    _parameters: DpAggregateSeededParameters,
+    _aggregated_data: Option<Arc<AggregatedData>>,
 }
 
 #[pymethods]
@@ -26,29 +27,35 @@ impl DpAggregatedSeededSynthesizer {
     #[new]
     pub fn new(parameters: Option<DpAggregateSeededParameters>) -> PyResult<Self> {
         Ok(Self {
-            parameters: if let Some(params) = parameters {
+            _parameters: if let Some(params) = parameters {
                 params
             } else {
                 DpAggregateSeededParametersBuilder::default().build()?
             },
-            aggregated_data: None,
+            _aggregated_data: None,
         })
     }
 
+    #[inline]
+    #[getter]
+    pub fn parameters(&self) -> DpAggregateSeededParameters {
+        self._parameters.clone()
+    }
+
     pub fn fit(&mut self, dataset: &Dataset) -> PyResult<()> {
-        self.aggregated_data = Some(Arc::new(
+        self._aggregated_data = Some(Arc::new(
             Aggregator::new(dataset.data_block.clone()).aggregate_with_dp(
-                self.parameters.reporting_length,
+                self._parameters.reporting_length,
                 &DpParameters::new(
-                    self.parameters.epsilon,
+                    self._parameters.epsilon,
                     self.delta_value_or_default(&dataset.data_block),
-                    self.parameters.percentile_percentage,
-                    self.parameters.percentile_epsilon_proportion,
-                    Some(self.parameters.sigma_proportions.clone()),
-                    Some(self.parameters.number_of_records_epsilon),
+                    self._parameters.percentile_percentage,
+                    self._parameters.percentile_epsilon_proportion,
+                    Some(self._parameters.sigma_proportions.clone()),
+                    Some(self._parameters.number_of_records_epsilon),
                 ),
-                self.parameters.threshold.clone(),
-                &mut Self::create_progress_reporter(),
+                self._parameters.threshold.clone(),
+                &mut create_progress_reporter(),
             )?,
         ));
 
@@ -62,15 +69,15 @@ impl DpAggregatedSeededSynthesizer {
     ) -> PyResult<DatasetRawData> {
         let generator = Generator::default();
 
-        if let Some(aggregated_data) = &self.aggregated_data {
+        if let Some(aggregated_data) = &self._aggregated_data {
             let generated_data = generator.generate_aggregate_seeded(
-                &self.parameters.empty_value,
+                &self._parameters.empty_value,
                 aggregated_data.clone(),
-                self.parameters.use_synthetic_counts,
-                Some(self.parameters.weight_selection_percentile),
-                self.parameters.aggregate_counts_scale_factor,
+                self._parameters.use_synthetic_counts,
+                Some(self._parameters.weight_selection_percentile),
+                self._parameters.aggregate_counts_scale_factor,
                 target_number_of_records,
-                &mut Self::create_progress_reporter(),
+                &mut create_progress_reporter(),
             )?;
             Ok(generated_data.synthetic_data_to_vec(join_multi_value_columns.unwrap_or(false)))
         } else {
@@ -79,6 +86,18 @@ impl DpAggregatedSeededSynthesizer {
             ))
         }
     }
+
+    pub fn get_dp_aggregates(
+        &self,
+        combination_delimiter: &str,
+    ) -> PyResult<AggregatesCountStringMap> {
+        self._aggregated_data
+            .as_ref()
+            .map(|ad| ad.aggregates_count_as_str(combination_delimiter))
+            .ok_or_else(|| {
+                PyRuntimeError::new_err("make sure 'fit' method has been successfully called first")
+            })
+    }
 }
 
 impl DpAggregatedSeededSynthesizer {
@@ -86,20 +105,11 @@ impl DpAggregatedSeededSynthesizer {
     fn delta_value_or_default(&self, data_block: &DataBlock) -> f64 {
         let number_of_records = data_block.number_of_records();
 
-        self.parameters.delta.unwrap_or(if number_of_records > 0 {
+        self._parameters.delta.unwrap_or(if number_of_records > 0 {
             1.0 / (2.0 * (number_of_records as f64))
         } else {
             0.0
         })
-    }
-
-    #[inline]
-    fn create_progress_reporter() -> Option<LoggerProgressReporter> {
-        if log_enabled!(Debug) {
-            Some(LoggerProgressReporter::new(Debug))
-        } else {
-            None
-        }
     }
 }
 
