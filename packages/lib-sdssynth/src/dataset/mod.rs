@@ -1,5 +1,5 @@
 use self::dataset_data_block_creator::DatasetDataBlockCreator;
-use pyo3::prelude::*;
+use pyo3::{exceptions::PyValueError, prelude::*, types::IntoPyDict};
 use sds_core::{
     data_block::{DataBlock, DataBlockCreator},
     processing::aggregator::{AggregatesCountStringMap, Aggregator},
@@ -38,6 +38,66 @@ impl Dataset {
                 &sensitive_zeros.unwrap_or_default(),
                 record_limit.unwrap_or_default(),
             )?,
+        })
+    }
+
+    #[staticmethod]
+    pub fn from_data_frame(
+        df: PyObject,
+        py: Python,
+        subject_id: Option<String>,
+        use_columns: Option<Vec<String>>,
+        multi_value_columns: Option<HashMap<String, String>>,
+        sensitive_zeros: Option<Vec<String>>,
+        record_limit: Option<usize>,
+    ) -> PyResult<Self> {
+        Self::new(
+            Self::data_frame_to_raw_data(df, py)?,
+            subject_id,
+            use_columns,
+            multi_value_columns,
+            sensitive_zeros,
+            record_limit,
+        )
+    }
+
+    #[staticmethod]
+    pub fn data_frame_to_raw_data(df: PyObject, py: Python) -> PyResult<DatasetRawData> {
+        let df_as_str =
+            df.call_method1(py, "fillna", ("",))?
+                .call_method1(py, "astype", ("str",))?;
+        let mut raw_data: DatasetRawData = vec![df_as_str
+            .getattr(py, "columns")?
+            .call_method0(py, "tolist")?
+            .extract(py)?];
+
+        raw_data.append(
+            &mut df_as_str
+                .getattr(py, "values")?
+                .call_method0(py, "tolist")?
+                .extract(py)?,
+        );
+
+        Ok(raw_data)
+    }
+
+    #[staticmethod]
+    pub fn raw_data_to_data_frame(mut raw_data: DatasetRawData) -> PyResult<PyObject> {
+        if raw_data.is_empty() {
+            return Err(PyValueError::new_err("dataset missing headers"));
+        }
+
+        Python::with_gil(|py| {
+            let pandas = PyModule::import(py, "pandas")?;
+            let headers = raw_data[0].clone();
+
+            pandas
+                .getattr("DataFrame")?
+                .call(
+                    (raw_data.drain(1..).collect::<Vec<Vec<String>>>(),),
+                    Some([("columns", headers)].into_py_dict(py)),
+                )?
+                .extract()
         })
     }
 
