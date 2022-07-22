@@ -203,4 +203,24 @@ impl GeneratedData {
 
         Ok(String::from_utf8_lossy(&csv_data).to_string())
     }
+
+    /// Clones the raw synthetic data to a `Vec<Vec<String>>`,
+    /// where the first entry are the headers
+    /// # Arguments
+    /// * `join_multi_value_columns` - Whether multi value columns should be joined back together or not
+    pub fn synthetic_data_to_vec(&self, join_multi_value_columns: bool) -> Vec<Vec<String>> {
+        let mut synthetic_data = if join_multi_value_columns {
+            RawDataMultiValueColumnJoiner::new(
+                &self.synthetic_data,
+                &self.multi_value_column_metadata_map,
+            )
+            .join()
+        } else {
+            self.synthetic_data.clone()
+        };
+        synthetic_data
+            .drain(..)
+            .map(|mut record| record.drain(..).map(|value| (*value).clone()).collect())
+            .collect()
+    }
 }
