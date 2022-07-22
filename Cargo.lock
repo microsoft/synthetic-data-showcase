@@ -797,8 +797,6 @@ dependencies = [
 name = "sdssynth"
 version = "0.0.1"
 dependencies = [
- "csv",
- "env_logger",
  "log",
  "pyo3",
  "sds-core",

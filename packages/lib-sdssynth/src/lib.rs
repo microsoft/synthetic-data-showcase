@@ -1,10 +1,13 @@
 use pyo3::prelude::*;
 
-pub mod aggregate_seeded;
+mod aggregate_seeded;
+mod dataset;
+mod utils;
 
 #[pymodule]
 fn sdssynth(py: Python, m: &PyModule) -> PyResult<()> {
-    env_logger::init();
     aggregate_seeded::register(py, m)?;
+    dataset::register(py, m)?;
+    utils::register(py, m)?;
     Ok(())
 }
