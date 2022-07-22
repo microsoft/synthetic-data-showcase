@@ -14,6 +14,7 @@ pub struct DpAggregateSeededParametersBuilder {
     _number_of_records_epsilon: f64,
     _fabrication_mode: FabricationMode,
     _empty_value: String,
+    _use_synthetic_counts: bool,
     _weight_selection_percentile: usize,
     _aggregate_counts_scale_factor: Option<f64>,
 }
@@ -33,6 +34,7 @@ impl DpAggregateSeededParametersBuilder {
             _number_of_records_epsilon: 0.1,
             _fabrication_mode: FabricationMode::uncontrolled(),
             _empty_value: "".to_owned(),
+            _use_synthetic_counts: false,
             _weight_selection_percentile: 95,
             _aggregate_counts_scale_factor: None,
         }
@@ -89,6 +91,12 @@ impl DpAggregateSeededParametersBuilder {
     #[inline]
     pub fn empty_value(slf: Py<Self>, py: Python, value: String) -> Py<Self> {
         slf.borrow_mut(py)._empty_value = value;
+        slf
+    }
+
+    #[inline]
+    pub fn use_synthetic_counts(slf: Py<Self>, py: Python, value: bool) -> Py<Self> {
+        slf.borrow_mut(py)._use_synthetic_counts = value;
         slf
     }
 
@@ -169,6 +177,7 @@ impl DpAggregateSeededParametersBuilder {
                 ._fabrication_mode
                 .extract_threshold(self._reporting_length),
             empty_value: self._empty_value.clone(),
+            use_synthetic_counts: self._use_synthetic_counts,
             weight_selection_percentile: self._weight_selection_percentile,
             aggregate_counts_scale_factor: self._aggregate_counts_scale_factor,
         })

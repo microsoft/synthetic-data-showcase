@@ -3,7 +3,7 @@ use sds_core::dp::NoisyCountThreshold;
 use serde::Serialize;
 
 #[pyclass]
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub struct DpAggregateSeededParameters {
     pub(crate) reporting_length: usize,
     pub(crate) epsilon: f64,
@@ -14,6 +14,7 @@ pub struct DpAggregateSeededParameters {
     pub(crate) number_of_records_epsilon: f64,
     pub(crate) threshold: NoisyCountThreshold,
     pub(crate) empty_value: String,
+    pub(crate) use_synthetic_counts: bool,
     pub(crate) weight_selection_percentile: usize,
     pub(crate) aggregate_counts_scale_factor: Option<f64>,
 }
