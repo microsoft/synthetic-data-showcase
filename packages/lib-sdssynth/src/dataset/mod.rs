@@ -1,7 +1,12 @@
 use self::dataset_data_block_creator::DatasetDataBlockCreator;
 use pyo3::prelude::*;
-use sds_core::data_block::{DataBlock, DataBlockCreator};
+use sds_core::{
+    data_block::{DataBlock, DataBlockCreator},
+    processing::aggregator::{AggregatesCountStringMap, Aggregator},
+};
 use std::{collections::HashMap, sync::Arc};
+
+use crate::utils::create_progress_reporter;
 
 mod dataset_data_block_creator;
 
@@ -34,6 +39,16 @@ impl Dataset {
                 record_limit.unwrap_or_default(),
             )?,
         })
+    }
+
+    pub fn get_aggregates(
+        &self,
+        reporting_length: usize,
+        combination_delimiter: &str,
+    ) -> PyResult<AggregatesCountStringMap> {
+        Ok(Aggregator::new(self.data_block.clone())
+            .aggregate(reporting_length, &mut create_progress_reporter())
+            .map(|ad| ad.aggregates_count_as_str(combination_delimiter))?)
     }
 }
 
