@@ -179,7 +179,7 @@ impl AggregatedData {
             format!("selections{}{}\n", aggregates_delimiter, n_records_label).as_bytes(),
         )?;
         writer
-            .write_all(format!("selections{}{}\n", aggregates_delimiter, n_records).as_bytes())?;
+            .write_all(format!("record_count{}{}\n", aggregates_delimiter, n_records).as_bytes())?;
 
         for aggregate in self.aggregates_count.keys() {
             writer.write_all(
