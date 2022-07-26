@@ -53,7 +53,7 @@ _aggregates.tsv_
 
 ```tsv
 selections	protected_count
-selections	10
+record_count	10
 B:b2;D:d2	4
 A:a1;B:b1;C:c1	2
 A:a1	4
