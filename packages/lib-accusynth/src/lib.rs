@@ -5,7 +5,7 @@ mod dataset;
 mod utils;
 
 #[pymodule]
-fn sdssynth(py: Python, m: &PyModule) -> PyResult<()> {
+fn accusynth(py: Python, m: &PyModule) -> PyResult<()> {
     aggregate_seeded::register(py, m)?;
     dataset::register(py, m)?;
     utils::register(py, m)?;

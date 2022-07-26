@@ -1,5 +1,5 @@
 [package]
-name = "sdssynth"
+name = "accu-synth"
 version = "0.0.1"
 license = "MIT"
 description = "Synthetic Sata Showcase Synthesizers"
@@ -7,7 +7,7 @@ repository = "https://github.com/microsoft/synthetic-data-showcase"
 edition = "2021"
 
 [lib]
-name = "sdssynth"
+name = "accusynth"
 crate-type = ["cdylib"]
 
 [dependencies]

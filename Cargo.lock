@@ -3,6 +3,17 @@
 version = 3
 
 [[package]]
+name = "accu-synth"
+version = "0.0.1"
+dependencies = [
+ "log",
+ "pyo3",
+ "sds-core",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "ahash"
 version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -791,17 +802,6 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-test",
  "web-sys",
-]
-
-[[package]]
-name = "sdssynth"
-version = "0.0.1"
-dependencies = [
- "log",
- "pyo3",
- "sds-core",
- "serde",
- "serde_json",
 ]
 
 [[package]]
