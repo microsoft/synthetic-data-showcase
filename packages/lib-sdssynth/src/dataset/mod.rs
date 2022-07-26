@@ -101,6 +101,27 @@ impl Dataset {
         })
     }
 
+    pub fn to_raw_data(
+        &self,
+        empty_value: Option<String>,
+        join_multi_value_columns: Option<bool>,
+    ) -> DatasetRawData {
+        self.data_block.to_raw_data_vec(
+            &empty_value
+                .map(Arc::new)
+                .unwrap_or_else(|| Arc::new("".to_owned())),
+            join_multi_value_columns.unwrap_or(false),
+        )
+    }
+
+    pub fn to_data_frame(
+        &self,
+        empty_value: Option<String>,
+        join_multi_value_columns: Option<bool>,
+    ) -> PyResult<PyObject> {
+        Self::raw_data_to_data_frame(self.to_raw_data(empty_value, join_multi_value_columns))
+    }
+
     pub fn get_aggregates(
         &self,
         reporting_length: usize,

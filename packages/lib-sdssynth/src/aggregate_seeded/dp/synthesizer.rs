@@ -79,7 +79,10 @@ impl DpAggregatedSeededSynthesizer {
                 target_number_of_records,
                 &mut create_progress_reporter(),
             )?;
-            Ok(generated_data.synthetic_data_to_vec(join_multi_value_columns.unwrap_or(false)))
+            Ok(generated_data.synthetic_data_to_vec(
+                &self._parameters.empty_value,
+                join_multi_value_columns.unwrap_or(false),
+            ))
         } else {
             Err(PyRuntimeError::new_err(
                 "make sure 'fit' method has been successfully called first",

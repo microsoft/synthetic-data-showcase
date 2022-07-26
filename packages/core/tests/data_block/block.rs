@@ -256,3 +256,97 @@ fn validate_normalize_reporting_length() {
     assert_eq!(db.normalize_reporting_length(10), 4);
     assert_eq!(db.normalize_reporting_length(2), 2);
 }
+
+#[test]
+fn validate_to_raw_data_vec() {
+    let db = read_test_data_block(
+        TEST_FILE_PATH,
+        DELIMITER,
+        None,
+        &[],
+        &HashMap::default(),
+        &[],
+        0,
+    );
+    let raw_data = db.to_raw_data_vec(&Arc::new("".to_owned()), false);
+
+    assert_eq!(
+        raw_data,
+        vec![
+            vec![
+                "A".to_owned(),
+                "B".to_owned(),
+                "C".to_owned(),
+                "D".to_owned()
+            ],
+            vec![
+                "a1".to_owned(),
+                "b1".to_owned(),
+                "c1".to_owned(),
+                "d1".to_owned()
+            ],
+            vec![
+                "a2".to_owned(),
+                "b2".to_owned(),
+                "".to_owned(),
+                "d2".to_owned()
+            ],
+            vec![
+                "a1".to_owned(),
+                "b2".to_owned(),
+                "".to_owned(),
+                "d3".to_owned()
+            ],
+        ]
+    );
+}
+
+#[test]
+fn validate_to_raw_data_vec_with_multi_value_columns() {
+    let db = read_test_data_block(
+        TEST_FILE_PATH,
+        DELIMITER,
+        None,
+        &[],
+        &[
+            ("C".to_owned(), ";".to_owned()),
+            ("D".to_owned(), "|".to_owned()),
+        ]
+        .iter()
+        .cloned()
+        .collect(),
+        &[],
+        0,
+    );
+    let raw_data = db.to_raw_data_vec(&Arc::new("empty".to_owned()), true);
+
+    assert_eq!(
+        raw_data,
+        vec![
+            vec![
+                "A".to_owned(),
+                "B".to_owned(),
+                "C".to_owned(),
+                "D".to_owned()
+            ],
+            vec![
+                "a1".to_owned(),
+                "b1".to_owned(),
+                "c1".to_owned(),
+                "d1".to_owned()
+            ],
+            vec![
+                "a2".to_owned(),
+                "b2".to_owned(),
+                "empty".to_owned(),
+                "d2".to_owned()
+            ],
+            vec![
+                "a1".to_owned(),
+                "b2".to_owned(),
+                "empty".to_owned(),
+                "d3".to_owned()
+            ],
+        ]
+    );
+}

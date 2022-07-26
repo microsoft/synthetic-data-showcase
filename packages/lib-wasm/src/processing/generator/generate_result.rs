@@ -51,7 +51,7 @@ impl WasmGenerateResult {
         long_form: bool,
     ) -> JsResult<String> {
         self.generated_data
-            .synthetic_data_to_string(delimiter, join_multi_value_columns, long_form)
+            .synthetic_data_to_string(delimiter, "", join_multi_value_columns, long_form)
             .map_err(|err| JsValue::from(err.to_string()))
     }
 
