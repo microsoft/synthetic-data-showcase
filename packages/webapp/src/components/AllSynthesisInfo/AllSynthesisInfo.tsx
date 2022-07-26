@@ -21,13 +21,14 @@ export const AllSynthesisInfo: React.FC<AllSynthesisInfoProps> = memo(
 		onDelete,
 	}) {
 		const columns = useSynthesisInfoColumns(onDelete)
-		const selection = useSynthesisInfoSelection(allSynthesisInfo, onSelected)
+		const selection = useSynthesisInfoSelection(onSelected)
 
 		useEffect(() => {
 			if (selectedSynthesisInfo) {
+				selection.setItems(allSynthesisInfo)
 				selection.setKeySelected(selectedSynthesisInfo.key, true, true)
 			}
-		}, [selection, selectedSynthesisInfo])
+		}, [selection, allSynthesisInfo, selectedSynthesisInfo])
 
 		return (
 			<Container>

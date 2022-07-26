@@ -15,11 +15,13 @@ import {
 	useIsProcessingSetter,
 	usePreparedTable,
 	useSdsManagerInstance,
+	useSelectedSynthesisInfo,
 	useSelectedTable,
 } from '~states'
 import type { SdsManager } from '~workers/SdsManager.js'
 // eslint-disable-next-line
 import SdsManagerWorker from '~workers/SdsManager?worker'
+import type { ISynthesisInfo } from '~workers/types'
 import { createWorkerProxy } from '~workers/utils'
 
 import { Header } from './Header/index.js'
@@ -36,6 +38,7 @@ export const Layout: React.FC<
 	const [selectedTable] = useSelectedTable()
 	const [, setPreparedTable] = usePreparedTable()
 	const [, setAllSynthesisInfo] = useAllSynthesisInfo()
+	const [, setSelectedSynthesis] = useSelectedSynthesisInfo()
 
 	useOnTableChange()
 
@@ -56,13 +59,19 @@ export const Layout: React.FC<
 				const updateSynthesisInfo = async () => {
 					setAllSynthesisInfo(await instance.getAllSynthesisInfo())
 				}
+				const updateFinishedSynthesisInfo = async (
+					synthesisInfo: ISynthesisInfo,
+				) => {
+					await updateSynthesisInfo()
+					setSelectedSynthesis(prev => prev ?? synthesisInfo)
+				}
 
 				await instance.init()
 				setManagerInstance({ instance, workerProxy })
 				await instance.registerSynthesisCallback(
 					proxy({
 						started: updateSynthesisInfo,
-						finished: updateSynthesisInfo,
+						finished: updateFinishedSynthesisInfo,
 						progressUpdated: updateSynthesisInfo,
 						terminating: updateSynthesisInfo,
 						terminated: updateSynthesisInfo,
@@ -72,7 +81,7 @@ export const Layout: React.FC<
 			}
 		}
 		getManager()
-	}, [managerInstance, setManagerInstance, setAllSynthesisInfo, setIsProcessing])
+	}, [managerInstance, setManagerInstance, setAllSynthesisInfo, setSelectedSynthesis, setIsProcessing])
 
 	return (
 		<Container vertical>
