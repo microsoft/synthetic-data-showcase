@@ -98,6 +98,15 @@ impl DpAggregatedSeededSynthesizer {
                 PyRuntimeError::new_err("make sure 'fit' method has been successfully called first")
             })
     }
+
+    pub fn get_dp_number_of_records(&self) -> PyResult<usize> {
+        self._aggregated_data
+            .as_ref()
+            .map(|ad| ad.protected_number_of_records.unwrap_or(0))
+            .ok_or_else(|| {
+                PyRuntimeError::new_err("make sure 'fit' method has been successfully called first")
+            })
+    }
 }
 
 impl DpAggregatedSeededSynthesizer {
