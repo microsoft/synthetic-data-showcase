@@ -3,15 +3,15 @@ import pandas as pd
 from collections import defaultdict
 
 
-def gen_dataset_with_schema(schema, n_records):
+def gen_data_frame_with_schema(schema, n_records):
     return pd.DataFrame({
         k: list(np.random.choice(schema[k], size=n_records)) for k in schema
     }, columns=schema.keys())
 
 
-def gen_dataset(number_of_records_to_generate):
+def gen_data_frame(number_of_records_to_generate):
     return pd.concat([
-        gen_dataset_with_schema(
+        gen_data_frame_with_schema(
             {
                 'H1': ['1', '2', ''],
                 'H2': ['1', '2', '3', ''],
@@ -26,7 +26,7 @@ def gen_dataset(number_of_records_to_generate):
             },
             number_of_records_to_generate // 2
         ),
-        gen_dataset_with_schema(
+        gen_data_frame_with_schema(
             {
                 'H1': ['1', '2', ''],
                 'H2': ['4', '5', '6', ''],
