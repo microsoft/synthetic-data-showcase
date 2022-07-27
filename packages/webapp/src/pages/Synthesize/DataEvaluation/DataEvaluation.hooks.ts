@@ -38,7 +38,7 @@ export function useSelectedSynthesisOnChange(
 export function useAggregateTypeOptions(): IDropdownOption[] {
 	return [
 		{ key: AggregateType.Sensitive, text: 'Sensitive' },
-		{ key: AggregateType.Aggregated, text: 'Aggregated' },
+		{ key: AggregateType.Aggregated, text: 'Aggregate' },
 		{ key: AggregateType.Synthetic, text: 'Synthetic' },
 	]
 }
