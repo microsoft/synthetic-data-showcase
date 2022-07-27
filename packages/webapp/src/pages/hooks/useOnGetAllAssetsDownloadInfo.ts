@@ -13,7 +13,6 @@ import {
 	getMetricsByCountLabels,
 	getMetricsByLenLabels,
 } from '~components/Charts/hooks'
-import type { DownloadInfo } from '~components/controls/DownloadButton'
 import {
 	getAggregatesCsv,
 	getAnalysisByCountCsv,
@@ -27,13 +26,29 @@ import {
 	useGetSyntheticCsvContent,
 } from '~pages/Synthesize'
 import { useSdsManagerInstance, useSensitiveContentValue } from '~states'
+import type { ISynthesisInfo } from '~workers/types'
 import { AggregateType } from '~workers/types'
+
+const ANONYMIZED_PATH = 'anonymized'
+const ANONYMIZED_INTERFACE_PATH = 'anonymized/interface'
+
+const SENSITIVE_DATASET_FILES_PATH = 'private/sensitive_dataset_files'
+const SENSITIVE_DATASET_ANALYSIS_PATH = 'private/sensitive_dataset_analysis'
+const AGGREGATE_DATASET_ANALYSIS_PATH = 'private/aggregate_dataset_analysis'
+const SYNTHETIC_DATASET_ANALYSIS_PATH = 'private/synthetic_dataset_analysis'
 
 async function generateAggregatesCsv(
 	manager: ISdsManagerInstance,
 	key: string,
 	path: string,
 ): Promise<FileWithPath[]> {
+	const protectedAggregatesCsv = await getAggregatesCsv(
+		manager,
+		key,
+		AggregateType.Aggregated,
+	)
+
+	// eslint-disable-next-line @essex/adjacent-await
 	return [
 		new FileWithPath(
 			new Blob(
@@ -42,18 +57,22 @@ async function generateAggregatesCsv(
 					type: 'text/csv',
 				},
 			),
-			`${path}/${AggregateType.Sensitive}_aggregates.csv`,
-			`${path}/${AggregateType.Sensitive}_aggregates.csv`,
+			`${path}/${SENSITIVE_DATASET_FILES_PATH}/${AggregateType.Sensitive}_aggregates.csv`,
+			`${path}/${SENSITIVE_DATASET_FILES_PATH}/${AggregateType.Sensitive}_aggregates.csv`,
 		),
 		new FileWithPath(
-			new Blob(
-				[await getAggregatesCsv(manager, key, AggregateType.Aggregated)],
-				{
-					type: 'text/csv',
-				},
-			),
-			`${path}/${AggregateType.Aggregated}_aggregates.csv`,
-			`${path}/${AggregateType.Aggregated}_aggregates.csv`,
+			new Blob([protectedAggregatesCsv], {
+				type: 'text/csv',
+			}),
+			`${path}/${ANONYMIZED_PATH}/protected_aggregates.csv`,
+			`${path}/${ANONYMIZED_PATH}/protected_aggregates.csv`,
+		),
+		new FileWithPath(
+			new Blob([protectedAggregatesCsv], {
+				type: 'text/csv',
+			}),
+			`${path}/${ANONYMIZED_INTERFACE_PATH}/protected_aggregates.csv`,
+			`${path}/${ANONYMIZED_INTERFACE_PATH}/protected_aggregates.csv`,
 		),
 		new FileWithPath(
 			new Blob(
@@ -62,8 +81,8 @@ async function generateAggregatesCsv(
 					type: 'text/csv',
 				},
 			),
-			`${path}/${AggregateType.Synthetic}_aggregates.csv`,
-			`${path}/${AggregateType.Synthetic}_aggregates.csv`,
+			`${path}/${ANONYMIZED_PATH}/${AggregateType.Synthetic}_aggregates.csv`,
+			`${path}/${ANONYMIZED_PATH}/${AggregateType.Synthetic}_aggregates.csv`,
 		),
 	]
 }
@@ -87,8 +106,8 @@ async function generateMetricsSummaryCsv(
 					type: 'text/csv',
 				},
 			),
-			`${path}/${AggregateType.Sensitive}_metrics_summary.csv`,
-			`${path}/${AggregateType.Sensitive}_metrics_summary.csv`,
+			`${path}/${SENSITIVE_DATASET_ANALYSIS_PATH}/${AggregateType.Sensitive}_metrics_summary.csv`,
+			`${path}/${SENSITIVE_DATASET_ANALYSIS_PATH}/${AggregateType.Sensitive}_metrics_summary.csv`,
 		),
 		new FileWithPath(
 			new Blob(
@@ -104,8 +123,8 @@ async function generateMetricsSummaryCsv(
 					type: 'text/csv',
 				},
 			),
-			`${path}/${AggregateType.Aggregated}_metrics_summary.csv`,
-			`${path}/${AggregateType.Aggregated}_metrics_summary.csv`,
+			`${path}/${AGGREGATE_DATASET_ANALYSIS_PATH}/${AggregateType.Aggregated}_metrics_summary.csv`,
+			`${path}/${AGGREGATE_DATASET_ANALYSIS_PATH}/${AggregateType.Aggregated}_metrics_summary.csv`,
 		),
 		new FileWithPath(
 			new Blob(
@@ -121,8 +140,8 @@ async function generateMetricsSummaryCsv(
 					type: 'text/csv',
 				},
 			),
-			`${path}/${AggregateType.Synthetic}_metrics_summary.csv`,
-			`${path}/${AggregateType.Synthetic}_metrics_summary.csv`,
+			`${path}/${SYNTHETIC_DATASET_ANALYSIS_PATH}/${AggregateType.Synthetic}_metrics_summary.csv`,
+			`${path}/${SYNTHETIC_DATASET_ANALYSIS_PATH}/${AggregateType.Synthetic}_metrics_summary.csv`,
 		),
 	]
 }
@@ -140,8 +159,8 @@ async function generateAnalysisByCountCsv(
 					type: 'text/csv',
 				},
 			),
-			`${path}/${AggregateType.Sensitive}_analysis_by_count.csv`,
-			`${path}/${AggregateType.Sensitive}_analysis_by_count.csv`,
+			`${path}/${SENSITIVE_DATASET_ANALYSIS_PATH}/${AggregateType.Sensitive}_analysis_by_count.csv`,
+			`${path}/${SENSITIVE_DATASET_ANALYSIS_PATH}/${AggregateType.Sensitive}_analysis_by_count.csv`,
 		),
 		new FileWithPath(
 			new Blob(
@@ -155,8 +174,8 @@ async function generateAnalysisByCountCsv(
 					type: 'text/csv',
 				},
 			),
-			`${path}/${AggregateType.Aggregated}_analysis_by_count.csv`,
-			`${path}/${AggregateType.Aggregated}_analysis_by_count.csv`,
+			`${path}/${AGGREGATE_DATASET_ANALYSIS_PATH}/${AggregateType.Aggregated}_analysis_by_count.csv`,
+			`${path}/${AGGREGATE_DATASET_ANALYSIS_PATH}/${AggregateType.Aggregated}_analysis_by_count.csv`,
 		),
 		new FileWithPath(
 			new Blob(
@@ -165,8 +184,8 @@ async function generateAnalysisByCountCsv(
 					type: 'text/csv',
 				},
 			),
-			`${path}/${AggregateType.Synthetic}_analysis_by_count.csv`,
-			`${path}/${AggregateType.Synthetic}_analysis_by_count.csv`,
+			`${path}/${SYNTHETIC_DATASET_ANALYSIS_PATH}/${AggregateType.Synthetic}_analysis_by_count.csv`,
+			`${path}/${SYNTHETIC_DATASET_ANALYSIS_PATH}/${AggregateType.Synthetic}_analysis_by_count.csv`,
 		),
 	]
 }
@@ -184,8 +203,8 @@ async function generateAnalysisByLenCsv(
 					type: 'text/csv',
 				},
 			),
-			`${path}/${AggregateType.Sensitive}_analysis_by_length.csv`,
-			`${path}/${AggregateType.Sensitive}_analysis_by_length.csv`,
+			`${path}/${SENSITIVE_DATASET_ANALYSIS_PATH}/${AggregateType.Sensitive}_analysis_by_length.csv`,
+			`${path}/${SENSITIVE_DATASET_ANALYSIS_PATH}/${AggregateType.Sensitive}_analysis_by_length.csv`,
 		),
 		new FileWithPath(
 			new Blob(
@@ -194,8 +213,8 @@ async function generateAnalysisByLenCsv(
 					type: 'text/csv',
 				},
 			),
-			`${path}/${AggregateType.Aggregated}_analysis_by_length.csv`,
-			`${path}/${AggregateType.Aggregated}_analysis_by_length.csv`,
+			`${path}/${AGGREGATE_DATASET_ANALYSIS_PATH}/${AggregateType.Aggregated}_analysis_by_length.csv`,
+			`${path}/${AGGREGATE_DATASET_ANALYSIS_PATH}/${AggregateType.Aggregated}_analysis_by_length.csv`,
 		),
 		new FileWithPath(
 			new Blob(
@@ -204,9 +223,63 @@ async function generateAnalysisByLenCsv(
 					type: 'text/csv',
 				},
 			),
-			`${path}/${AggregateType.Synthetic}_analysis_by_length.csv`,
-			`${path}/${AggregateType.Synthetic}_analysis_by_length.csv`,
+			`${path}/${SYNTHETIC_DATASET_ANALYSIS_PATH}/${AggregateType.Synthetic}_analysis_by_length.csv`,
+			`${path}/${SYNTHETIC_DATASET_ANALYSIS_PATH}/${AggregateType.Synthetic}_analysis_by_length.csv`,
 		),
+	]
+}
+
+async function generateSynthesisInfoJson(
+	s: ISynthesisInfo,
+	path: string,
+): Promise<FileWithPath[]> {
+	return [
+		new FileWithPath(
+			new Blob([JSON.stringify(s, null, 4)], {
+				type: 'application/json',
+			}),
+			`${path}/synthesis_info.json`,
+			`${path}/synthesis_info.json`,
+		),
+	]
+}
+
+async function generateSensitiveDataCsv(
+	sensitiveData: string,
+	path: string,
+): Promise<FileWithPath[]> {
+	return [
+		new FileWithPath(
+			new Blob([sensitiveData], {
+				type: 'text/csv',
+			}),
+			`${path}/${SENSITIVE_DATASET_FILES_PATH}/sensitive_data.csv`,
+			`${path}/${SENSITIVE_DATASET_FILES_PATH}/sensitive_data.csv`,
+		),
+	]
+}
+
+async function generateSyntheticDataCsv(
+	syntheticDataWideFormat: string,
+	syntheticDataCondensedFormat: string,
+	path: string,
+): Promise<FileWithPath[]> {
+	return [
+		new FileWithPath(
+			new Blob([syntheticDataWideFormat], {
+				type: 'text/csv',
+			}),
+			`${path}/${ANONYMIZED_PATH}/synthetic_data_wide_format.csv`,
+			`${path}/${ANONYMIZED_PATH}/synthetic_data_wide_format.csv`,
+		),
+		new FileWithPath(
+			new Blob([syntheticDataCondensedFormat], {
+				type: 'text/csv',
+			}),
+			`${path}/${ANONYMIZED_PATH}/synthetic_data_condensed_format.csv`,
+			`${path}/${ANONYMIZED_PATH}/synthetic_data_condensed_format.csv`,
+		),
+		// TODO: also write synthetic_data_long_format both to the anonymized and anonymized/interface
 	]
 }
 
@@ -214,7 +287,7 @@ async function generateAnalysisByLenCsv(
 export function useOnGetAllAssetsDownloadInfo(
 	delimiter = ',',
 	alias = 'all_assets',
-): () => Promise<DownloadInfo | undefined> {
+): () => Promise<undefined> {
 	const [manager] = useSdsManagerInstance()
 	const allSynthesisInfo = useAllFinishedSynthesisInfo()
 	const sensitiveContent = useSensitiveContentValue()
@@ -222,48 +295,33 @@ export function useOnGetAllAssetsDownloadInfo(
 
 	return useCallback(async () => {
 		const collection = new FileCollection()
-
-		await collection.add(
-			new FileWithPath(
-				new Blob([sensitiveContent.table.toCSV({ delimiter })], {
-					type: 'text/csv',
-				}),
-				'sensitive_data.csv',
-				'sensitive_data.csv',
-			),
-		)
-
 		let synthesisIndex = 1
 
 		for (const s of allSynthesisInfo) {
 			const path = `Synthesis - ${synthesisIndex}`
-			const syntheticContent = await getSyntheticCsvContent(s, false)
+			const syntheticContentWideFormat = await getSyntheticCsvContent(s, false)
+			const syntheticContentCondensedFormat = await getSyntheticCsvContent(
+				s,
+				true,
+			)
 			const evaluateResult = await manager?.instance.getEvaluateResult(s.key)
 			const countLabels = getMetricsByCountLabels(
 				evaluateResult?.sensitiveDataStats.meanProportionalErrorByBucket,
 			)
 			const lenLabels = getMetricsByLenLabels(evaluateResult?.reportingLength)
 
-			// TODO: maybe dump this as a JSON file
-			await collection.add(
-				new FileWithPath(
-					new Blob([s.key], {
-						type: 'text/plain',
-					}),
-					`${path}/synthesis_info.txt`,
-					`${path}/synthesis_info.txt`,
-				),
-			)
-
-			await collection.add(
-				new FileWithPath(
-					new Blob([syntheticContent.table.toCSV({ delimiter })], {
-						type: 'text/csv',
-					}),
-					`${path}/synthetic_data.csv`,
-					`${path}/synthetic_data.csv`,
-				),
-			)
+			await collection.add([
+				...(await generateSynthesisInfoJson(s, path)),
+				...(await generateSensitiveDataCsv(
+					sensitiveContent.table.toCSV({ delimiter }),
+					path,
+				)),
+				...(await generateSyntheticDataCsv(
+					syntheticContentWideFormat.table.toCSV({ delimiter }),
+					syntheticContentCondensedFormat.table.toCSV({ delimiter }),
+					path,
+				)),
+			])
 
 			if (evaluateResult && manager) {
 				await collection.add([
