@@ -19,6 +19,7 @@ import {
 	getAnalysisByLenCsv,
 	getMetricsSummaryCsv,
 } from '~components/DataEvaluationInfoDownloader'
+import { getHumanReadableSummaryText } from '~components/HumanReadableSummary'
 import { getMicrodataMetricsItems } from '~components/MetricsSummaryTable'
 import type { ISdsManagerInstance } from '~models'
 import {
@@ -283,6 +284,27 @@ async function generateSyntheticDataCsv(
 	]
 }
 
+export async function generateEvaluationSummaryTxt(
+	evaluateResult: IEvaluateResult,
+	synthesisInfo: ISynthesisInfo,
+	path: string,
+): Promise<FileWithPath[]> {
+	const evaluationSummary = getHumanReadableSummaryText(
+		evaluateResult,
+		synthesisInfo,
+	)
+
+	return [
+		new FileWithPath(
+			new Blob([evaluationSummary], {
+				type: 'text/plain',
+			}),
+			`${path}/evaluation_summary.txt`,
+			`${path}/evaluation_summary.txt`,
+		),
+	]
+}
+
 /* eslint-disable @essex/adjacent-await */
 export function useOnGetAllAssetsDownloadInfo(
 	delimiter = ',',
@@ -325,6 +347,7 @@ export function useOnGetAllAssetsDownloadInfo(
 
 			if (evaluateResult && manager) {
 				await collection.add([
+					...(await generateEvaluationSummaryTxt(evaluateResult, s, path)),
 					...(await generateAggregatesCsv(manager, s.key, path)),
 					...(await generateMetricsSummaryCsv(evaluateResult, path)),
 					...(await generateAnalysisByCountCsv(
