@@ -17,10 +17,13 @@ export function useSensitiveDataPrivacyText(
 			+evaluateResult.sensitiveDataStats.percentageOfRecordsWithUniqueCombinations.toFixed(
 				2,
 			)
-		const rareRecordsPercentage = +(
-			evaluateResult.sensitiveDataStats
-				.percentageOfRecordsWithRareCombinations - uniqueRecordsPercentage
-		).toFixed(2)
+		const rareRecordsPercentage = Math.max(
+			+(
+				evaluateResult.sensitiveDataStats
+					.percentageOfRecordsWithRareCombinations - uniqueRecordsPercentage
+			).toFixed(2),
+			0.0,
+		)
 
 		return `For all combinations of up to ${
 			synthesisInfo.parameters.reportingLength
