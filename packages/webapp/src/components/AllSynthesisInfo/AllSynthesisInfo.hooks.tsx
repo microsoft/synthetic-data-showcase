@@ -105,7 +105,6 @@ export function useSynthesisInfoColumns(
 }
 
 export function useSynthesisInfoSelection(
-	allSynthesisInfo: ISynthesisInfo[],
 	onSelected?: SelectSynthesisInfoCallback,
 ): Selection {
 	return useMemo(() => {
@@ -116,9 +115,8 @@ export function useSynthesisInfoSelection(
 				selectedItems.length === 1 &&
 					onSelected?.(selectedItems[0] as ISynthesisInfo)
 			},
-			items: allSynthesisInfo,
 			selectionMode: SelectionMode.single,
 		})
 		return selection
-	}, [allSynthesisInfo, onSelected])
+	}, [onSelected])
 }
