@@ -30,6 +30,8 @@ import { useSdsManagerInstance, useSensitiveContentValue } from '~states'
 import type { ISynthesisInfo } from '~workers/types'
 import { AggregateType } from '~workers/types'
 
+import type { DownloadInfo } from '../../components/controls/DownloadButton/DownloadInfo.js'
+
 const ANONYMIZED_PATH = 'anonymized'
 const ANONYMIZED_INTERFACE_PATH = 'anonymized/interface'
 
@@ -309,7 +311,7 @@ export async function generateEvaluationSummaryTxt(
 export function useOnGetAllAssetsDownloadInfo(
 	delimiter = ',',
 	alias = 'all_assets',
-): () => Promise<undefined> {
+): () => Promise<DownloadInfo | undefined> {
 	const [manager] = useSdsManagerInstance()
 	const allSynthesisInfo = useAllFinishedSynthesisInfo()
 	const sensitiveContent = useSensitiveContentValue()
