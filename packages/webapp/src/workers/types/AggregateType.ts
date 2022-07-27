@@ -4,6 +4,6 @@
  */
 export enum AggregateType {
 	Sensitive = 'sensitive',
-	Aggregated = 'aggregated',
+	Aggregated = 'aggregate',
 	Synthetic = 'synthetic',
 }
