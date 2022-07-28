@@ -32,7 +32,7 @@ impl AccuracyMode {
     /// for larger attribute combination lengths.
     ///
     /// For example, if reporting_length=3 and S(i) the scale of a gaussian noise
-    /// added to the correspondent combination length will be:
+    /// added to the correspondent combination length:
     ///     - single attribute counts      (1-counts) = S(1)
     ///     - combinations of 2 attributes (2-counts) = S(2) = S(1) / 2
     ///     - combinations of 3 attributes (3-counts) = S(3) = S(1) / 3
@@ -60,7 +60,7 @@ impl AccuracyMode {
     /// for smaller attribute combination lengths.
     ///
     /// For example, if reporting_length=3 and S(i) the scale of a gaussian noise
-    /// added to the correspondent combination length will be:
+    /// added to the correspondent combination length:
     ///     - single attribute counts      (1-counts) = S(1) = S(3) / 3
     ///     - combinations of 2 attributes (2-counts) = S(2) = S(3) / 2
     ///     - combinations of 3 attributes (3-counts) = S(3)
@@ -88,7 +88,7 @@ impl AccuracyMode {
     /// all attribute combination lengths.
     ///
     /// For example, if reporting_length=3 and S(i) the scale of a gaussian noise
-    /// added to the correspondent combination length will be:
+    /// added to the correspondent combination length:
     ///     - single attribute counts      (1-counts) = S(1)
     ///     - combinations of 2 attributes (2-counts) = S(2) = S(1)
     ///     - combinations of 3 attributes (3-counts) = S(3) = S(2) = S(1)
