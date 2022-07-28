@@ -26,10 +26,6 @@ pub struct DpAggregateSeededParameters {
 
 #[pymethods]
 impl DpAggregateSeededParameters {
-    fn __str__(&self) -> String {
-        self.to_json_str()
-    }
-
     #[pyo3(text_signature = "(self)")]
     /// Returns the JSON string representation of the parameters.
     ///
@@ -37,6 +33,10 @@ impl DpAggregateSeededParameters {
     ///     Parameters serialized to a JSON String - str
     fn to_json_str(&self) -> String {
         serde_json::to_string_pretty(self).unwrap()
+    }
+
+    fn __str__(&self) -> String {
+        self.to_json_str()
     }
 }
 
