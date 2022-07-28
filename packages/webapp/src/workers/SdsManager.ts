@@ -206,9 +206,11 @@ export class SdsManager {
 	public async getGenerateResult(
 		key: string,
 		joinMultiValueColumns: boolean,
+		longForm = false,
 	): Promise<IGenerateResult> {
 		return await this.getSynthesizerWorkInfo(key).synthesizer.getGenerateResult(
 			joinMultiValueColumns,
+			longForm,
 		)
 	}
 

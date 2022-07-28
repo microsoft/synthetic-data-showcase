@@ -48,9 +48,10 @@ impl WasmGenerateResult {
         &self,
         delimiter: char,
         join_multi_value_columns: bool,
+        long_form: bool,
     ) -> JsResult<String> {
         self.generated_data
-            .synthetic_data_to_string(delimiter, join_multi_value_columns)
+            .synthetic_data_to_string(delimiter, join_multi_value_columns, long_form)
             .map_err(|err| JsValue::from(err.to_string()))
     }
 
@@ -59,6 +60,7 @@ impl WasmGenerateResult {
         &self,
         delimiter: char,
         join_multi_value_columns: bool,
+        long_form: bool,
     ) -> JsResult<JsGenerateResult> {
         let _duration_logger =
             ElapsedDurationLogger::new(String::from("generate result serialization"));
@@ -74,7 +76,7 @@ impl WasmGenerateResult {
             &result,
             &"syntheticData".into(),
             &self
-                .synthetic_data_to_js(delimiter, join_multi_value_columns)?
+                .synthetic_data_to_js(delimiter, join_multi_value_columns, long_form)?
                 .into(),
         )?;
 

@@ -265,6 +265,7 @@ async function generateSensitiveDataCsv(
 async function generateSyntheticDataCsv(
 	syntheticDataWideFormat: string,
 	syntheticDataCondensedFormat: string,
+	syntheticLongForm: string,
 	path: string,
 ): Promise<FileWithPath[]> {
 	return [
@@ -283,7 +284,28 @@ async function generateSyntheticDataCsv(
 			`${path}/${ANONYMIZED_PATH}/synthetic_data_condensed_format.csv`,
 		),
 		// TODO: also write synthetic_data_long_format both to the anonymized and anonymized/interface
+		new FileWithPath(
+			new Blob([syntheticLongForm], { type: 'text/csv' }),
+			`${path}/${ANONYMIZED_PATH}/synthetic_data_long_format.csv`,
+			`${path}/${ANONYMIZED_PATH}/synthetic_data_long_format.csv`,
+		),
+		new FileWithPath(
+			new Blob([syntheticLongForm], { type: 'text/csv' }),
+			`${path}/${ANONYMIZED_INTERFACE_PATH}/synthetic_data_long_format.csv`,
+			`${path}/${ANONYMIZED_INTERFACE_PATH}/synthetic_data_long_format.csv`,
+		),
 	]
+}
+
+async function getPowerBiNavigatePageReport(
+	path: string,
+): Promise<FileWithPath> {
+	const reportResponse = await fetch('/synthetic-data-showcase.pbit')
+	return new FileWithPath(
+		await reportResponse.blob(),
+		`${path}/${ANONYMIZED_INTERFACE_PATH}/synthetic-data-showcase.pbit`,
+		`${path}/${ANONYMIZED_INTERFACE_PATH}/synthetic-data-showcase.pbit`,
+	)
 }
 
 export async function generateEvaluationSummaryTxt(
@@ -328,6 +350,7 @@ export function useOnGetAllAssetsDownloadInfo(
 				s,
 				true,
 			)
+			const syntheticLongForm = await getSyntheticCsvContent(s, false, true)
 			const evaluateResult = await manager?.instance.getEvaluateResult(s.key)
 			const countLabels = getMetricsByCountLabels(
 				evaluateResult?.sensitiveDataStats.meanProportionalErrorByBucket,
@@ -343,8 +366,10 @@ export function useOnGetAllAssetsDownloadInfo(
 				...(await generateSyntheticDataCsv(
 					syntheticContentWideFormat.table.toCSV({ delimiter }),
 					syntheticContentCondensedFormat.table.toCSV({ delimiter }),
+					syntheticLongForm.table.toCSV({ delimiter }),
 					path,
 				)),
+				await getPowerBiNavigatePageReport(path),
 			])
 
 			if (evaluateResult && manager) {

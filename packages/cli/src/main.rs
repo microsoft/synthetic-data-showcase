@@ -369,6 +369,7 @@ fn main() {
                         &synthetic_path,
                         synthetic_delimiter.chars().next().unwrap(),
                         join_multi_value_columns,
+                        false,
                     )
                 }) {
                     error!("error writing output file: {}", err);
