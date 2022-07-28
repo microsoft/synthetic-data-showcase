@@ -182,7 +182,7 @@ impl Dataset {
         })
     }
 
-    #[pyo3(text_signature = "(self, empty_value, join_multi_value_columns)")]
+    #[pyo3(text_signature = "(self, empty_value=None, join_multi_value_columns=None)")]
     /// Creates the raw data representation from the dataset.
     ///
     /// Arguments:
@@ -205,7 +205,7 @@ impl Dataset {
         )
     }
 
-    #[pyo3(text_signature = "(self, empty_value, join_multi_value_columns)")]
+    #[pyo3(text_signature = "(self, empty_value=None, join_multi_value_columns=None)")]
     /// Creates the a pandas data frame from the dataset.
     ///
     /// Arguments:
