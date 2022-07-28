@@ -113,6 +113,10 @@ impl DpAggregateSeededParametersBuilder {
     }
 
     pub fn validate(&self) -> PyResult<()> {
+        if self._reporting_length == 0 {
+            return Err(PyValueError::new_err("reporting_length must be > 0"));
+        }
+
         if self._epsilon <= 0.0 {
             return Err(PyValueError::new_err("epsilon must be > 0"));
         }
