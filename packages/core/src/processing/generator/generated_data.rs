@@ -40,6 +40,7 @@ impl GeneratedData {
     /// * `synthetic_data` - Synthesized data headers (index 0) and records indexes 1...
     /// * `expansion_ratio` - `Synthetic data length / Sensitive data length` (header not included)
     /// * `multi_value_column_metadata_map` - Maps a normalized multi-value header name (such as A_a1)
+    /// * `long_form` - Pivots column headers and value pairs to key-value row entries.
     /// to its corresponding metadata
     #[inline]
     pub fn new(
@@ -60,6 +61,7 @@ impl GeneratedData {
         writer: &mut T,
         delimiter: char,
         join_multi_value_columns: bool,
+        long_form: bool,
     ) -> Result<(), CsvIOError> {
         let mut wtr = WriterBuilder::new()
             .delimiter(delimiter as u8)
@@ -78,11 +80,34 @@ impl GeneratedData {
         };
 
         // write header and records
-        for r in synthetic_data.iter() {
-            match wtr.write_record(r.iter().map(|v| v.as_str())) {
+        if long_form {
+            let col_headers = &synthetic_data[0];
+            let long_form_headers = ["Id", "Attribute", "Value", "AttributeValue"];
+            match wtr.write_record(long_form_headers) {
                 Ok(_) => {}
                 Err(err) => return Err(CsvIOError::new(err)),
             };
+            for (row_idx, r) in synthetic_data.iter().skip(1).enumerate() {
+                for (col_idx, c) in r.iter().enumerate() {
+                    let long_form_row = [
+                        row_idx.to_string(),
+                        col_headers[col_idx].to_string(),
+                        c.to_string(),
+                        col_headers[col_idx].to_string() + ":" + c,
+                    ];
+                    match wtr.write_record(long_form_row) {
+                        Ok(_) => {}
+                        Err(err) => return Err(CsvIOError::new(err)),
+                    };
+                }
+            }
+        } else {
+            for r in synthetic_data.iter() {
+                match wtr.write_record(r.iter().map(|v| v.as_str())) {
+                    Ok(_) => {}
+                    Err(err) => return Err(CsvIOError::new(err)),
+                };
+            }
         }
         Ok(())
     }
@@ -113,11 +138,13 @@ impl GeneratedData {
     /// * `path` - File path to be written
     /// * `delimiter` - Delimiter to use when writing to `path`
     /// * `join_multi_value_columns` - Whether multi value columns should be joined back together or not
+    /// * `long_form` - Pivots column headers and value pairs to key-value row entries.
     pub fn write_synthetic_data(
         &self,
         path: &str,
         delimiter: char,
         join_multi_value_columns: bool,
+        long_form: bool,
     ) -> Result<(), CsvIOError> {
         let _duration_logger = ElapsedDurationLogger::new("write synthetic data");
 
@@ -127,21 +154,28 @@ impl GeneratedData {
 
         info!("writing file {}", path);
 
-        self._write_synthetic_data(&mut file, delimiter, join_multi_value_columns)
+        self._write_synthetic_data(&mut file, delimiter, join_multi_value_columns, long_form)
     }
 
     /// Generates a CSV string from the synthetic data
     /// # Arguments
     /// * `delimiter` - CSV delimiter to use
     /// * `join_multi_value_columns` - Whether multi value columns should be joined back together or not
+    /// * `long_form` - Pivots column headers and value pairs to key-value row entries.
     pub fn synthetic_data_to_string(
         &self,
         delimiter: char,
         join_multi_value_columns: bool,
+        long_form: bool,
     ) -> Result<String, CsvIOError> {
         let mut csv_data = Vec::default();
 
-        self._write_synthetic_data(&mut csv_data, delimiter, join_multi_value_columns)?;
+        self._write_synthetic_data(
+            &mut csv_data,
+            delimiter,
+            join_multi_value_columns,
+            long_form,
+        )?;
 
         Ok(String::from_utf8_lossy(&csv_data).to_string())
     }
