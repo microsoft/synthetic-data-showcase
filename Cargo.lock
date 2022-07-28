@@ -3,17 +3,6 @@
 version = 3
 
 [[package]]
-name = "accu-synth"
-version = "0.0.1"
-dependencies = [
- "log",
- "pyo3",
- "sds-core",
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "ahash"
 version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -468,6 +457,17 @@ name = "once_cell"
 version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "692fcb63b64b1758029e0a96ee63e049ce8c5948587f2f7208df04625e5f6b56"
+
+[[package]]
+name = "pac-synth"
+version = "0.0.1"
+dependencies = [
+ "log",
+ "pyo3",
+ "sds-core",
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "parking_lot"
