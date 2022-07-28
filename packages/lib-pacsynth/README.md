@@ -1,6 +1,6 @@
 # Private Accurate Combination (PAC) Synthesizers
 
-> Library to generates synthetic data for privacy-preserving data sharing and analysis.
+> Library to generate synthetic data for privacy-preserving data sharing and analysis.
 
 Python library exposing a set of synthesizers based on the [Synthetic Data Showcase project](https://github.com/microsoft/synthetic-data-showcase).
 

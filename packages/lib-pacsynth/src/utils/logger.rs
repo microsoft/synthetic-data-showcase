@@ -32,6 +32,12 @@ impl Log for DefaultLogger {
 }
 
 #[pyfunction]
+#[pyo3(text_signature = "(level_str)")]
+/// Enables logging and sets the desired log level.
+/// This is supposed to be called only once.
+///
+/// Arguments:
+///     * level_str: str - 'off' || 'error' || 'warn' || 'info' || 'debug' || 'trace'
 pub fn init_logger(level_str: &str) -> PyResult<()> {
     match LevelFilter::from_str(level_str) {
         Ok(level) => match set_boxed_logger(Box::new(DefaultLogger::new(level))) {
