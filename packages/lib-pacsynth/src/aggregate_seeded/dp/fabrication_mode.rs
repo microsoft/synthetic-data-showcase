@@ -37,7 +37,8 @@ pub enum FabricationModeEnum {
 ///
 /// So if the noise exceeds the defined threshold, the fabricated combination is reported.
 ///
-/// A set of static methods are provided to construct an object
+/// This is not supposed to be create using the constructor,
+/// instead a set of static methods are provided to construct an object
 /// representing the desired fabrication mode.
 pub struct FabricationMode {
     pub(crate) mode: FabricationModeEnum,

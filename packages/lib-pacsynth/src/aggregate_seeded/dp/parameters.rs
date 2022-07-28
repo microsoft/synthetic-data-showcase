@@ -4,6 +4,11 @@ use serde::Serialize;
 
 #[pyclass]
 #[derive(Clone, Serialize)]
+/// This represents the parameters for the
+/// Differential Privacy (DP) Aggregate Seeded Synthesizer - DpAggregateSeededSynthesizer.
+///
+/// This is not supposed to be created using a constructor, instead
+/// use the provided builder - DpAggregateSeededParametersBuilder.
 pub struct DpAggregateSeededParameters {
     pub(crate) reporting_length: usize,
     pub(crate) epsilon: f64,
@@ -22,6 +27,15 @@ pub struct DpAggregateSeededParameters {
 #[pymethods]
 impl DpAggregateSeededParameters {
     fn __str__(&self) -> String {
+        self.to_json_str()
+    }
+
+    #[pyo3(text_signature = "(self)")]
+    /// Returns the JSON string representation of the parameters.
+    ///
+    /// Returns:
+    ///     Parameters serialized to a JSON String - str
+    fn to_json_str(&self) -> String {
         serde_json::to_string_pretty(self).unwrap()
     }
 }

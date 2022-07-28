@@ -16,7 +16,8 @@ pub enum AccuracyModeEnum {
 /// combination lengths during the aggregation with differential privacy
 /// (DP Aggregation).
 ///
-/// A set of static methods are provided to construct an object
+/// This is not supposed to be create using the constructor,
+/// instead a set of static methods are provided to construct an object
 /// representing the desired accuracy mode.
 pub struct AccuracyMode {
     pub(crate) mode: AccuracyModeEnum,

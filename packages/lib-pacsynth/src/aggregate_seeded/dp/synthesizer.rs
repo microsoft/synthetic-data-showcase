@@ -16,13 +16,13 @@ use crate::{
 };
 
 #[pyclass]
-pub struct DpAggregatedSeededSynthesizer {
+pub struct DpAggregateSeededSynthesizer {
     _parameters: DpAggregateSeededParameters,
     _aggregated_data: Option<Arc<AggregatedData>>,
 }
 
 #[pymethods]
-impl DpAggregatedSeededSynthesizer {
+impl DpAggregateSeededSynthesizer {
     #[inline]
     #[new]
     pub fn new(parameters: Option<DpAggregateSeededParameters>) -> PyResult<Self> {
@@ -112,7 +112,7 @@ impl DpAggregatedSeededSynthesizer {
     }
 }
 
-impl DpAggregatedSeededSynthesizer {
+impl DpAggregateSeededSynthesizer {
     #[inline]
     fn delta_value_or_default(&self, data_block: &DataBlock) -> f64 {
         let number_of_records = data_block.number_of_records();
@@ -126,6 +126,6 @@ impl DpAggregatedSeededSynthesizer {
 }
 
 pub(crate) fn register(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
-    m.add_class::<DpAggregatedSeededSynthesizer>()?;
+    m.add_class::<DpAggregateSeededSynthesizer>()?;
     Ok(())
 }
