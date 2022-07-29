@@ -2,11 +2,9 @@ name: Python CI
 
 on:
   push:
-    branches: ["pac-synth"]
-  # push:
-  #   branches: ["main"]
-  # pull_request:
-  #   branches: ["dev", "main"]
+    branches: ["main"]
+  pull_request:
+    branches: ["dev", "main"]
 
 env:
   CARGO_TERM_COLOR: always
@@ -35,7 +33,7 @@ jobs:
         run: maturin build -m packages/lib-pacsynth/Cargo.toml --release -o dist
 
       - name: Upload wheels
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/pac-synth' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         uses: actions/upload-artifact@v2
         with:
           name: wheels
@@ -67,7 +65,7 @@ jobs:
         run: maturin build -m packages/lib-pacsynth/Cargo.toml --release --universal2 -o dist
 
       - name: Upload wheels
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/pac-synth' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         uses: actions/upload-artifact@v2
         with:
           name: wheels
@@ -85,7 +83,7 @@ jobs:
         run: docker run --rm -v ${{ github.workspace }}:/io ghcr.io/pyo3/maturin build -m packages/lib-pacsynth/Cargo.toml --release --sdist -o dist
 
       - name: Upload wheels
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/pac-synth' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         uses: actions/upload-artifact@v2
         with:
           name: wheels
@@ -93,7 +91,7 @@ jobs:
 
   upload_pacsynth_pypi:
     name: Upload pac-synth to PyPi
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/pac-synth' }}
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs: [build_pacsynth_win, build_pacsynth_mac, build_pacsynth_linux]
     strategy:
       matrix:
