@@ -12,76 +12,75 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  lib_pacsynth_build_win:
-    name: Build lib-pacsynth for Windows
-    strategy:
-      matrix:
-        python-version: ["3.10"]
-    runs-on: windows-latest
+  # lib_pacsynth_build_win:
+  #   name: Build lib-pacsynth for Windows
+  #   strategy:
+  #     matrix:
+  #       python-version: ["3.10"]
+  #   runs-on: windows-latest
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v3
-        with:
-          python-version: ${{ matrix.python-version }}
+  #     - name: Set up Python ${{ matrix.python-version }}
+  #       uses: actions/setup-python@v3
+  #       with:
+  #         python-version: ${{ matrix.python-version }}
 
-      - name: Install dependencies
-        run: pip install -r packages/lib-pacsynth/requirements.txt
+  #     - name: Install dependencies
+  #       run: pip install -r packages/lib-pacsynth/requirements.txt
 
-      - name: Run lib-pacsynth build for Windows
-        run: maturin build -m packages/lib-pacsynth/Cargo.toml --release -o dist
+  #     - name: Run lib-pacsynth build for Windows
+  #       run: maturin build -m packages/lib-pacsynth/Cargo.toml --release -o dist
 
-      - name: Upload wheels
-        uses: actions/upload-artifact@v2
-        with:
-          name: wheels
-          path: dist
+  #     - name: Upload wheels
+  #       uses: actions/upload-artifact@v2
+  #       with:
+  #         name: wheels
+  #         path: dist
 
-  lib_pacsynth_build_mac:
-    name: Build lib-pacsynth for MacOS
-    strategy:
-      matrix:
-        python-version: ["3.10"]
-    runs-on: macos-latest
+  # lib_pacsynth_build_mac:
+  #   name: Build lib-pacsynth for MacOS
+  #   strategy:
+  #     matrix:
+  #       python-version: ["3.10"]
+  #   runs-on: macos-latest
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v3
-        with:
-          python-version: ${{ matrix.python-version }}
+  #     - name: Set up Python ${{ matrix.python-version }}
+  #       uses: actions/setup-python@v3
+  #       with:
+  #         python-version: ${{ matrix.python-version }}
 
-      - name: Install dependencies
-        run: pip install -r packages/lib-pacsynth/requirements.txt
+  #     - name: Install dependencies
+  #       run: pip install -r packages/lib-pacsynth/requirements.txt
 
-      - name: Adding aarch64 target
-        run: rustup target add aarch64-apple-darwin
+  #     - name: Adding aarch64 target
+  #       run: rustup target add aarch64-apple-darwin
 
-      - name: Run lib-pacsynth build for MacOS
-        run: maturin build -m packages/lib-pacsynth/Cargo.toml --release --universal2 -o dist
+  #     - name: Run lib-pacsynth build for MacOS
+  #       run: maturin build -m packages/lib-pacsynth/Cargo.toml --release --universal2 -o dist
 
-      - name: Upload wheels
-        uses: actions/upload-artifact@v2
-        with:
-          name: wheels
-          path: dist
+  #     - name: Upload wheels
+  #       uses: actions/upload-artifact@v2
+  #       with:
+  #         name: wheels
+  #         path: dist
 
   lib_pacsynth_build_linux:
     name: Build lib-pacsynth for Linux
     runs-on: ubuntu-latest
-    container: ghcr.io/pyo3/maturin
 
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
       - name: Run lib-pacsynth build for Linux
-        run: maturin build -m packages/lib-pacsynth/Cargo.toml --release --sdist -o dist
+        run: docker run --rm -v ${{ github.workspace }}:/io ghcr.io/pyo3/maturin build -m packages/lib-pacsynth/Cargo.toml --release --sdist -o dist
 
       - name: Upload wheels
         uses: actions/upload-artifact@v2
