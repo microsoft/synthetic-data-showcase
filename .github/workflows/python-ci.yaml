@@ -12,11 +12,11 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  lib_pacsynth_build:
-    name: Check lib-pacsynth build
+  lib_pacsynth_build_win_mac:
+    name: Build lib-pacsynth Windows/MacOS
     strategy:
       matrix:
-        platform: [ubuntu-latest, windows-latest, macos-latest]
+        platform: [windows-latest, macos-latest]
         python-version: ["3.10"]
     runs-on: ${{ matrix.platform }}
 
@@ -35,4 +35,10 @@ jobs:
 
       - name: Run lib-pacsynth build
         working-directory: ./packages/lib-pacsynth
-        run: maturin build --release
+        run: maturin build --release -o dist --universal2
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@v2
+        with:
+          name: wheels
+          path: packages/lib-pacsynth/dist
