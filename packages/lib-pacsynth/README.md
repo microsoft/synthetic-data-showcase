@@ -16,9 +16,11 @@ The synthesizers aim to privately keep the accuracy of the attribute combination
 pip install pac-synth
 ```
 
+> If there are no pre-built wheels for your system, you will need Rust tooling installed, so it can be compiled locally.
+
 ## Using
 
-> **Check our [detailed](./samples/dp_aggregate_seeded_detailed_example.ipynb) and [short](./samples/dp_aggregate_seeded_short_example.ipynb) notebook examples for more information.**
+> **Check our [detailed](https://github.com/microsoft/synthetic-data-showcase/blob/main/packages/lib-pacsynth/samples/dp_aggregate_seeded_detailed_example.ipynb) and [short](https://github.com/microsoft/synthetic-data-showcase/blob/main/packages/lib-pacsynth/samples/dp_aggregate_seeded_short_example.ipynb) notebook examples for more information.**
 
 ```python
 from pacsynth import Dataset, DpAggregateSeededParametersBuilder, DpAggregateSeededSynthesizer
