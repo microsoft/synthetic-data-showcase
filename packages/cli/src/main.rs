@@ -34,6 +34,12 @@ enum Command {
         join_multi_value_columns: bool,
 
         #[structopt(
+            long = "long-form",
+            help = "use long form when exporting synthetic data CSV file"
+        )]
+        long_form: bool,
+
+        #[structopt(
             long = "cache-max-size",
             help = "maximum cache size (# of combinations)",
             default_value = "100000"
@@ -286,6 +292,7 @@ fn main() {
                 synthetic_path,
                 synthetic_delimiter,
                 join_multi_value_columns,
+                long_form,
                 cache_max_size,
                 mode,
                 aggregates_json,
@@ -369,7 +376,7 @@ fn main() {
                         &synthetic_path,
                         synthetic_delimiter.chars().next().unwrap(),
                         join_multi_value_columns,
-                        false,
+                        long_form,
                     )
                 }) {
                     error!("error writing output file: {}", err);
