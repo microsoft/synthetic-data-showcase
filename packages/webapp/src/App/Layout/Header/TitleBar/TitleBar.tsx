@@ -3,10 +3,10 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import type { IIconProps } from '@fluentui/react'
-import { PrimaryButton } from '@fluentui/react'
+import { PrimaryButton, Spinner } from '@fluentui/react'
 import { FlexContainer } from '@sds/components'
 import type { FC } from 'react'
-import { memo, useCallback, useRef } from 'react'
+import { memo, useCallback, useRef, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import styled from 'styled-components'
 
@@ -18,27 +18,34 @@ const downloadIcon: IIconProps = { iconName: 'Download' }
 export const TitleBar: FC = memo(function TitleBar() {
 	const canRun = useCanRun()
 	const downloadAnchorRef = useRef<HTMLAnchorElement>(null)
+	const [isDownloading, setIsDownloading] = useState(false)
 	const onGetAllAssetsDownloadInfo = useOnGetAllAssetsDownloadInfo()
 
 	const handleDownload = useCallback(async () => {
 		if (downloadAnchorRef.current) {
+			setIsDownloading(true)
 			const info = await onGetAllAssetsDownloadInfo()
 
+			setIsDownloading(false)
 			if (info) {
 				downloadAnchorRef.current.href = info.url
 				downloadAnchorRef.current.download = info.alias
 				downloadAnchorRef.current.click()
 			}
 		}
-	}, [downloadAnchorRef, onGetAllAssetsDownloadInfo])
+	}, [downloadAnchorRef, onGetAllAssetsDownloadInfo, setIsDownloading])
 	return (
 		<Container align="center" justify="space-between">
 			<StyledLink to={Pages.Home.path}>{Pages.Home.name}</StyledLink>
 			{canRun && (
 				<StyledSpan>
-					<StyledDownload iconProps={downloadIcon} onClick={handleDownload}>
-						Download assets
-					</StyledDownload>
+					{isDownloading ? (
+						<Spinner />
+					) : (
+						<StyledDownload iconProps={downloadIcon} onClick={handleDownload}>
+							Download assets
+						</StyledDownload>
+					)}
 					<DownloadAnchor style={{ display: 'none' }} ref={downloadAnchorRef} />
 				</StyledSpan>
 			)}
