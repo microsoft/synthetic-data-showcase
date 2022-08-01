@@ -102,17 +102,20 @@ impl GeneratedData {
         };
 
         for (row_idx, r) in synthetic_data.iter().skip(1).enumerate() {
-            for (col_idx, c) in r.iter().enumerate() {
-                let long_form_row = [
-                    &row_idx.to_string(),
-                    &col_headers[col_idx],
-                    c,
-                    &format!("{}:{}", col_headers[col_idx], c),
-                ];
-                match wtr.write_record(long_form_row) {
-                    Ok(_) => {}
-                    Err(err) => return Err(CsvIOError::new(err)),
-                };
+            for (col_idx, value) in r.iter().enumerate() {
+                // do not write empty values to long format
+                if !value.is_empty() {
+                    let long_form_row = [
+                        &row_idx.to_string(),
+                        &col_headers[col_idx],
+                        value,
+                        &format!("{}:{}", col_headers[col_idx], value),
+                    ];
+                    match wtr.write_record(long_form_row) {
+                        Ok(_) => {}
+                        Err(err) => return Err(CsvIOError::new(err)),
+                    };
+                }
             }
         }
         Ok(())
