@@ -2,7 +2,7 @@
 name = "pac-synth"
 version = "0.0.1"
 license = "MIT"
-description = "Synthetic Sata Showcase Synthesizers"
+description = "Private Accurate Combination (PAC) Synthesizers"
 repository = "https://github.com/microsoft/synthetic-data-showcase"
 edition = "2021"
 
