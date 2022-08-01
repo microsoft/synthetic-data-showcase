@@ -283,7 +283,6 @@ async function generateSyntheticDataCsv(
 			`${path}/${ANONYMIZED_PATH}/synthetic_data_condensed_format.csv`,
 			`${path}/${ANONYMIZED_PATH}/synthetic_data_condensed_format.csv`,
 		),
-		// TODO: also write synthetic_data_long_format both to the anonymized and anonymized/interface
 		new FileWithPath(
 			new Blob([syntheticLongForm], { type: 'text/csv' }),
 			`${path}/${ANONYMIZED_PATH}/synthetic_data_long_format.csv`,
@@ -300,11 +299,11 @@ async function generateSyntheticDataCsv(
 async function getPowerBiNavigatePageReport(
 	path: string,
 ): Promise<FileWithPath> {
-	const reportResponse = await fetch('/synthetic-data-showcase.pbit')
+	const reportResponse = await fetch('/synthetic_data_showcase.pbit')
 	return new FileWithPath(
 		await reportResponse.blob(),
-		`${path}/${ANONYMIZED_INTERFACE_PATH}/synthetic-data-showcase.pbit`,
-		`${path}/${ANONYMIZED_INTERFACE_PATH}/synthetic-data-showcase.pbit`,
+		`${path}/${ANONYMIZED_INTERFACE_PATH}/synthetic_data_showcase.pbit`,
+		`${path}/${ANONYMIZED_INTERFACE_PATH}/synthetic_data_showcase.pbit`,
 	)
 }
 

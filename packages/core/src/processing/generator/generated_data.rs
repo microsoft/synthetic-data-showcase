@@ -81,9 +81,9 @@ impl GeneratedData {
 
         // write header and records
         if long_form {
-            return self._write_synthetic_data_long_format(&mut wtr, synthetic_data);
+            self._write_synthetic_data_long_format(&mut wtr, synthetic_data)
         } else {
-            return self._write_synthetic_data_raw_format(&mut wtr, synthetic_data);
+            self._write_synthetic_data_raw_format(&mut wtr, synthetic_data)
         }
     }
 
@@ -95,10 +95,12 @@ impl GeneratedData {
     ) -> Result<(), CsvIOError> {
         let col_headers = &synthetic_data[0];
         let long_form_headers = ["Id", "Attribute", "Value", "AttributeValue"];
+
         match wtr.write_record(long_form_headers) {
             Ok(_) => {}
             Err(err) => return Err(CsvIOError::new(err)),
         };
+
         for (row_idx, r) in synthetic_data.iter().skip(1).enumerate() {
             for (col_idx, c) in r.iter().enumerate() {
                 let long_form_row = [
