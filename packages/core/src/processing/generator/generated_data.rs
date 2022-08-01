@@ -85,7 +85,7 @@ impl GeneratedData {
 
         // write header and records
         if long_form {
-            self._write_synthetic_data_long_format(&mut wtr, synthetic_data)
+            self._write_synthetic_data_long_format(&mut wtr, synthetic_data, empty_value)
         } else {
             self._write_synthetic_data_raw_format(&mut wtr, synthetic_data)
         }
@@ -96,6 +96,7 @@ impl GeneratedData {
         &self,
         wtr: &mut Writer<&mut T>,
         synthetic_data: &RawData,
+        empty_value: &str,
     ) -> Result<(), CsvIOError> {
         let col_headers = &synthetic_data[0];
         let long_form_headers = ["Id", "Attribute", "Value", "AttributeValue"];
@@ -108,7 +109,7 @@ impl GeneratedData {
         for (row_idx, r) in synthetic_data.iter().skip(1).enumerate() {
             for (col_idx, value) in r.iter().enumerate() {
                 // do not write empty values to long format
-                if !value.is_empty() {
+                if (**value) != *empty_value {
                     let long_form_row = [
                         &row_idx.to_string(),
                         &col_headers[col_idx],
