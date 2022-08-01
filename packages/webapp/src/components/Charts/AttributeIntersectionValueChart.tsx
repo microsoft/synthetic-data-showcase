@@ -62,16 +62,16 @@ export const AttributeIntersectionValueChart: React.FC<AttributeIntersectionValu
 					labels: labels.length > 0 ? labels : [' '],
 					datasets: [
 						{
-							label: 'Actual',
-							data: actual,
-							xAxisID: 'xAxis',
-							...actualBarConfig,
-						},
-						{
 							label: 'Estimated',
 							data: estimated,
 							xAxisID: 'xAxis',
 							...estimatedBarConfig,
+						},
+						{
+							label: 'Actual',
+							data: actual,
+							xAxisID: 'xAxis',
+							...actualBarConfig,
 						},
 					],
 				}}
