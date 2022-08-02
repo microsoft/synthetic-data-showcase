@@ -3,7 +3,7 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 export enum AccuracyMode {
-	PrioritizeLargeCounts = 'Prioritize Large Counts',
-	PrioritizeSmallCounts = 'Prioritize Small Counts',
+	PrioritizeLongCombinations = 'Prioritize Long Combinations',
+	PrioritizeShortCombinations = 'Prioritize Short Combinations',
 	Balanced = 'Balanced',
 }

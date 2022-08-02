@@ -1,0 +1,26 @@
+[build-system]
+requires = ["maturin>=0.13,<0.14"]
+build-backend = "maturin"
+
+[project]
+name = "pac-synth"
+description = "Private Accurate Combination (PAC) Synthesizers"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors=[
+    { name = "Synthetic Data Showcase Team", email="synthetic-showcase@microsoft.com" },
+    { name = "Darren Edge", email = "darren.edge@microsoft.com" },
+    { name = "Derek Worthen", email = "derek.worthen@microsoft.com" },
+    { name = "Nathan Evans", email = "nathan.evans@microsoft.com" },
+    { name = "Rodrigo Racanicci", email = "rracanicci@microsoft.com" },
+]
+maintainers = [
+    { name = "Rodrigo Racanicci", email = "rracanicci@microsoft.com" },
+]
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+]
+

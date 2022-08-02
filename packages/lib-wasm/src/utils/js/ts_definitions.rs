@@ -54,6 +54,7 @@ export interface IDpParameters {
   percentilePercentage: number
   percentileEpsilonProportion: number
   sigmaProportions?: number[]
+  numberOfRecordsEpsilon?: number
 }
 
 export interface IOversamplingParameters {

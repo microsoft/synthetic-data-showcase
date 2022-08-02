@@ -80,6 +80,7 @@ impl ValueSeededSynthesizer {
                         params.aggregated_data,
                         params.oversampling_ratio,
                         params.oversampling_tries,
+                        None,
                         false,
                     )
                 })

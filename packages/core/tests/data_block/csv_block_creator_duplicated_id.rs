@@ -99,8 +99,12 @@ fn valid_duplicated_id() {
     }));
 
     assert!(
-        RawDataMultiValueColumnJoiner::new(&raw_data, &data_block.multi_value_column_metadata_map)
-            .join()
+        RawDataMultiValueColumnJoiner::new(
+            &raw_data,
+            &data_block.multi_value_column_metadata_map,
+            &empty_value,
+        )
+        .join()
             == expected
     );
 }

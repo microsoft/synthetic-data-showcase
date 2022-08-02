@@ -20,6 +20,14 @@ export default defineConfig(({ command, mode }) => {
 				},
 			},
 		},
+		optimizeDeps: {
+			esbuildOptions: {
+				target: 'es2020',
+			},
+		},
+		server: {
+			port: 3000,
+		},
 		plugins: [
 			tsconfigPaths(),
 			react(),

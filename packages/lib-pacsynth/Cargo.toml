@@ -1,0 +1,18 @@
+[package]
+name = "pac-synth"
+version = "0.0.2"
+license = "MIT"
+description = "Private Accurate Combination (PAC) Synthesizers"
+repository = "https://github.com/microsoft/synthetic-data-showcase"
+edition = "2021"
+
+[lib]
+name = "pacsynth"
+crate-type = ["cdylib"]
+
+[dependencies]
+log = { version = "0.4", features = ["std"] }
+pyo3 = { version = "0.16", features = ["extension-module", "abi3-py37"] }
+sds-core = { path = "../core", features = ["pyo3", "rayon"] }
+serde = { version = "1.0", features = [ "derive", "rc" ] }
+serde_json = { version = "1.0" }

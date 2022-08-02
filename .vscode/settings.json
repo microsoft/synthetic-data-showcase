@@ -26,5 +26,6 @@
 	},
 	"[python]": {
 		"editor.defaultFormatter": "ms-python.python"
-	}
+	},
+	"cSpell.enabled": true
 }

@@ -2,6 +2,9 @@
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 
+/// Default epsilon used to add noise to the protected number of records in the aggregated data
+pub const DEFAULT_NUMBER_OF_RECORDS_EPSILON: f64 = 0.1;
+
 /// Parameters for aggregate generation with differential privacy
 #[cfg_attr(feature = "pyo3", pyclass)]
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -23,6 +26,9 @@ pub struct DpParameters {
     /// (e.g. \[1.0, 2.0, 3.0\] means that `sigma_2 = 2.0 * sigma_1` and `sigma_3 = 3.0 * sigma_1`)
     /// - If `None` all the sigma values will be the same
     pub sigma_proportions: Option<Vec<f64>>,
+    /// Epsilon used to add noise to the protected number of records in the aggregated data
+    /// (default is 0.1)
+    pub number_of_records_epsilon: Option<f64>,
 }
 
 #[cfg_attr(feature = "pyo3", pymethods)]
@@ -43,12 +49,15 @@ impl DpParameters {
     /// controls how the budget being split across combination lengths
     /// (e.g. \[1.0, 2.0, 3.0\] means that `sigma_2 = 2.0 * sigma_1` and `sigma_3 = 3.0 * sigma_1`)
     ///     - If `None` all the sigma values will be the same
+    /// * `number_of_records_epsilon` - Epsilon used to add noise to the protected number of records in the aggregated data
+    /// (default is 0.1)
     pub fn new(
         epsilon: f64,
         delta: f64,
         percentile_percentage: usize,
         percentile_epsilon_proportion: f64,
         sigma_proportions: Option<Vec<f64>>,
+        number_of_records_epsilon: Option<f64>,
     ) -> Self {
         DpParameters {
             epsilon,
@@ -56,6 +65,7 @@ impl DpParameters {
             percentile_percentage,
             percentile_epsilon_proportion,
             sigma_proportions,
+            number_of_records_epsilon,
         }
     }
 
@@ -74,12 +84,15 @@ impl DpParameters {
     /// controls how the budget being split across combination lengths
     /// (e.g. \[1.0, 2.0, 3.0\] means that `sigma_2 = 2.0 * sigma_1` and `sigma_3 = 3.0 * sigma_1`)
     ///     - If `None` all the sigma values will be the same
+    /// * `number_of_records_epsilon` - Epsilon used to add noise to the protected number of records in the aggregated data
+    /// (default is 0.1)
     pub fn new(
         epsilon: f64,
         delta: f64,
         percentile_percentage: usize,
         percentile_epsilon_proportion: f64,
         sigma_proportions: Option<Vec<f64>>,
+        number_of_records_epsilon: Option<f64>,
     ) -> Self {
         DpParameters {
             epsilon,
@@ -87,6 +100,7 @@ impl DpParameters {
             percentile_percentage,
             percentile_epsilon_proportion,
             sigma_proportions,
+            number_of_records_epsilon,
         }
     }
 }

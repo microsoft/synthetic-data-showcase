@@ -1,1 +1,1 @@
-The percentage of rare combinations (`count < privacy resolution`) between all combinations generated up the to specified **`analysis length`**.
+The percentage of rare combinations (`count < privacy resolution`) across all combinations generated up to the specified **`analysis length`**.

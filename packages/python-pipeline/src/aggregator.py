@@ -44,6 +44,7 @@ def aggregate(config):
     delta_factor = config['delta_factor']
     noise_threshold_type = config['noise_threshold_type']
     noise_threshold_values = config['noise_threshold_values']
+    number_of_records_epsilon = config['number_of_records_epsilon']
 
     logging.info(f'Aggregate {sensitive_microdata_path}')
     start_time = time.time()
@@ -69,8 +70,6 @@ def aggregate(config):
         sensitive_aggregates_path,
         '\t',
         ';',
-        reporting_resolution,
-        False
     )
     aggregated_data.write_to_json(sensitive_aggregated_data_json)
 
@@ -86,7 +85,8 @@ def aggregate(config):
                     noise_delta,
                     percentile_percentage,
                     percentile_epsilon_proportion,
-                    sigma_proportions
+                    sigma_proportions,
+                    number_of_records_epsilon
                 ),
                 noise_threshold_values
             )
@@ -98,7 +98,8 @@ def aggregate(config):
                     noise_delta,
                     percentile_percentage,
                     percentile_epsilon_proportion,
-                    sigma_proportions
+                    sigma_proportions,
+                    number_of_records_epsilon
                 ),
                 noise_threshold_values
             )
@@ -112,8 +113,6 @@ def aggregate(config):
         reportable_aggregates_path,
         '\t',
         ';',
-        reporting_resolution,
-        True
     )
     aggregated_data.write_to_json(reportable_aggregated_data_json)
 

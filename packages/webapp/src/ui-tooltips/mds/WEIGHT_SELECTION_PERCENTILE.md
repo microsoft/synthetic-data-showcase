@@ -1,1 +1,1 @@
-During the `Aggregated Seeded` and `DP Aggregated Seeded` synthesis, aggregate counts are used as weights to balance the attribute selection. This parameters specifies the percentile used to select the weight for every attribute candidate.
+During the `Aggregated Seeded` and `DP Aggregated Seeded` synthesis, aggregate counts are used as weights to balance the attribute selection. This parameter specifies the percentile used to select the weight for every attribute candidate.

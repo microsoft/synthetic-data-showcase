@@ -1,4 +1,7 @@
-use super::{CombinationsByRecord, DpParameters, DpPercentile, NoisyCountThreshold};
+use super::{
+    CombinationsByRecord, DpParameters, DpPercentile, NoisyCountThreshold,
+    DEFAULT_NUMBER_OF_RECORDS_EPSILON,
+};
 use fnv::FnvHashSet;
 use itertools::Itertools;
 use log::{debug, info, warn};
@@ -6,7 +9,7 @@ use rand::{
     prelude::{Distribution as rand_dist, IteratorRandom},
     thread_rng,
 };
-use statrs::distribution::{ContinuousCDF, Normal};
+use statrs::distribution::{ContinuousCDF, Laplace, Normal};
 use std::sync::Arc;
 
 use crate::{
@@ -36,6 +39,7 @@ pub struct NoiseAggregator {
     delta: f64,
     sigmas: Vec<f64>,
     threshold: NoisyCountThreshold,
+    number_of_records_epsilon: f64,
 }
 
 impl NoiseAggregator {
@@ -339,6 +343,25 @@ impl NoiseAggregator {
     }
 
     #[inline]
+    pub fn protect_number_of_records(&self, number_of_records: usize) -> usize {
+        info!(
+            "protecting reported number of records with epsilon = {}",
+            self.number_of_records_epsilon
+        );
+
+        assert!(
+            self.number_of_records_epsilon > 0.0,
+            "number of records epsilon should be > 0"
+        );
+
+        ((number_of_records as f64)
+            + Laplace::new(0.0, 1.0 / self.number_of_records_epsilon)
+                .unwrap()
+                .sample(&mut thread_rng()))
+        .round() as usize
+    }
+
+    #[inline]
     pub fn build_aggregated_data(
         &self,
         mut noisy_aggregates_by_len: CombinationsCountMapByLen,
@@ -361,6 +384,7 @@ impl NoiseAggregator {
             self.data_block.headers.clone(),
             self.data_block.multi_value_column_metadata_map.clone(),
             self.data_block.number_of_records(),
+            Some(self.protect_number_of_records(self.data_block.number_of_records())),
             aggregates_count,
             RecordsSensitivityByLen::default(),
             self.reporting_length,
@@ -420,6 +444,9 @@ impl NoiseAggregator {
             delta: dp_parameters.delta,
             sigmas,
             threshold,
+            number_of_records_epsilon: dp_parameters
+                .number_of_records_epsilon
+                .unwrap_or(DEFAULT_NUMBER_OF_RECORDS_EPSILON),
         }
     }
 

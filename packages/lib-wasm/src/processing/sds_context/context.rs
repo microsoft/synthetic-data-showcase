@@ -264,7 +264,7 @@ impl WasmSdsContext {
         self.synthetic_processor = Some(WasmSdsProcessor::new(
             &self
                 .get_generate_result()?
-                .synthetic_data_to_js(params.delimiter, false)?,
+                .synthetic_data_to_js(params.delimiter, false, false)?,
             &params,
         )?);
         self.synthetic_aggregate_result = Some(self.get_synthetic_processor()?._aggregate(
@@ -309,10 +309,12 @@ impl WasmSdsContext {
     pub fn generate_result_to_js(
         &self,
         join_multi_value_columns: bool,
+        long_form: bool,
     ) -> JsResult<JsGenerateResult> {
         self.get_generate_result()?.to_js(
             self.get_sensitive_data_params()?.delimiter,
             join_multi_value_columns,
+            long_form,
         )
     }
 
@@ -327,12 +329,8 @@ impl WasmSdsContext {
         aggregates_delimiter: char,
         combination_delimiter: &str,
     ) -> JsResult<JsAggregateResult> {
-        self.get_sensitive_aggregate_result()?.to_js(
-            aggregates_delimiter,
-            combination_delimiter,
-            self.get_generate_result()?.resolution(),
-            false,
-        )
+        self.get_sensitive_aggregate_result()?
+            .to_js(aggregates_delimiter, combination_delimiter)
     }
 
     #[wasm_bindgen(js_name = "reportableAggregateResultToJs")]
@@ -341,12 +339,8 @@ impl WasmSdsContext {
         aggregates_delimiter: char,
         combination_delimiter: &str,
     ) -> JsResult<JsAggregateResult> {
-        self.get_reportable_aggregate_result()?.to_js(
-            aggregates_delimiter,
-            combination_delimiter,
-            self.get_generate_result()?.resolution(),
-            true,
-        )
+        self.get_reportable_aggregate_result()?
+            .to_js(aggregates_delimiter, combination_delimiter)
     }
 
     #[wasm_bindgen(js_name = "syntheticAggregateResultToJs")]
@@ -355,12 +349,8 @@ impl WasmSdsContext {
         aggregates_delimiter: char,
         combination_delimiter: &str,
     ) -> JsResult<JsAggregateResult> {
-        self.get_synthetic_aggregate_result()?.to_js(
-            aggregates_delimiter,
-            combination_delimiter,
-            self.get_generate_result()?.resolution(),
-            false,
-        )
+        self.get_synthetic_aggregate_result()?
+            .to_js(aggregates_delimiter, combination_delimiter)
     }
 
     #[wasm_bindgen(js_name = "navigateResultToJs")]

@@ -1,0 +1,113 @@
+name: Python CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["dev", "main"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build_pacsynth_win:
+    name: Build pac-synth for Windows
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: pip install -r packages/lib-pacsynth/requirements.txt
+
+      - name: Run pac-synth build for Windows
+        run: maturin build -m packages/lib-pacsynth/Cargo.toml --release -o dist
+
+      - name: Upload wheels
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: wheels
+          path: dist
+
+  build_pacsynth_mac:
+    name: Build pac-synth for MacOS
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: pip install -r packages/lib-pacsynth/requirements.txt
+
+      - name: Adding aarch64 target
+        run: rustup target add aarch64-apple-darwin
+
+      - name: Run pac-synth build for MacOS
+        run: maturin build -m packages/lib-pacsynth/Cargo.toml --release --universal2 -o dist
+
+      - name: Upload wheels
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: wheels
+          path: dist
+
+  build_pacsynth_linux:
+    name: Build pac-synth for Linux
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Run pac-synth build for Linux
+        run: docker run --rm -v ${{ github.workspace }}:/io ghcr.io/pyo3/maturin build -m packages/lib-pacsynth/Cargo.toml --release --sdist -o dist
+
+      - name: Upload wheels
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: wheels
+          path: dist
+
+  upload_pacsynth_pypi:
+    name: Upload pac-synth to PyPi
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    needs: [build_pacsynth_win, build_pacsynth_mac, build_pacsynth_linux]
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install maturin
+        run: pip install maturin
+
+      - name: Download wheels
+        uses: actions/download-artifact@v2
+        with:
+          name: wheels
+
+      - name: Upload to PyPi
+        env:
+          MATURIN_PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: maturin upload --skip-existing *

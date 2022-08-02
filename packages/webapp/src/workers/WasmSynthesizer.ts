@@ -131,8 +131,9 @@ export class WasmSynthesizer extends BaseSdsWasmWorker {
 
 	public async getGenerateResult(
 		joinMultiValueColumns: boolean,
+		longForm = false,
 	): Promise<IGenerateResult> {
-		return this.getContext().generateResultToJs(joinMultiValueColumns)
+		return this.getContext().generateResultToJs(joinMultiValueColumns, longForm)
 	}
 
 	public async getEvaluateResult(): Promise<IEvaluateResult> {

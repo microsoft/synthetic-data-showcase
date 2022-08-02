@@ -17,13 +17,15 @@ enum JoinSpec {
 }
 
 /// Helper to join columns in the raw data that were spread using multiple values
-pub struct RawDataMultiValueColumnJoiner<'raw_data, 'multi_value_column_metadata_map> {
+pub struct RawDataMultiValueColumnJoiner<'raw_data, 'multi_value_column_metadata_map, 'empty_value>
+{
     raw_data: &'raw_data [CsvRecordRef],
     multi_value_column_metadata_map: &'multi_value_column_metadata_map MultiValueColumnMetadataMap,
+    empty_value: &'empty_value Arc<String>,
 }
 
-impl<'raw_data, 'multi_value_column_metadata_map>
-    RawDataMultiValueColumnJoiner<'raw_data, 'multi_value_column_metadata_map>
+impl<'raw_data, 'multi_value_column_metadata_map, 'empty_value>
+    RawDataMultiValueColumnJoiner<'raw_data, 'multi_value_column_metadata_map, 'empty_value>
 {
     /// Creates a new joiner
     /// # Arguments
@@ -33,10 +35,12 @@ impl<'raw_data, 'multi_value_column_metadata_map>
     pub fn new(
         raw_data: &'raw_data [CsvRecordRef],
         multi_value_column_metadata_map: &'multi_value_column_metadata_map MultiValueColumnMetadataMap,
+        empty_value: &'empty_value Arc<String>,
     ) -> Self {
         RawDataMultiValueColumnJoiner {
             raw_data,
             multi_value_column_metadata_map,
+            empty_value,
         }
     }
 
@@ -113,21 +117,25 @@ impl<'raw_data, 'multi_value_column_metadata_map>
                         new_record.push(record[*value_index].clone());
                     }
                     JoinSpec::MultiValue(entry) => {
-                        new_record.push(Arc::new(
-                            record
-                                .iter()
-                                .take(entry.end_index + 1)
-                                .skip(entry.start_index)
-                                .enumerate()
-                                .filter_map(|(attr_index, value)| {
-                                    if **value == "1" {
-                                        Some(entry.attributes[attr_index].clone())
-                                    } else {
-                                        None
-                                    }
-                                })
-                                .join(&entry.delimiter),
-                        ));
+                        let new_value = record
+                            .iter()
+                            .take(entry.end_index + 1)
+                            .skip(entry.start_index)
+                            .enumerate()
+                            .filter_map(|(attr_index, value)| {
+                                if **value == "1" {
+                                    Some(entry.attributes[attr_index].clone())
+                                } else {
+                                    None
+                                }
+                            })
+                            .join(&entry.delimiter);
+
+                        new_record.push(if !new_value.is_empty() {
+                            Arc::new(new_value)
+                        } else {
+                            self.empty_value.clone()
+                        });
                     }
                 }
             }

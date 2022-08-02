@@ -91,6 +91,8 @@ def runForConfig(config):
         config['noise_threshold_type'] = config['noise_threshold_type'].lower()
     config['noise_threshold_values'] = {
         int(l): t for l, t in config.get('noise_threshold_values', {}).items()}
+    config['number_of_records_epsilon'] = config.get(
+        'number_of_records_epsilon', None)
 
     # parameters affecting the representation and interpretation of values
     config['sensitive_zeros'] = config.get('sensitive_zeros', [])
@@ -102,6 +104,10 @@ def runForConfig(config):
         'use_synthetic_counts', False)
     config['weight_selection_percentile'] = config.get(
         'weight_selection_percentile', None)
+    config['aggregate_seeded_counts_scale_factor'] = config.get(
+        'aggregate_seeded_counts_scale_factor', None)
+    config['aggregate_seeded_target_number_of_records'] = config.get(
+        'aggregate_seeded_target_number_of_records', None)
 
     # specified parameters affecting file I/O
     config['prefix'] = config.get('prefix', 'my')

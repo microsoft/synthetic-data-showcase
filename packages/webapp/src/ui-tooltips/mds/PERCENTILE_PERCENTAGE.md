@@ -1,5 +1,5 @@
-The record sensitivity is defined as the number of different combinations (from 1 up the **`aggregation limit`**) that can be generated from each record.
+The record sensitivity is defined as the number of different combinations (of lengths 1 up to and including the **`aggregation limit`**) that can be generated from each record.
 
-To lower the sensitivity of each record, leading to less noise added to the reportable aggregate counts, the tool randomly removes contributions of attribute combinations when performing the data aggregations.
+To reduce the maximimum noise added to reportable aggregate counts, we can artificially limit the number of combination counts that any one record is allowed to affect. This is achieved by randomly selecting which combinations to update, up to a given limit.
 
-This sets the percentile used to randomly filter attribute combinations from records. The lower the value, more combinations might have their counts suppressed on the reportable aggregates.
+This parameter sets the percentile used to randomly filter attribute combinations from records. The lower the value, the more combinations might have their counts suppressed on the reportable aggregates.
