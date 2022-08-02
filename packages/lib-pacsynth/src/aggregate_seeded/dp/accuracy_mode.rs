@@ -4,8 +4,8 @@ use serde::Serialize;
 
 #[derive(Clone, Serialize)]
 pub enum AccuracyModeEnum {
-    PrioritizeLargeCounts,
-    PrioritizeSmallCounts,
+    PrioritizeLongCombinations,
+    PrioritizeShortCombinations,
     Balanced,
     Custom(Vec<f64>),
 }
@@ -29,7 +29,7 @@ impl AccuracyMode {
     #[staticmethod]
     #[pyo3(text_signature = "()")]
     /// This mode will ensure that more privacy budget is spent for
-    /// for larger attribute combination lengths.
+    /// for longer attribute combination lengths.
     ///
     /// For example, if reporting_length=3 and S(i) the scale of a gaussian noise
     /// added to the correspondent combination length:
@@ -42,14 +42,14 @@ impl AccuracyMode {
     /// will be 3 times bigger than the scale related with the 3-counts.
     ///
     /// Summary:
-    ///     Use this if you want smaller errors for larger attribute combination lengths
+    ///     Use this if you want smaller errors for longer attribute combination lengths
     ///     (e.g. the accuracy for 3-counts is more important than for 1-counts)
     ///
     /// Returns:
     ///     AccuracyMode
-    pub fn prioritize_large_counts() -> Self {
+    pub fn prioritize_long_combinations() -> Self {
         Self {
-            mode: AccuracyModeEnum::PrioritizeLargeCounts,
+            mode: AccuracyModeEnum::PrioritizeLongCombinations,
         }
     }
 
@@ -57,7 +57,7 @@ impl AccuracyMode {
     #[staticmethod]
     #[pyo3(text_signature = "()")]
     /// This mode will ensure that more privacy budget is spent for
-    /// for smaller attribute combination lengths.
+    /// for shorter attribute combination lengths.
     ///
     /// For example, if reporting_length=3 and S(i) the scale of a gaussian noise
     /// added to the correspondent combination length:
@@ -70,14 +70,14 @@ impl AccuracyMode {
     /// will be 3 times smaller than the scale related with the 3-counts.
     ///
     /// Summary:
-    ///     Use this if you want smaller errors for smaller attribute combination lengths
+    ///     Use this if you want smaller errors for shorter attribute combination lengths
     ///     (e.g. the accuracy for 1-counts is more important than for 3-counts)
     ///
     /// Returns:
     ///     AccuracyMode
-    pub fn prioritize_small_counts() -> Self {
+    pub fn prioritize_short_combinations() -> Self {
         Self {
-            mode: AccuracyModeEnum::PrioritizeSmallCounts,
+            mode: AccuracyModeEnum::PrioritizeShortCombinations,
         }
     }
 
@@ -152,10 +152,10 @@ impl AccuracyMode {
 
     pub(crate) fn extract_sigma_proportions(&self, reporting_length: usize) -> Vec<f64> {
         match &self.mode {
-            AccuracyModeEnum::PrioritizeLargeCounts => (0..reporting_length)
+            AccuracyModeEnum::PrioritizeLongCombinations => (0..reporting_length)
                 .map(|i| 1.0 / ((i + 1) as f64))
                 .collect(),
-            AccuracyModeEnum::PrioritizeSmallCounts => (0..reporting_length)
+            AccuracyModeEnum::PrioritizeShortCombinations => (0..reporting_length)
                 .map(|i| 1.0 / ((reporting_length - i) as f64))
                 .collect(),
             AccuracyModeEnum::Balanced => {
