@@ -67,10 +67,10 @@ function generateSigmaProportions(
 			case AccuracyMode.Balanced:
 				p = 1.0
 				break
-			case AccuracyMode.PrioritizeLargeCounts:
+			case AccuracyMode.PrioritizeLongCombinations:
 				p = 1.0 / (i + 1)
 				break
-			case AccuracyMode.PrioritizeSmallCounts:
+			case AccuracyMode.PrioritizeShortCombinations:
 				p = 1.0 / (reportingLength - i)
 				break
 		}

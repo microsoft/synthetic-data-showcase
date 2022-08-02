@@ -67,12 +67,12 @@ export function useOversamplingTypeOptions(): IDropdownOption[] {
 export function useAccuracyModeOptions(): IDropdownOption[] {
 	return [
 		{
-			key: AccuracyMode.PrioritizeLargeCounts,
-			text: AccuracyMode.PrioritizeLargeCounts,
+			key: AccuracyMode.PrioritizeLongCombinations,
+			text: AccuracyMode.PrioritizeLongCombinations,
 		},
 		{
-			key: AccuracyMode.PrioritizeSmallCounts,
-			text: AccuracyMode.PrioritizeSmallCounts,
+			key: AccuracyMode.PrioritizeShortCombinations,
+			text: AccuracyMode.PrioritizeShortCombinations,
 		},
 		{ key: AccuracyMode.Balanced, text: AccuracyMode.Balanced },
 	]

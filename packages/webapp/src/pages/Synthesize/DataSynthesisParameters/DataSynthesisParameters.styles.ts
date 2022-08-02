@@ -6,9 +6,9 @@ import { Dropdown, SpinButton } from '@fluentui/react'
 import styled from 'styled-components'
 
 export const StyledDropdown = styled(Dropdown)`
-	width: 200px;
+	width: 205px;
 `
 
 export const StyledSpinButton = styled(SpinButton)`
-	width: 200px;
+	width: 205px;
 `

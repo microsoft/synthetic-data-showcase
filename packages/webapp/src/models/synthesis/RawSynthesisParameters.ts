@@ -50,5 +50,5 @@ export const defaultRawSynthesisParameters: IRawSynthesisParameters = {
 	deltaFactor: 2,
 	fabricationMode: FabricationMode.Uncontrolled,
 	threshold: {},
-	accuracyMode: AccuracyMode.PrioritizeLargeCounts,
+	accuracyMode: AccuracyMode.PrioritizeLongCombinations,
 }

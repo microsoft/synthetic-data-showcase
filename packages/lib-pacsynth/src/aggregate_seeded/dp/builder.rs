@@ -14,7 +14,7 @@ use serde::Serialize;
 ///     - delta: will be set in runtime to 1 / (2 * number_of_records)
 ///     - percentile_percentage: 99
 ///     - percentile_epsilon_proportion: 0.01
-///     - accuracy_mode: AccuracyMode.prioritize_large_counts()
+///     - accuracy_mode: AccuracyMode.prioritize_long_combinations()
 ///     - number_of_records_epsilon: 0.1
 ///     - fabrication_mode: FabricationMode.uncontrolled()
 ///     - empty_value: ''
@@ -55,7 +55,7 @@ impl DpAggregateSeededParametersBuilder {
             _delta: None,
             _percentile_percentage: 99,
             _percentile_epsilon_proportion: 0.01,
-            _accuracy_mode: AccuracyMode::prioritize_large_counts(),
+            _accuracy_mode: AccuracyMode::prioritize_long_combinations(),
             _number_of_records_epsilon: 0.1,
             _fabrication_mode: FabricationMode::uncontrolled(),
             _empty_value: "".to_owned(),
