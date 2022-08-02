@@ -4,14 +4,17 @@ use super::{
         DataBlockHeaders, DataBlockRecords,
     },
     value::DataBlockValue,
-    MultiValueColumnMetadataMap,
+    MultiValueColumnMetadataMap, RawData, RawDataMultiValueColumnJoiner,
 };
 use fnv::FnvHashMap;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-use crate::{processing::aggregator::RecordsSet, utils::math::uround_down};
+use crate::{
+    processing::{aggregator::RecordsSet, generator::SynthesizerCacheKey},
+    utils::math::uround_down,
+};
 
 #[cfg(feature = "pyo3")]
 use pyo3::prelude::*;
@@ -193,5 +196,74 @@ impl DataBlock {
         } else {
             usize::min(reporting_length, self.headers.len())
         }
+    }
+
+    #[inline]
+    /// Creates a `RawData` vector for the stored data,
+    /// where the first entry is the headers
+    /// # Arguments
+    /// * `empty_value` - Empty values will be replaced by this
+    pub fn to_raw_data(&self, empty_value: &Arc<String>) -> RawData {
+        let mut raw_data: RawData = vec![self.headers.iter().map(|h| (*h).clone()).collect()];
+        let n_headers = self.headers.len();
+
+        raw_data.append(
+            &mut self
+                .records
+                .iter()
+                .map(|r| SynthesizerCacheKey::new(n_headers, &r.values).format_record(empty_value))
+                .collect(),
+        );
+        raw_data
+    }
+
+    #[inline]
+    /// Clones the data block data to a `Vec<Vec<String>>`,
+    /// where the first entry is the headers
+    /// # Arguments
+    /// * `empty_value` - Empty values will be replaced by this
+    /// * `join_multi_value_columns` - Whether multi value columns should be joined back together or not
+    pub fn to_raw_data_vec(
+        &self,
+        empty_value: &Arc<String>,
+        join_multi_value_columns: bool,
+    ) -> Vec<Vec<String>> {
+        Self::raw_data_to_vec(
+            &self.to_raw_data(empty_value),
+            empty_value,
+            &self.multi_value_column_metadata_map,
+            join_multi_value_columns,
+        )
+    }
+
+    #[inline]
+    /// Clones the `raw_data` data to a `Vec<Vec<String>>`,
+    /// where the first entry is the headers
+    /// # Arguments
+    /// * `raw_data` - Raw data to be cloned
+    /// * `empty_value` - Empty values will be replaced by this
+    /// * `multi_value_column_metadata_map` - Maps a normalized multi-value header name (such as A_a1)
+    /// to its corresponding metadata
+    /// * `join_multi_value_columns` - Whether multi value columns should be joined back together or not
+    pub fn raw_data_to_vec(
+        raw_data: &RawData,
+        empty_value: &Arc<String>,
+        multi_value_column_metadata_map: &MultiValueColumnMetadataMap,
+        join_multi_value_columns: bool,
+    ) -> Vec<Vec<String>> {
+        let mut raw_data_vec = if join_multi_value_columns {
+            RawDataMultiValueColumnJoiner::new(
+                raw_data,
+                multi_value_column_metadata_map,
+                empty_value,
+            )
+            .join()
+        } else {
+            raw_data.clone()
+        };
+        raw_data_vec
+            .drain(..)
+            .map(|mut record| record.drain(..).map(|value| (*value).clone()).collect())
+            .collect()
     }
 }

@@ -310,7 +310,7 @@ impl AggregatedData {
             .map(|(key, value)| {
                 (
                     key.as_str_using_headers(&self.headers, combination_delimiter),
-                    value.clone(),
+                    value.count,
                 )
             })
             .collect()

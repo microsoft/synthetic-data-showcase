@@ -13,7 +13,7 @@ pub type RecordsSet = FnvHashSet<usize>;
 pub type AggregatesCountMap = FnvHashMap<Arc<ValueCombination>, AggregatedCount>;
 
 /// Maps a value combination represented as a string to its aggregated count
-pub type AggregatesCountStringMap = FnvHashMap<String, AggregatedCount>;
+pub type AggregatesCountStringMap = FnvHashMap<String, usize>;
 
 /// Maps a length (1,2,3... up to reporting length) to a determined count
 pub type AggregatedCountByLenMap = FnvHashMap<usize, usize>;

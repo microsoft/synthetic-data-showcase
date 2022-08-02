@@ -375,6 +375,7 @@ fn main() {
                     gd.write_synthetic_data(
                         &synthetic_path,
                         synthetic_delimiter.chars().next().unwrap(),
+                        "",
                         join_multi_value_columns,
                         long_form,
                     )

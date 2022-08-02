@@ -459,6 +459,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "692fcb63b64b1758029e0a96ee63e049ce8c5948587f2f7208df04625e5f6b56"
 
 [[package]]
+name = "pac-synth"
+version = "0.0.1"
+dependencies = [
+ "log",
+ "pyo3",
+ "sds-core",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "parking_lot"
 version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
