@@ -1,5 +1,5 @@
-This will run the data synthesis based on the configured parameters and the synthetic records will be presented as a table sorted by number of non-empty attribute values.
+Runs the data synthesis based on the configured parameters. The resulting synthetic records will be presented as a table sorted by the number of non-empty attribute values.
 
-The processing time might take only a few seconds up to several minutes, depending on the size of the dataset, number of columns and configured parameters.
+Processing time ranges from a few seconds up to several minutes, depending on the size of the dataset, number of columns, and configured parameters.
 
-There is also a **`download button`** on the table, so the synthetic data can be downloaded as csv.
+There is also a **`download button`** on the table, so the synthetic data can be downloaded as a csv file.

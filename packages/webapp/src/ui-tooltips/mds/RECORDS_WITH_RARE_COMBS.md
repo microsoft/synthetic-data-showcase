@@ -1,1 +1,1 @@
-Percentage of records containing attribute combinations that happen less times than the specified **`privacy resolution`** at the synthesize step. This includes combinations generated up the to the **`analysis length`**.
+Percentage of records containing attribute combinations that appear fewer times than the specified **`privacy resolution`**. This includes combinations generated up to the **`analysis length`**.
