@@ -6,7 +6,7 @@ Input data should be de-identified prior to loading (i.e., contain no personally
 
 For such tasks, a series of data transformation **`Steps`** can be specified that allow input column values to be binned, binarized, recoded, etc.
 
-Single-valued attributes (e.g., gender) can be represented as columns of categorical variables whose values are shared by multiple rows. Any continuous numeric variables (e.g., age) should be quantized (e.g., into age ranges) to ensure there are sufficient instances of each value. 
+Single-valued attributes (e.g., gender) can be represented as columns of categorical variables whose values are shared by multiple rows. Any continuous numeric variables (e.g., age) should be quantized (e.g., into age ranges) to ensure there are sufficient instances of each value.
 
 Multi-valued attributes (e.g., interests) are represented as multiple columns of binary indicator variables (integer values of `0` and `1`) indicating the different values of that attribute (e.g., food, sports, politics).
 
