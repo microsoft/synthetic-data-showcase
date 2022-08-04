@@ -10,7 +10,7 @@ These synthesizers aim to replicate the counts of attribute combinations in a se
 
 - `DpAggregateSeededSynthesizer`: a differentially-private synthesizer that relies on DP Marginals to build synthetic data. It will compute DP Marginals (called aggregates) for your dataset up to and including a specified `reporting length`, and synthesize data based on the computed aggregated counts.
 
-> For more information about the DP approach please refer to the [DP documentation on SDS](https://github.com/microsoft/synthetic-data-showcase/blob/main/docs/DP_README.md).
+> For more information about the DP approach please refer to the [DP documentation on SDS](https://github.com/microsoft/synthetic-data-showcase/blob/main/docs/dp/README.md).
 
 ## Installation
 
