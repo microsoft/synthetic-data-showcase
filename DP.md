@@ -22,9 +22,9 @@ To produce synthetic data, SDS (i) generates differently-private marginals (also
 
 Let $X$ denote a record in the data, and $X_i$ the $i^{th}-column$ of the record. A $k-tuple$ is defined by a set of $k$ columns along with possible values for each of them, i.e. $(X_{i_1} = a_1, X_{i_2} = a_2, ..., X_{i_k} = a_k)$.
 
-For a given tabular data input, the set of of all non-empty $k-tuples$ is denoted by $M_k$, and the maximum value that $k$ might assume by $R$ (_reporting length_). Therefore, the set of all possible $k-tuples$, starting from 1 up to and including $R$ ($k = 1 ... R$), along with their counts, defines the aggregate data for the given input - $A_r$.
+For a given tabular data input, the set of of all non-empty $k-tuples$ is denoted by $M_k$, and the maximum value that $k$ might assume by $R$ (_reporting length_). Therefore, the set of all possible $k-tuples$, starting from 1 up to and including $R$ ($k=1...R$), along with their counts, defines the aggregate data for the given input - $A_r$.
 
-For example, given the following dataset and a reporting length of 3 ($R = 3$):
+For example, given the following dataset and a reporting length of 3 ($R=3$):
 
 | A   | B   | C   |
 | --- | --- | --- |
@@ -60,11 +60,11 @@ Then $A_3$ is:
 
 Let $j$ be the index of a record, then the set of of all non-empty $k-tuples$ for this record can be denoted by $M_{k_j}$. Therefore sensitivity for record $j$ and a given $k$ is then $\Delta_{k_j} = |M_{k_j}|$.
 
-The sensitivity can be interpreted as maximum number of contributions from a records to the aggregate data - thus, the maximum number of non-empty combinations with length $k$ that can be generated from the record.
+The sensitivity can be interpreted as the maximum number of contributions from a records to the aggregate data - thus, the maximum number of non-empty combinations with length $k$ that can be generated from the record.
 
 This way, the overall sensitive $\Delta_{k}$ across all records is $\Delta_{k} = max |M_{k_j}|$.
 
-For example, given the following dataset and $k = 2$:
+For example, given the following dataset and $k=2$:
 
 | Record ID | A   | B   | C   |
 | --------- | --- | --- | --- |
@@ -93,7 +93,7 @@ In order to ensure differential privacy guarantees to the aggregate data, noise 
 
 $(A = a2, C = c1)$ does not appear in the dataset. Although, to ensure the DP guarantees in the reported aggregate data, we also need to give these kind of combinations a chance of being sampled - if they ever end being reported in the aggregates dataset, they will be called **spurious/fabricated attribute combinations**.
 
-To illustrate the process of adding noise to the aggregate data, let's consider the example above and a reporting length of 2 ($R = 2$). The domain inferred from the dataset is:
+To illustrate the process of adding noise to the aggregate data, let's consider the example above and a reporting length of 2 ($R=2$). The domain inferred from the dataset is:
 
 - **Column A**: `a1, a2`
 - **Column B**: `b1, b2`
