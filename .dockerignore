@@ -19,3 +19,6 @@ target/
 # Env ignores
 .env/
 .vscode/
+
+# Documentation ignore
+docs/

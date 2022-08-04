@@ -2,7 +2,7 @@
 
 The goal of this document is to describe the differential privacy approach taken by SDS to aggregate and synthesize data.
 
-> Approach based in the [Differentially Private Marginals document](TODO).
+> Approach based on the [Differentially Private Marginals document](./dp_marginals.pdf).
 
 # Table of contents
 
@@ -142,7 +142,7 @@ This means that noise needs to be added to every single attribute combination $(
 
 > Since the algorithm is iterative, starting with $k = 1$ up to and including $k = r$, where $R$ is the reporting length. We start by selecting combinations that satisfy the equation [1] for $k = 1$, then in the next iteration, only $k-tuples$ including the surviving $(k-1)-tuples$ from the previous iteration should be considered for sampling.
 
-The [Differentially Private Marginals document](TODO) describes both how to calculate the necessary noise as well as how to define the threshold $\rho_{k}$. So this document will only present how SDS applies and uses such values.
+The [Differentially Private Marginals document](./dp_marginals.pdf) describes both how to calculate the necessary noise as well as how to define the threshold $\rho_{k}$. So this document will only present how SDS applies and uses such values.
 
 ## 3.2. Calculating the required noise
 
@@ -158,7 +158,7 @@ In order to decrease the noise, we can use a percentile technique with different
 
 ### 3.2.2. Computing noise scale
 
-From the [Differentially Private Marginals document](TODO) we see that satisfy $(\varepsilon, \delta)-DP$, the following inequality needs to hold:
+From the [Differentially Private Marginals document](./dp_marginals.pdf) we see that satisfy $(\varepsilon, \delta)-DP$, the following inequality needs to hold:
 
 $0.5 * R\varepsilon_Q^2 + 0.5 *\displaystyle\sum_{1}^{R} 1/\sigma_i^2 \leq \sqrt{\varepsilon + \ln(2/\delta)} - \sqrt{\ln(2/\delta)}$
 
@@ -318,6 +318,8 @@ for k in range(1, reporting_length + 1):
 	k_tuples = retain_k_tuples_based_on_rho(k_tuples, rhos[k])
 
 	aggregate_data[k] = current_k_tuples
+
+aggregate_data = normalize(aggregate_data)
 ```
 
 # 4. Data synthesis
