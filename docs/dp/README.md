@@ -317,9 +317,9 @@ for k in range(1, reporting_length + 1):
 		allowed_sensitivity
 	)
 
-	# calculate the rhos based on the threshold types
+	# compute rhos based on the threshold types
 	# and provided threshold values
-	rhos = calc_rhos(
+	rhos = compute_rhos(
 		threshold_type,
 		thresholds,
 		sigmas[k],
