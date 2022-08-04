@@ -22,9 +22,9 @@ To produce synthetic data, SDS (i) generates differently-private marginals (also
 
 Let $X$ denote a record in the data, and $X_i$ the $i^{th}-column$ of the record. A $k-tuple$ is defined by a set of $k$ columns along with possible values for each of them, i.e. $(X_{i_1} = a_1, X_{i_2} = a_2, ..., X_{i_k} = a_k)$.
 
-For a given tabular data input, the set of of all non-empty $k-tuples$ is denoted by $M_k$, and the maximum value that $k$ might assume by $R$ (_reporting length_). Therefore, the set of all possible $k-tuples$, starting from 1 up to and including $R$ ($k=1...R$), along with their counts, defines the aggregate data for the given input - $A_r$.
+For a given tabular data input, the set of of all non-empty $k-tuples$ is denoted by $M_k$, and the maximum value that $k$ might assume by $R$ (_reporting length_). Therefore, the set of all possible $k-tuples$, starting from 1 up to and including $R$ $(k=1...R)$, along with their counts, defines the aggregate data for the given input - $A_r$.
 
-For example, given the following dataset and a reporting length of 3 ($R=3$):
+For example, given the following dataset and a reporting length of 3 $(R=3)$:
 
 | A   | B   | C   |
 | --- | --- | --- |
@@ -93,7 +93,7 @@ In order to ensure differential privacy guarantees to the aggregate data, noise 
 
 $(A = a2, C = c1)$ does not appear in the dataset. Although, to ensure the DP guarantees in the reported aggregate data, we also need to give these kind of combinations a chance of being sampled - if they ever end being reported in the aggregates dataset, they will be called **spurious/fabricated attribute combinations**.
 
-To illustrate the process of adding noise to the aggregate data, let's consider the example above and a reporting length of 2 ($R=2$). The domain inferred from the dataset is:
+To illustrate the process of adding noise to the aggregate data, let's consider the example above and a reporting length of 2 $(R=2)$. The domain inferred from the dataset is:
 
 - **Column A**: `a1, a2`
 - **Column B**: `b1, b2`
@@ -120,7 +120,7 @@ From this domain, we can infer the possible attribute combinations:
   - $count(B = b2, C = c1) = 1$
   - $count(B = b2, C = c2) = 0$
 
-This means that noise needs to be added to every single attribute combination ($k-tuple$), and if $count(k-tuple) + noise > \rho_{k}$[1], where $\rho_{k}$ is a threshold value, then the $k-tuple$ is added to the aggregated data alongside its noisy count.
+This means that noise needs to be added to every single attribute combination $(k-tuple)$, and if $count(k-tuple) + noise > \rho_{k}$[1], where $\rho_{k}$ is a threshold value, then the $k-tuple$ is added to the aggregated data alongside its noisy count.
 
 > Since the algorithm is iterative, starting with $k = 1$ up to and including $k = r$, where $R$ is the reporting length. We start by selecting combinations that satisfy the equation [1] for $k = 1$, then in the next iteration, only $k-tuples$ including the surviving $(k-1)-tuples$ from the previous iteration should be considered for sampling.
 
@@ -128,7 +128,7 @@ The [Differentially Private Marginals document](TODO) describes both how to calc
 
 ## Calculating the required noise
 
-The noise added to each attribute combination count ($k-tuple$) is sampled from $\sigma_{k} * \sqrt{\Delta_k} * \Nu(0, 1)$ [2], where $k$ defines each combination length from 1 up to and including the reporting length ($R$), and $\Nu(0, 1)$ is a Gaussian distribution.
+The noise added to each attribute combination count $(k-tuple)$ is sampled from $\sigma_{k} * \sqrt{\Delta_k} * N(0, 1)$ [2], where $k$ defines each combination length from 1 up to and including the reporting length $(R)$, and $N(0, 1)$ is a Gaussian distribution.
 
 ### Computing sensitivity with DP-percentiles
 
@@ -142,9 +142,9 @@ In order to decrease the noise, we can use a percentile technique with different
 
 From the [Differentially Private Marginals document](TODO) we see that satisfy $(\varepsilon, \delta)-DP$, the following inequality needs to hold:
 
-$0.5 * R\varepsilon_Q^2 + 0.5 *\sum_{1}^{R} 1/\sigma_i^2 \leq \sqrt{\varepsilon + \ln(2/\delta)} - \sqrt{\ln(2/\delta)}$
+$0.5 * R\varepsilon_Q^2 + 0.5 *\displaystyle\sum_{1}^{R} 1/\sigma_i^2 \leq \sqrt{\varepsilon + \ln(2/\delta)} - \sqrt{\ln(2/\delta)}$
 
-Lets call $\rho=\sqrt{\varepsilon + \ln(2/\delta)} - \sqrt{\ln(2/\delta)}$ and define $Q_{prop}$ as the proportion of the total privacy budget dedicated for finding $Q^{th}$ percentiles. Then, we need to find: (i) - $0.5 * R\varepsilon_Q^2  = \rho * Q_{prop}$' and (ii) $0.5 *\sum_{1}^{R} 1/\sigma_i^2 = \rho * (1 - Q_{prop})$
+Lets call $\rho=\sqrt{\varepsilon + \ln(2/\delta)} - \sqrt{\ln(2/\delta)}$ and define $Q_{prop}$ as the proportion of the total privacy budget dedicated for finding $Q^{th}$ percentiles. Then, we need to find: (i) - $0.5 * R\varepsilon_Q^2  = \rho * Q_{prop}$ and (ii) $0.5 *\displaystyle\sum_{1}^{R} 1/\sigma_i^2 = \rho * (1 - Q_{prop})$
 
 (i) directly tells us that: $\varepsilon_Q = \sqrt{(2 * \rho * Q_{prop}) / R}$ [3]
 
