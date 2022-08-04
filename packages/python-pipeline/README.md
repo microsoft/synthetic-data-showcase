@@ -172,7 +172,7 @@ Example:
 This type let's you specify a number between `0` (exclusive) and `1` (inclusive) to control fabrication per combination length:
 
 - Values close to `0` will try to minimize fabrication as much as possible;
-- Values closer to `1` will let fabrication happen more frequently (uncontrolled fabrication);
+- Values close to `1` will let fabrication happen more frequently (uncontrolled fabrication);
 
 > To ensure differential privacy guarantees, this cannot be set for the 1-counts (single attributes).
 
