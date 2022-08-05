@@ -207,7 +207,7 @@ Note that $\rho_2, ..., \rho_k$ do not affect the privacy parameters, only the f
 
 ### 3.3.1. Fixed threshold
 
-SDS allows $\rho_2, ..., \rho_k$ to specified directly - e.g. $\rho_2=10$ and $\rho_3=20$, will cause:
+SDS allows $\rho_2, ..., \rho_k$ to be specified directly - e.g. $\rho_2=10$ and $\rho_3=20$, will cause:
 
 - only $2$-tuples with noisy count $> 10$ will be included in the aggregate data
 - only $3$-tuples with noisy count $> 20$ will be included in the aggregate data
