@@ -41,7 +41,7 @@ To produce synthetic data, SDS: (i) generates differently-private marginals (als
 
 ## 2.1. Aggregate counts
 
-> Aggregate counts or marginals are the counts of _k-tuples_ in the data representing certain combinations of attributes.
+> Aggregate counts or marginals are the counts of $k$-tuples in the data representing certain combinations of attributes.
 
 Let $X$ denote a record in the data, and $X_i$ the $i^{th}$-column of the record. A $k$-tuple is defined by a set of $k$ columns along with possible values for each of them, i.e., $(X_{i_1} = a_1, X_{i_2} = a_2, ..., X_{i_k} = a_k)$.
 
@@ -89,11 +89,11 @@ In this way, the overall sensitivity $\Delta_{k}$ across all records is $\Delta_
 
 For example, given the following dataset and $k=2$:
 
-| ID | A | B | C |
+| ID  | A   | B   | C   |
 | --- | --- | --- | --- |
-| 1 | a1 | b1 | c1 |
-| 2 | a1 | b2 | c1 |
-| 3 | a2 | | c2 |
+| 1   | a1  | b1  | c1  |
+| 2   | a1  | b2  | c1  |
+| 3   | a2  |     | c2  |
 
 Then:
 
@@ -145,11 +145,11 @@ From this domain, we can infer the possible attribute combinations and their sen
 
 This means that noise needs to be added to the sensitive counts, and if $count(t_k) + noise > \rho_{k}$ [1], where $t_k$ is any $k$-tuple and $\rho_{k}$ is a threshold value, then the $k$-tuple is added to the aggregate data alongside its noisy count.
 
-> Since the algorithm is iterative, we repeat this process starting with $k = 1$ and continue up to and including $k = R$, where $R$ is the reporting length. We start by selecting combinations that satisfy equation [1] for $k = 1$, then in the next iteration, only $k$-tuple including the surviving $(k-1)$-tuples from the previous iteration are considered for sampling.
+> Since the algorithm is iterative, we repeat this process starting with $k = 1$ and continue up to and including $k = R$, where $R$ is the reporting length. We start by selecting combinations that satisfy equation [1] for $k = 1$, then in the next iteration, only $k$-tuples including the surviving $(k-1)$-tuples from the previous iteration are considered for sampling.
 
 ## 3.2. Calculating the required noise
 
-According to [Differentially Private Marginals](./dp_marginals.pdf), the noise added to each attribute combination count (_k-tuple_) is sampled from $\sigma_{k} * \sqrt{\Delta_k} * N(0, 1)$ [2], where $k$ defines each combination length from 1 up to and including the reporting length $(R)$, and $N(0, 1)$ is a Gaussian distribution.
+According to [Differentially Private Marginals](./dp_marginals.pdf), the noise added to each attribute combination ($k$-tuple) count is sampled from $\sigma_{k} * \sqrt{\Delta_k} * N(0, 1)$ [2], where $k$ defines each combination length from 1 up to and including the reporting length $(R)$, and $N(0, 1)$ is a Gaussian distribution.
 
 ### 3.2.1. Computing sensitivity with DP-percentiles
 
@@ -244,15 +244,15 @@ To retain this property in the aggregate data while also preserving DP, SDS will
 
 High level code to compute aggregate counts with DP:
 
-- $epsilon \gets \varepsilon$
-- $delta \gets \delta$
-- $reporting\_length \in [1,\infty)$
-- $percentile \in [1,100]$
-- $percentile\_epsilon\_proportion \in (0, 1)$
-- $sigma\_proportions \gets [p_1, ..., p_k]$
-- $threshold\_type = fixed | adaptive$
-- $thresholds = [t_1, ..., t_k]$
-- $input\_data$
+- _epsilon_ $\gets \varepsilon$
+- _delta_ $\gets \delta$
+- _reporting_length_ $\in [1,\infty)$
+- _percentile_ $\in [1,100]$
+- _percentile_epsilon_proportion_ $\in (0, 1)$
+- _sigma_proportions_ $\gets [p_1, ..., p_k]$
+- _threshold_type_ $\gets fixed | adaptive$
+- _thresholds_ $\gets [t_1, ..., t_k]$
+- _input_data_
 
 ```python
 aggregate_data = {}
@@ -370,8 +370,8 @@ The following sections explain in more detail how _aggregate-seeded_ synthesis w
 
 The general concept behind this synthesis can be expressed by the following algorithm:
 
-- $reporting\_length =$ the same used to generate the aggregate data
-- $aggregate\_data$
+- _reporting_length_ $\leftarrow$ the same used to generate the aggregate data
+- _aggregate_data_
 
 ```python
 # this will get the 1-tuple counts from the aggregate_data
@@ -464,10 +464,10 @@ This means that $D = d1$ cannot be a candidate for sampling, while $C = c1$ and 
 
 For as long as the size of the synthesized record plus the new attribute candidate for sampling does not exceed the reporting length, the weight can be a direct lookup in the aggregate data. However, if it does exceed the reporting length, we can proceed by doing the following:
 
-- $synthetic\_record =$ record already synthesized so far
-- $attr\_candidate =$ attribute candidate we want to calculate the weight for
-- $weight\_selection\_percentile=$ the percentile we want from all the weights candidates (default 95)
-- $aggregate\_data$
+- _synthetic_record_ $\leftarrow$ record already synthesized so far
+- _attr_candidate_ $\leftarrow$ attribute candidate we want to calculate the weight for
+- _weight_selection_percentile_ $\leftarrow$ the percentile we want from all the weights candidates (default 95)
+- _aggregate_data_
 
 ```python
 # store all weight candidates for the percentile technique
