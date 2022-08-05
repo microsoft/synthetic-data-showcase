@@ -81,7 +81,7 @@ Then $A_{R=3}$ is:
 
 > In the context of the aggregates, the sensitivity of a record is defined as the maximum number of $k$-tuples that can be generated from the record.
 
-Let $j$ be the index of a record, and the set of all non-empty $k$-tuples for this record $M_{k_j}$. The sensitivity for a record $j$ and a given $k$ is then $\Delta_{k,j} = |M_{k,j}|$.
+Let $j$ be the index of a record, and the set of all non-empty $k$-tuples for this record $M_{k,j}$. The sensitivity for a record $j$ and a given $k$ is then $\Delta_{k,j} = |M_{k,j}|$.
 
 The sensitivity can be interpreted as the maximum number of contributions a record can make to the aggregate data, i.e., the maximum number of non-empty combinations with length $k$ that can be generated from the record.
 
@@ -149,13 +149,13 @@ This means that noise needs to be added to the sensitive counts, and if $count(t
 
 ## 3.2. Calculating the required noise
 
-According to [Differentially Private Marginals](./dp_marginals.pdf), the noise added to each attribute combination ($k$-tuple) count is sampled from $\sigma_{k} * \sqrt{\Delta_k} * N(0, 1)$ [2], where $k$ defines each combination length from 1 up to and including the reporting length $(R)$, and $N(0, 1)$ is a Gaussian distribution.
+According to [Differentially Private Marginals](./dp_marginals.pdf), the noise added to each $k$-tuple (attribute combination) count is sampled from $\sigma_{k} * \sqrt{\Delta_k} * N(0, 1)$ [2], where $k$ defines each combination length from 1 up to and including the reporting length $(R)$, and $N(0, 1)$ is a Gaussian distribution.
 
 ### 3.2.1. Computing sensitivity with DP-percentiles
 
 Notice that the noise level is directly related to the overall sensitivity $\Delta_k$. Higher sensitivity values therefore result in higher levels of added noise.
 
-In order to decrease the noise, we can use a differentially-private percentile technique to select $\Delta_k$, so instead of $\Delta_{k} = max |M_{k,j}|$ we consume some privacy budget and compute $\Delta_{k} = Q^{th}$-$percentile(|M_{k,j}|,\varepsilon_Q)$, where $\varepsilon_Q$ is the dedicated privacy budget for the percentile selection.
+In order to decrease the noise, we can use a differentially-private percentile technique to select $\Delta_k$, so instead of $\Delta_{k} = max |M_{k,j}|$ we consume some privacy budget and compute $\Delta_{k} = Q^{th}$\-$percentile(|M\_{k,j}|,\varepsilon_Q)$, where $\varepsilon_Q$ is the dedicated privacy budget for the percentile selection.
 
 > To lower the sensitivity for a given combination length $k$, we need to randomly drop $k$-tuples from records to make sure the record's sensitivity will not exceed the "allowed sensitivity" computed with DP.
 
