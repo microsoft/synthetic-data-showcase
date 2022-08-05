@@ -155,7 +155,7 @@ According to [Differentially Private Marginals](./dp_marginals.pdf), the noise a
 
 Notice that the noise level is directly related to the overall sensitivity $\Delta_k$. Higher sensitivity values therefore result in higher levels of added noise.
 
-In order to decrease the noise, we can use a differentially-private percentile technique to select $\Delta_k$, so instead of $\Delta_{k} = max |M_{k,j}|$ we consume some privacy budget and compute $\Delta_{k} = Q^{th}$\-$percentile(|M\_{k,j}|,\varepsilon_Q)$, where $\varepsilon_Q$ is the dedicated privacy budget for the percentile selection.
+In order to decrease the noise, we can use a differentially-private percentile technique to select $\Delta_k$, so instead of $\Delta_{k} = max |M_{k,j}|$ we consume some privacy budget and compute $\Delta_{k} = Q^{th}_{percentile}(|M\_{k,j}|,\varepsilon_Q)$, where $\varepsilon_Q$ is the dedicated privacy budget for the percentile selection.
 
 > To lower the sensitivity for a given combination length $k$, we need to randomly drop $k$-tuples from records to make sure the record's sensitivity will not exceed the "allowed sensitivity" computed with DP.
 
