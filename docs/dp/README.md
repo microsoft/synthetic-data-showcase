@@ -21,6 +21,11 @@ The goal of this document is to describe the differential privacy approach taken
   - [3.4. Normalization](#34-normalization)
   - [3.5. Algorithm description](#35-algorithm-description)
 - [4. Data synthesis](#4-data-synthesis)
+  - [4.1. Algorithm description](#41-algorithm-description)
+  - [4.2. Sampling description](#42-sampling-description)
+    - [4.2.1. Sampling below and including the reporting length](#421-sampling-below-and-including-the-reporting-length)
+    - [4.2.2. Sampling beyond the reporting length](#422-sampling-beyond-the-reporting-length)
+  - [4.3. Using synthetic counts to balance sampling](#43-using-synthetic-counts-to-balance-sampling)
 
 # 1. High level approach
 
@@ -336,4 +341,173 @@ aggregate_data = normalize(aggregate_data)
 
 # 4. Data synthesis
 
-TODO
+SDS synthesizes data directly from the [differently-private aggregates](#3-aggregation-with-differential-privacy), without querying the sensitive data. This way, the generated synthetic data will preserve the same guarantees present in the aggregates computed with differential privacy.
+
+The synthesis mode used to synthesize data from the DP aggregates is called _aggregate-seeded_. The idea behind it is to sample attributes and build records trying to match not only the single attribute count distributions in the aggregate data, but also all the reported _k-tuples_ distributions. For example, if the aggregate data contains the following k-tuples and counts:
+
+- $count(A = a1) = 3$
+- $count(A = a2) = 2$
+- $count(B = b1) = 1$
+- $count(B = b2) = 3$
+- $count(C = c1) = 3$
+- $count(C = c2) = 1$
+- $count(A = a1, B = b1) = 1$
+- $count(A = a1, B = b2) = 2$
+- $count(A = a1, C = c1) = 2$
+- $count(A = a2, B = b2) = 1$
+- $count(A = a2, C = c1) = 1$
+- $count(A = a2, C = c2) = 1$
+- $count(B = b1, C = c1) = 1$
+- $count(B = b2, C = c1) = 2$
+- $count(A = a1, B = b1, C = c1) = 1$
+- $count(A = a1, B = b2, C = c1) = 1$
+- $count(A = a2, B = b2, C = c1) = 1$
+
+Then the _aggregate-seeded_ synthesis will try its best to reproduce these distributions in the output dataset.
+
+The following sections will explain in more details how te _aggregate-seeded_ synthesis work.
+
+## 4.1. Algorithm description
+
+The general concept behind this synthesis can be expressed by the following algorithm:
+
+- $reporting\_length =$ the same used to generate the aggregate data
+- $aggregate\_data$
+
+```python
+# this will get the 1-tuple counts from the aggregate_data
+#
+# therefore, this will contain only the single attribute counts
+single_attributes_available = count_single_attributes(aggregate_data)
+
+# stores the resulting synthetic records
+synthesized_records = []
+
+# this keeps track of the already synthesized k-tuple counts
+already_synthesized_counts = {}
+
+# we keep going, while we have not used all the available
+# single attributes
+while len(single_attribute_available) > 0:
+	synthetic_record = []
+
+	while True:
+		# sample the next attribute
+		attr = sample_next_attr(
+			aggregate_data,
+			synthetic_record,
+			single_attributes_available,
+			already_synthesized_counts
+		)
+
+		# if we could sample one more attribute
+		# add it to result
+		if attr != None:
+			synthetic_record.append(attr)
+
+			# now we decrement the used attribute count
+			single_attributes_available[attr] -= 1
+
+			# if the count reached 0, this attribute
+			# will not be available for sampling anymore
+			if single_attributes_available[attr] == 0:
+				del single_attributes_available[attr]
+		else:
+			break
+
+	# update the already synthesized k-tuples counts
+	for k in range(1, reporting_length + 1):
+		for comb in combinations(synthetic_record, k):
+			already_synthesized_counts[comb] += 1
+
+	synthesized_records.append(synthetic_record)
+```
+
+## 4.2. Sampling description
+
+Notice that the overall algorithm described above includes a function called `sample_next_attr`. The goal of such function is to sample a new attribute to be added to the currently synthesized record.
+
+This function works by randomly sampling attributes from the list of single attributes available. Despite having a level of randomness, this function will try to follow the same distribution of counts present in the aggregate data.
+
+Generally speaking, it performs sampling based on weights, so let's consider the following scenario:
+
+| Attribute | Weight |
+| --------- | ------ |
+| a1        | 1      |
+| b1        | 5      |
+| c1        | 10     |
+
+Even though all the 3 attribute above have a chance of being sampled, $c1$ has 2 times more chance than $b1$, which has 5 times more chance than $a1$.
+
+Also, when sampling it is important to ensure that:
+
+- Attributes already present in the currently synthesized record cannot be sampled again
+
+- Only attribute from columns that are not present in the synthetic record yet can be sampled (e.g. If $a1$ from column A has been already sampled, $a2$ also from column A cannot)
+
+- Attributes that create attribute combinations that do not exist in the aggregate data when added to the currently synthesized record cannot be sampled (e.g. if the currently synthesized record is $(A = a1, B = b1, C = c2)$, and we will try to sample $D = d2$, if, for instance, $(B = b1, D = d2)$ is not reported in the aggregate data, sampling $D = d1$ is not an option.)
+
+  - This guarantees that the synthesis will not fabricate new attribute combinations - although, fabricated combinations during the aggregation with DP are reported in the aggregate data and might also appear in the synthetic data.
+
+On the other hand, we also need to calculate the weights that are used for sampling. This can be divided into two cases: adding a new attribute to the current synthetic record creates a new record (i) having fewer or the same number of attributes than the computed reporting length; and (ii) more attributes than the computed reporting length.
+
+### 4.2.1. Sampling below and including the reporting length
+
+Lets say the currently synthesized record is $(A = a1, B = b1)$, and we have the following available attributes: $[C = c1, C = c2, D = d1]$. If we decide to add each of these attributes to the synthetic record and lookup the result in aggregate data:
+
+- $C = c1 \rightarrow (A = a1, B = b1, C = c1)$; $count(A = a1, B = b1, C = c1) = 1$
+- $C = c2 \rightarrow (A = a1, B = b1, C = c2)$; $count(A = a1, B = b1, C = c2) = 5$
+- $D = d1 \rightarrow (A = a1, B = b1, D = d1)$; $(A = a1, B = b1, D = d1)$ does not exist in the aggregate data
+
+This means that $D = d1$ cannot be a candidate for sampling, while $C = c1$ and $C = c2$ can, with the weights being their counts in the aggregate data.
+
+### 4.2.2. Sampling beyond the reporting length
+
+While the size of the synthesized records plus the new attribute candidate for sampling does not exceed the reporting length, the weight can be a direct lookup in the aggregate data. However, if it does exceed, we can proceed by doing the following:
+
+- $synthetic\_record =$ record already synthesized so far
+- $attr\_candidate =$ attribute candidate we want to calculate the weight for
+- $weight\_selection\_percentile=$ the percentile we want from all the weights candidates (default 95)
+- $aggregate\_data$
+
+```python
+# store all weight candidates for the percentile technique
+weight_candidates = []
+
+# current record with the new attr candidate added to it
+current_candidate = synthetic_record + attr_candidate
+
+# for every combination length from 1 up to and including the
+# reporting length
+for k in range(1, reporting_length + 1):
+	# get all the sub-combinations that include the
+	# attribute we want to get the weight for
+	for sub_combination in combinations(current_candidate):
+		if attr_candidate in sub_combination:
+			if sub_combination in aggregate_data:
+				weight_candidates.append(aggregate_data[sub_combination])
+			else:
+				# adding the attribute would create
+				# a combination that does not exist in
+				# aggregate data - we will not do that
+				return None
+
+if len(weight_candidates) == 0:
+	return None
+
+# calculate the percentile that will represent the
+# weight for the attribute candidate
+return percentile(weight_candidates, weight_selection_percentile)
+```
+
+Notice that the aggregate counts are already DP, so we don't need differential privacy do compute the percentile of weight candidates in here.
+
+## 4.3. Using synthetic counts to balance sampling
+
+So far, every time the aggregate data is queried, either to directly get a weight used for sampling, or to build the list of weight candidates for the percentile technique, the raw aggregate counts are used.
+
+Sometimes, depending on the dataset, it might be desirable to use the count of the already synthesized attributes to help balancing the sampling process.
+
+If we look back to the [overall algorithm](#41-algorithm-description), we already keep track of the already synthesized attribute counts `already_synthesized_counts`. So, when we perform the lookup in the aggregate data, instead of using the raw count, we could use: `aggregate_data[sub_combination] - already_synthesized_counts[sub_combination]`. Therefore, attributes that have already been sampled, will have less chance of being sampled again.
+
+> This is controlled by the `use_synthetic_counts` flag on SDS.
