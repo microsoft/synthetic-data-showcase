@@ -165,7 +165,7 @@ From [Differentially Private Marginals](./dp_marginals.pdf), to satisfy $(\varep
 
 $0.5 * R\varepsilon_Q^2 + 0.5 *\displaystyle\sum_{1}^{R} 1/\sigma_i^2 \leq \sqrt{\varepsilon + \ln(2/\delta)} - \sqrt{\ln(2/\delta)}$
 
-Let's call $\rho=\sqrt{\varepsilon + \ln(2/\delta)} - \sqrt{\ln(2/\delta)}$ and define $Q_{p}$ as the proportion of the total privacy budget dedicated for finding $Q^{th}$ percentiles. Then, we need to find: (i) $0.5 * R\varepsilon_Q^2  = \rho * Q_{p}$ and (ii) $0.5 *\displaystyle\sum_{1}^{R} 1/\sigma_i^2 = \rho * (1 - Q_{p})$
+Let's call $\rho=\sqrt{\varepsilon + \ln(2/\delta)} - \sqrt{\ln(2/\delta)}$ and define $Q_{p}$ as the proportion of the total privacy budget dedicated for finding $Q^{th}_{percentiles}$. Then, we need to find: (i) $0.5 * R\varepsilon_Q^2 = \rho * Q_{p}$ and (ii) $0.5 *\displaystyle\sum_{1}^{R} 1/\sigma_i^2 = \rho * (1 - Q_{p})$
 
 (i) directly tells us that: $\varepsilon_Q = \sqrt{(2 * \rho * Q_{p}) / R}$ [3]
 
