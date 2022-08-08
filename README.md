@@ -44,6 +44,8 @@ Differential privacy is not a tool, but a set of mathematical techniques that ca
 
 This tool, protects attribute combination counts in the aggregate data with differential privacy [**`(epsilon, delta)-DP`**](https://en.wikipedia.org/wiki/Differential_privacy), and then uses the resulting DP aggregate counts to derive synthetic records that retain differential privacy under the post-processing property.
 
+> For a detailed explanation of how SDS uses differential privacy, please check our [DP documentation](./docs/dp/README.md).
+
 ## Usage
 
 Use of differential privacy synthesizers is recommended for **repeated data releases** where cumulative privacy loss must be quantified and controlled, where **attribute inference** from **homogeneity attacks** is a concern, or where provable guarantees against all possible privacy attacks are desired.
