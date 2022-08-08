@@ -88,6 +88,14 @@ function generateNoisyThresholdValuesByLen(
 
 	switch (fabricationMode) {
 		case FabricationMode.Balanced:
+			if (reportingLength >= 2) {
+				ret[2] = 0.55
+				for (let i = 3; i <= reportingLength; ++i) {
+					ret[i] = 1.0
+				}
+			}
+			break
+		case FabricationMode.Progressive:
 			if (reportingLength === 2) {
 				ret[2] = 0.1
 			} else {
