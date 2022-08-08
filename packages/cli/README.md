@@ -8,23 +8,57 @@ When you compile the core rust library, the CLI application will also be built, 
 
 # Usage
 
-> More information can be seen on the help of the CLI tool (`./sds-cli --help`, `./sds-cli aggregate --help` and `./sds-cli generate --help`)
+> More information can be seen in the help of the CLI tool (`./sds-cli --help`, `./sds-cli aggregate --help` and `./sds-cli generate --help`)
 
 ## Aggregate
+
+### K-anonymity
 
 ```bash
 sds-cli --sensitive-path <sensitive_path> --sensitive-delimiter <delimiter> --resolution <reporting_resolution> --n-threads <n> aggregate --aggregates-path <aggregates_path> --reporting-length <reporting_length>
 ```
 
-Generates the `aggregates_path` tsv file containing precomputed and protected counts of all sensitive attribute combinations up to `reporting_length` in length. Since these are highly sensitive if the counts are not protected, the file should be protected in the same way as the original microdata.
+Generates the `aggregates_path` tsv file containing precomputed and protected counts of all sensitive attribute combinations up to `reporting_length` in length.
+
+### Differential privacy (DP)
+
+```bash
+sds-cli --sensitive-path <sensitive_path> --sensitive-delimiter <delimiter> --resolution 1 --n-threads <n> aggregate --aggregates-path <aggregates_path> ---aggregates-json <aggregates_json_path> -reporting-length <reporting_length> --dp --noise-epsilon <epsilon_value> --sensitivities-percentile 99 --sensitivities-epsilon-proportion 0.01 --noise-threshold-values
+```
+
+Generates the `aggregates_path` tsv file containing precomputed and DP protected counts of all sensitive attribute combinations up to `reporting_length` in length. `aggregates_json_path` is a generated file for internal usage, and should not be shared.
+
+This is the bare minimum set of required parameters, but there are more supported, for a full list run: `sds-cli aggregate --help`.
+
+> Notice that his might suppress and/or fabricate attribute combinations in order to ensure differential privacy guarantees.
+
+### Sensitive aggregates
+
+```bash
+sds-cli --sensitive-path <sensitive_path> --sensitive-delimiter <delimiter> --resolution <reporting_resolution> --n-threads <n> aggregate --aggregates-path <aggregates_path> --reporting-length <reporting_length> --not-protect
+```
+
+Generates the `aggregates_path` tsv file containing precomputed counts of all sensitive attribute combinations up to `reporting_length` in length. Since these are highly sensitive if the counts are not protected, the file should be protected in the same way as the original microdata.
 
 ## Generate
 
+### K-anonymity
+
 ```bash
-sds-cli --sensitive-path <sensitive_path> --sensitive-delimiter <delimiter> --resolution <reporting_resolution> --n-threads <n> generate --synthetic-path <synthetic_path> --mode <seeded|unseeded>
+sds-cli --sensitive-path <sensitive_path> --sensitive-delimiter <delimiter> --resolution <reporting_resolution> --n-threads <n> generate --synthetic-path <synthetic_path> --mode row_seeded
 ```
 
-Generates the `sensitive_path` csv file containing synthetic microdata representing the structure and statistics of data at `sensitive_path`, without leaking any attribute combinations that are rare in the sensitive data.
+Generates the `synthetic_path` csv file containing synthetic microdata representing the structure and statistics of data at `sensitive_path`, without leaking any attribute combinations that are rare in the sensitive data.
+
+### Differential privacy DP
+
+```bash
+sds-cli --sensitive-path <sensitive_path> --sensitive-delimiter <delimiter> --resolution 1 --n-threads <n> generate --synthetic-path <synthetic_path> --mode aggregate_seeded --aggregates-json <aggregates_json_path>
+```
+
+Generates the `synthetic_path` csv file containing synthetic microdata representing the structure and statistics of data at `sensitive_path`. This is synthesized from the DP aggregates previously generated in `aggregates_json_path`.
+
+This is the bare minimum set of required parameters, but there are more supported, for a full list run: `sds-cli generate --help`.
 
 ## Example
 
