@@ -47,6 +47,8 @@ export function generateContextKey(params: IRawSynthesisParameters): string {
 				params.weightSelectionPercentile
 			}, Percentile=${params.percentilePercentage}, PercentileEpsilonProp=${
 				params.percentileEpsilonProportion
+			}, NumberOfRecordsEpsilonProportion=${
+				params.numberOfRecordsEpsilonProportion
 			}, Epsilon=${params.noiseEpsilon}, DeltaFactor=${
 				params.deltaFactor
 			}, FabricationMode=(${params.fabricationMode}, [${Object.values(
@@ -190,6 +192,8 @@ function convertRawToSynthesisParameters(
 							: 0.0,
 					percentilePercentage: rawParams.percentilePercentage,
 					percentileEpsilonProportion: rawParams.percentileEpsilonProportion,
+					numberOfRecordsEpsilonProportion:
+						rawParams.numberOfRecordsEpsilonProportion,
 					sigmaProportions: generateSigmaProportions(
 						rawParams.reportingLength,
 						rawParams.accuracyMode,

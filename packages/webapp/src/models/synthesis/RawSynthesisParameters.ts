@@ -25,6 +25,7 @@ export interface IRawSynthesisParameters {
 	weightSelectionPercentile: number
 	percentilePercentage: number
 	percentileEpsilonProportion: number
+	numberOfRecordsEpsilonProportion: number
 	noiseEpsilon: number
 	deltaFactor: number
 	fabricationMode: FabricationMode
@@ -46,6 +47,7 @@ export const defaultRawSynthesisParameters: IRawSynthesisParameters = {
 	weightSelectionPercentile: 95,
 	percentilePercentage: 99,
 	percentileEpsilonProportion: 0.01,
+	numberOfRecordsEpsilonProportion: 0.005,
 	noiseEpsilon: 4.0,
 	deltaFactor: 0,
 	fabricationMode: FabricationMode.Uncontrolled,
