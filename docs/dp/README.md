@@ -276,6 +276,8 @@ High level code to compute aggregate counts with DP:
 - _thresholds_ $\gets [t_1, ..., t_k]$
 - _input_data_
 
+> This is just pseudo-code that will not run if you copy and paste it.
+
 ```python
 aggregate_data = {}
 
@@ -395,6 +397,8 @@ The general concept behind this synthesis can be expressed by the following algo
 - _reporting_length_ $\leftarrow$ the same used to generate the aggregate data
 - _aggregate_data_
 
+> This is just pseudo-code that will not run if you copy and paste it.
+
 ```python
 # this will get the 1-tuple counts from the aggregate_data
 #
@@ -490,6 +494,8 @@ For as long as the size of the synthesized record plus the new attribute candida
 - _attr_candidate_ $\leftarrow$ attribute candidate we want to calculate the weight for
 - _weight_selection_percentile_ $\leftarrow$ the percentile we want from all the weights candidates (default 95)
 - _aggregate_data_
+
+> This is just pseudo-code that will not run if you copy and paste it.
 
 ```python
 # store all weight candidates for the percentile technique
