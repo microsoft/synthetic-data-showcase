@@ -10,8 +10,8 @@ use serde::Serialize;
 ///
 /// By default, the builder will be constructed with default values:
 ///     - reporting_length: 3
-///     - epsilon: 0.1
-///     - delta: will be set in runtime to 1 / (2 * number_of_records)
+///     - epsilon: 4.0
+///     - delta: will be set in runtime to 1 / (ln(number_of_records) * number_of_records)
 ///     - percentile_percentage: 99
 ///     - percentile_epsilon_proportion: 0.01
 ///     - accuracy_mode: AccuracyMode.prioritize_long_combinations()
@@ -51,7 +51,7 @@ impl DpAggregateSeededParametersBuilder {
     pub fn default() -> Self {
         Self {
             _reporting_length: 3,
-            _epsilon: 0.1,
+            _epsilon: 4.0,
             _delta: None,
             _percentile_percentage: 99,
             _percentile_epsilon_proportion: 0.01,

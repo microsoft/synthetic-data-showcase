@@ -174,14 +174,19 @@ function convertRawToSynthesisParameters(
 				weightSelectionPercentile: rawParams.weightSelectionPercentile,
 			} as IAggregateSeededSynthesisParameters
 			break
-		case SynthesisMode.DP:
+		case SynthesisMode.DP: {
+			const deltaFactor =
+				rawParams.deltaFactor === 0 && rawParams.recordLimit > 0
+					? Math.log(rawParams.recordLimit)
+					: rawParams.deltaFactor
+
 			ret = {
 				...ret,
 				dpParameters: {
 					epsilon: rawParams.noiseEpsilon,
 					delta:
 						rawParams.recordLimit > 0
-							? 1.0 / (rawParams.deltaFactor * rawParams.recordLimit)
+							? 1.0 / (deltaFactor * rawParams.recordLimit)
 							: 0.0,
 					percentilePercentage: rawParams.percentilePercentage,
 					percentileEpsilonProportion: rawParams.percentileEpsilonProportion,
@@ -204,6 +209,7 @@ function convertRawToSynthesisParameters(
 				weightSelectionPercentile: rawParams.weightSelectionPercentile,
 			} as IDpSynthesisParameters
 			break
+		}
 	}
 	return ret
 }

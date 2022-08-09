@@ -160,7 +160,7 @@ enum Command {
 
         #[structopt(
             long = "noise-delta",
-            help = "delta used to generate noise that will be added to the aggregate counts [default: 1/(2 * number of records)]",
+            help = "delta used to generate noise that will be added to the aggregate counts [default: 1/(ln(number of records) * number of records)]",
             requires = "dp"
         )]
         noise_delta: Option<f64>,
@@ -403,8 +403,8 @@ fn main() {
             } => {
                 let mut aggregator = Aggregator::new(data_block.clone());
                 let aggregated_data = if dp {
-                    let delta = noise_delta
-                        .unwrap_or(1.0 / (2.0 * (data_block.number_of_records() as f64)));
+                    let n_records_f64 = data_block.number_of_records() as f64;
+                    let delta = noise_delta.unwrap_or(1.0 / (n_records_f64.ln() * n_records_f64));
                     let thresholds_map = noise_threshold_values
                         .unwrap()
                         .iter()

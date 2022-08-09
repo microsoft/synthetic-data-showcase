@@ -171,9 +171,10 @@ impl DpAggregateSeededSynthesizer {
     #[inline]
     fn delta_value_or_default(&self, data_block: &DataBlock) -> f64 {
         let number_of_records = data_block.number_of_records();
+        let number_of_records_f64 = number_of_records as f64;
 
         self._parameters.delta.unwrap_or(if number_of_records > 0 {
-            1.0 / (2.0 * (number_of_records as f64))
+            1.0 / (number_of_records_f64.ln() * number_of_records_f64)
         } else {
             0.0
         })

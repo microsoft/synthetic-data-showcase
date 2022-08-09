@@ -197,7 +197,7 @@ export const DataSynthesisAdvancedParameters: React.FC = memo(
 						<TooltipWrapper tooltip={tooltips.deltaFactor} label="Delta factor">
 							<StyledSpinButton
 								labelPosition={Position.top}
-								min={1}
+								min={0}
 								step={1}
 								value={rawSynthesisParams.deltaFactor.toString()}
 								onChange={handleDeltaFactorChange}

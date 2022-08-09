@@ -99,7 +99,7 @@ The pipeline can also protect aggregate data with differential privacy by adding
 - `percentile_epsilon_proportion`: Proportion of the privacy budget dedicated to the percentile technique (e.g. a value of `0.01` means `1%`);
 - `sigma_proportions`: This controls how to split the privacy budget for different combination lengths. See [splitting privacy budget across different combinations lengths](#Splitting_privacy_budget_across_different_combinations_lengths) below;
 - `noise_epsilon`: Privacy budget for the aggregates generation with differential privacy;
-- `delta_factor`: Used to calculate the delta value for `(epsilon, delta)-DP`:
+- `delta_factor`: Used to calculate the delta value for `(epsilon, delta)-DP` (if not set, defaults to `ln(number_of_records)`):
 
   - `delta = [1 / (delta_factor * number_of_records)]`;
 
@@ -416,8 +416,8 @@ The `report_pages` configuration allows you to specify specific visuals to displ
 	"percentile_percentage": 99,
 	"percentile_epsilon_proportion": 0.01,
 	"sigma_proportions": [1.0, 0.5, 0.33, 0.25],
-	"noise_epsilon": 0.5,
-	"delta_factor": 2.0,
+	"noise_epsilon": 4.0,
+	"delta_factor": null,
 	"noise_threshold_type": "fixed",
 	"noise_threshold_values": {},
 

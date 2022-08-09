@@ -85,7 +85,7 @@ def runForConfig(config):
         'percentile_epsilon_proportion', None)
     config['sigma_proportions'] = config.get('sigma_proportions', None)
     config['noise_epsilon'] = config.get('noise_epsilon', None)
-    config['delta_factor'] = config.get('delta_factor', 2.0)
+    config['delta_factor'] = config.get('delta_factor', None)
     config['noise_threshold_type'] = config.get('noise_threshold_type', None)
     if config['noise_threshold_type'] != None:
         config['noise_threshold_type'] = config['noise_threshold_type'].lower()
