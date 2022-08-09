@@ -163,13 +163,19 @@ In order to decrease the noise, we can use a differentially-private percentile t
 
 From [Differentially Private Marginals](./dp_marginals.pdf), to satisfy $(\varepsilon, \delta)$-DP, the following inequality needs to hold:
 
-$0.5 * R\varepsilon_Q^2 + 0.5 *\displaystyle\sum_{1}^{R} 1/\sigma_i^2 \leq \sqrt{\varepsilon + \ln(2/\delta)} - \sqrt{\ln(2/\delta)}$
+$0.5 * R\varepsilon_Q^2 + 0.5 * \varepsilon_N^2 + 0.5 *\displaystyle\sum_{1}^{R} 1/\sigma_k^2 \leq \sqrt{\varepsilon + \ln(2/\delta)} - \sqrt{\ln(2/\delta)}$, where the reported aggregate count is `real_aggregate_count + ` $\sigma_{k} * \sqrt{\Delta_k} * N(0, 1)$ and the reported number of records is `real_number_of_records + ` $Laplace(1 / \varepsilon_N)$.
 
-Let's call $\rho=\sqrt{\varepsilon + \ln(2/\delta)} - \sqrt{\ln(2/\delta)}$ and define $Q_{p}$ as the proportion of the total privacy budget dedicated for finding $Q^{th}$ percentiles. Then, we need to find: (i) $0.5 * R\varepsilon_Q^2  = \rho * Q_{p}$ and (ii) $0.5 *\displaystyle\sum_{1}^{R} 1/\sigma_i^2 = \rho * (1 - Q_{p})$
+Based on the given inequality we can:
 
-(i) directly tells us that: $\varepsilon_Q = \sqrt{(2 * \rho * Q_{p}) / R}$ [3]
+1. Call $\rho=\sqrt{\varepsilon + \ln(2/\delta)} - \sqrt{\ln(2/\delta)}$
+2. Define $Q_{p}$ as the proportion of the total privacy budget dedicated for finding $Q^{th}$ percentiles
+3. Define $N_{p}$ the proportion of the total privacy budget dedicated for finding the protected number of records
 
-Then to solve (ii) and find the $\sigma_k$ values, SDS will proportionally split the privacy budget such that:
+Then, in order to find $\varepsilon_Q$, $\varepsilon_N$ and $\sigma_k$, we need to solve: (i) $0.5 * R\varepsilon_Q^2  = \rho * Q_{p}$; (ii) $0.5 * \varepsilon_N^2  = \rho * N_{p}$; and (iii) $0.5 *\displaystyle\sum_{1}^{R} 1/\sigma_i^2 = \rho * (1 - Q_{p} - N_{p})$.
+
+(i) directly tells us that $\varepsilon_Q = \sqrt{(2 * \rho * Q_{p}) / R}$ [3] and (ii) that $\varepsilon_N = \sqrt{2 * \rho * N_{p}}$.
+
+On the other hand, to solve (iii) and find the $\sigma_k$ values, SDS will proportionally split the privacy budget such that:
 
 - $\sigma_1 = p_1 * \sigma$
 - $\sigma_2 = p_2 * \sigma$
@@ -178,22 +184,28 @@ Then to solve (ii) and find the $\sigma_k$ values, SDS will proportionally split
 
 Thus:
 
-$(\frac{1}{\sigma_1^2} + \frac{1}{\sigma_2^2}+ ... + \frac{1}{\sigma_k^2}) = 2 * \rho * (1 - Q_{p})$
+$(\frac{1}{\sigma_1^2} + \frac{1}{\sigma_2^2}+ ... + \frac{1}{\sigma_k^2}) = 2 * \rho * (1 - Q_{p} - N_{p})$
 
-$(\frac{1}{p_1^2*\sigma^2} + \frac{1}{p_2^2*\sigma^2} + ... + \frac{1}{p_k^2*\sigma^2}) = 2 * \rho * (1 - Q_{p})$
+$(\frac{1}{p_1^2*\sigma^2} + \frac{1}{p_2^2*\sigma^2} + ... + \frac{1}{p_k^2*\sigma^2}) = 2 * \rho * (1 - Q_{p} - N_{p})$
 
-$\frac{1}{\sigma^2} * (\frac{1}{p_1^2} + \frac{1}{p_2^2} + ... + \frac{1}{p_k^2}) = 2 * \rho * (1 - Q_{p})$
+$\frac{1}{\sigma^2} * (\frac{1}{p_1^2} + \frac{1}{p_2^2} + ... + \frac{1}{p_k^2}) = 2 * \rho * (1 - Q_{p} - N_{p})$
 
-$\frac{1}{\sigma^2} = \frac{2 * \rho * (1 - Q_{p})}{(\frac{1}{p_1^2} + \frac{1}{p_2^2} + ... + \frac{1}{p_k^2})}$
+$\frac{1}{\sigma^2} = \frac{2 * \rho * (1 - Q_{p} - N_{p})}{(\frac{1}{p_1^2} + \frac{1}{p_2^2} + ... + \frac{1}{p_k^2})}$
 
-$\sigma = \sqrt{\frac{(\frac{1}{p_1^2} + \frac{1}{p_2^2} + ... + \frac{1}{p_k^2})}{2 * \rho * (1 - Q_{p})}}$
+$\sigma = \sqrt{\frac{(\frac{1}{p_1^2} + \frac{1}{p_2^2} + ... + \frac{1}{p_k^2})}{2 * \rho * (1 - Q_{p} - N_{p})}}$
 
-$\sigma_k = p_k * \sigma = p_k * \sqrt{\frac{(\frac{1}{p_1^2} + \frac{1}{p_2^2} + ... + \frac{1}{p_k^2})}{2 * \rho * (1 - Q_{p})}}$ [4]
+$\sigma_k = p_k * \sigma = p_k * \sqrt{\frac{(\frac{1}{p_1^2} + \frac{1}{p_2^2} + ... + \frac{1}{p_k^2})}{2 * \rho * (1 - Q_{p} - N_{p})}}$ [4]
 
 To summarize, to control the allocation of the privacy budget $\varepsilon$, SDS expects the following inputs:
 
-- `Percentile epsilon proportion` = $Q_p$, where $0 < Q_p < 1$
+- `Percentile epsilon proportion` = $Q_p$, where $0 < Q_p < 1$ and $0 < Q_p + N_p < 1$
+- `Number of records epsilon proportion` = $N_p$, where $0 < N_p < 1$ and $0 < Q_p + N_p < 1$
 - `Sigma proportions` = $[p_1, p_2, ..., p_k]$, where $p_k > 0$
+
+To illustrate the sigma proportions, let's assume a reporting length of $3$. Then we could set:
+
+- $[p_1=1.0, p_2=1.0, p_3=1.0]$: this evenly splits the privacy budget across the combination lengths, resulting in $\sigma_1 = \sigma_2 = \sigma_3 = \sigma$
+- $[p_1=1.0, p_2=\frac{1}{2}, p_3=\frac{1}{3}]$: this prioritize smaller errors for longer combination lengths, resulting in $\sigma_1 = \sigma; \sigma_2 = \frac{\sigma}{2}; \sigma_3 = \frac{\sigma}{3}$
 
 ## 3.3. Noise threshold types
 
@@ -221,6 +233,16 @@ SDS allows $\eta_2, ..., \eta_k$ to be specified such that:
 $\rho_k = \sigma_k * \sqrt{\Delta_1} * \Phi^{-1}[1 - \frac{\eta_k}{2}]$, where $0 < \eta_k \leq 1$.
 
 Notice that when $\eta_k = 1$, then $\rho_k = 0$, resulting in the maximum possible fabrication, whereas smaller values of $\eta_k$ will result in greater thresholds and less fabrication. The tradeoff is that more attribute combinations will be suppressed from the reported aggregate data.
+
+To illustrate $\eta_2, ..., \eta_k$, let's assume a reporting length of $4$. Then:
+
+- $[\eta_2 = 1.0, \eta_3 = 1.0, \eta_4 = 1.0]$: leaves the fabrication at its maximum
+- $[\eta_2 = 0.01, \eta_3 = 1.0, \eta_4 = 1.0]$: tries to minimize fabrication for the $2$-tuples
+- $[\eta_2 = 0.1, \eta_3 = 0.55, \eta_4 = 1.0]$: linearly decreases the amount of fabrication that is being filtered as the combination length grows
+
+> As mentioned above, notice the tradeoff: the more fabrication we filter, more attribute combinations will be suppressed from the reported aggregate data.
+
+> Notice that filtered $2$-tuples will propagate to $k$-tuples, with $k > 2$. So if a given $2$-tuple is filtered, the $k$-tuples with $k > 2$ containing it will not be reported.
 
 ## 3.4. Normalization
 
