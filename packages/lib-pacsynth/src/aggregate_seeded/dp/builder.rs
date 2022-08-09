@@ -15,7 +15,7 @@ use serde::Serialize;
 ///     - percentile_percentage: 99
 ///     - percentile_epsilon_proportion: 0.01
 ///     - accuracy_mode: AccuracyMode.prioritize_long_combinations()
-///     - number_of_records_epsilon: 0.1
+///     - number_of_records_epsilon_proportion: 0.005
 ///     - fabrication_mode: FabricationMode.uncontrolled()
 ///     - empty_value: ''
 ///     - use_synthetic_counts: false
@@ -36,7 +36,7 @@ pub struct DpAggregateSeededParametersBuilder {
     _percentile_percentage: usize,
     _percentile_epsilon_proportion: f64,
     _accuracy_mode: AccuracyMode,
-    _number_of_records_epsilon: f64,
+    _number_of_records_epsilon_proportion: f64,
     _fabrication_mode: FabricationMode,
     _empty_value: String,
     _use_synthetic_counts: bool,
@@ -56,7 +56,7 @@ impl DpAggregateSeededParametersBuilder {
             _percentile_percentage: 99,
             _percentile_epsilon_proportion: 0.01,
             _accuracy_mode: AccuracyMode::prioritize_long_combinations(),
-            _number_of_records_epsilon: 0.1,
+            _number_of_records_epsilon_proportion: 0.005,
             _fabrication_mode: FabricationMode::uncontrolled(),
             _empty_value: "".to_owned(),
             _use_synthetic_counts: false,
@@ -181,15 +181,15 @@ impl DpAggregateSeededParametersBuilder {
     /// To do so, noise needs to be added to original number of records
     /// to ensure it is protected by DP.
     ///
-    /// This specifies the privacy budget used to generate this noise.
+    /// This specifies the proportion of the privacy budget used to generate this noise.
     ///
     /// Arguments:
     ///     * value: float - value to be set
     ///
     /// Returns:
     ///     Self reference to the builder - DpAggregateSeededParametersBuilder
-    pub fn number_of_records_epsilon(slf: Py<Self>, py: Python, value: f64) -> Py<Self> {
-        slf.borrow_mut(py)._number_of_records_epsilon = value;
+    pub fn number_of_records_epsilon_proportion(slf: Py<Self>, py: Python, value: f64) -> Py<Self> {
+        slf.borrow_mut(py)._number_of_records_epsilon_proportion = value;
         slf
     }
 
@@ -325,9 +325,17 @@ impl DpAggregateSeededParametersBuilder {
 
         self._accuracy_mode.validate(self._reporting_length)?;
 
-        if self._number_of_records_epsilon <= 0.0 {
+        if self._number_of_records_epsilon_proportion <= 0.0
+            || self._number_of_records_epsilon_proportion >= 1.0
+        {
             return Err(PyValueError::new_err(
-                "number_of_records_epsilon must be > 0",
+                "number_of_records_epsilon_proportion must be > 0 and < 1",
+            ));
+        }
+
+        if self._percentile_epsilon_proportion + self._number_of_records_epsilon_proportion >= 1.0 {
+            return Err(PyValueError::new_err(
+                "percentile_epsilon_proportion + number_of_records_epsilon_proportion must be < 1",
             ));
         }
 
@@ -367,7 +375,7 @@ impl DpAggregateSeededParametersBuilder {
             sigma_proportions: self
                 ._accuracy_mode
                 .extract_sigma_proportions(self._reporting_length),
-            number_of_records_epsilon: self._number_of_records_epsilon,
+            number_of_records_epsilon_proportion: self._number_of_records_epsilon_proportion,
             threshold: self
                 ._fabrication_mode
                 .extract_threshold(self._reporting_length),

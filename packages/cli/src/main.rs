@@ -189,11 +189,11 @@ enum Command {
         sigma_proportions: Option<Vec<f64>>,
 
         #[structopt(
-            long = "number-of-records-epsilon",
-            help = "epsilon used to add noise to the protected number of records in the aggregated data (default is 0.1)",
+            long = "number-of-records-epsilon-proportion",
+            help = "proportion of epsilon used to add noise to the protected number of records in the aggregated data (default is 0.005)",
             requires = "dp"
         )]
-        number_of_records_epsilon: Option<f64>,
+        number_of_records_epsilon_proportion: Option<f64>,
 
         #[structopt(
             long = "aggregates-json",
@@ -398,7 +398,7 @@ fn main() {
                 noise_threshold_type,
                 noise_threshold_values,
                 sigma_proportions,
-                number_of_records_epsilon,
+                number_of_records_epsilon_proportion,
                 aggregates_json,
             } => {
                 let mut aggregator = Aggregator::new(data_block.clone());
@@ -429,7 +429,7 @@ fn main() {
                             sensitivities_percentile.unwrap(),
                             sensitivities_epsilon_proportion.unwrap(),
                             sigma_proportions,
-                            number_of_records_epsilon,
+                            number_of_records_epsilon_proportion,
                         ),
                         threshold,
                         &mut progress_reporter,

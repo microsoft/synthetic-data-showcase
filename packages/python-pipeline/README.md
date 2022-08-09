@@ -105,7 +105,7 @@ The pipeline can also protect aggregate data with differential privacy by adding
 
 - `noise_threshold_type`: This provides controls over fabrication (spurious attribute combinations). Possible values are `fixed` and `adaptive`. See [controlling fabrication](#Controlling_fabrication) below;
 - `noise_threshold_values`: Dictionary specifying threshold by combination length (e.g. `{ 2: 0, 3: 10 }`). See [controlling fabrication](#Controlling_fabrication) below;
-- `number_of_records_epsilon`: The number of records reported in the reportable aggregates file should also be protected with differential privacy. To do so, noise needs to be added to original number of records to ensure it is protected by DP. This specifies the privacy budget used to generate this noise;
+- `number_of_records_epsilon_proportion`: The number of records reported in the reportable aggregates file should also be protected with differential privacy. To do so, noise needs to be added to original number of records to ensure it is protected by DP. This specifies the proportion of the privacy budget used to generate this noise (if not set, defaults to 0.005);
 
 #### Splitting privacy budget across different combinations lengths
 
@@ -415,6 +415,7 @@ The `report_pages` configuration allows you to specify specific visuals to displ
 	"dp_aggregates": true,
 	"percentile_percentage": 99,
 	"percentile_epsilon_proportion": 0.01,
+	"number_of_records_epsilon_proportion": 0.005,
 	"sigma_proportions": [1.0, 0.5, 0.33, 0.25],
 	"noise_epsilon": 4.0,
 	"delta_factor": null,

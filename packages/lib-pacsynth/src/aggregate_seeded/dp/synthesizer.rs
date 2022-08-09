@@ -76,7 +76,7 @@ impl DpAggregateSeededSynthesizer {
                     self._parameters.percentile_percentage,
                     self._parameters.percentile_epsilon_proportion,
                     Some(self._parameters.sigma_proportions.clone()),
-                    Some(self._parameters.number_of_records_epsilon),
+                    Some(self._parameters.number_of_records_epsilon_proportion),
                 ),
                 self._parameters.threshold.clone(),
                 &mut create_progress_reporter(),
