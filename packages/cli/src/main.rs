@@ -160,7 +160,7 @@ enum Command {
 
         #[structopt(
             long = "noise-delta",
-            help = "delta used to generate noise that will be added to the aggregate counts [default: 1/(2 * number of records)]",
+            help = "delta used to generate noise that will be added to the aggregate counts [default: 1/(ln(number of records) * number of records)]",
             requires = "dp"
         )]
         noise_delta: Option<f64>,
@@ -189,11 +189,11 @@ enum Command {
         sigma_proportions: Option<Vec<f64>>,
 
         #[structopt(
-            long = "number-of-records-epsilon",
-            help = "epsilon used to add noise to the protected number of records in the aggregated data (default is 0.1)",
+            long = "number-of-records-epsilon-proportion",
+            help = "proportion of epsilon used to add noise to the protected number of records in the aggregated data (default is 0.005)",
             requires = "dp"
         )]
-        number_of_records_epsilon: Option<f64>,
+        number_of_records_epsilon_proportion: Option<f64>,
 
         #[structopt(
             long = "aggregates-json",
@@ -398,13 +398,13 @@ fn main() {
                 noise_threshold_type,
                 noise_threshold_values,
                 sigma_proportions,
-                number_of_records_epsilon,
+                number_of_records_epsilon_proportion,
                 aggregates_json,
             } => {
                 let mut aggregator = Aggregator::new(data_block.clone());
                 let aggregated_data = if dp {
-                    let delta = noise_delta
-                        .unwrap_or(1.0 / (2.0 * (data_block.number_of_records() as f64)));
+                    let n_records_f64 = data_block.number_of_records() as f64;
+                    let delta = noise_delta.unwrap_or(1.0 / (n_records_f64.ln() * n_records_f64));
                     let thresholds_map = noise_threshold_values
                         .unwrap()
                         .iter()
@@ -429,7 +429,7 @@ fn main() {
                             sensitivities_percentile.unwrap(),
                             sensitivities_epsilon_proportion.unwrap(),
                             sigma_proportions,
-                            number_of_records_epsilon,
+                            number_of_records_epsilon_proportion,
                         ),
                         threshold,
                         &mut progress_reporter,

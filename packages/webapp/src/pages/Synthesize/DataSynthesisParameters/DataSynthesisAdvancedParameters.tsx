@@ -78,6 +78,11 @@ export const DataSynthesisAdvancedParameters: React.FC = memo(
 		const handlePercentileEpsilonProportionChange = useSpinButtonOnChange(
 			useRawSynthesisParametersPropertySetter('percentileEpsilonProportion'),
 		)
+		const handleNumberOfRecordsEpsilonProportionChange = useSpinButtonOnChange(
+			useRawSynthesisParametersPropertySetter(
+				'numberOfRecordsEpsilonProportion',
+			),
+		)
 		const handleFabricationModeChange = useDropdownOnChange(
 			useRawSynthesisParametersPropertySetter('fabricationMode'),
 		)
@@ -197,7 +202,7 @@ export const DataSynthesisAdvancedParameters: React.FC = memo(
 						<TooltipWrapper tooltip={tooltips.deltaFactor} label="Delta factor">
 							<StyledSpinButton
 								labelPosition={Position.top}
-								min={1}
+								min={0}
 								step={1}
 								value={rawSynthesisParams.deltaFactor.toString()}
 								onChange={handleDeltaFactorChange}
@@ -246,6 +251,20 @@ export const DataSynthesisAdvancedParameters: React.FC = memo(
 								step={0.01}
 								value={rawSynthesisParams.percentileEpsilonProportion.toString()}
 								onChange={handlePercentileEpsilonProportionChange}
+							/>
+						</TooltipWrapper>
+
+						<TooltipWrapper
+							tooltip={tooltips.numberOfRecordsEpsilonProportion}
+							label="Number of records epsilon proportion"
+						>
+							<StyledSpinButton
+								labelPosition={Position.top}
+								min={0.001}
+								max={0.99}
+								step={0.001}
+								value={rawSynthesisParams.numberOfRecordsEpsilonProportion.toString()}
+								onChange={handleNumberOfRecordsEpsilonProportionChange}
 							/>
 						</TooltipWrapper>
 

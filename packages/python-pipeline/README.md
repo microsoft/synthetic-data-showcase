@@ -99,13 +99,13 @@ The pipeline can also protect aggregate data with differential privacy by adding
 - `percentile_epsilon_proportion`: Proportion of the privacy budget dedicated to the percentile technique (e.g. a value of `0.01` means `1%`);
 - `sigma_proportions`: This controls how to split the privacy budget for different combination lengths. See [splitting privacy budget across different combinations lengths](#Splitting_privacy_budget_across_different_combinations_lengths) below;
 - `noise_epsilon`: Privacy budget for the aggregates generation with differential privacy;
-- `delta_factor`: Used to calculate the delta value for `(epsilon, delta)-DP`:
+- `delta_factor`: Used to calculate the delta value for `(epsilon, delta)-DP` (if not set, defaults to `ln(number_of_records)`):
 
   - `delta = [1 / (delta_factor * number_of_records)]`;
 
 - `noise_threshold_type`: This provides controls over fabrication (spurious attribute combinations). Possible values are `fixed` and `adaptive`. See [controlling fabrication](#Controlling_fabrication) below;
 - `noise_threshold_values`: Dictionary specifying threshold by combination length (e.g. `{ 2: 0, 3: 10 }`). See [controlling fabrication](#Controlling_fabrication) below;
-- `number_of_records_epsilon`: The number of records reported in the reportable aggregates file should also be protected with differential privacy. To do so, noise needs to be added to original number of records to ensure it is protected by DP. This specifies the privacy budget used to generate this noise;
+- `number_of_records_epsilon_proportion`: The number of records reported in the reportable aggregates file should also be protected with differential privacy. To do so, noise needs to be added to original number of records to ensure it is protected by DP. This specifies the proportion of the privacy budget used to generate this noise (if not set, defaults to 0.005);
 
 #### Splitting privacy budget across different combinations lengths
 
@@ -415,9 +415,10 @@ The `report_pages` configuration allows you to specify specific visuals to displ
 	"dp_aggregates": true,
 	"percentile_percentage": 99,
 	"percentile_epsilon_proportion": 0.01,
+	"number_of_records_epsilon_proportion": 0.005,
 	"sigma_proportions": [1.0, 0.5, 0.33, 0.25],
-	"noise_epsilon": 0.5,
-	"delta_factor": 2.0,
+	"noise_epsilon": 4.0,
+	"delta_factor": null,
 	"noise_threshold_type": "fixed",
 	"noise_threshold_values": {},
 

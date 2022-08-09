@@ -85,14 +85,14 @@ def runForConfig(config):
         'percentile_epsilon_proportion', None)
     config['sigma_proportions'] = config.get('sigma_proportions', None)
     config['noise_epsilon'] = config.get('noise_epsilon', None)
-    config['delta_factor'] = config.get('delta_factor', 2.0)
+    config['delta_factor'] = config.get('delta_factor', None)
     config['noise_threshold_type'] = config.get('noise_threshold_type', None)
     if config['noise_threshold_type'] != None:
         config['noise_threshold_type'] = config['noise_threshold_type'].lower()
     config['noise_threshold_values'] = {
         int(l): t for l, t in config.get('noise_threshold_values', {}).items()}
-    config['number_of_records_epsilon'] = config.get(
-        'number_of_records_epsilon', None)
+    config['number_of_records_epsilon_proportion'] = config.get(
+        'number_of_records_epsilon_proportion', None)
 
     # parameters affecting the representation and interpretation of values
     config['sensitive_zeros'] = config.get('sensitive_zeros', [])

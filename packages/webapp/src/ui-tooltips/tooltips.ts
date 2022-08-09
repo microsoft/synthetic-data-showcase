@@ -17,6 +17,7 @@ import MEAN_PROPORTIONAL_ERROR from './mds/MEAN_PROPORTIONAL_ERROR.md?raw'
 import N_COUNT_MEAN_AND_ERROR from './mds/N_COUNT_MEAN_AND_ERROR.md?raw'
 import NAVIGATE from './mds/NAVIGATE.md?raw'
 import NOISE_EPSILON from './mds/NOISE_EPSILON.md?raw'
+import NUMBER_OF_RECORDS_EPSILON_PROPORTION from './mds/NUMBER_OF_RECORDS_EPSILON_PROPORTION.md?raw'
 import OVERSAMPLING from './mds/OVERSAMPLING.md?raw'
 import OVERSAMPLING_RATIO from './mds/OVERSAMPLING_RATIO.md?raw'
 import OVERSAMPLING_TRIES from './mds/OVERSAMPLING_TRIES.md?raw'
@@ -62,6 +63,9 @@ export const tooltips = {
 	percentilePercentage: fromMarkdownStr(PERCENTILE_PERCENTAGE),
 	reportingLength: fromMarkdownStr(REPORTING_LENGTH),
 	percentileEpsilonProportion: fromMarkdownStr(PERCENTILE_EPSILON_PROPORTION),
+	numberOfRecordsEpsilonProportion: fromMarkdownStr(
+		NUMBER_OF_RECORDS_EPSILON_PROPORTION,
+	),
 	useSyntheticCounts: fromMarkdownStr(USE_SYNTHETIC_COUNTS),
 	suppressedCombinations: fromMarkdownStr(SUPPRESSED_COMBINATIONS),
 	fabricatedCombinations: fromMarkdownStr(FABRICATED_COMBINATIONS),
