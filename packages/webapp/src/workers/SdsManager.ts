@@ -15,6 +15,7 @@ import type {
 } from '@essex/sds-core'
 import type { Remote } from 'comlink'
 import { expose, proxy } from 'comlink'
+import { uniqueId } from 'lodash'
 
 /* eslint-disable */
 import type { AggregateStatisticsGenerator } from './AggregateStatisticsGenerator'
@@ -31,7 +32,7 @@ import type {
 } from './types'
 import { IWasmSynthesizerWorkerStatus } from './types'
 import type { IWorkerProxy } from './utils'
-import { AtomicView, createWorkerProxy } from './utils'
+import { createWorkerProxy } from './utils'
 import type { WasmSynthesizer } from './WasmSynthesizer'
 import WasmSynthesizerWorker from './WasmSynthesizer?worker'
 /* eslint-enable */
@@ -41,14 +42,12 @@ export class SdsManager {
 	private _aggregateStatisticsWorkerProxy: IWorkerProxy<
 		typeof AggregateStatisticsGenerator
 	> | null
-	private _aggregateStatisticsGenerator: Remote<AggregateStatisticsGenerator> | null
 	private _synthesizerWorkersInfoMap: Map<string, IWasmSynthesizerWorkerInfo>
 	private _synthesisCallbacks: Proxy<ISdsManagerSynthesisCallbacks> | null
 
 	constructor(name: string) {
 		this._name = name
 		this._aggregateStatisticsWorkerProxy = null
-		this._aggregateStatisticsGenerator = null
 		this._synthesizerWorkersInfoMap = new Map()
 		this._synthesisCallbacks = null
 	}
@@ -59,20 +58,33 @@ export class SdsManager {
 		this._synthesisCallbacks = synthesisCallbacks
 	}
 
-	public async init(): Promise<void> {
+	public async initAggregateStatisticsWorker(): Promise<
+		Remote<AggregateStatisticsGenerator>
+	> {
+		// force the termination of any pending execution that has not finished
+		this.forceAggregateStatisticsWorkerToTerminate()
+
 		this._aggregateStatisticsWorkerProxy = createWorkerProxy<
 			typeof AggregateStatisticsGenerator
 		>(new AggregateStatisticsGeneratorWorker())
-		this._aggregateStatisticsGenerator =
+
+		const aggregateStatisticsGenerator =
 			await new this._aggregateStatisticsWorkerProxy.ProxyConstructor(
 				`${this._name}:AggregateStatisticsGenerator`,
 			)
+
 		// eslint-disable-next-line @essex/adjacent-await
-		await this._aggregateStatisticsGenerator.init()
+		await aggregateStatisticsGenerator.init()
+
+		return aggregateStatisticsGenerator
+	}
+
+	public forceAggregateStatisticsWorkerToTerminate(): void {
+		this._aggregateStatisticsWorkerProxy?.terminate()
+		this._aggregateStatisticsWorkerProxy = null
 	}
 
 	public async terminate(): Promise<void> {
-		await this._aggregateStatisticsGenerator?.terminate()
 		this._aggregateStatisticsWorkerProxy?.terminate()
 		await this.terminateAllSynthesizers()
 	}
@@ -86,20 +98,20 @@ export class SdsManager {
 	): Promise<
 		Remote<ICancelablePromise<IAggregateStatistics | null>> | undefined
 	> {
-		const aggregateStatisticsGenerator = this.getAggregateStatisticsGenerator()
-		const continueExecutingView = new AtomicView(AtomicView.createBuffer(true))
+		const aggregateStatisticsGenerator =
+			await this.initAggregateStatisticsWorker()
 
 		return proxy({
+			id: uniqueId(),
 			promise: aggregateStatisticsGenerator.generateAggregateStatistics(
 				csvData,
 				csvDataParameters,
 				reportingLength,
 				resolution,
-				continueExecutingView.getBuffer(),
 				progressCallback,
 			),
 			cancel: () => {
-				continueExecutingView.set(false)
+				this.forceAggregateStatisticsWorkerToTerminate()
 			},
 		}) as unknown as Remote<ICancelablePromise<IAggregateStatistics>>
 	}
@@ -229,15 +241,6 @@ export class SdsManager {
 		return await this.getSynthesizerWorkInfo(
 			key,
 		).synthesizer.getNavigateResult()
-	}
-
-	private getAggregateStatisticsGenerator(): Remote<AggregateStatisticsGenerator> {
-		if (this._aggregateStatisticsGenerator === null) {
-			throw new Error(
-				`"${this._name}" worker has not been properly initialized, did you call init?`,
-			)
-		}
-		return this._aggregateStatisticsGenerator
 	}
 
 	private getSynthesizerWorkInfo(key: string): IWasmSynthesizerWorkerInfo {

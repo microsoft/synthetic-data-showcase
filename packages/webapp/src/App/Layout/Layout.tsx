@@ -66,7 +66,6 @@ export const Layout: React.FC<
 					setSelectedSynthesis(prev => prev ?? synthesisInfo)
 				}
 
-				await instance.init()
 				setManagerInstance({ instance, workerProxy })
 				await instance.registerSynthesisCallback(
 					proxy({

@@ -18,21 +18,18 @@ export class AggregateStatisticsGenerator extends BaseSdsWasmWorker {
 		csvDataParameters: ICsvDataParameters,
 		reportingLength: number,
 		resolution: number,
-		continueExecuting: AtomicBuffer,
 		progressCallback?: Proxy<WorkerProgressCallback>,
 	): Promise<IAggregateStatistics | null> {
 		const context = this.getContext()
 
 		if (csvDataParameters.useColumns.length !== 0) {
-			const continueExecutingView = new AtomicView(continueExecuting)
-
 			context.setSensitiveData(csvData, csvDataParameters)
 			return context.sensitiveAggregateStatistics(
 				reportingLength,
 				resolution,
 				p => {
 					progressCallback?.(p)
-					return continueExecutingView.getBoolean()
+					return true
 				},
 			)
 		} else {
