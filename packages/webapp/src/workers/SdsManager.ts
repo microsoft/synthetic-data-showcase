@@ -138,7 +138,6 @@ export class SdsManager {
 		const synthesizerWorkerProxy = createWorkerProxy<typeof WasmSynthesizer>(
 			new WasmSynthesizerWorker(),
 		)
-		const progressView = new AtomicView(AtomicView.createBuffer(0))
 		const shouldRunView = new AtomicView(AtomicView.createBuffer(true))
 		const s: IWasmSynthesizerWorkerInfo = {
 			synthesisInfo: {
@@ -146,7 +145,7 @@ export class SdsManager {
 				parameters,
 				status: IWasmSynthesizerWorkerStatus.RUNNING,
 				startedAt: new Date(),
-				progress: progressView.getBuffer(),
+				progress: 0,
 			},
 			synthesizerWorkerProxy,
 			synthesizer: await new synthesizerWorkerProxy.ProxyConstructor(
@@ -157,7 +156,7 @@ export class SdsManager {
 
 		await s.synthesizer.init()
 		this._synthesizerWorkersInfoMap.set(key, s)
-		this.dispatchSynthesis(s, csvData, parameters, progressView)
+		this.dispatchSynthesis(s, csvData, parameters)
 	}
 
 	public async getAllSynthesisInfo(): Promise<ISynthesisInfo[]> {
@@ -248,7 +247,6 @@ export class SdsManager {
 		s: IWasmSynthesizerWorkerInfo,
 		csvData: string,
 		parameters: ISynthesisParameters,
-		progressView: AtomicView,
 	): Promise<void> {
 		await this._synthesisCallbacks?.started?.(s.synthesisInfo)
 		s.synthesizer
@@ -257,7 +255,7 @@ export class SdsManager {
 				parameters,
 				s.shouldRun.getBuffer(),
 				proxy((p: number) => {
-					progressView.set(p)
+					s.synthesisInfo.progress = p
 					this._synthesisCallbacks?.progressUpdated?.(s.synthesisInfo)
 				}),
 			)
