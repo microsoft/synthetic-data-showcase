@@ -8,8 +8,6 @@ import { expose } from 'comlink'
 /* eslint-disable */
 import { BaseSdsWasmWorker } from './BaseSdsWasmWorker'
 import type { Proxy, WorkerProgressCallback } from './types'
-import type { AtomicBuffer } from './utils'
-import { AtomicView } from './utils'
 /* eslint-enable */
 
 export class AggregateStatisticsGenerator extends BaseSdsWasmWorker {
