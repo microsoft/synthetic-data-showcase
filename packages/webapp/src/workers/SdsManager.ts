@@ -113,13 +113,21 @@ export class SdsManager {
 	}
 
 	public async terminateSynthesizer(key: string): Promise<void> {
+		// this directly terminates the worker without signaling the wasm code
+		// - this is done to avoid the use of SAB necessary to signal that
+		//   the wasm code need to stop executing nicely
+		// this way, if the worker is running a synthesis, it will
+		// be forced to terminate
 		const s = this.getSynthesizerWorkInfo(key)
+		const oldStatus = s.synthesisInfo.status
 
-		s.shouldRun.set(false)
 		s.synthesisInfo.status = IWasmSynthesizerWorkerStatus.TERMINATING
 		this._synthesisCallbacks?.terminating?.(s.synthesisInfo)
 
-		await s.synthesizer.terminate()
+		// properly terminate and cleanup if not running a synthesis
+		if (oldStatus !== IWasmSynthesizerWorkerStatus.RUNNING) {
+			await s.synthesizer.terminate()
+		}
 		s.synthesizerWorkerProxy.terminate()
 		this._synthesizerWorkersInfoMap.delete(key)
 
@@ -138,7 +146,6 @@ export class SdsManager {
 		const synthesizerWorkerProxy = createWorkerProxy<typeof WasmSynthesizer>(
 			new WasmSynthesizerWorker(),
 		)
-		const shouldRunView = new AtomicView(AtomicView.createBuffer(true))
 		const s: IWasmSynthesizerWorkerInfo = {
 			synthesisInfo: {
 				key,
@@ -151,7 +158,6 @@ export class SdsManager {
 			synthesizer: await new synthesizerWorkerProxy.ProxyConstructor(
 				`${this._name}:WasmSynthesizer:${key}`,
 			),
-			shouldRun: shouldRunView,
 		}
 
 		await s.synthesizer.init()
@@ -253,7 +259,6 @@ export class SdsManager {
 			.generateAndEvaluate(
 				csvData,
 				parameters,
-				s.shouldRun.getBuffer(),
 				proxy((p: number) => {
 					s.synthesisInfo.progress = p
 					this._synthesisCallbacks?.progressUpdated?.(s.synthesisInfo)
