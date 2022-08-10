@@ -1,6 +1,6 @@
 use super::{
     CombinationsByRecord, DpParameters, DpPercentile, NoisyCountThreshold,
-    DEFAULT_NUMBER_OF_RECORDS_EPSILON,
+    DEFAULT_NUMBER_OF_RECORDS_EPSILON_PROPORTION,
 };
 use fnv::FnvHashSet;
 use itertools::Itertools;
@@ -44,13 +44,14 @@ pub struct NoiseAggregator {
 
 impl NoiseAggregator {
     #[inline]
-    fn calc_percentile_epsilon_and_sigma_by_len(
+    fn calc_percentile_epsilon_number_of_records_epsilon_and_sigma_by_len(
         reporting_length: usize,
         epsilon: f64,
         delta: f64,
         percentile_epsilon_proportion: f64,
+        number_of_records_proportion: f64,
         sigma_proportions: &Option<Vec<f64>>,
-    ) -> (f64, Vec<f64>) {
+    ) -> (f64, f64, Vec<f64>) {
         let proportions = match sigma_proportions {
             Some(proportions) => proportions.clone(),
             None => {
@@ -60,29 +61,50 @@ impl NoiseAggregator {
             }
         };
 
+        info!(
+            "calculating percentile epsilon, number of records epsilon and sigma by len: total epsilon = {}, delta = {}, percentile_epsilon_proportion = {}, number_of_records_proportion = {}, sigma_proportions = {:?}",
+            epsilon,
+            delta,
+            percentile_epsilon_proportion,
+            number_of_records_proportion,
+            proportions
+        );
+
         assert!(
             reporting_length == proportions.len(),
             "sigma proportions array size should match the reporting length",
         );
 
-        info!(
-            "calculating percentile epsilon and sigma by len: total epsilon = {}, delta = {}, percentile_epsilon_proportion = {}, sigma_proportions = {:?}",
-            epsilon,
-            delta,
-            percentile_epsilon_proportion,
-            proportions
+        assert!(
+            percentile_epsilon_proportion < 1.0 && percentile_epsilon_proportion > 0.0,
+            "percentile_epsilon_proportion must be > 0 and < 1"
+        );
+
+        assert!(
+            number_of_records_proportion < 1.0 && number_of_records_proportion > 0.0,
+            "number_of_records_proportion must be > 0 and < 1"
+        );
+
+        assert!(
+            number_of_records_proportion + percentile_epsilon_proportion < 1.0,
+            "(percentile_epsilon_proportion + number_of_records_proportion) must be > 0 and < 1"
         );
 
         let t = reporting_length as f64;
         let rho = (epsilon + (2.0 / delta).ln()).sqrt() - (2.0 / delta).ln().sqrt();
         let k: f64 = proportions.iter().map(|p| 1.0 / (p * p)).sum();
         let percentile_epsilon = (2.0 * rho * percentile_epsilon_proportion / t).sqrt();
-        let base_sigma = (k / (2.0 * rho * (1.0 - percentile_epsilon_proportion))).sqrt();
+        let number_of_records_epsilon = (2.0 * rho * number_of_records_proportion).sqrt();
+        let base_sigma = (k
+            / (2.0 * rho * (1.0 - percentile_epsilon_proportion - number_of_records_proportion)))
+            .sqrt();
         let sigmas: Vec<f64> = proportions.iter().map(|p| p * base_sigma).collect();
         let lhs = ((t * percentile_epsilon * percentile_epsilon) / 2.0)
+            + ((number_of_records_epsilon * number_of_records_epsilon) / 2.0)
             + (sigmas.iter().map(|s| 1.0 / (s * s)).sum::<f64>() / 2.0);
 
         info!("percentile epsilon = {}", percentile_epsilon);
+        info!("number of records epsilon = {}", number_of_records_epsilon);
         info!("calculated sigmas = {:?}", sigmas);
 
         assert!(
@@ -90,7 +112,7 @@ impl NoiseAggregator {
             "something went wrong calculating DP sigmas"
         );
 
-        (percentile_epsilon, sigmas)
+        (percentile_epsilon, number_of_records_epsilon, sigmas)
     }
 
     #[inline]
@@ -427,12 +449,15 @@ impl NoiseAggregator {
         dp_parameters: &DpParameters,
         threshold: NoisyCountThreshold,
     ) -> NoiseAggregator {
-        let (percentile_epsilon, sigmas) =
-            NoiseAggregator::calc_percentile_epsilon_and_sigma_by_len(
+        let (percentile_epsilon, number_of_records_epsilon, sigmas) =
+            NoiseAggregator::calc_percentile_epsilon_number_of_records_epsilon_and_sigma_by_len(
                 reporting_length,
                 dp_parameters.epsilon,
                 dp_parameters.delta,
                 dp_parameters.percentile_epsilon_proportion,
+                dp_parameters
+                    .number_of_records_epsilon_proportion
+                    .unwrap_or(DEFAULT_NUMBER_OF_RECORDS_EPSILON_PROPORTION),
                 &dp_parameters.sigma_proportions,
             );
 
@@ -444,9 +469,7 @@ impl NoiseAggregator {
             delta: dp_parameters.delta,
             sigmas,
             threshold,
-            number_of_records_epsilon: dp_parameters
-                .number_of_records_epsilon
-                .unwrap_or(DEFAULT_NUMBER_OF_RECORDS_EPSILON),
+            number_of_records_epsilon,
         }
     }
 

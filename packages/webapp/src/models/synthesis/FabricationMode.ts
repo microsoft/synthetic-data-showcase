@@ -4,6 +4,7 @@
  */
 export enum FabricationMode {
 	Balanced = 'Balanced',
+	Progressive = 'Progressive',
 	Minimize = 'Minimize',
 	Uncontrolled = 'Uncontrolled',
 	Custom = 'Custom',

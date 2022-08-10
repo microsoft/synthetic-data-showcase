@@ -47,6 +47,8 @@ export function generateContextKey(params: IRawSynthesisParameters): string {
 				params.weightSelectionPercentile
 			}, Percentile=${params.percentilePercentage}, PercentileEpsilonProp=${
 				params.percentileEpsilonProportion
+			}, NumberOfRecordsEpsilonProportion=${
+				params.numberOfRecordsEpsilonProportion
 			}, Epsilon=${params.noiseEpsilon}, DeltaFactor=${
 				params.deltaFactor
 			}, FabricationMode=(${params.fabricationMode}, [${Object.values(
@@ -88,6 +90,14 @@ function generateNoisyThresholdValuesByLen(
 
 	switch (fabricationMode) {
 		case FabricationMode.Balanced:
+			if (reportingLength >= 2) {
+				ret[2] = 0.55
+				for (let i = 3; i <= reportingLength; ++i) {
+					ret[i] = 1.0
+				}
+			}
+			break
+		case FabricationMode.Progressive:
 			if (reportingLength === 2) {
 				ret[2] = 0.1
 			} else {
@@ -166,17 +176,24 @@ function convertRawToSynthesisParameters(
 				weightSelectionPercentile: rawParams.weightSelectionPercentile,
 			} as IAggregateSeededSynthesisParameters
 			break
-		case SynthesisMode.DP:
+		case SynthesisMode.DP: {
+			const deltaFactor =
+				rawParams.deltaFactor === 0 && rawParams.recordLimit > 0
+					? Math.log(rawParams.recordLimit)
+					: rawParams.deltaFactor
+
 			ret = {
 				...ret,
 				dpParameters: {
 					epsilon: rawParams.noiseEpsilon,
 					delta:
 						rawParams.recordLimit > 0
-							? 1.0 / (rawParams.deltaFactor * rawParams.recordLimit)
+							? 1.0 / (deltaFactor * rawParams.recordLimit)
 							: 0.0,
 					percentilePercentage: rawParams.percentilePercentage,
 					percentileEpsilonProportion: rawParams.percentileEpsilonProportion,
+					numberOfRecordsEpsilonProportion:
+						rawParams.numberOfRecordsEpsilonProportion,
 					sigmaProportions: generateSigmaProportions(
 						rawParams.reportingLength,
 						rawParams.accuracyMode,
@@ -196,6 +213,7 @@ function convertRawToSynthesisParameters(
 				weightSelectionPercentile: rawParams.weightSelectionPercentile,
 			} as IDpSynthesisParameters
 			break
+		}
 	}
 	return ret
 }

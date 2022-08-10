@@ -5,6 +5,7 @@ use serde::Serialize;
 #[derive(Clone, Serialize)]
 pub enum FabricationModeEnum {
     Uncontrolled,
+    Progressive,
     Balanced,
     Minimize,
     Custom(NoisyCountThreshold),
@@ -64,6 +65,22 @@ impl FabricationMode {
     #[pyo3(text_signature = "()")]
     /// This mode will start with higher thresholds for smaller attribute combination lengths
     /// and decrease it as the combination length grows.
+    ///
+    /// Returns:
+    ///     FabricationMode
+    pub fn progressive() -> Self {
+        Self {
+            mode: FabricationModeEnum::Progressive,
+        }
+    }
+
+    #[inline]
+    #[staticmethod]
+    #[pyo3(text_signature = "()")]
+    /// This mode controls fabrication only for the 2-counts and leaves the larger
+    /// combination lengths uncontrolled. Sometimes, only controlling the fabrication
+    /// for the 2-counts is enough to avoid fabricated combinations to propagate for longer
+    /// combinations lengths.
     ///
     /// Returns:
     ///     FabricationMode
@@ -177,7 +194,7 @@ impl FabricationMode {
             FabricationModeEnum::Uncontrolled => {
                 NoisyCountThreshold::Adaptive((2..=reporting_length).map(|i| (i, 1.0)).collect())
             }
-            FabricationModeEnum::Balanced => {
+            FabricationModeEnum::Progressive => {
                 NoisyCountThreshold::Adaptive(if reporting_length == 2 {
                     [(2, 0.1)].iter().cloned().collect()
                 } else {
@@ -185,6 +202,16 @@ impl FabricationMode {
                     (2..=reporting_length)
                         .map(|i| (i, f64::min(1.0, 0.1 + ratio * ((i - 2) as f64))))
                         .collect()
+                })
+            }
+            FabricationModeEnum::Balanced => {
+                NoisyCountThreshold::Adaptive(if reporting_length >= 2 {
+                    let mut ret: InputValueByLen<f64> =
+                        (3..=reporting_length).map(|i| (i, 1.0)).collect();
+                    ret.insert(2, 0.55);
+                    ret
+                } else {
+                    InputValueByLen::<f64>::default()
                 })
             }
             FabricationModeEnum::Minimize => {

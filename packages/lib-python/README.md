@@ -33,7 +33,7 @@ Install _Maturin_ to build the bindings.
 
 ## V. Generate the python bindings
 
-Browse to the `lib-python` package, build and install it as a python module on the current virtual environment.
+Browse to the `lib-python` package, build and install it as a python module in the current virtual environment.
 
 ```bash
 > cd packages/lib-python

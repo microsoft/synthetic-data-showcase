@@ -1,0 +1,1 @@
+When using `DP Aggregate Seeded`, the protected number of records in the aggregate data is reported with differential privacy. This defines the proportion of the overall epsilon dedicated to this stage (0.005 means 0.5%).

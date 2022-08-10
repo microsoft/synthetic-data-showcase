@@ -3,7 +3,7 @@ import json
 import pandas as pd
 from urllib import request
 from os import path, mkdir
-from showcase import runPipeline
+from showcase import runForConfig
 
 
 def main():
@@ -80,38 +80,26 @@ def main():
     config = {
         'parallel_jobs': 1,
         'cache_max_size': 100000,
+        'multi_value_columns': {},
         'use_columns': [],
         'record_limit': -1,
         'reporting_length': 5,
         'reporting_resolution': 2,
-        'synthesis_mode': 'seeded',
+        'synthesis_mode': 'row_seeded',
         'sensitive_zeros': [],
         'output_dir': output_dir,
         'sensitive_microdata_path': sensitive_microdata_path,
         'sensitive_microdata_delimiter': '\t',
         'report_title': 'German Credit Data Showcase',
-        "prefix": "example"
-
+        'prefix': 'example',
     }
-
-    json.dump(config, open(
-        path.join('.', config['prefix'] + '_config.json'), 'w'), indent=1)
 
     config['aggregate'] = True
     config['generate'] = True
     config['navigate'] = True
     config['evaluate'] = True
 
-    config['reportable_aggregates_path'] = path.join(
-        config['output_dir'],
-        config['prefix'] + '_reportable_aggregates.tsv')
-    config['synthetic_microdata_path'] = path.join(
-        config['output_dir'], config['prefix'] + '_synthetic_microdata.tsv')
-    config['sensitive_aggregates_path'] = path.join(
-        config['output_dir'],
-        config['prefix'] + '_sensitive_aggregates.tsv')
-
-    runPipeline(config)
+    runForConfig(config)
 
 
 def binValuesAndLabels(max_value, bin_size):

@@ -16,11 +16,13 @@ Besides the base Rust tooling, Wasm Pack is used to compile the Web Assembly bin
 
 ## III. Compile Wasm bindings
 
-Open a command line on the root directory of the cloned repository and run:
+Open a command line in the root directory of the cloned repository and run:
 
 ```bash
+> npm install replace -g
 > cd packages/lib-wasm
 > wasm-pack build --release --target web --out-dir ../../target/wasm
+> replace "sds-wasm" "@essex/sds-core" ../../target/wasm/package.json
 ```
 
 This will build the wasm code and JS glue and put it under `target/wasm`.

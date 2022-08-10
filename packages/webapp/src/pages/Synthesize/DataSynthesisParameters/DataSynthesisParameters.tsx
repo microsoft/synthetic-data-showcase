@@ -169,7 +169,7 @@ export const DataSynthesisParameters: React.FC<DataSynthesisParametersProps> =
 				<FlexContainer gap={theme.spacing.s1} wrap>
 					{rawSynthesisParams.synthesisMode === SynthesisMode.DP && (
 						<>
-							<TooltipWrapper tooltip={tooltips.deltaFactor} label="Epsilon">
+							<TooltipWrapper tooltip={tooltips.noiseEpsilon} label="Epsilon">
 								<StyledSpinButton
 									labelPosition={Position.top}
 									min={0}

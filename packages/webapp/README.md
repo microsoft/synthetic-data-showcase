@@ -1,14 +1,14 @@
 # SDS web application
 
-Web application that allows you to synthesize, aggregate and evaluate your data directly on your browser. This requires no server or backend APIs to process the data, the data processing happens directly in the browser using Javascript and Web Assembly. This means that the data is processed locally and never leaves your machine.
+Web application that allows you to synthesize, aggregate and evaluate your data directly on your browser. This requires no server or backend APIs to process the data, the data processing happens directly in the browser using Javascript and Web Assembly. This means that computation is performed locally and the data never leaves your machine.
 
 # How to run?
 
 The web application runs based on Typescript and the Web Assembly bindings around the `core` library.
 
-To run it we need to build the wasm bindings as well the web application. If you want to compile it yourself, please to the [advanced setup](#advanced-setup) session below.
+To run it we need to build the wasm bindings as well the web application. If you want to compile it yourself, please refer to the [advanced setup](#advanced-setup) session below.
 
-However, to make the web application easier to run we provide a docker image that can be locally built, so you don't need to worry about the details of compiling the wasm bindings and also the web application.
+However, **to make the web application easier to run we provide a docker image that can be locally built**, so you don't need to worry about the details of compiling the wasm bindings and also the web application.
 
 ## Locally run the web application with docker
 
@@ -17,7 +17,7 @@ However, to make the web application easier to run we provide a docker image tha
 To run the application locally with docker, please follow these steps:
 
 1. Make sure you have docker up and running on your machine (more details on how to install it based on your operating system can be found in [here](https://docs.docker.com/engine/install/)).
-2. Make also sure you have docker compose installed, this will allow us to run the application with a single command (more details on to install it can be found in [here](https://docs.docker.com/compose/install/))
+2. Make also sure you have docker compose installed, this will allow us to run the application with a single command (more details about how install it can be found in [here](https://docs.docker.com/compose/install/))
 3. After docker is installed and running, as well as docker compose, browse to the root directory of the cloned repository and run: `docker-compose up --build` (press CTRL + C to stop it)
 
 ## Advanced setup
@@ -28,7 +28,7 @@ To compile the wasm bindings please follow the steps provided in [here](../lib-w
 
 ### II. Install Node tooling
 
-The application relies on NodeJS and Yarn for development and building, so you will need Yarn (version 1.22.11) and Node (version 14.17.6).
+The application relies on NodeJS and Yarn for development and building, so you will need Yarn and Node.
 
 ### III. Install dependencies and start
 
@@ -36,7 +36,7 @@ Browse to the root of the cloned repository and run:
 
 ```bash
 > yarn install
-> yarn start:app
+> yarn start:webapp
 ```
 
 This will start the web application that should be accessible on [http://localhost:3000](http://localhost:3000).
@@ -49,15 +49,17 @@ The web application allows the user to experiment with their data and check the 
 
 ## Prepare
 
-Allow the user to load data (csv or tsv files), select the wanted columns, mark sensitive zero columns and perform binning.
+Allows the user to load data (csv or tsv files), join multiple datasets, as well as performing transformations if necessary (binning, recoding, etc).
+
+## Select
+
+Allows the user to select the desired columns for synthesis and provides real-time feedback about the privacy risk related to data.
 
 ## Synthesize
 
-Allow the user to provide the wanted privacy resolution and synthesize the data.
+Allows the user to select the desired synthesis mode, configure its parameters and perform the synthesis. Through metrics and charts, the tool also enables comparison between results for different synthesis modes and parameters.
 
-## Evaluate
-
-Allow the user to compare the synthetic data to the sensitive data based on a aggregation limit, including metrics and charts about the data.
+The result of your synthesis can be directly downloaded, including aggregate and synthetic data. For a full report, there is `Download assets` button, which will include a PowerBI report comparing the aggregate and synthetic data.
 
 ## Navigate
 
