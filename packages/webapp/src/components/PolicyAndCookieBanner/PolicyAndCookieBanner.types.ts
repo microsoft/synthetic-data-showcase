@@ -22,11 +22,7 @@ export enum CookieConsentCategories {
 	Advertising = 'Advertising',
 }
 
-export enum CookieConsentBannerThemes {
-	Light = 'light',
-	Dark = 'dark',
-	HighContrast = 'high-contrast',
-}
+export type CookieConsentBannerThemes = 'light' | 'dark' | 'high-contrast'
 
 export type CookieConsent = Record<CookieConsentCategories, boolean>
 

@@ -24,6 +24,7 @@ import SdsManagerWorker from '~workers/SdsManager?worker'
 import type { ISynthesisInfo } from '~workers/types'
 import { createWorkerProxy } from '~workers/utils'
 
+import { PolicyAndCookieBanner } from '../../components/PolicyAndCookieBanner/PolicyAndCookieBanner.js'
 import { Header } from './Header/index.js'
 import { useOnTableChange } from './hooks/index.js'
 
@@ -88,6 +89,7 @@ export const Layout: React.FC<
 			<Main>
 				<Outlet />
 			</Main>
+			<PolicyAndCookieBanner />
 		</Container>
 	)
 })

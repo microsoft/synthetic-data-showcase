@@ -5,7 +5,6 @@
 import { memo, StrictMode } from 'react'
 import { HashRouter } from 'react-router-dom'
 
-import { CookieConsentBanner } from '../components/CookieConsent/CookieConsentBanner.js'
 import {
 	ChartContext,
 	DataContext,
@@ -17,7 +16,6 @@ import { Routes } from './Layout/Routes.js'
 export const App: React.FC = memo(function App() {
 	return (
 		<StrictMode>
-			<CookieConsentBanner />
 			<DataContext>
 				<HashRouter>
 					<StyleContext>
