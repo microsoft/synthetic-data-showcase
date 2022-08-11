@@ -29,7 +29,9 @@ export const DataInput: React.FC = memo(function DataInput() {
 				<StyledOpen onClick={open}>
 					<Icon iconName="OpenFolderHorizontal" /> Open sensitive data file
 				</StyledOpen>
-				<InfoTooltip>{tooltips.sensitiveFile}</InfoTooltip>
+				<InfoTooltip title="Open sensitive data file">
+					{tooltips.sensitiveFile}
+				</InfoTooltip>
 			</FlexContainer>
 			{!!tables.length && (
 				<Container>
