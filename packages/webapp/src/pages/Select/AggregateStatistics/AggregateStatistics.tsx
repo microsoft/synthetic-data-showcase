@@ -4,16 +4,15 @@
  */
 import type { IAggregateStatistics } from '@essex/sds-core'
 import { Spinner } from '@fluentui/react'
-import type { Remote } from 'comlink'
 import type { FC } from 'react'
-import { memo, useCallback, useEffect, useState } from 'react'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 
 import {
 	useGlobalErrorMessage,
 	useRawSynthesisParameters,
+	useSdsManagerInstance,
 	useSensitiveContent,
 } from '~states'
-import type { ICancelablePromise } from '~workers/types'
 
 import {
 	useAttributesWithRareCombinationsPercentage,
@@ -28,16 +27,13 @@ import {
 } from './AggregateStatistics.styles.js'
 import { ContributionChart } from './ContributionChart.js'
 
-interface IQueueExecution {
-	execution?: Remote<ICancelablePromise<IAggregateStatistics | null>>
-}
-
 export const AggregateStatistics: FC = memo(function AggregateStatistics() {
+	const currentAggregationId = useRef<string | undefined>('')
+	const [managerInstance] = useSdsManagerInstance()
 	const [sensitiveContent] = useSensitiveContent()
 	const [statistics, setStatistics] = useState<IAggregateStatistics | null>(
 		null,
 	)
-	const [queuedExecution, setQueuedExecution] = useState<IQueueExecution>({})
 	const [isLoading, setIsLoading] = useState(false)
 	const [, setGlobalErrorMessage] = useGlobalErrorMessage()
 	const [rawSynthesisParams] = useRawSynthesisParameters()
@@ -68,51 +64,46 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 	)
 
 	useEffect(() => {
+		setIsLoading(true)
+		setGlobalErrorMessage(undefined)
+
 		getAggregateStatistics(
 			sensitiveContent,
 			rawSynthesisParams.recordLimit,
 			rawSynthesisParams.reportingLength,
 			rawSynthesisParams.resolution,
-		).then(aggregateStatisticsGetter => {
-			// cancel any queued execution to clear the way
-			// for the new one
-			setQueuedExecution(prev => {
-				prev?.execution?.cancel()
-				return {
-					execution: aggregateStatisticsGetter,
-				}
-			})
-		})
-	}, [getAggregateStatistics, sensitiveContent, rawSynthesisParams.recordLimit, rawSynthesisParams.reportingLength, rawSynthesisParams.resolution, setQueuedExecution])
+		).then(async aggregateStatisticsGetter => {
+			const id = await aggregateStatisticsGetter?.id
 
-	useEffect(() => {
-		async function awaitForStats() {
+			currentAggregationId.current = id
+
 			try {
-				setIsLoading(true)
-				setGlobalErrorMessage(undefined)
-				setStatistics((await await queuedExecution.execution?.promise) ?? null)
-				setIsLoading(false)
+				const result = (await await aggregateStatisticsGetter?.promise) ?? null
+
+				// only update if this was the last request made
+				if (id === currentAggregationId.current) {
+					setStatistics(result)
+				}
 			} catch (err) {
-				if (err !== 'processing has been stopped') {
+				if (currentAggregationId.current !== '') {
 					setGlobalErrorMessage(err as string)
 					setStatistics(null)
+				}
+			} finally {
+				if (currentAggregationId.current !== '') {
 					setIsLoading(false)
 				}
-				console.error(err)
 			}
-		}
-		awaitForStats()
-	}, [queuedExecution, setStatistics, setIsLoading, setGlobalErrorMessage])
+		})
+	}, [getAggregateStatistics, sensitiveContent, rawSynthesisParams.recordLimit, rawSynthesisParams.reportingLength, rawSynthesisParams.resolution, setStatistics, setIsLoading, setGlobalErrorMessage])
 
 	useEffect(() => {
 		return () => {
 			// cancel any pending execution on unmount
-			setQueuedExecution(prev => {
-				prev?.execution?.cancel()
-				return {}
-			})
+			managerInstance?.instance.forceAggregateStatisticsWorkerToTerminate()
+			currentAggregationId.current = ''
 		}
-	}, [setQueuedExecution])
+	}, [managerInstance])
 
 	return (
 		<Container vertical align="center">

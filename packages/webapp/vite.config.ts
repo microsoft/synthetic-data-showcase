@@ -28,19 +28,6 @@ export default defineConfig(({ command, mode }) => {
 		server: {
 			port: 3000,
 		},
-		plugins: [
-			tsconfigPaths(),
-			react(),
-			{
-				name: 'crossOriginIsolate',
-				configureServer(server) {
-					server.middlewares.use((_, res, next) => {
-						res.setHeader('Cross-Origin-Opener-Policy', 'same-origin')
-						res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp')
-						next()
-					})
-				},
-			},
-		],
+		plugins: [tsconfigPaths(), react()],
 	}
 })

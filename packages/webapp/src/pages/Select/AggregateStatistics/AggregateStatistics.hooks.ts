@@ -35,7 +35,7 @@ export function useGetAggregateStatistics(): (
 				const headers = usableHeaders(sensitiveContent).map(h => h.name)
 				const instance = await managerInstance.instance
 
-				return await instance.generateAggregateStatistics(
+				return instance.generateAggregateStatistics(
 					sensitiveContent.table.toCSV({
 						delimiter: sensitiveContent.delimiter,
 					}),

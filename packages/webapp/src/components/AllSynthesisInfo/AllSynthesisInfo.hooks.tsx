@@ -8,7 +8,6 @@ import { useMemo } from 'react'
 
 import type { ISynthesisInfo } from '~workers/types'
 import { IWasmSynthesizerWorkerStatus } from '~workers/types'
-import { AtomicView } from '~workers/utils'
 
 import { StyledSpinner, WrappedText } from './AllSynthesisInfo.styles.js'
 import type {
@@ -70,11 +69,7 @@ export function useSynthesisInfoColumns(
 				{
 					name: 'Progress',
 					onRender: (item: ISynthesisInfo) => {
-						return (
-							<WrappedText>{`${new AtomicView(item.progress)
-								.getNumber()
-								.toFixed()}%`}</WrappedText>
-						)
+						return <WrappedText>{`${item.progress.toFixed()}%`}</WrappedText>
 					},
 					key: 'progress',
 					minWidth: 100,

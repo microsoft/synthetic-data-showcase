@@ -15,6 +15,7 @@ import type {
 } from '@essex/sds-core'
 import type { Remote } from 'comlink'
 import { expose, proxy } from 'comlink'
+import { uniqueId } from 'lodash'
 
 /* eslint-disable */
 import type { AggregateStatisticsGenerator } from './AggregateStatisticsGenerator'
@@ -31,7 +32,7 @@ import type {
 } from './types'
 import { IWasmSynthesizerWorkerStatus } from './types'
 import type { IWorkerProxy } from './utils'
-import { AtomicView, createWorkerProxy } from './utils'
+import { createWorkerProxy } from './utils'
 import type { WasmSynthesizer } from './WasmSynthesizer'
 import WasmSynthesizerWorker from './WasmSynthesizer?worker'
 /* eslint-enable */
@@ -41,14 +42,12 @@ export class SdsManager {
 	private _aggregateStatisticsWorkerProxy: IWorkerProxy<
 		typeof AggregateStatisticsGenerator
 	> | null
-	private _aggregateStatisticsGenerator: Remote<AggregateStatisticsGenerator> | null
 	private _synthesizerWorkersInfoMap: Map<string, IWasmSynthesizerWorkerInfo>
 	private _synthesisCallbacks: Proxy<ISdsManagerSynthesisCallbacks> | null
 
 	constructor(name: string) {
 		this._name = name
 		this._aggregateStatisticsWorkerProxy = null
-		this._aggregateStatisticsGenerator = null
 		this._synthesizerWorkersInfoMap = new Map()
 		this._synthesisCallbacks = null
 	}
@@ -59,20 +58,33 @@ export class SdsManager {
 		this._synthesisCallbacks = synthesisCallbacks
 	}
 
-	public async init(): Promise<void> {
+	public async initAggregateStatisticsWorker(): Promise<
+		Remote<AggregateStatisticsGenerator>
+	> {
+		// force the termination of any pending execution that has not finished
+		this.forceAggregateStatisticsWorkerToTerminate()
+
 		this._aggregateStatisticsWorkerProxy = createWorkerProxy<
 			typeof AggregateStatisticsGenerator
 		>(new AggregateStatisticsGeneratorWorker())
-		this._aggregateStatisticsGenerator =
+
+		const aggregateStatisticsGenerator =
 			await new this._aggregateStatisticsWorkerProxy.ProxyConstructor(
 				`${this._name}:AggregateStatisticsGenerator`,
 			)
+
 		// eslint-disable-next-line @essex/adjacent-await
-		await this._aggregateStatisticsGenerator.init()
+		await aggregateStatisticsGenerator.init()
+
+		return aggregateStatisticsGenerator
+	}
+
+	public forceAggregateStatisticsWorkerToTerminate(): void {
+		this._aggregateStatisticsWorkerProxy?.terminate()
+		this._aggregateStatisticsWorkerProxy = null
 	}
 
 	public async terminate(): Promise<void> {
-		await this._aggregateStatisticsGenerator?.terminate()
 		this._aggregateStatisticsWorkerProxy?.terminate()
 		await this.terminateAllSynthesizers()
 	}
@@ -86,20 +98,20 @@ export class SdsManager {
 	): Promise<
 		Remote<ICancelablePromise<IAggregateStatistics | null>> | undefined
 	> {
-		const aggregateStatisticsGenerator = this.getAggregateStatisticsGenerator()
-		const continueExecutingView = new AtomicView(AtomicView.createBuffer(true))
+		const aggregateStatisticsGenerator =
+			await this.initAggregateStatisticsWorker()
 
 		return proxy({
+			id: uniqueId(),
 			promise: aggregateStatisticsGenerator.generateAggregateStatistics(
 				csvData,
 				csvDataParameters,
 				reportingLength,
 				resolution,
-				continueExecutingView.getBuffer(),
 				progressCallback,
 			),
 			cancel: () => {
-				continueExecutingView.set(false)
+				this.forceAggregateStatisticsWorkerToTerminate()
 			},
 		}) as unknown as Remote<ICancelablePromise<IAggregateStatistics>>
 	}
@@ -113,13 +125,21 @@ export class SdsManager {
 	}
 
 	public async terminateSynthesizer(key: string): Promise<void> {
+		// this directly terminates the worker without signaling the wasm code
+		// - this is done to avoid the use of SAB necessary to signal that
+		//   the wasm code need to stop executing nicely
+		// this way, if the worker is running a synthesis, it will
+		// be forced to terminate
 		const s = this.getSynthesizerWorkInfo(key)
+		const oldStatus = s.synthesisInfo.status
 
-		s.shouldRun.set(false)
 		s.synthesisInfo.status = IWasmSynthesizerWorkerStatus.TERMINATING
 		this._synthesisCallbacks?.terminating?.(s.synthesisInfo)
 
-		await s.synthesizer.terminate()
+		// properly terminate and cleanup if not running a synthesis
+		if (oldStatus !== IWasmSynthesizerWorkerStatus.RUNNING) {
+			await s.synthesizer.terminate()
+		}
 		s.synthesizerWorkerProxy.terminate()
 		this._synthesizerWorkersInfoMap.delete(key)
 
@@ -138,26 +158,23 @@ export class SdsManager {
 		const synthesizerWorkerProxy = createWorkerProxy<typeof WasmSynthesizer>(
 			new WasmSynthesizerWorker(),
 		)
-		const progressView = new AtomicView(AtomicView.createBuffer(0))
-		const shouldRunView = new AtomicView(AtomicView.createBuffer(true))
 		const s: IWasmSynthesizerWorkerInfo = {
 			synthesisInfo: {
 				key,
 				parameters,
 				status: IWasmSynthesizerWorkerStatus.RUNNING,
 				startedAt: new Date(),
-				progress: progressView.getBuffer(),
+				progress: 0,
 			},
 			synthesizerWorkerProxy,
 			synthesizer: await new synthesizerWorkerProxy.ProxyConstructor(
 				`${this._name}:WasmSynthesizer:${key}`,
 			),
-			shouldRun: shouldRunView,
 		}
 
 		await s.synthesizer.init()
 		this._synthesizerWorkersInfoMap.set(key, s)
-		this.dispatchSynthesis(s, csvData, parameters, progressView)
+		this.dispatchSynthesis(s, csvData, parameters)
 	}
 
 	public async getAllSynthesisInfo(): Promise<ISynthesisInfo[]> {
@@ -226,15 +243,6 @@ export class SdsManager {
 		).synthesizer.getNavigateResult()
 	}
 
-	private getAggregateStatisticsGenerator(): Remote<AggregateStatisticsGenerator> {
-		if (this._aggregateStatisticsGenerator === null) {
-			throw new Error(
-				`"${this._name}" worker has not been properly initialized, did you call init?`,
-			)
-		}
-		return this._aggregateStatisticsGenerator
-	}
-
 	private getSynthesizerWorkInfo(key: string): IWasmSynthesizerWorkerInfo {
 		const s = this._synthesizerWorkersInfoMap.get(key)
 
@@ -248,16 +256,14 @@ export class SdsManager {
 		s: IWasmSynthesizerWorkerInfo,
 		csvData: string,
 		parameters: ISynthesisParameters,
-		progressView: AtomicView,
 	): Promise<void> {
 		await this._synthesisCallbacks?.started?.(s.synthesisInfo)
 		s.synthesizer
 			.generateAndEvaluate(
 				csvData,
 				parameters,
-				s.shouldRun.getBuffer(),
 				proxy((p: number) => {
-					progressView.set(p)
+					s.synthesisInfo.progress = p
 					this._synthesisCallbacks?.progressUpdated?.(s.synthesisInfo)
 				}),
 			)
