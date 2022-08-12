@@ -8,8 +8,9 @@ import React, { memo, useMemo } from 'react'
 
 import { useLoadMSFTCookieScript } from './PolicyAndCookieBanner.hooks.js'
 import type {
-	CookieConsent,
-	CookieConsentBannerThemes,
+	PolicyAndCookieBannerProps,
+	PolicyLinkDetails,
+	PolicyLinkProps,
 } from './PolicyAndCookieBanner.types.js'
 
 const containerStyles: CSSProperties = {
@@ -20,7 +21,6 @@ const containerStyles: CSSProperties = {
 	padding: '10px',
 }
 
-export type PolicyLinkDetails = { name: string; href: string }
 const defaultLinks: Array<PolicyLinkDetails> = [
 	{
 		name: 'Privacy',
@@ -40,14 +40,6 @@ const defaultLinks: Array<PolicyLinkDetails> = [
 	},
 ]
 
-export type PolicyAndCookieBannerProps = {
-	language?: string
-	theme?: CookieConsentBannerThemes
-	onConsentChanged?: (newConsent: CookieConsent) => void
-	className?: string
-	styles?: CSSProperties
-	links?: Array<PolicyLinkDetails>
-}
 export const PolicyAndCookieBanner: FC<PolicyAndCookieBannerProps> = memo(
 	function CookieConsentProvider({
 		language = navigator.language ?? 'en-US',
@@ -98,12 +90,6 @@ export const PolicyAndCookieBanner: FC<PolicyAndCookieBannerProps> = memo(
 )
 PolicyAndCookieBanner.displayName = 'PolicyAndCookieBanner'
 
-type PolicyLinkProps = {
-	name: string
-	href?: string
-	onClick?: () => void
-	divider?: boolean
-}
 const PolicyLink: FC<PolicyLinkProps> = memo(function PolicyLink({
 	name,
 	href,

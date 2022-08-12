@@ -3,6 +3,8 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 
+import type { CSSProperties } from 'react'
+
 export enum CookieConsentCategories {
 	/**
 	 * Cookies to perform essential website functions (sign-in, language settings,...)
@@ -53,7 +55,7 @@ export type CookieConsentManager = {
 /* eslint-disable-next-line */
 export type WcpConsent = {
 	/**
-	 * Library initilization method
+	 * Library initialization method
 	 * @param culture - culture to be used for text resources (e.g.: `en-us`, `en-gb`, `en`, `fr-ca`)
 	 * @param placeholderIdOrElement - element ID or HTMLElement where banner will be placed
 	 * @param initCallback - function to be called when the library initialization is done
@@ -69,4 +71,22 @@ export type WcpConsent = {
 		theme?: CookieConsentBannerThemes,
 		stylesNonce?: string,
 	) => void
+}
+
+export type PolicyLinkDetails = { name: string; href: string }
+
+export type PolicyAndCookieBannerProps = {
+	language?: string
+	theme?: CookieConsentBannerThemes
+	onConsentChanged?: (newConsent: CookieConsent) => void
+	className?: string
+	styles?: CSSProperties
+	links?: Array<PolicyLinkDetails>
+}
+
+export type PolicyLinkProps = {
+	name: string
+	href?: string
+	onClick?: () => void
+	divider?: boolean
 }

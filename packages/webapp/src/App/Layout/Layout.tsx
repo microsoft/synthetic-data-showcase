@@ -9,6 +9,7 @@ import React, { memo, useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import styled from 'styled-components'
 
+import { PolicyAndCookieBanner } from '~components/PolicyAndCookieBanner'
 import { Pages } from '~pages'
 import {
 	useAllSynthesisInfo,
@@ -24,7 +25,6 @@ import SdsManagerWorker from '~workers/SdsManager?worker'
 import type { ISynthesisInfo } from '~workers/types'
 import { createWorkerProxy } from '~workers/utils'
 
-import { PolicyAndCookieBanner } from '../../components/PolicyAndCookieBanner/PolicyAndCookieBanner.js'
 import { Header } from './Header/index.js'
 import { useOnTableChange } from './hooks/index.js'
 
