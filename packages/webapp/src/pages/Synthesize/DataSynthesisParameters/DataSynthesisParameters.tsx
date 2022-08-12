@@ -92,6 +92,7 @@ export const DataSynthesisParameters: React.FC<DataSynthesisParametersProps> =
 						label="Synthesis mode"
 					>
 						<StyledDropdown
+							title="Synthesis mode"
 							selectedKey={rawSynthesisParams.synthesisMode}
 							onChange={handleSynthesisModeChange}
 							placeholder="Select synthesis mode"
@@ -143,7 +144,9 @@ export const DataSynthesisParameters: React.FC<DataSynthesisParametersProps> =
 						</PrimaryButton>
 					</FlexItem>
 					<FlexItem align="flex-end">
-						<InfoTooltip>{tooltips.synthesize}</InfoTooltip>
+						<InfoTooltip title="Run Synthesizer">
+							{tooltips.synthesize}
+						</InfoTooltip>
 					</FlexItem>
 					<FlexItem align="flex-end">
 						<IconButton

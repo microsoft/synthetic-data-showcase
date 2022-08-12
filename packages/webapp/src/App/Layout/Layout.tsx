@@ -9,6 +9,7 @@ import React, { memo, useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import styled from 'styled-components'
 
+import { PolicyAndCookieBanner } from '~components/PolicyAndCookieBanner'
 import { Pages } from '~pages'
 import {
 	useAllSynthesisInfo,
@@ -88,6 +89,7 @@ export const Layout: React.FC<
 			<Main>
 				<Outlet />
 			</Main>
+			<PolicyAndCookieBanner />
 		</Container>
 	)
 })

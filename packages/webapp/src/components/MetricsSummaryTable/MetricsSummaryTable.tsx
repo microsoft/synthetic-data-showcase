@@ -15,6 +15,7 @@ import { memo } from 'react'
 import { InfoTooltip } from '~components/InfoTooltip'
 import type { AggregateType } from '~workers/types'
 
+import type { IMicrodataMetricItem } from './hooks.js'
 import { useMicrodataMetricsItems } from './hooks.js'
 
 export interface MetricsSummaryTableProps {
@@ -35,12 +36,12 @@ export const MetricsSummaryTable: React.FC<MetricsSummaryTableProps> = memo(
 				isResizable: true,
 				minWidth: 100,
 				maxWidth: 350,
-				onRender: item => (
+				onRender: (item: IMicrodataMetricItem) => (
 					<Stack horizontal>
 						<Stack.Item align="center">{item.metric}</Stack.Item>
 						{item.tooltip !== undefined && (
 							<Stack.Item align="center">
-								<InfoTooltip>{item.tooltip}</InfoTooltip>
+								<InfoTooltip title={item.metric}>{item.tooltip}</InfoTooltip>
 							</Stack.Item>
 						)}
 					</Stack>
