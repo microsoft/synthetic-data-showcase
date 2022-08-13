@@ -11,10 +11,8 @@ import tsconfigPaths from 'vite-tsconfig-paths'
 // export default defineConfig(essexViteConfig)
 export default defineConfig(({ command, mode }) => {
 	return {
-		base: './',
 		build: {
 			target: 'es2020',
-			outDir: 'dist',
 			sourcemap: true,
 			rollupOptions: {
 				input: {
@@ -29,9 +27,6 @@ export default defineConfig(({ command, mode }) => {
 		},
 		server: {
 			port: 3000,
-		},
-		worker: {
-			format: 'es',
 		},
 		plugins: [tsconfigPaths(), react()],
 	}
