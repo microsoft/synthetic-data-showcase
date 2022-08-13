@@ -19,7 +19,7 @@ import { uniqueId } from 'lodash'
 
 /* eslint-disable */
 import type { AggregateStatisticsGenerator } from './AggregateStatisticsGenerator'
-import AggregateStatisticsGeneratorWorker from './AggregateStatisticsGenerator?worker'
+import AggregateStatisticsGeneratorWorker from './AggregateStatisticsGenerator?url'
 import type {
 	AggregateType,
 	ICancelablePromise,
@@ -34,7 +34,7 @@ import { IWasmSynthesizerWorkerStatus } from './types'
 import type { IWorkerProxy } from './utils'
 import { createWorkerProxy } from './utils'
 import type { WasmSynthesizer } from './WasmSynthesizer'
-import WasmSynthesizerWorker from './WasmSynthesizer?worker'
+import WasmSynthesizerWorker from './WasmSynthesizer?url'
 /* eslint-enable */
 
 export class SdsManager {
@@ -66,7 +66,11 @@ export class SdsManager {
 
 		this._aggregateStatisticsWorkerProxy = createWorkerProxy<
 			typeof AggregateStatisticsGenerator
-		>(new AggregateStatisticsGeneratorWorker())
+		>(
+			new Worker(AggregateStatisticsGeneratorWorker, {
+				type: 'module',
+			}),
+		)
 
 		const aggregateStatisticsGenerator =
 			await new this._aggregateStatisticsWorkerProxy.ProxyConstructor(
@@ -155,9 +159,13 @@ export class SdsManager {
 		if (this._synthesizerWorkersInfoMap.has(key)) {
 			throw new Error(`synthesis for ${key} already exists`)
 		}
+
 		const synthesizerWorkerProxy = createWorkerProxy<typeof WasmSynthesizer>(
-			new WasmSynthesizerWorker(),
+			new Worker(WasmSynthesizerWorker, {
+				type: 'module',
+			}),
 		)
+
 		const s: IWasmSynthesizerWorkerInfo = {
 			synthesisInfo: {
 				key,
