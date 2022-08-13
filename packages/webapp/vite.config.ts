@@ -11,6 +11,7 @@ import tsconfigPaths from 'vite-tsconfig-paths'
 // export default defineConfig(essexViteConfig)
 export default defineConfig(({ command, mode }) => {
 	return {
+		base: './',
 		build: {
 			target: 'es2020',
 			sourcemap: true,
