@@ -27,26 +27,29 @@ import type {
 	WorkerProgressCallback,
 } from './types'
 import { AggregateType, SynthesisMode } from './types'
-import type { AtomicBuffer } from './utils'
-import { AtomicView } from './utils'
 /* eslint-enable */
 
 export class WasmSynthesizer extends BaseSdsWasmWorker {
 	public async generateAndEvaluate(
 		csvData: string,
 		parameters: ISynthesisParameters,
-		continueExecuting: AtomicBuffer,
 		progressCallback?: Proxy<WorkerProgressCallback>,
 	): Promise<void> {
 		const context = this.getContext()
-		const continueExecutingView = new AtomicView(continueExecuting)
+
+		// this initial call is necessary for
+		// this to work on firefox without
+		// having to await inside generateProgressCallback
+		// and evaluateProgressCallback
+		await progressCallback?.(0)
+
 		const generateProgressCallback = p => {
 			progressCallback?.(0.5 * p)
-			return continueExecutingView.getBoolean()
+			return true
 		}
 		const evaluateProgressCallback = p => {
 			progressCallback?.(50.0 + 0.5 * p)
-			return continueExecutingView.getBoolean()
+			return true
 		}
 
 		context.setSensitiveData(csvData, parameters.csvDataParameters)

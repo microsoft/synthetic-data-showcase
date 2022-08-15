@@ -11,6 +11,7 @@ import tsconfigPaths from 'vite-tsconfig-paths'
 // export default defineConfig(essexViteConfig)
 export default defineConfig(({ command, mode }) => {
 	return {
+		base: process.env.VITE_BASE_URL || '/',
 		build: {
 			target: 'es2020',
 			sourcemap: true,
@@ -28,19 +29,6 @@ export default defineConfig(({ command, mode }) => {
 		server: {
 			port: 3000,
 		},
-		plugins: [
-			tsconfigPaths(),
-			react(),
-			{
-				name: 'crossOriginIsolate',
-				configureServer(server) {
-					server.middlewares.use((_, res, next) => {
-						res.setHeader('Cross-Origin-Opener-Policy', 'same-origin')
-						res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp')
-						next()
-					})
-				},
-			},
-		],
+		plugins: [tsconfigPaths(), react()],
 	}
 })

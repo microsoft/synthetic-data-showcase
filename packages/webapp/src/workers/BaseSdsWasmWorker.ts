@@ -5,6 +5,8 @@
 import init, { init_logger, WasmSdsContext } from '@essex/sds-core'
 import wasmPath from '@essex/sds-core/sds_wasm_bg.wasm?url'
 
+import { getSdsWasmLogLevel } from '../utils/env.js'
+
 export class BaseSdsWasmWorker {
 	private _context: WasmSdsContext | null
 	protected _name: string
@@ -16,7 +18,7 @@ export class BaseSdsWasmWorker {
 
 	public async init(): Promise<void> {
 		await init(wasmPath)
-		init_logger(import.meta.env.VITE_SDS_WASM_LOG_LEVEL as string)
+		init_logger(getSdsWasmLogLevel())
 		this._context = new WasmSdsContext()
 	}
 

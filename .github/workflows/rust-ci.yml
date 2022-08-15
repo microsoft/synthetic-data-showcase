@@ -2,9 +2,9 @@ name: Rust CI
 
 on:
   push:
-    branches: ['main']
+    branches: ["main"]
   pull_request:
-    branches: ['dev', 'main']
+    branches: ["dev", "main"]
 
 env:
   CARGO_TERM_COLOR: always
@@ -49,7 +49,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Run cargo clippy
+      - name: Run cargo clippy Windows
+        if: ${{ matrix.platform == 'windows-latest' }}
+        run: cargo clippy -- -D warnings
+
+      - name: Run cargo clippy Linux
+        if: ${{ matrix.platform == 'ubuntu-latest' }}
         run: cargo clippy -- -D warnings
 
   cargo_test:
@@ -71,7 +76,7 @@ jobs:
     strategy:
       matrix:
         platform: [ubuntu-latest, windows-latest]
-        python-version: ['3.10']
+        python-version: ["3.10"]
     runs-on: ${{ matrix.platform }}
 
     steps:

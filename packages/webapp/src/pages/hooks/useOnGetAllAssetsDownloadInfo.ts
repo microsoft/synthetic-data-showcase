@@ -13,6 +13,7 @@ import {
 	getMetricsByCountLabels,
 	getMetricsByLenLabels,
 } from '~components/Charts/hooks'
+import type { DownloadInfo } from '~components/controls/DownloadButton'
 import {
 	getAggregatesCsv,
 	getAnalysisByCountCsv,
@@ -27,10 +28,9 @@ import {
 	useGetSyntheticCsvContent,
 } from '~pages/Synthesize'
 import { useSdsManagerInstance, useSensitiveContentValue } from '~states'
+import { getBaseUrl } from '~utils'
 import type { ISynthesisInfo } from '~workers/types'
 import { AggregateType } from '~workers/types'
-
-import type { DownloadInfo } from '../../components/controls/DownloadButton/DownloadInfo.js'
 
 const ANONYMIZED_PATH = 'anonymized'
 const ANONYMIZED_INTERFACE_PATH = 'anonymized/interface'
@@ -299,7 +299,10 @@ async function generateSyntheticDataCsv(
 async function getPowerBiNavigatePageReport(
 	path: string,
 ): Promise<FileWithPath> {
-	const reportResponse = await fetch('/synthetic_data_showcase.pbit')
+	const reportResponse = await fetch(
+		`${getBaseUrl()}synthetic_data_showcase.pbit`,
+	)
+
 	return new FileWithPath(
 		await reportResponse.blob(),
 		`${path}/${ANONYMIZED_INTERFACE_PATH}/synthetic_data_showcase.pbit`,

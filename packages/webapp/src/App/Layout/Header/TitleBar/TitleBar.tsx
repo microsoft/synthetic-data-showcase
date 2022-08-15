@@ -63,7 +63,7 @@ const Container = styled(FlexContainer)`
 
 const StyledLink = styled(NavLink)`
 	display: inline-block;
-	color: ${p => p.theme.palette.neutralLight};
+	color: ${p => p.theme.palette.white};
 	font-size: ${p => p.theme.fonts.xLarge.fontSize};
 	/* font-weight: bold; */
 	letter-spacing: 1.5px;
