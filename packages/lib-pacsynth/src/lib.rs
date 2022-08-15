@@ -1,7 +1,10 @@
 use pyo3::prelude::*;
 
+#[allow(clippy::borrow_deref_ref)]
 mod aggregate_seeded;
+#[allow(clippy::borrow_deref_ref)]
 mod dataset;
+#[allow(clippy::borrow_deref_ref)]
 mod utils;
 
 #[pymodule]
