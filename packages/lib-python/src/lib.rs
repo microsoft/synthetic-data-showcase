@@ -9,7 +9,6 @@ use sds_core::{
 };
 
 /// Module that exposes the main processor
-#[allow(clippy::borrow_deref_ref)]
 pub mod data_processor;
 
 /// A Python module implemented in Rust. The name of this function must match
