@@ -2,9 +2,9 @@ name: Javascript CI
 
 on:
   push:
-    branches: ['main']
+    branches: ["main", "deploy-gh-pages"]
   pull_request:
-    branches: ['dev', 'main']
+    branches: ["dev", "main"]
 
 env:
   CARGO_TERM_COLOR: always
@@ -36,13 +36,16 @@ jobs:
 
       - name: Rename wasm package
         run: |
-          npm install replace -g 
+          npm install replace -g
           replace "sds-wasm" "@essex/sds-core" ./target/wasm/package.json
 
       - name: Install dependencies
         run: yarn install
 
       - name: CI
+        env:
+          VITE_BASE_URL: /synthetic-data-showcase/
+          VITE_SDS_WASM_LOG_LEVEL: warn
         run: yarn git:ci
 
       - name: Check for uncommitted changes
@@ -55,7 +58,7 @@ jobs:
         run: yarn release
 
       - name: Deploy site
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/deploy-gh-pages' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
