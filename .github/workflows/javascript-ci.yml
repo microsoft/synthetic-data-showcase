@@ -2,7 +2,7 @@ name: Javascript CI
 
 on:
   push:
-    branches: ["main", "deploy-gh-pages"]
+    branches: ["main"]
   pull_request:
     branches: ["dev", "main"]
 
@@ -58,7 +58,7 @@ jobs:
         run: yarn release
 
       - name: Deploy site
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/deploy-gh-pages' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
