@@ -55,7 +55,7 @@ jobs:
 
       - name: Run cargo clippy Linux
         if: ${{ matrix.platform == 'ubuntu-latest' }}
-        run: cargo clippy -- -D warnings
+        run: cargo clippy -- -D warnings -A clippy::borrow_deref_ref
 
   cargo_test:
     name: Run cargo tests
