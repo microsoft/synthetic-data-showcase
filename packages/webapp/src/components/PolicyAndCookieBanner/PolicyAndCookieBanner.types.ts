@@ -86,6 +86,7 @@ export type PolicyAndCookieBannerProps = {
 
 export type PolicyLinkProps = {
 	name: string
+	id?: string
 	href?: string
 	onClick?: () => void
 	divider?: boolean
