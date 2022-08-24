@@ -39,8 +39,12 @@ const defaultLinks: Array<PolicyLinkDetails> = [
 		href: 'https://go.microsoft.com/?linkid=2028325',
 	},
 	{
+		name: 'Code of Conduct',
+		href: 'https://opensource.microsoft.com/codeofconduct/',
+	},
+	{
 		name: `©️ ${new Date().getFullYear()} Microsoft`,
-		href: 'https://www.microsoft.com',
+		href: 'https://www.microsoft.com/en-us/legal/intellectualproperty/copyright',
 	},
 ]
 
