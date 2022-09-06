@@ -111,17 +111,21 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 				<Spinner />
 			) : statistics && statistics.numberOfRecordsWithRareCombinations > 0 ? (
 				<>
-					<StyledReport>{`Contribution to privacy risk (creating rare attribute combinations in ${
-						statistics.numberOfRecordsWithRareCombinations
-					}/${statistics.numberOfRecords} subjects, ${(
-						(statistics.numberOfRecordsWithRareCombinations * 100.0) /
-						statistics.numberOfRecords
-					).toFixed(0)}%)`}</StyledReport>
+					<StyledReport>
+						<b>{`Privacy risk of selected columns: ${(
+							(statistics.numberOfRecordsWithRareCombinations * 100.0) /
+							statistics.numberOfRecords
+						).toFixed(0)}% of subjects (${
+							statistics.numberOfRecordsWithRareCombinations
+						}/${
+							statistics.numberOfRecords
+						}) are linkable to small groups below the privacy resolution`}</b>
+					</StyledReport>
 					<ChartsContainer justify="space-between">
 						<ChartItem>
 							<ContributionChart
 								valuePerKey={columnWithRareCombinationsPercentage}
-								label={'Selected columns'}
+								label={'Most linkable columns'}
 								containerHeight={220}
 								barHeight={10}
 								tooltipFormatter={columnTooltipFormatter}
@@ -130,7 +134,7 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 						<ChartItem>
 							<ContributionChart
 								valuePerKey={attributesWithRareCombinationsPercentage}
-								label={'Attributes of selected columns'}
+								label={'Most linkable attributes'}
 								containerHeight={220}
 								barHeight={10}
 								tooltipFormatter={attributeTooltipFormatter}

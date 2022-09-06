@@ -43,6 +43,10 @@ const defaultLinks: Array<PolicyLinkDetails> = [
 		href: 'https://opensource.microsoft.com/codeofconduct/',
 	},
 	{
+		name: 'View on GitHub',
+		href: 'https://github.com/microsoft/synthetic-data-showcase',
+	},
+	{
 		name: `©️ ${new Date().getFullYear()} Microsoft`,
 		href: 'https://www.microsoft.com/en-us/legal/intellectualproperty/copyright',
 	},

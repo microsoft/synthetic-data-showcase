@@ -13,6 +13,7 @@ export const Container = styled(FlexContainer)`
 
 export const StyledReport = styled.div`
 	margin-bottom: ${p => p.theme.spacing.m};
+	text-align: center;
 `
 
 export const ChartsContainer = styled(FlexContainer)`
