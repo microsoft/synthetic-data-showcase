@@ -15,17 +15,29 @@ pub type AggregatesCountMap = FnvHashMap<Arc<ValueCombination>, AggregatedCount>
 /// Maps a value combination represented as a string to its aggregated count
 pub type AggregatesCountStringMap = FnvHashMap<String, usize>;
 
+/// Maps a data block value to a count
+pub type AggregatesCountDataBlockValueMap = FnvHashMap<Arc<DataBlockValue>, usize>;
+
 /// Maps a length (1,2,3... up to reporting length) to a determined count
 pub type AggregatedCountByLenMap = FnvHashMap<usize, usize>;
 
 /// Maps a length (1,2,3... up to reporting length) to a determined metric
 pub type AggregatedMetricByLenMap = FnvHashMap<usize, f64>;
 
+/// Maps a string to a determined metric
+pub type AggregatedMetricByString = FnvHashMap<String, f64>;
+
+/// Maps a string to a determined metric
+pub type AggregatedMetricByDataBlockValue = FnvHashMap<Arc<DataBlockValue>, f64>;
+
 /// Maps a length (1,2,3... up to reporting length) to a record set
 pub type RecordsByLenMap = FnvHashMap<usize, RecordsSet>;
 
 /// Maps a string key to a record set
 pub type RecordsByStringKey = FnvHashMap<String, RecordsSet>;
+
+/// Maps a data block value to a record set
+pub type RecordsByDataBlockValueKey = FnvHashMap<Arc<DataBlockValue>, RecordsSet>;
 
 /// Maps a string key to a record count
 pub type RecordsCountByStringKey = FnvHashMap<String, usize>;

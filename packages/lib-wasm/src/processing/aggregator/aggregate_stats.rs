@@ -1,5 +1,5 @@
 use crate::utils::js::{JsAggregateStatistics, JsResult};
-use sds_core::processing::aggregator::RecordsCountByStringKey;
+use sds_core::processing::aggregator::AggregatedMetricByString;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::{prelude::wasm_bindgen, JsCast, JsValue};
 
@@ -8,8 +8,8 @@ use wasm_bindgen::{prelude::wasm_bindgen, JsCast, JsValue};
 #[wasm_bindgen]
 pub struct WasmAggregateStatistics {
     pub(crate) number_of_records_with_rare_combinations: usize,
-    pub(crate) number_of_records_with_rare_combinations_per_column: RecordsCountByStringKey,
-    pub(crate) number_of_records_with_rare_combinations_per_attribute: RecordsCountByStringKey,
+    pub(crate) percentage_of_records_with_rare_combinations_per_column: AggregatedMetricByString,
+    pub(crate) percentage_of_records_with_rare_combinations_per_attribute: AggregatedMetricByString,
     pub(crate) number_of_records: usize,
 }
 
