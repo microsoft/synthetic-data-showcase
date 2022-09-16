@@ -65,9 +65,9 @@ const StyledLink = styled(NavLink)`
 	&.active {
 		color: ${p => p.theme.palette.black};
 		font-weight: bold;
-		background: ${p => p.theme.palette.white};
+		background: ${p => p.theme.palette.neutralLighterAlt};
 		&:after {
-			border-left: 10px solid ${p => p.theme.palette.white};
+			border-left: 10px solid ${p => p.theme.palette.neutralLighterAlt};
 		}
 	}
 

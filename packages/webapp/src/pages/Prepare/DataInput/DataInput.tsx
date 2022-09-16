@@ -9,6 +9,7 @@ import { memo } from 'react'
 import styled from 'styled-components'
 
 import { InfoTooltip } from '~components/InfoTooltip'
+import { PageDescription, Pages } from '~pages'
 import { useSelectedTable, useSteps, useTables } from '~states'
 import { tooltips } from '~ui-tooltips'
 
@@ -21,6 +22,7 @@ export const DataInput: React.FC = memo(function DataInput() {
 
 	return (
 		<Container vertical>
+			<PageDescription>{Pages.Prepare.description}</PageDescription>
 			<FlexContainer
 				align="center"
 				style={{ margin: theme.spacing.m }}
