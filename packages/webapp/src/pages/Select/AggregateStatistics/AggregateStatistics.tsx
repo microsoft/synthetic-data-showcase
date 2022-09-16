@@ -14,11 +14,7 @@ import {
 	useSensitiveContent,
 } from '~states'
 
-import {
-	useAttributesWithRareCombinationsPercentage,
-	useColumnsWithRareCombinationsPercentage,
-	useGetAggregateStatistics,
-} from './AggregateStatistics.hooks.js'
+import { useGetAggregateStatistics } from './AggregateStatistics.hooks.js'
 import {
 	ChartItem,
 	ChartsContainer,
@@ -38,27 +34,19 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 	const [, setGlobalErrorMessage] = useGlobalErrorMessage()
 	const [rawSynthesisParams] = useRawSynthesisParameters()
 	const getAggregateStatistics = useGetAggregateStatistics()
-	const columnWithRareCombinationsPercentage =
-		useColumnsWithRareCombinationsPercentage(statistics)
-	const attributesWithRareCombinationsPercentage =
-		useAttributesWithRareCombinationsPercentage(statistics)
 	const columnTooltipFormatter = useCallback(
 		item => {
-			return `Affecting ${
-				statistics?.numberOfRecordsWithRareCombinationsPerColumn[item.label]
-			}/${
-				statistics?.numberOfRecordsWithRareCombinations
-			} rare/linkable subjects (${item.raw}%)`
+			return `The attributes of this column make ${statistics?.percentageOfRecordsWithRareCombinationsPerColumn[
+				item.label
+			].toFixed(2)}% of their containing records linkable, on average`
 		},
 		[statistics],
 	)
 	const attributeTooltipFormatter = useCallback(
 		item => {
-			return `Affecting ${
-				statistics?.numberOfRecordsWithRareCombinationsPerAttribute[item.label]
-			}/${
-				statistics?.numberOfRecordsWithRareCombinations
-			} rare/linkable subjects (${item.raw}%)`
+			return `This attribute makes ${statistics?.percentageOfRecordsWithRareCombinationsPerAttribute[
+				item.label
+			].toFixed(2)}% of its containing records linkable`
 		},
 		[statistics],
 	)
@@ -119,12 +107,14 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 							statistics.numberOfRecordsWithRareCombinations
 						}/${
 							statistics.numberOfRecords
-						}) are linkable to small groups below the privacy resolution`}</b>
+						}) are linkable via rare attribute combinations (combination count < privacy resolution)`}</b>
 					</StyledReport>
 					<ChartsContainer justify="space-between">
 						<ChartItem>
 							<ContributionChart
-								valuePerKey={columnWithRareCombinationsPercentage}
+								valuePerKey={
+									statistics.percentageOfRecordsWithRareCombinationsPerColumn
+								}
 								label={'Most linkable columns'}
 								containerHeight={220}
 								barHeight={10}
@@ -133,7 +123,9 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 						</ChartItem>
 						<ChartItem>
 							<ContributionChart
-								valuePerKey={attributesWithRareCombinationsPercentage}
+								valuePerKey={
+									statistics.percentageOfRecordsWithRareCombinationsPerAttribute
+								}
 								label={'Most linkable attributes'}
 								containerHeight={220}
 								barHeight={10}

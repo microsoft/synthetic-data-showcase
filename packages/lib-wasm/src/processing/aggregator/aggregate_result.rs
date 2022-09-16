@@ -44,12 +44,12 @@ impl WasmAggregateResult {
             number_of_records_with_rare_combinations: self
                 .aggregated_data
                 .calc_number_of_records_with_rare_combinations(resolution),
-            number_of_records_with_rare_combinations_per_column: self
+            percentage_of_records_with_rare_combinations_per_column: self
                 .aggregated_data
-                .calc_number_of_records_with_rare_combinations_per_column(resolution),
-            number_of_records_with_rare_combinations_per_attribute: self
+                .calc_percentage_of_records_with_rare_combinations_per_column_str(resolution),
+            percentage_of_records_with_rare_combinations_per_attribute: self
                 .aggregated_data
-                .calc_number_of_records_with_rare_combinations_per_attribute(resolution),
+                .calc_percentage_of_records_with_rare_combinations_per_attribute_str(resolution),
             number_of_records: self.aggregated_data.number_of_records,
         }
     }

@@ -19,18 +19,14 @@ export interface ICsvDataParameters {
   recordLimit: number
 }
 
-export interface ISingleAttributeCounts {
-  [attr: string]: number
-}
-
-export interface IRecordsCountByStringKey{
+export interface IAggregatedMetricByString {
   [key: string]: number
 }
 
 export interface IAggregateStatistics {
   numberOfRecordsWithRareCombinations: number
-  numberOfRecordsWithRareCombinationsPerColumn: IRecordsCountByStringKey
-  numberOfRecordsWithRareCombinationsPerAttribute: IRecordsCountByStringKey
+  percentageOfRecordsWithRareCombinationsPerColumn: IAggregatedMetricByString
+  percentageOfRecordsWithRareCombinationsPerAttribute: IAggregatedMetricByString
   numberOfRecords: number
 }
 
@@ -146,8 +142,8 @@ extern "C" {
     #[wasm_bindgen(typescript_type = "ICsvDataParameters")]
     pub type JsCsvDataParameters;
 
-    #[wasm_bindgen(typescript_type = "ISingleAttributeCounts")]
-    pub type JsSingleAttributeCounts;
+    #[wasm_bindgen(typescript_type = "IAggregatedMetricByString")]
+    pub type JsAggregatedMetricByString;
 
     #[wasm_bindgen(typescript_type = "IRecordsCountByStringKey")]
     pub type JsRecordsCountByStringKey;

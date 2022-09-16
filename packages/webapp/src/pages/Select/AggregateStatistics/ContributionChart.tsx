@@ -33,7 +33,7 @@ export const ContributionChart: FC<ContributionChartProps> = memo(
 			[valuePerKey],
 		)
 		const data = useMemo(
-			() => labels.map(k => valuePerKey[k].toFixed(0)),
+			() => labels.map(k => valuePerKey[k].toFixed(2)),
 			[labels, valuePerKey],
 		)
 		const handleClick = useCallback(

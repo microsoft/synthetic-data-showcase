@@ -5,7 +5,8 @@ use super::{
         AggregatesCountStringMap, RecordsByLenMap, RecordsSensitivityByLen,
         ALL_SENSITIVITIES_INDEX,
     },
-    RecordsByStringKey, RecordsCountByStringKey,
+    AggregatedMetricByDataBlockValue, AggregatedMetricByString, AggregatesCountDataBlockValueMap,
+    RecordsByDataBlockValueKey, RecordsByStringKey, RecordsCountByStringKey,
 };
 use fnv::FnvHashMap;
 use itertools::Itertools;
@@ -109,6 +110,54 @@ impl AggregatedData {
                 } else {
                     None
                 }
+            })
+            .collect()
+    }
+
+    /// Calculates the records that contain rare combinations grouped by attribute.
+    /// This might contain duplicated records for different attribute names.
+    /// Unique combinations are also contained in this.
+    /// # Arguments:
+    /// * `resolution` - Reporting resolution used for data synthesis
+    pub fn calc_number_of_records_with_rare_combinations_per_attribute(
+        &self,
+        resolution: usize,
+    ) -> AggregatesCountDataBlockValueMap {
+        let mut rare_records_per_attribute = RecordsByDataBlockValueKey::default();
+
+        for (agg, count) in self.aggregates_count.iter() {
+            if count.count < resolution {
+                for value in agg.iter() {
+                    rare_records_per_attribute
+                        .entry(value.clone())
+                        .or_insert_with(RecordsSet::default)
+                        .extend(&count.contained_in_records);
+                }
+            }
+        }
+
+        rare_records_per_attribute
+            .drain()
+            .map(|(h, records)| (h, records.len()))
+            .collect()
+    }
+
+    /// Calculates the percentage of records that contain rare combinations grouped by attribute.
+    /// This might contain duplicated records for different attribute names.
+    /// Unique combinations are also contained in this.
+    /// # Arguments:
+    /// * `resolution` - Reporting resolution used for data synthesis
+    pub fn calc_percentage_of_records_with_rare_combinations_per_attribute(
+        &self,
+        resolution: usize,
+    ) -> AggregatedMetricByDataBlockValue {
+        let attr_counts = self.calc_single_attribute_counts();
+
+        self.calc_number_of_records_with_rare_combinations_per_attribute(resolution)
+            .drain()
+            .map(|(h, l)| {
+                let count = attr_counts[&h];
+                (h, 100.0 * l as f64 / count as f64)
             })
             .collect()
     }
@@ -462,81 +511,45 @@ impl AggregatedData {
         rare_records.len()
     }
 
-    /// Calculates the records that contain rare combinations grouped by column name.
+    /// Calculates the percentage of records that contain rare combinations grouped by column name.
     /// This might contain duplicated records on different column names.
     /// Unique combinations are also contained in this.
     /// # Arguments:
     /// * `resolution` - Reporting resolution used for data synthesis
-    pub fn calc_records_with_rare_combinations_per_column(
+    pub fn calc_percentage_of_records_with_rare_combinations_per_column_str(
         &self,
         resolution: usize,
-    ) -> RecordsByStringKey {
-        let mut rare_records_per_column = RecordsByStringKey::default();
-
-        for (agg, count) in self.aggregates_count.iter() {
-            if count.count < resolution {
-                for value in agg.iter() {
-                    rare_records_per_column
-                        .entry(self.get_original_header_name(value.column_index))
-                        .or_insert_with(RecordsSet::default)
-                        .extend(&count.contained_in_records);
-                }
-            }
-        }
-        rare_records_per_column
-    }
-
-    /// Calculates the number of records that contain rare combinations grouped by column name.
-    /// This might contain duplicated records on different column names.
-    /// Unique combinations are also contained in this.
-    /// # Arguments:
-    /// * `resolution` - Reporting resolution used for data synthesis
-    pub fn calc_number_of_records_with_rare_combinations_per_column(
-        &self,
-        resolution: usize,
-    ) -> RecordsCountByStringKey {
-        self.calc_records_with_rare_combinations_per_column(resolution)
+    ) -> AggregatedMetricByString {
+        self.calc_percentage_of_records_with_rare_combinations_per_attribute(resolution)
             .drain()
-            .map(|(h, records)| (h, records.len()))
+            .map(|(value, percentage)| (value.column_index, percentage))
+            // group_by only works on consecutive elements
+            .sorted_by_key(|(column_index, _percentage)| *column_index)
+            .group_by(|(column_index, _percentage)| *column_index)
+            .into_iter()
+            .map(|(column_index, group)| {
+                let percentages = group.map(|(_, percentage)| percentage).collect_vec();
+
+                (
+                    self.get_original_header_name(column_index),
+                    percentages.iter().sum::<f64>() / (percentages.len() as f64),
+                )
+            })
             .collect()
     }
 
-    /// Calculates the records that contain rare combinations grouped by attribute.
+    /// Calculates the percentage of records that contain rare combinations grouped by attribute str.
     /// This might contain duplicated records for different attribute names.
     /// Unique combinations are also contained in this.
     /// # Arguments:
     /// * `resolution` - Reporting resolution used for data synthesis
-    pub fn calc_records_with_rare_combinations_per_attribute(
+    pub fn calc_percentage_of_records_with_rare_combinations_per_attribute_str(
         &self,
         resolution: usize,
-    ) -> RecordsByStringKey {
-        let mut rare_records_per_attribute = RecordsByStringKey::default();
-
-        for (agg, count) in self.aggregates_count.iter() {
-            if count.count < resolution {
-                for value in agg.iter() {
-                    rare_records_per_attribute
-                        .entry(self.get_original_attribute_as_str(value))
-                        .or_insert_with(RecordsSet::default)
-                        .extend(&count.contained_in_records);
-                }
-            }
-        }
-        rare_records_per_attribute
-    }
-
-    /// Calculates the number of records that contain rare combinations grouped by attribute.
-    /// This might contain duplicated records for different attribute names.
-    /// Unique combinations are also contained in this.
-    /// # Arguments:
-    /// * `resolution` - Reporting resolution used for data synthesis
-    pub fn calc_number_of_records_with_rare_combinations_per_attribute(
-        &self,
-        resolution: usize,
-    ) -> RecordsCountByStringKey {
-        self.calc_records_with_rare_combinations_per_attribute(resolution)
+    ) -> AggregatedMetricByString {
+        self.calc_percentage_of_records_with_rare_combinations_per_attribute(resolution)
             .drain()
-            .map(|(h, records)| (h, records.len()))
+            .map(|(h, p)| (self.get_original_attribute_as_str(&h), p))
             .collect()
     }
 
