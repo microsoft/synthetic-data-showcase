@@ -43,7 +43,7 @@ export const defaultRawSynthesisParameters: IRawSynthesisParameters = {
 	oversamplingRatio: 0.1,
 	oversamplingTries: 10,
 	aggregateSeededUseSyntheticCounts: UseSyntheticCounts.Yes,
-	dpAggregateSeededUseSyntheticCounts: UseSyntheticCounts.No,
+	dpAggregateSeededUseSyntheticCounts: UseSyntheticCounts.Yes,
 	weightSelectionPercentile: 95,
 	percentilePercentage: 99,
 	percentileEpsilonProportion: 0.01,

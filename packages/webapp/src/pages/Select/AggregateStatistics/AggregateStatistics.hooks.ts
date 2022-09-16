@@ -2,12 +2,9 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import type {
-	IAggregateStatistics,
-	IRecordsCountByStringKey,
-} from '@essex/sds-core'
+import type { IAggregateStatistics } from '@essex/sds-core'
 import type { Remote } from 'comlink'
-import { useCallback, useMemo } from 'react'
+import { useCallback } from 'react'
 
 import type { ICsvContent } from '~models'
 import { useSdsManagerInstance, useSensitiveContent } from '~states'
@@ -56,45 +53,6 @@ export function useGetAggregateStatistics(): (
 		},
 		[managerInstance],
 	)
-}
-
-function calcPercentages(
-	total: number | undefined,
-	counts: IRecordsCountByStringKey | undefined,
-) {
-	const ret = {}
-
-	if (!counts || !total || total === 0) {
-		return ret
-	}
-
-	for (const column of Object.keys(counts)) {
-		ret[column] = (counts[column] * 100.0) / total
-	}
-
-	return ret
-}
-
-export function useColumnsWithRareCombinationsPercentage(
-	statistics: IAggregateStatistics | null,
-): IRecordsCountByStringKey {
-	return useMemo(() => {
-		return calcPercentages(
-			statistics?.numberOfRecordsWithRareCombinations,
-			statistics?.numberOfRecordsWithRareCombinationsPerColumn,
-		)
-	}, [statistics])
-}
-
-export function useAttributesWithRareCombinationsPercentage(
-	statistics: IAggregateStatistics | null,
-): IRecordsCountByStringKey {
-	return useMemo(() => {
-		return calcPercentages(
-			statistics?.numberOfRecordsWithRareCombinations,
-			statistics?.numberOfRecordsWithRareCombinationsPerAttribute,
-		)
-	}, [statistics])
 }
 
 export function useOnRemoveColumn(): (column: string) => void {

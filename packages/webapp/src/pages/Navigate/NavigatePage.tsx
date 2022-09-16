@@ -7,6 +7,8 @@ import type { FC } from 'react'
 import { memo, useCallback, useState } from 'react'
 import styled from 'styled-components'
 
+import { PageDescription, Pages } from '~pages'
+
 import { ChartArea } from './ChartArea/ChartArea.js'
 import { Commands } from './Commands/Commands.js'
 
@@ -21,6 +23,7 @@ export const NavigatePage: FC = memo(function NavigatePage() {
 
 	return (
 		<Container vertical className={isFullScreen ? 'fullScreen' : ''}>
+			<PageDescription>{Pages.Navigate.description}</PageDescription>
 			<Commands onFullScreenToggle={handleOnFullScreen} />
 			<MainContent>
 				<ChartArea isFullScreen={isFullScreen} />

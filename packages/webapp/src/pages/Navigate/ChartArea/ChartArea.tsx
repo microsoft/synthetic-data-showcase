@@ -47,8 +47,8 @@ export const ChartArea: FC<ChartAreaProps> = memo(function ChartArea({
 		selectedAttributesByColumn,
 	)
 	const viewHeight = isFullScreen
-		? 'calc(100vh - 135px)'
-		: 'calc(100vh - 252px)'
+		? 'calc(100vh - 161px)'
+		: 'calc(100vh - 278px)'
 	const chartHeight = `calc((${viewHeight} / 2) - 25px)`
 
 	return (
