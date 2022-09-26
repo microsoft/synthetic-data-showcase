@@ -6,6 +6,8 @@
 
 > Generates synthetic data and user interfaces for privacy-preserving data sharing and analysis.
 
+> Free-to-use web application for private data release: https://microsoft.github.io/synthetic-data-showcase/
+
 # Overview
 
 In many cases, the best way to share sensitive datasets is not to share the actual sensitive datasets, but user interfaces to derived datasets that are inherently anonymous. Our name for such an interface is a _data showcase_. In this project, we provide an automated set of tools for generating the three elements of a _synthetic data showcase_:
