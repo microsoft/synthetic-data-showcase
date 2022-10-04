@@ -122,6 +122,9 @@ export async function getAggregatesCsv(
 		aggregateType,
 		aggregatesDelimiter,
 		combinationDelimiter,
+		// case insensitive sort on combinations values
+		// so it works nice with the PBI report
+		true,
 	)
 	return result?.aggregatesData || ''
 }
