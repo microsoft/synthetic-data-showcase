@@ -110,6 +110,7 @@ export class WasmSynthesizer extends BaseSdsWasmWorker {
 		aggregateType: AggregateType,
 		aggregatesDelimiter: string,
 		combinationDelimiter: string,
+		caseInsensitiveCombinationsOrder = false,
 	): Promise<IAggregateResult> {
 		const context = this.getContext()
 
@@ -118,16 +119,19 @@ export class WasmSynthesizer extends BaseSdsWasmWorker {
 				return context.sensitiveAggregateResultToJs(
 					aggregatesDelimiter,
 					combinationDelimiter,
+					caseInsensitiveCombinationsOrder,
 				)
 			case AggregateType.Aggregated:
 				return context.reportableAggregateResultToJs(
 					aggregatesDelimiter,
 					combinationDelimiter,
+					caseInsensitiveCombinationsOrder,
 				)
 			case AggregateType.Synthetic:
 				return context.syntheticAggregateResultToJs(
 					aggregatesDelimiter,
 					combinationDelimiter,
+					caseInsensitiveCombinationsOrder,
 				)
 		}
 	}

@@ -210,6 +210,7 @@ export class SdsManager {
 		aggregateType: AggregateType,
 		aggregatesDelimiter: string,
 		combinationDelimiter: string,
+		caseInsensitiveCombinationsOrder = false,
 	): Promise<IAggregateResult> {
 		return await this.getSynthesizerWorkInfo(
 			key,
@@ -217,6 +218,7 @@ export class SdsManager {
 			aggregateType,
 			aggregatesDelimiter,
 			combinationDelimiter,
+			caseInsensitiveCombinationsOrder,
 		)
 	}
 

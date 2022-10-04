@@ -334,7 +334,7 @@ export async function generateEvaluationSummaryTxt(
 /* eslint-disable @essex/adjacent-await */
 export function useOnGetAllAssetsDownloadInfo(
 	delimiter = ',',
-	alias = 'all_assets',
+	alias = 'sds_all_assets',
 ): () => Promise<DownloadInfo | undefined> {
 	const [manager] = useSdsManagerInstance()
 	const allSynthesisInfo = useAllFinishedSynthesisInfo()
