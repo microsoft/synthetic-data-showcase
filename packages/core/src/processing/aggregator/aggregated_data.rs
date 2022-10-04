@@ -13,6 +13,7 @@ use itertools::Itertools;
 use log::info;
 use serde::{Deserialize, Serialize};
 use std::{
+    cmp::Ordering,
     fmt::Write as FmtWrite,
     io::{BufReader, BufWriter, Error, Write},
     sync::Arc,
@@ -212,9 +213,11 @@ impl AggregatedData {
         writer: &mut T,
         aggregates_delimiter: char,
         combination_delimiter: &str,
+        case_insensitive_combinations_order: Option<bool>,
     ) -> Result<(), Error> {
         let n_records;
         let n_records_label;
+        let case_insensitive = case_insensitive_combinations_order.unwrap_or(false);
 
         if let Some(protected_number_of_records) = self.protected_number_of_records {
             n_records = protected_number_of_records;
@@ -230,13 +233,30 @@ impl AggregatedData {
         writer
             .write_all(format!("record_count{}{}\n", aggregates_delimiter, n_records).as_bytes())?;
 
-        for aggregate in self.aggregates_count.keys() {
+        for (aggregate, count) in self.aggregates_count.iter().sorted_by(|a, b| {
+            let len_cmp = a.0.len().cmp(&b.0.len());
+
+            if len_cmp == Ordering::Equal {
+                // same len, sort by count desc
+                b.1.count.cmp(&a.1.count)
+            } else {
+                // different len, sort by len asc
+                len_cmp
+            }
+        }) {
             writer.write_all(
                 format!(
                     "{}{}{}\n",
-                    aggregate.as_str_using_headers(&self.headers, combination_delimiter),
+                    if case_insensitive {
+                        aggregate.as_str_using_headers_case_insensitive_order(
+                            &self.headers,
+                            combination_delimiter,
+                        )
+                    } else {
+                        aggregate.as_str_using_headers(&self.headers, combination_delimiter)
+                    },
                     aggregates_delimiter,
-                    self.aggregates_count[aggregate].count
+                    count.count
                 )
                 .as_bytes(),
             )?
@@ -855,11 +875,14 @@ impl AggregatedData {
     /// * `aggregates_delimiter` - Delimiter to use when writing to `aggregates_path`
     /// * `combination_delimiter` - Delimiter used to join combinations and format then
     /// as strings
+    /// * `case_insensitive_combinations_order` - True if the attribute combinations ordering should be
+    /// sorted using case insensitive comparison
     pub fn write_aggregates_count(
         &self,
         aggregates_path: &str,
         aggregates_delimiter: char,
         combination_delimiter: &str,
+        case_insensitive_combinations_order: Option<bool>,
     ) -> Result<(), Error> {
         info!("writing file {}", aggregates_path);
 
@@ -869,6 +892,7 @@ impl AggregatedData {
             &mut std::io::BufWriter::new(std::fs::File::create(aggregates_path)?),
             aggregates_delimiter,
             combination_delimiter,
+            case_insensitive_combinations_order,
         )
     }
 
@@ -877,10 +901,13 @@ impl AggregatedData {
     /// * `aggregates_delimiter` - Delimiter to used for the CSV file
     /// * `combination_delimiter` - Delimiter used to join combinations and format then
     /// as strings
+    /// * `case_insensitive_combinations_order` - True if the attribute combinations ordering should be
+    /// sorted using case insensitive comparison
     pub fn write_aggregates_to_string(
         &self,
         aggregates_delimiter: char,
         combination_delimiter: &str,
+        case_insensitive_combinations_order: Option<bool>,
     ) -> Result<String, Error> {
         let mut csv_aggregates = Vec::default();
 
@@ -888,6 +915,7 @@ impl AggregatedData {
             &mut csv_aggregates,
             aggregates_delimiter,
             combination_delimiter,
+            case_insensitive_combinations_order,
         )?;
 
         Ok(String::from_utf8_lossy(&csv_aggregates).to_string())

@@ -459,6 +459,7 @@ fn main() {
                     &aggregates_path,
                     aggregates_delimiter.chars().next().unwrap(),
                     ";",
+                    None,
                 ) {
                     error!("error writing output file: {}", err);
                     process::exit(1);

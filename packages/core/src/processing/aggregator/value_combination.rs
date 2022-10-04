@@ -59,6 +59,28 @@ impl ValueCombination {
         str
     }
 
+    /// Formats a value combination as String using the headers.
+    /// The order of the combination output will be sorted using a case
+    /// insensitive comparison.
+    /// The result is formatted as:
+    /// `{header_name}:{block_value};{header_name}:{block_value}...`
+    /// # Arguments
+    /// * `headers` - Data block headers
+    /// * `combination_delimiter` - Delimiter used to join combinations
+    pub fn as_str_using_headers_case_insensitive_order(
+        &self,
+        headers: &DataBlockHeadersSlice,
+        combination_delimiter: &str,
+    ) -> String {
+        let mut vc = (*self).clone();
+
+        // sort the combination using case insensitive ordering
+        vc.combination
+            .sort_by_key(|k| k.as_str_using_headers(headers).to_lowercase());
+
+        vc.as_str_using_headers(headers, combination_delimiter)
+    }
+
     /// Creates a new set containing the combination values
     #[inline]
     pub fn build_ref_set(&self) -> ValueCombinationRefSet {
