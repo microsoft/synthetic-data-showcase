@@ -1,6 +1,6 @@
 [package]
 name = "sds-pyo3"
-version = "1.8.2"
+version = "1.8.3"
 license = "MIT"
 description = "Python bindings for the sds-core library"
 repository = "https://github.com/microsoft/synthetic-data-showcase"
