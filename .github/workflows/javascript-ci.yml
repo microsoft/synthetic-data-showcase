@@ -46,6 +46,7 @@ jobs:
         env:
           VITE_BASE_URL: /synthetic-data-showcase/
           VITE_SDS_WASM_LOG_LEVEL: warn
+          NODE_OPTIONS: --max_old_space_size=4096
         run: yarn git:ci
 
       - name: Check for uncommitted changes
