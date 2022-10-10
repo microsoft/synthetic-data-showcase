@@ -26,13 +26,13 @@ export const Pages: Record<string, PageDetails> = {
 		component: lazy(
 			async () =>
 				/* webpackChunkName: "HomePage" */
-				await import('./Prepare/index.js'),
+				await import('./Home/index.js'),
 		),
 		description: 'Home page.',
 	},
 	Prepare: {
 		name: 'Prepare',
-		path: '/',
+		path: '/prepare',
 		hideFromMenu: false,
 		useLayout: true,
 		component: lazy(

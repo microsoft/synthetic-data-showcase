@@ -1,6 +1,6 @@
 use fnv::FnvBuildHasher;
 use lru::LruCache;
-use std::sync::Arc;
+use std::{num::NonZeroUsize, sync::Arc};
 
 use crate::data_block::{CsvRecordRef, DataBlockValue};
 
@@ -83,7 +83,10 @@ impl<T> SynthesizerCache<T> {
     #[inline]
     pub fn new(cache_max_size: usize) -> SynthesizerCache<T> {
         SynthesizerCache {
-            cache: LruCache::with_hasher(cache_max_size, FnvBuildHasher::default()),
+            cache: LruCache::with_hasher(
+                NonZeroUsize::new(cache_max_size).unwrap(),
+                FnvBuildHasher::default(),
+            ),
         }
     }
 

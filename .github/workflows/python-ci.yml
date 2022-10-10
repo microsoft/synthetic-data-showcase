@@ -91,7 +91,7 @@ jobs:
 
   upload_pacsynth_pypi:
     name: Upload pac-synth to PyPi
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    if: ${{ github.repository == 'microsoft/synthetic-data-showcase' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs: [build_pacsynth_win, build_pacsynth_mac, build_pacsynth_linux]
     strategy:
       matrix:
