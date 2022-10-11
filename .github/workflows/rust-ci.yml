@@ -49,13 +49,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Run cargo clippy Windows
-        if: ${{ matrix.platform == 'windows-latest' }}
-        run: cargo clippy -- -D warnings -A clippy::borrow_deref_ref
-
-      - name: Run cargo clippy Linux
-        if: ${{ matrix.platform == 'ubuntu-latest' }}
-        run: cargo clippy -- -D warnings -A clippy::borrow_deref_ref
+      - name: Run cargo clippy
+        run: cargo clippy -- -D warnings
 
   cargo_test:
     name: Run cargo tests

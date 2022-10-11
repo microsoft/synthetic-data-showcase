@@ -2,9 +2,9 @@ name: Javascript CI
 
 on:
   push:
-    branches: ['main']
+    branches: ["main"]
   pull_request:
-    branches: ['dev', 'main']
+    branches: ["dev", "main"]
 
 env:
   CARGO_TERM_COLOR: always
@@ -46,19 +46,20 @@ jobs:
         env:
           VITE_BASE_URL: /synthetic-data-showcase/
           VITE_SDS_WASM_LOG_LEVEL: warn
+          NODE_OPTIONS: --max_old_space_size=4096
         run: yarn git:ci
 
       - name: Check for uncommitted changes
         run: git diff-index --quiet HEAD --
 
       - name: Publish wasm core
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        if: ${{ github.repository == 'microsoft/synthetic-data-showcase' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: yarn release
 
       - name: Deploy site
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        if: ${{ github.repository == 'microsoft/synthetic-data-showcase' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

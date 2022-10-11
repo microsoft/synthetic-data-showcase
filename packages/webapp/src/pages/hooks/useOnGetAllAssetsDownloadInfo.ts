@@ -40,6 +40,7 @@ const SENSITIVE_DATASET_ANALYSIS_PATH = 'private/sensitive_dataset_analysis'
 const AGGREGATE_DATASET_ANALYSIS_PATH = 'private/aggregate_dataset_analysis'
 const SYNTHETIC_DATASET_ANALYSIS_PATH = 'private/synthetic_dataset_analysis'
 
+/* eslint-disable @essex/adjacent-await */
 async function generateAggregatesCsv(
 	manager: ISdsManagerInstance,
 	key: string,
@@ -50,8 +51,12 @@ async function generateAggregatesCsv(
 		key,
 		AggregateType.Aggregated,
 	)
+	const syntheticAggregatesCsv = await getAggregatesCsv(
+		manager,
+		key,
+		AggregateType.Synthetic,
+	)
 
-	// eslint-disable-next-line @essex/adjacent-await
 	return [
 		new FileWithPath(
 			new Blob(
@@ -78,17 +83,22 @@ async function generateAggregatesCsv(
 			`${path}/${ANONYMIZED_INTERFACE_PATH}/protected_aggregates.csv`,
 		),
 		new FileWithPath(
-			new Blob(
-				[await getAggregatesCsv(manager, key, AggregateType.Synthetic)],
-				{
-					type: 'text/csv',
-				},
-			),
+			new Blob([syntheticAggregatesCsv], {
+				type: 'text/csv',
+			}),
 			`${path}/${ANONYMIZED_PATH}/${AggregateType.Synthetic}_aggregates.csv`,
 			`${path}/${ANONYMIZED_PATH}/${AggregateType.Synthetic}_aggregates.csv`,
 		),
+		new FileWithPath(
+			new Blob([syntheticAggregatesCsv], {
+				type: 'text/csv',
+			}),
+			`${path}/${ANONYMIZED_INTERFACE_PATH}/${AggregateType.Synthetic}_aggregates.csv`,
+			`${path}/${ANONYMIZED_INTERFACE_PATH}/${AggregateType.Synthetic}_aggregates.csv`,
+		),
 	]
 }
+/* eslint-enable @essex/adjacent-await */
 
 async function generateMetricsSummaryCsv(
 	evaluateResult: IEvaluateResult,
