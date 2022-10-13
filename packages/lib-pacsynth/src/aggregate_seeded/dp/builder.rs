@@ -6,7 +6,7 @@ use serde::Serialize;
 #[derive(Serialize)]
 #[pyo3(text_signature = "()")]
 /// Parameters builder for the
-/// Differential Privacy (DP) Aggregate Seeded Synthesizer - DpAggregateSeededSynthesizer.
+/// Differential Privacy (DP) Private Aggregate Seeded Synthesizer - DpAggregateSeededSynthesizer.
 ///
 /// By default, the builder will be constructed with default values:
 ///     - reporting_length: 3

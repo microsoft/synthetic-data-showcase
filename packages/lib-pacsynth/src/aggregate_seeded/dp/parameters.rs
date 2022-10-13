@@ -5,7 +5,7 @@ use serde::Serialize;
 #[pyclass]
 #[derive(Clone, Serialize)]
 /// This represents the parameters for the
-/// Differential Privacy (DP) Aggregate Seeded Synthesizer - DpAggregateSeededSynthesizer.
+/// Differential Privacy (DP) Private Aggregate Seeded Synthesizer - DpAggregateSeededSynthesizer.
 ///
 /// This is not supposed to be created using a constructor, instead
 /// use the provided builder - DpAggregateSeededParametersBuilder.
