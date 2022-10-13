@@ -1,6 +1,6 @@
 [package]
 name = "pac-synth"
-version = "0.0.5"
+version = "0.0.6"
 license = "MIT"
 description = "Private Accurate Combination (PAC) Synthesizers"
 repository = "https://github.com/microsoft/synthetic-data-showcase"

@@ -17,9 +17,9 @@ use crate::{
 
 #[pyclass]
 #[pyo3(text_signature = "(parameters=None)")]
-/// Differential Privacy (DP) Aggregate Seeded Synthesizer.
+/// Differential Privacy (DP) Private Aggregate Seeded Synthesizer.
 ///
-/// DP Aggregate Seeded synthesizer is a differentially private synthesizer that relies on
+/// DP Private Aggregate Seeded synthesizer is a differentially private synthesizer that relies on
 /// DP Marginals to build synthetic data. It will compute DP Marginals (called aggregates)
 /// for your dataset (`.fit`) using the specified parameters, and synthesize data (`.sample`) based on the
 /// computed aggregated counts (`.get_dp_aggregates`).
