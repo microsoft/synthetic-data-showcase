@@ -100,14 +100,18 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 			) : statistics && statistics.numberOfRecordsWithRareCombinations > 0 ? (
 				<>
 					<StyledReport>
-						<b>{`Privacy risk of selected columns: ${(
+						<b>{`Considering all combinations of attributes up to length ${
+							rawSynthesisParams.reportingLength
+						} (Aggregation Limit), ${(
 							(statistics.numberOfRecordsWithRareCombinations * 100.0) /
 							statistics.numberOfRecords
 						).toFixed(0)}% of subjects (${
 							statistics.numberOfRecordsWithRareCombinations
 						}/${
 							statistics.numberOfRecords
-						}) are linkable via rare attribute combinations (combination count < privacy resolution)`}</b>
+						}) are linkable via rare attribute combinations below ${
+							rawSynthesisParams.resolution
+						} (Privacy Resolution)`}</b>
 					</StyledReport>
 					<ChartsContainer justify="space-between">
 						<ChartItem>

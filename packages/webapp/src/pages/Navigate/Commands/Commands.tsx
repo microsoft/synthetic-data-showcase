@@ -90,7 +90,7 @@ export const Commands: FC<CommandsProps> = memo(function Commands({
 				align="center"
 				style={{ padding: theme.spacing.m, paddingBottom: 0, width: '100%' }}
 			>
-				<FlexItem grow={1} shrink={0}>
+				<FlexItem grow={1} shrink={0} style={{ overflowY: 'auto' }}>
 					<SynthesisDropdown
 						selectedSynthesis={selectedSynthesis}
 						allSynthesisInfo={allFinishedSynthesisInfo}
