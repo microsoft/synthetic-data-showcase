@@ -16,13 +16,13 @@ In many cases, the best way to share sensitive datasets is not to share the actu
 2. _Aggregate data_ reporting the number of individuals with different combinations of attributes, without disclosing exact counts.
 3. _Data dashboards_ enabling exploratory visual analysis of both datasets, without the need for custom data science or interface development.
 
-To generate these elements, our tools provide two approaches to create anonymous datasets that are safe to release: (i) differential privacy and (ii) k-anonymity.
+To generate these elements, our tool provides two approaches to create anonymous datasets that are safe to release: (i) differential privacy and (ii) k-anonymity.
 
 # Differential privacy
 
 ## Privacy guarantees
 
-The paradigm of differential privacy (DP) offers "safety in noise" &ndash; just enough calibrated noise is added to the data to control the maximum possible privacy loss, $\varepsilon$ (epsilon). When applied in the context of private data release, $\varepsilon$ bounds the ratio of probabilities of getting an arbitrary result to an arbitrary computation when using two synthetic datasets &ndash; the sensitive dataset itself and a neighboring dataset missing a single arbitrary record.  
+The paradigm of differential privacy (DP) offers "safety in noise" &ndash; just enough calibrated noise is added to the data to control the maximum possible privacy loss, $\varepsilon$ (epsilon). When applied in the context of private data release, $\varepsilon$ bounds the ratio of probabilities of getting an arbitrary result to an arbitrary computation when using two synthetic datasets &ndash; one generated from the sensitive dataset itself and the other from a neighboring dataset missing a single arbitrary record.  
 
 Our approach to synthesizing data with differential privacy first protects attribute combination counts in the aggregate data using our [DP Marginals](./docs/dp/dp_marginals.pdf) algorithm and then uses the resulting DP aggregate counts to derive synthetic records that retain differential privacy under the post-processing property.
 
@@ -32,7 +32,7 @@ Our approach to synthesizing data with differential privacy first protects attri
 
 Use of our differential privacy synthesizer is recommended for **repeated data releases** where cumulative privacy loss must be quantified and controlled and where provable guarantees against all possible privacy attacks are desired.
 
-Any differentially-private dataset should be evaluated for potential risks in situations where missing, fabricated, or inaccurate counts of attribute combinations could trigger inappropriate downstream decisions or actions. Our DP synthesizer prioritises the release of actual counts (with minimal noise) of actual combinations (with minimal fabrication).
+Any differentially-private dataset should be evaluated for potential risks in situations where missing, fabricated, or inaccurate counts of attribute combinations could trigger inappropriate downstream decisions or actions. Our DP synthesizer prioritises the release of accurate combination counts (with minimal noise) of actual combinations (with minimal fabrication).
 
 # K-anonymity
 
