@@ -1,6 +1,6 @@
 {
 	"name": "webapp",
-	"version": "1.8.4",
+	"version": "1.8.5",
 	"private": true,
 	"license": "MIT",
 	"main": "src/index.ts",
