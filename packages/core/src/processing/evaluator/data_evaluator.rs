@@ -43,8 +43,8 @@ impl Evaluator {
                     .entry(sensitive_comb.len())
                     .or_insert((0.0, 0));
 
-                (*err_sum_count).0 += err as f64;
-                (*err_sum_count).1 += 1;
+                err_sum_count.0 += err as f64;
+                err_sum_count.1 += 1;
             }
         }
         error_sum_count_by_len

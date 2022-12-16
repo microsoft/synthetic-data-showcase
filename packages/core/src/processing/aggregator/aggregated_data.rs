@@ -420,7 +420,7 @@ impl AggregatedData {
                             .entry(Arc::new(value_combination))
                             .or_insert_with(AggregatedCount::default);
 
-                        (*max_count).count = max_count.count.max(count.count);
+                        max_count.count = max_count.count.max(count.count);
                     }
                 }
             }
