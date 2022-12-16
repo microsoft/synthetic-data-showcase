@@ -22,7 +22,7 @@ To generate these elements, our tool provides two approaches to create anonymous
 
 ## Privacy guarantees
 
-The paradigm of differential privacy (DP) offers "safety in noise" &ndash; just enough calibrated noise is added to the data to control the maximum possible privacy loss, $\varepsilon$ (epsilon). When applied in the context of private data release, $\varepsilon$ bounds the ratio of probabilities of getting an arbitrary result to an arbitrary computation when using two synthetic datasets &ndash; one generated from the sensitive dataset itself and the other from a neighboring dataset missing a single arbitrary record.  
+The paradigm of differential privacy (DP) offers "safety in noise" &ndash; just enough calibrated noise is added to the data to control the maximum possible privacy loss, $\varepsilon$ (epsilon). When applied in the context of private data release, $\varepsilon$ bounds the ratio of probabilities of getting an arbitrary result to an arbitrary computation when using two synthetic datasets &ndash; one generated from the sensitive dataset itself and the other from a neighboring dataset missing a single arbitrary record.
 
 Our approach to synthesizing data with differential privacy first protects attribute combination counts in the aggregate data using our [DP Marginals](./docs/dp/dp_marginals.pdf) algorithm and then uses the resulting DP aggregate counts to derive synthetic records that retain differential privacy under the post-processing property.
 

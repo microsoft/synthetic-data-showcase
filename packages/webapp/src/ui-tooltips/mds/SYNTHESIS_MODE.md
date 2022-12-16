@@ -4,11 +4,11 @@ In general, this set of methods proceeds by sampling attributes until the additi
 
 Since precise attribute counts constitute a privacy risk, it is advisable to create some uncertainty over the actual counts by adding noise to the synthetic data. The same **`privacy resolution`** is used again here to suppress attributes or synthesize additional records such that synthetic attribute counts are equal to the (already imprecise) reported aggregate count.
 
-Use of k-anonymity synthesizers is recommended for **one-off data releases** where the accuracy of attribute counts is critical.
+Use of our k-anonymity synthesizers is recommended only for **one-off data releases** where there is a need for precise counts of attribute combinations (at a given privacy resolution).
 
-These methods are designed to offer strong group-level protection against **membership inference**, i.e., preventing an adversary from inferring whether a known individual or small group of individuals is present in the sensitive dataset.
+These synthesizers are designed to offer strong group-level protection against membership inference, i.e., preventing an adversary from inferring whether a known individual or small group of individuals is present in the sensitive dataset.
 
-They should not be used in situations where **attribute inference** from **homogeneity attacks** are a concern, i.e., when an adversary knows that a certain individual is present in the sensitive dataset, identifies them as part of a group sharing known attributes, and then infers previously unknown attributes of the individual because those attributes are common to the group.
+They should not be used in situations where attribute inference from homogeneity attacks are a concern, i.e., when an adversary knows that a certain individual is present in the sensitive dataset, identifies them as part of a group sharing known attributes, and then infers previously unknown attributes of the individual because those attributes are common to the group.
 
 **`Row Seeded`**:
 
@@ -44,9 +44,9 @@ They should not be used in situations where **attribute inference** from **homog
 
 This method protects aggregate counts with differential privacy [**`(epsilon, delta)-DP`**] and then uses the resulting DP aggregate counts to derive synthetic records that retain differential privacy under the post-processing property.
 
-Use of differential privacy synthesizers is recommended for **repeated data releases** where cumulative privacy loss must be quantified and controlled, where **attribute inference** from **homogeneity attacks** is a concern, or where provable guarantees against all possible privacy attacks are desired.
+Use of our differential privacy synthesizer is recommended for **repeated data releases** where cumulative privacy loss must be quantified and controlled and where provable guarantees against all possible privacy attacks are desired.
 
-They should be used with caution, however, whenever missing, fabricated, or inaccurate counts of attribute combinations could trigger inappropriate downstream decisions or actions.
+Any differentially-private dataset should be evaluated for potential risks in situations where missing, fabricated, or inaccurate counts of attribute combinations could trigger inappropriate downstream decisions or actions. Our DP synthesizer prioritises the release of accurate combination counts (with minimal noise) of actual combinations (with minimal fabrication).
 
 **`DP Aggregate Seeded`**:
 
