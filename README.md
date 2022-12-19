@@ -13,46 +13,46 @@
 In many cases, the best way to share sensitive datasets is not to share the actual sensitive datasets, but user interfaces to derived datasets that are inherently anonymous. Our name for such an interface is a _data showcase_. In this project, we provide an automated set of tools for generating the three elements of a _synthetic data showcase_:
 
 1. _Synthetic data_ representing the overall structure and statistics of the input data, without describing actual identifiable individuals.
-2. _Aggregate data_ reporting the number of individuals with different combinations of attributes, without disclosing precise counts.
+2. _Aggregate data_ reporting the number of individuals with different combinations of attributes, without disclosing exact counts.
 3. _Data dashboards_ enabling exploratory visual analysis of both datasets, without the need for custom data science or interface development.
 
-To generate such elements, our tools provide two approaches to anonymize data: (i) k-anonymity and (ii) differential privacy (DP).
-
-# K-anonymity
-
-## Privacy guarantees
-
-The main privacy control offered by the tools is based on the numbers of individuals described by different combinations of attributes. The `resolution` determines the minimum group size that will be (a) reported explicitly in the aggregate data and (b) represented implicitly by the records of the synthetic data. This makes it possible to offer privacy guarantees in clearly understandable terms, e.g.:
-
-"All attribute combinations in this synthetic dataset describe groups of 10 or more individuals in the original sensitive dataset, therefore may never be used to infer the presence of individuals or groups smaller than 10."
-
-Under such guarantees, it is impossible for attackers to infer the presence of groups whose size is below the `resolution`. For groups at or above this resolution, the 'safety in numbers' principle applies &ndash; the higher the limit, the harder it becomes to make inferences about the presence of known individuals.
-
-This anonymization method can be viewed as enforcing [k-anonymity](https://en.wikipedia.org/wiki/K-anonymity) across all columns of a sensitive dataset. While typical implementations of k-anonymity divide data columns into quasi-identifiers and sensitive attributes, only enforcing k-anonymity over quasi-identifiers leaves the remaining attributes open to linking attacks based on background knowledge. The data synthesis approach used to create a synthetic data showcase safeguards against such attacks while preserving the structure and statistics of the sensitive dataset.
-
-## Usage
-
-Use of k-anonymity synthesizers is recommended for **one-off data releases** where the accuracy of attribute counts is critical.
-
-These methods are designed to offer strong group-level protection against **membership inference**, i.e., preventing an adversary from inferring whether a known individual or small group of individuals is present in the sensitive dataset.
-
-They should not be used in situations where **attribute inference** from **homogeneity attacks** are a concern, i.e., when an adversary knows that a certain individual is present in the sensitive dataset, identifies them as part of a group sharing known attributes, and then infers previously unknown attributes of the individual because those attributes are common to the group.
+To generate these elements, our tool provides two approaches to create anonymous datasets that are safe to release: (i) differential privacy and (ii) k-anonymity.
 
 # Differential privacy
 
 ## Privacy guarantees
 
-Differential privacy is not a tool, but a set of mathematical techniques that can be used to protect data. Protection is accomplished by adding some uncertainty (noise) to the data, up to a level that achieves the protection desired by the user (privacy budget).
+The paradigm of differential privacy (DP) offers "safety in noise" &ndash; just enough calibrated noise is added to the data to control the maximum possible privacy loss, $\varepsilon$ (epsilon). When applied in the context of private data release, $\varepsilon$ bounds the ratio of probabilities of getting an arbitrary result to an arbitrary computation when using two synthetic datasets &ndash; one generated from the sensitive dataset itself and the other from a neighboring dataset missing a single arbitrary record.
 
-This tool, protects attribute combination counts in the aggregate data with differential privacy [**`(epsilon, delta)-DP`**](https://en.wikipedia.org/wiki/Differential_privacy), and then uses the resulting DP aggregate counts to derive synthetic records that retain differential privacy under the post-processing property.
+Our approach to synthesizing data with differential privacy first protects attribute combination counts in the aggregate data using our [DP Marginals](./docs/dp/dp_marginals.pdf) algorithm and then uses the resulting DP aggregate counts to derive synthetic records that retain differential privacy under the post-processing property.
 
 > For a detailed explanation of how SDS uses differential privacy, please check our [DP documentation](./docs/dp/README.md).
 
 ## Usage
 
-Use of differential privacy synthesizers is recommended for **repeated data releases** where cumulative privacy loss must be quantified and controlled, where **attribute inference** from **homogeneity attacks** is a concern, or where provable guarantees against all possible privacy attacks are desired.
+Use of our differential privacy synthesizer is recommended for **repeated data releases** where cumulative privacy loss must be quantified and controlled and where provable guarantees against all possible privacy attacks are desired.
 
-They should be used with caution, however, whenever missing, fabricated, or inaccurate counts of attribute combinations could trigger inappropriate downstream decisions or actions.
+Any differentially-private dataset should be evaluated for potential risks in situations where missing, fabricated, or inaccurate counts of attribute combinations could trigger inappropriate downstream decisions or actions. Our DP synthesizer prioritises the release of accurate combination counts (with minimal noise) of actual combinations (with minimal fabrication).
+
+# K-anonymity
+
+## Privacy guarantees
+
+The paradigm of k-anonymity offers "safety in numbers" &ndash; combinations of attributes are only released when they occur at least k times in the sensitive dataset. When applied in the context of private data release, we interpret k as a privacy resolution determining the minimum group size that will be (a) reported explicitly in the aggregate dataset and (b) represented implicitly by the records of the synthetic dataset. This makes it possible to offer privacy guarantees in clearly understandable terms, e.g.:
+
+"All attribute combinations in this synthetic dataset describe groups of 10 or more individuals in the original sensitive dataset, therefore may never be used to infer the presence of individuals or groups smaller than 10."
+
+Our approach to synthesizing data with k-anonymity overcomes many of the limitations of standard [k-anonymization](https://en.wikipedia.org/wiki/K-anonymity), in which attributes of sensitive data records are generalized and suppressed until k-anonymity is reached, and only for those attributes determined in advance to be potentially identifying when used in combination (so-called quasi-identifiers). In this standard approach, all remaining sensitive attributes are released so long as k-anonymity holds for the designated quasi-identifiers. This makes the records (and thus subjects) of k-anonymized datasets susceptible to linking attacks based on auxiliary data or background knowledge.
+
+In contrast, our k-anonymity synthesizers generate synthetic records that do not represent actual individuals, yet are composed exclusively from common combinations of attributes in the sensitive dataset. The k-anonymity guarantee therefore holds for all data columns and all combinations of attributes.
+
+## Usage
+
+Use of our k-anonymity synthesizers is recommended only for **one-off data releases** where there is a need for precise counts of attribute combinations (at a given privacy resolution).
+
+These synthesizers are designed to offer strong group-level protection against membership inference, i.e., preventing an adversary from inferring whether a known individual or small group of individuals is present in the sensitive dataset.
+
+They should not be used in situations where attribute inference from homogeneity attacks are a concern, i.e., when an adversary knows that a certain individual is present in the sensitive dataset, identifies them as part of a group sharing known attributes, and then infers previously unknown attributes of the individual because those attributes are common to the group.
 
 # Quick setup
 
