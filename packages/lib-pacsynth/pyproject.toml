@@ -8,7 +8,7 @@ description = "Private Accurate Combination (PAC) Synthesizers"
 readme = "README.md"
 license = { file = "LICENSE" }
 authors=[
-    { name = "Synthetic Data Showcase Team", email="synthetic-showcase@microsoft.com" },
+    { name = "Synthetic Data Showcase Team", email="sds-team@microsoft.com" },
     { name = "Darren Edge", email = "darren.edge@microsoft.com" },
     { name = "Derek Worthen", email = "derek.worthen@microsoft.com" },
     { name = "Nathan Evans", email = "nathan.evans@microsoft.com" },
