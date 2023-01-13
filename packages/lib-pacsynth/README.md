@@ -100,4 +100,4 @@ contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additio
 
 # Contact
 
-Feedback and suggestions are welcome via email to synthetic-showcase@microsoft.com.
+Feedback and suggestions are welcome via email to sds-team@microsoft.com.
