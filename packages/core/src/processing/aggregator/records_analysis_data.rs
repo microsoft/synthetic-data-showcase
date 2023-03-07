@@ -27,11 +27,11 @@ pub struct RecordsAnalysis {
     pub percentage_of_records_with_risky_combinations: f64,
 }
 
-impl RecordsAnalysis {
-    #[inline]
+impl Default for RecordsAnalysis {
     /// Created a new RecordsAnalysis with default values
-    pub fn default() -> RecordsAnalysis {
-        RecordsAnalysis {
+    #[inline]
+    fn default() -> Self {
+        Self {
             number_of_records_with_unique_combinations: 0,
             percentage_of_records_with_unique_combinations: 0.0,
             number_of_records_with_rare_combinations: 0,

@@ -27,5 +27,5 @@
 	"[python]": {
 		"editor.defaultFormatter": "ms-python.python"
 	},
-	"cSpell.enabled": true
+	"rust-analyzer.check.command": "clippy"
 }

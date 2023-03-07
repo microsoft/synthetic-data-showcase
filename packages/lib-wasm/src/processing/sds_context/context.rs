@@ -28,6 +28,7 @@ use crate::{
     },
 };
 
+#[derive(Default)]
 #[wasm_bindgen]
 pub struct WasmSdsContext {
     sensitive_data_params: Option<WasmCsvDataParameters>,
@@ -45,19 +46,8 @@ pub struct WasmSdsContext {
 #[wasm_bindgen]
 impl WasmSdsContext {
     #[wasm_bindgen(constructor)]
-    pub fn default() -> Self {
-        WasmSdsContext {
-            sensitive_data_params: None,
-            sensitive_processor: None,
-            synthetic_processor: None,
-            sensitive_aggregate_result: None,
-            reportable_aggregate_result: None,
-            synthetic_aggregate_result: None,
-            generate_result: None,
-            pre_computed_aggregates: false,
-            evaluate_result: None,
-            navigate_result: None,
-        }
+    pub fn new_default() -> Self {
+        Self::default()
     }
 
     #[wasm_bindgen(js_name = "clear")]

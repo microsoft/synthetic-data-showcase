@@ -19,13 +19,15 @@ pub struct ValueCombination {
     combination: Vec<Arc<DataBlockValue>>,
 }
 
-impl ValueCombination {
-    #[inline]
+impl Default for ValueCombination {
     /// Creates a new ValueCombination with default values
-    pub fn default() -> ValueCombination {
-        ValueCombination::new(Vec::default())
+    #[inline]
+    fn default() -> Self {
+        Self::new(Vec::default())
     }
+}
 
+impl ValueCombination {
     #[inline]
     /// Creates a new ValueCombination
     /// # Arguments

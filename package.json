@@ -17,7 +17,9 @@
 		"git:precommit": "lint-staged",
 		"git:ci": "run-s format:check lint:check test build",
 		"release:wasm": "npm-publish --access public --token ${NPM_TOKEN} ./target/wasm/package.json",
-		"release": "run-p release:wasm"
+		"release": "run-p release:wasm",
+		"rust:format": "cargo fmt --all --",
+		"rust:check": "cargo clippy -- -D warnings && cargo fmt --all -- --check && cargo test"
 	},
 	"prettier": "@essex/prettier-config",
 	"devDependencies": {

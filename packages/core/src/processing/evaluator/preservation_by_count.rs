@@ -27,15 +27,17 @@ pub struct PreservationByCountBuckets {
     buckets_map: PreservationBucketsMap,
 }
 
-impl PreservationByCountBuckets {
+impl Default for PreservationByCountBuckets {
     /// Returns a new default PreservationByCountBuckets
     #[inline]
-    pub fn default() -> PreservationByCountBuckets {
-        PreservationByCountBuckets {
+    fn default() -> Self {
+        Self {
             buckets_map: PreservationBucketsMap::default(),
         }
     }
+}
 
+impl PreservationByCountBuckets {
     #[inline]
     pub(super) fn populate(
         &mut self,

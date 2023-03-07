@@ -17,15 +17,17 @@ pub struct PreservationByLengthBuckets {
     buckets_map: PreservationBucketsMap,
 }
 
-impl PreservationByLengthBuckets {
+impl Default for PreservationByLengthBuckets {
     /// Returns a new default PreservationByLengthBuckets
     #[inline]
-    pub fn default() -> PreservationByLengthBuckets {
-        PreservationByLengthBuckets {
+    fn default() -> Self {
+        Self {
             buckets_map: PreservationBucketsMap::default(),
         }
     }
+}
 
+impl PreservationByLengthBuckets {
     #[inline]
     pub(super) fn populate(
         &mut self,
