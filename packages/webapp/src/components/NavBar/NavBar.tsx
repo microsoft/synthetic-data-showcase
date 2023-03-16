@@ -73,7 +73,7 @@ const Container = styled.div`
 const NavBarStack = styled(Stack)`
 	height: 100%;
 	margin-left: ${({ theme }: { theme: FluentTheme }) => theme.spacing?.l2};
-	margin-right: ${({ theme }: { theme: FluentTheme }) => theme.spacing?.l2}; ;
+	margin-right: ${({ theme }: { theme: FluentTheme }) => theme.spacing?.l2};
 `
 
 const NavBarStackItem = styled(Stack.Item)`
