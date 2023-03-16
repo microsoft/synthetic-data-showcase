@@ -23,7 +23,7 @@ fn get_noise_aggregator() -> NoiseAggregator {
             0,
         ),
         3,
-        &DpParameters::new(1.0, Some(0.001), 99, 0.1, None, None),
+        &DpParameters::new(1.0, 99, 0.1, Some(0.001), None, None),
         NoisyCountThreshold::Fixed(InputValueByLen::default()),
     )
 }

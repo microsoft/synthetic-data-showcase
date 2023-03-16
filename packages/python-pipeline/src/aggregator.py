@@ -53,11 +53,11 @@ def aggregate(config):
     sds_processor = sds.SDSProcessor(
         sensitive_microdata_path,
         sensitive_microdata_delimiter,
-        subject_id,
         use_columns,
         multi_value_columns,
         sensitive_zeros,
-        max(record_limit, 0)
+        max(record_limit, 0),
+        subject_id
     )
 
     aggregated_data = sds_processor.aggregate(
@@ -86,9 +86,9 @@ def aggregate(config):
                 reporting_length,
                 sds.DpParameters(
                     noise_epsilon,
-                    noise_delta,
                     percentile_percentage,
                     percentile_epsilon_proportion,
+                    noise_delta,
                     sigma_proportions,
                     number_of_records_epsilon_proportion
                 ),
@@ -99,9 +99,9 @@ def aggregate(config):
                 reporting_length,
                 sds.DpParameters(
                     noise_epsilon,
-                    noise_delta,
                     percentile_percentage,
                     percentile_epsilon_proportion,
+                    noise_delta,
                     sigma_proportions,
                     number_of_records_epsilon_proportion
                 ),

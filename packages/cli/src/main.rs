@@ -423,9 +423,9 @@ fn main() {
                         reporting_length,
                         &DpParameters::new(
                             noise_epsilon.unwrap(),
-                            noise_delta,
                             sensitivities_percentile.unwrap(),
                             sensitivities_epsilon_proportion.unwrap(),
+                            noise_delta,
                             sigma_proportions,
                             number_of_records_epsilon_proportion,
                         ),

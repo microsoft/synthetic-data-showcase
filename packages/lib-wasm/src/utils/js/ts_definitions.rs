@@ -46,11 +46,11 @@ export interface INoisyCountThreshold {
 
 export interface IDpParameters {
   epsilon: number
-  delta: number
   percentilePercentage: number
   percentileEpsilonProportion: number
-  numberOfRecordsEpsilonProportion?: number
+  delta?: number
   sigmaProportions?: number[]
+  numberOfRecordsEpsilonProportion?: number
 }
 
 export interface IOversamplingParameters {

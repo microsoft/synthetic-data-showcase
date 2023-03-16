@@ -71,9 +71,9 @@ impl DpAggregateSeededSynthesizer {
                 self._parameters.reporting_length,
                 &DpParameters::new(
                     self._parameters.epsilon,
-                    self._parameters.delta,
                     self._parameters.percentile_percentage,
                     self._parameters.percentile_epsilon_proportion,
+                    self._parameters.delta,
                     Some(self._parameters.sigma_proportions.clone()),
                     Some(self._parameters.number_of_records_epsilon_proportion),
                 ),

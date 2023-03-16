@@ -186,15 +186,15 @@ function convertRawToSynthesisParameters(
 				...ret,
 				dpParameters: {
 					epsilon: rawParams.noiseEpsilon,
-					delta: noiseDelta,
 					percentilePercentage: rawParams.percentilePercentage,
 					percentileEpsilonProportion: rawParams.percentileEpsilonProportion,
-					numberOfRecordsEpsilonProportion:
-						rawParams.numberOfRecordsEpsilonProportion,
+					delta: noiseDelta,
 					sigmaProportions: generateSigmaProportions(
 						rawParams.reportingLength,
 						rawParams.accuracyMode,
 					),
+					numberOfRecordsEpsilonProportion:
+						rawParams.numberOfRecordsEpsilonProportion,
 				},
 				noiseThreshold: {
 					type: 'Adaptive',
