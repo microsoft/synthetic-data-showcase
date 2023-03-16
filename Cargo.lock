@@ -549,7 +549,7 @@ checksum = "b7e5500299e16ebb147ae15a00a942af264cf3688f47923b8fc2cd5858f23ad3"
 
 [[package]]
 name = "pac-synth"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
  "log",
  "pyo3",
@@ -862,7 +862,7 @@ checksum = "d29ab0c6d3fc0ee92fe66e2d99f700eab17a8d57d1c1d3b748380fb20baa78cd"
 
 [[package]]
 name = "sds-cli"
-version = "1.8.6"
+version = "1.9.0"
 dependencies = [
  "csv",
  "env_logger 0.9.0",
@@ -874,7 +874,7 @@ dependencies = [
 
 [[package]]
 name = "sds-core"
-version = "1.8.6"
+version = "1.9.0"
 dependencies = [
  "csv",
  "fnv",
@@ -893,7 +893,7 @@ dependencies = [
 
 [[package]]
 name = "sds-pyo3"
-version = "1.8.6"
+version = "1.9.0"
 dependencies = [
  "csv",
  "env_logger 0.10.0",
@@ -904,7 +904,7 @@ dependencies = [
 
 [[package]]
 name = "sds-wasm"
-version = "1.8.6"
+version = "1.9.0"
 dependencies = [
  "console_error_panic_hook",
  "csv",
