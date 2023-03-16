@@ -2,7 +2,7 @@
 ARG REGISTRY
 
 # --- compile wasm bindings from rust ---
-FROM ${REGISTRY}rust:1.68 as wasm-builder
+FROM ${REGISTRY}rust:1.64 as wasm-builder
 
 # install wasm-pack to build wasm bindings
 RUN cargo install wasm-pack
