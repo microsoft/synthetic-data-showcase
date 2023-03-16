@@ -24,7 +24,6 @@ impl<T: Read> DataBlockCreator for CsvDataBlockCreator<T> {
     fn get_records(reader: &mut Self::InputType) -> Result<Vec<CsvRecord>, Error> {
         reader
             .records()
-            .into_iter()
             .map(|record_result: Result<StringRecord, Error>| {
                 Ok(record_result?
                     .into_iter()

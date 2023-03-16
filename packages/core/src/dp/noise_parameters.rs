@@ -2,7 +2,8 @@ use log::info;
 use rand::{prelude::Distribution as rand_dist, thread_rng};
 use statrs::distribution::Laplace;
 
-use crate::dp::DEFAULT_TOLERANCE;
+// Default tolerance used to calculate sigma for the gaussian noise
+const DEFAULT_TOLERANCE: f64 = 1e-8;
 
 #[derive(Debug)]
 pub(crate) struct NoiseParameters {

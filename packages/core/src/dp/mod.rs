@@ -1,4 +1,3 @@
-mod analytic_gaussian;
 mod dp_parameters;
 mod noise_aggregator;
 mod noise_parameters;
@@ -10,7 +9,6 @@ mod typedefs;
 #[cfg(feature = "pyo3")]
 mod register_pyo3;
 
-pub use analytic_gaussian::*;
 pub use dp_parameters::*;
 pub use noise_aggregator::*;
 pub use noisy_count_threshold::*;
