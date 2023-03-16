@@ -75,11 +75,11 @@ def aggregate(config):
     aggregated_data.write_to_json(sensitive_aggregated_data_json)
 
     if dp_aggregates:
-        if not delta_factor:
-            delta_factor = math.log(sds_processor.number_of_records())
-
-        noise_delta = 1 / \
-            (delta_factor * sds_processor.number_of_records())
+        if delta_factor:
+            noise_delta = 1 / \
+                (delta_factor * sds_processor.number_of_records())
+        else:
+            noise_delta = None
 
         if noise_threshold_type == 'fixed':
             aggregated_data = sds_processor.aggregate_with_dp_fixed_threshold(

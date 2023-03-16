@@ -177,19 +177,16 @@ function convertRawToSynthesisParameters(
 			} as IAggregateSeededSynthesisParameters
 			break
 		case SynthesisMode.DP: {
-			const deltaFactor =
-				rawParams.deltaFactor === 0 && rawParams.recordLimit > 0
-					? Math.log(rawParams.recordLimit)
-					: rawParams.deltaFactor
+			const noiseDelta =
+				rawParams.deltaFactor > 0 && rawParams.recordLimit > 0
+					? 1.0 / (rawParams.deltaFactor * rawParams.recordLimit)
+					: undefined
 
 			ret = {
 				...ret,
 				dpParameters: {
 					epsilon: rawParams.noiseEpsilon,
-					delta:
-						rawParams.recordLimit > 0
-							? 1.0 / (deltaFactor * rawParams.recordLimit)
-							: 0.0,
+					delta: noiseDelta,
 					percentilePercentage: rawParams.percentilePercentage,
 					percentileEpsilonProportion: rawParams.percentileEpsilonProportion,
 					numberOfRecordsEpsilonProportion:

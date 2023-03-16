@@ -2,10 +2,6 @@
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 
-/// Default epsilon proportion used to add noise to the protected number of records
-/// in the aggregated data
-pub const DEFAULT_NUMBER_OF_RECORDS_EPSILON_PROPORTION: f64 = 0.005;
-
 /// Parameters for aggregate generation with differential privacy
 #[cfg_attr(feature = "pyo3", pyclass)]
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -14,8 +10,9 @@ pub struct DpParameters {
     /// Overall privacy budget used between
     /// percentile filtering and noisy generation by combination length
     pub epsilon: f64,
-    /// Delta value used for noisy generation by combination length
-    pub delta: f64,
+    /// Delta value used for noisy generation by combination length, if None will be set
+    /// in runtime to `1 / (ln(protected_number_of_records) * protected_number_of_records)`
+    pub delta: Option<f64>,
     /// Percentage used to calculate the percentile that filters sensitivity
     pub percentile_percentage: usize,
     /// Maximum proportion to consume of the total privacy budget (0.1 means 10%)
@@ -28,7 +25,7 @@ pub struct DpParameters {
     /// - If `None` all the sigma values will be the same
     pub sigma_proportions: Option<Vec<f64>>,
     /// Proportion of epsilon used to add noise to the protected number of records in
-    /// the aggregated data (default is 0.005)
+    /// the aggregated data (if None, no noise is added)
     pub number_of_records_epsilon_proportion: Option<f64>,
 }
 
@@ -41,7 +38,8 @@ impl DpParameters {
     /// # Arguments
     /// * `epsilon` - Overall privacy budget used between
     /// percentile filtering and noisy generation by combination length
-    /// * `delta` - Delta value used for noisy generation by combination length
+    /// * `delta` - Delta value used for noisy generation by combination length, if None will be set
+    /// in runtime to `1 / (ln(protected_number_of_records) * protected_number_of_records)`
     /// * `percentile_percentage` - Percentage used to calculate the percentile that filters sensitivity
     /// * `percentile_epsilon_proportion` - Maximum proportion to consume of the total privacy budget (0.1 means 10%)
     /// during the sensitivity filter stage
@@ -51,10 +49,10 @@ impl DpParameters {
     /// (e.g. \[1.0, 2.0, 3.0\] means that `sigma_2 = 2.0 * sigma_1` and `sigma_3 = 3.0 * sigma_1`)
     ///     - If `None` all the sigma values will be the same
     /// * `number_of_records_epsilon_proportion` - Proportion of epsilon used to add noise to the protected number of records
-    /// in the aggregated data (default is 0.005)
+    /// in the aggregated data (if None, no noise is added)
     pub fn new(
         epsilon: f64,
-        delta: f64,
+        delta: Option<f64>,
         percentile_percentage: usize,
         percentile_epsilon_proportion: f64,
         sigma_proportions: Option<Vec<f64>>,
@@ -76,7 +74,8 @@ impl DpParameters {
     /// # Arguments
     /// * `epsilon` - Overall privacy budget used between
     /// percentile filtering and noisy generation by combination length
-    /// * `delta` - Delta value used for noisy generation by combination length
+    /// * `delta` - Delta value used for noisy generation by combination length, if None will be set
+    /// in runtime to `1 / (ln(protected_number_of_records) * protected_number_of_records)`
     /// * `percentile_percentage` - Percentage used to calculate the percentile that filters sensitivity
     /// * `percentile_epsilon_proportion` - Maximum proportion to consume of the total privacy budget (0.1 means 10%)
     /// during the sensitivity filter stage
@@ -86,10 +85,10 @@ impl DpParameters {
     /// (e.g. \[1.0, 2.0, 3.0\] means that `sigma_2 = 2.0 * sigma_1` and `sigma_3 = 3.0 * sigma_1`)
     ///     - If `None` all the sigma values will be the same
     /// * `number_of_records_epsilon_proportion` - Proportion of epsilon used to add noise to the protected number of records
-    /// in the aggregated data (default is 0.005)
+    /// in the aggregated data (if None, no noise is added)
     pub fn new(
         epsilon: f64,
-        delta: f64,
+        delta: Option<f64>,
         percentile_percentage: usize,
         percentile_epsilon_proportion: f64,
         sigma_proportions: Option<Vec<f64>>,

@@ -1,6 +1,7 @@
 mod analytic_gaussian;
 mod dp_parameters;
 mod noise_aggregator;
+mod noise_parameters;
 mod noisy_count_threshold;
 mod percentile;
 mod stats_error;
