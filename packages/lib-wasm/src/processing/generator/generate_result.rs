@@ -5,6 +5,7 @@ use wasm_bindgen::{prelude::*, JsCast};
 
 use crate::utils::js::{JsGenerateResult, JsResult};
 
+#[derive(Default)]
 #[wasm_bindgen]
 pub struct WasmGenerateResult {
     generated_data: GeneratedData,
@@ -12,14 +13,6 @@ pub struct WasmGenerateResult {
 }
 
 impl WasmGenerateResult {
-    #[inline]
-    pub fn default() -> WasmGenerateResult {
-        WasmGenerateResult {
-            generated_data: GeneratedData::default(),
-            resolution: 0,
-        }
-    }
-
     #[inline]
     pub fn new(generated_data: GeneratedData, resolution: usize) -> WasmGenerateResult {
         WasmGenerateResult {

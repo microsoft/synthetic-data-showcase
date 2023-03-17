@@ -48,11 +48,11 @@ impl SDSProcessor {
     pub fn new(
         path: &str,
         delimiter: char,
-        subject_id: Option<String>,
         use_columns: Vec<String>,
         multi_value_columns: HashMap<String, String>,
         sensitive_zeros: Vec<String>,
         record_limit: usize,
+        subject_id: Option<String>,
     ) -> Result<SDSProcessor, CsvDataBlockCreatorError> {
         CsvDataBlockCreator::create(
             ReaderBuilder::new()

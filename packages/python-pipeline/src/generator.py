@@ -46,11 +46,11 @@ def generate(config):
     sds_processor = sds.SDSProcessor(
         sensitive_microdata_path,
         sensitive_microdata_delimiter,
-        subject_id,
         use_columns,
         multi_value_columns,
         sensitive_zeros,
-        max(record_limit, 0)
+        max(record_limit, 0),
+        subject_id
     )
 
     if synthesis_mode == 'unseeded':

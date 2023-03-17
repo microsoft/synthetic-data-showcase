@@ -54,11 +54,11 @@ pub struct AggregatedData {
     pub reporting_length: usize,
 }
 
-impl AggregatedData {
+impl Default for AggregatedData {
     /// Creates a new AggregatedData struct with default values
     #[inline]
-    pub fn default() -> AggregatedData {
-        AggregatedData {
+    fn default() -> Self {
+        Self {
             headers: DataBlockHeaders::default(),
             multi_value_column_metadata_map: MultiValueColumnMetadataMap::default(),
             number_of_records: 0,
@@ -68,7 +68,9 @@ impl AggregatedData {
             reporting_length: 0,
         }
     }
+}
 
+impl AggregatedData {
     /// Creates a new AggregatedData struct
     /// # Arguments:
     /// * `headers` - Vector of strings representing the data headers

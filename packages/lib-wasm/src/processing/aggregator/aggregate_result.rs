@@ -14,14 +14,16 @@ pub struct WasmAggregateResult {
     pub(crate) aggregated_data: Arc<AggregatedData>,
 }
 
-impl WasmAggregateResult {
+impl Default for WasmAggregateResult {
     #[inline]
-    pub fn default() -> WasmAggregateResult {
-        WasmAggregateResult {
+    fn default() -> Self {
+        Self {
             aggregated_data: Arc::new(AggregatedData::default()),
         }
     }
+}
 
+impl WasmAggregateResult {
     #[inline]
     pub fn new(aggregated_data: Arc<AggregatedData>) -> WasmAggregateResult {
         WasmAggregateResult { aggregated_data }

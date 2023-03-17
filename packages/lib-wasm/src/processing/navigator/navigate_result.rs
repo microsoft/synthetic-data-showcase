@@ -36,10 +36,10 @@ pub struct WasmNavigateResult {
     column_index_by_name: ColumnIndexByName,
 }
 
-impl WasmNavigateResult {
+impl Default for WasmNavigateResult {
     #[inline]
-    pub fn default() -> WasmNavigateResult {
-        WasmNavigateResult::new(
+    fn default() -> Self {
+        Self::new(
             HeaderNames::default(),
             Arc::new(DataBlock::default()),
             AttributeRowsByColumnMap::default(),
@@ -49,7 +49,9 @@ impl WasmNavigateResult {
             ColumnIndexByName::default(),
         )
     }
+}
 
+impl WasmNavigateResult {
     #[inline]
     pub fn new(
         header_names: HeaderNames,

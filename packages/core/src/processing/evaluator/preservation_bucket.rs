@@ -18,10 +18,11 @@ pub struct PreservationBucket {
     pub proportional_error_sum: f64,
 }
 
-impl PreservationBucket {
+impl Default for PreservationBucket {
     /// Return a new PreservationBucket with default values
-    pub fn default() -> PreservationBucket {
-        PreservationBucket {
+    #[inline]
+    fn default() -> Self {
+        Self {
             size: 0,
             preservation_sum: 0.0,
             length_sum: 0,
@@ -29,7 +30,9 @@ impl PreservationBucket {
             proportional_error_sum: 0.0,
         }
     }
+}
 
+impl PreservationBucket {
     /// Adds a new value to the bucket
     /// # Arguments
     /// * `preservation` - Preservation related to the value

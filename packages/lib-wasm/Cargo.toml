@@ -1,6 +1,6 @@
 [package]
 name = "sds-wasm"
-version = "1.8.6"
+version = "1.9.0"
 license = "MIT"
 description = "Web Assembly bindings for the sds-core library"
 repository = "https://github.com/microsoft/synthetic-data-showcase"

@@ -3,10 +3,9 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 
-import type { CSSProperties, ElementType, PropsWithChildren } from 'react'
+import type { CSSProperties, PropsWithChildren } from 'react'
 
 export type FlexContainerProps = PropsWithChildren<{
-	as?: ElementType
 	vertical?: boolean
 	wrap?: boolean
 	justify?:

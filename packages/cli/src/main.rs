@@ -403,8 +403,6 @@ fn main() {
             } => {
                 let mut aggregator = Aggregator::new(data_block.clone());
                 let aggregated_data = if dp {
-                    let n_records_f64 = data_block.number_of_records() as f64;
-                    let delta = noise_delta.unwrap_or(1.0 / (n_records_f64.ln() * n_records_f64));
                     let thresholds_map = noise_threshold_values
                         .unwrap()
                         .iter()
@@ -425,9 +423,9 @@ fn main() {
                         reporting_length,
                         &DpParameters::new(
                             noise_epsilon.unwrap(),
-                            delta,
                             sensitivities_percentile.unwrap(),
                             sensitivities_epsilon_proportion.unwrap(),
+                            noise_delta,
                             sigma_proportions,
                             number_of_records_epsilon_proportion,
                         ),

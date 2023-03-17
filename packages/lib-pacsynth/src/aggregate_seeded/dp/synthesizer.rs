@@ -1,7 +1,6 @@
 use super::{DpAggregateSeededParameters, DpAggregateSeededParametersBuilder};
 use pyo3::{exceptions::PyRuntimeError, prelude::*};
 use sds_core::{
-    data_block::DataBlock,
     dp::DpParameters,
     processing::{
         aggregator::{AggregatedData, AggregatesCountStringMap, Aggregator},
@@ -72,9 +71,9 @@ impl DpAggregateSeededSynthesizer {
                 self._parameters.reporting_length,
                 &DpParameters::new(
                     self._parameters.epsilon,
-                    self.delta_value_or_default(&dataset.data_block),
                     self._parameters.percentile_percentage,
                     self._parameters.percentile_epsilon_proportion,
+                    self._parameters.delta,
                     Some(self._parameters.sigma_proportions.clone()),
                     Some(self._parameters.number_of_records_epsilon_proportion),
                 ),
@@ -164,20 +163,6 @@ impl DpAggregateSeededSynthesizer {
             .ok_or_else(|| {
                 PyRuntimeError::new_err("make sure 'fit' method has been successfully called first")
             })
-    }
-}
-
-impl DpAggregateSeededSynthesizer {
-    #[inline]
-    fn delta_value_or_default(&self, data_block: &DataBlock) -> f64 {
-        let number_of_records = data_block.number_of_records();
-        let number_of_records_f64 = number_of_records as f64;
-
-        self._parameters.delta.unwrap_or(if number_of_records > 0 {
-            1.0 / (number_of_records_f64.ln() * number_of_records_f64)
-        } else {
-            0.0
-        })
     }
 }
 
