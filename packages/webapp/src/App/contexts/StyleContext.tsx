@@ -20,6 +20,7 @@ export const StyleContext: React.FC<
 > = memo(function StyleContext({ children }) {
 	const theme = useThematic()
 	const fluentTheme = useMemo(() => loadFluentTheme(theme), [theme])
+
 	return (
 		<>
 			{/* core thematic for charting colors and imperative use */}

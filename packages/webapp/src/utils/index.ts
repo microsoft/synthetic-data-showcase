@@ -4,3 +4,4 @@
  */
 export * from './arquero.js'
 export * from './env.js'
+export * from './thematic.js'
