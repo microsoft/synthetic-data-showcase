@@ -171,7 +171,7 @@ Assuming the total privacy budget to be $\varepsilon$, and $n$ to be the total n
 
 If a $\delta$ value is not provided, it will be inferred from the protected number of records:
 
-$\delta = \frac{1}{\ln(protected(N)) * N}$
+$\delta = \frac{1}{protected(n) * \ln(protected(n))}$
 
 Besides, based on EQ1 and EQ2 we can:
 
