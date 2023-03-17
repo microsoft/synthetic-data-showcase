@@ -163,13 +163,17 @@ In order to decrease the noise, we can use a differentially-private percentile t
 
 From [Differentially Private Marginals](./dp_marginals.pdf), to satisfy $(\varepsilon, \delta)$-DP, the following inequality needs to hold:
 
-(EQ1) $0.5 * R\varepsilon_Q^2 + 0.5 *\displaystyle\sum_{1}^{R} 1/\sigma_k^2 \leq (\sqrt{\varepsilon_M + \ln(2/\delta)} - \sqrt{\ln(2/\delta)})^2$, where the reported aggregate count is the `real_aggregate_count + ` $\sigma_{k} * \sqrt{\Delta_k} * N(0, 1)$.
+(EQ1) $0.5 * R\varepsilon_Q^2 + 0.5 *\displaystyle\sum_{1}^{R} 1/\sigma_k^2 \leq (\sqrt{\varepsilon_M + \ln(2/\delta)} - \sqrt{\ln(2/\delta)})^2$, where the reported aggregate count will have noise added by $\sigma_{k} * \sqrt{\Delta_k} * N(0, 1)$.
 
-Assuming the total privacy budget to be $\varepsilon$, we then define:
+Assuming the total privacy budget to be $\varepsilon$ and $n$ the total number of records in the dataset, we then define:
 
-(EQ2) $\varepsilon = \varepsilon_M + \varepsilon_N$, where $\varepsilon_M$ is the portion of privacy budget we dedicate to the marginals EQ1 equation and $\varepsilon_N$ what we dedicate to protect the number of records - `real_number_of_records + ` $Laplace(1 / \varepsilon_N)$.
+(EQ2) $\varepsilon = \varepsilon_M + \varepsilon_N$, where $\varepsilon_M$ is the portion of privacy budget we dedicate to the marginals EQ1 equation and $\varepsilon_N$ what we dedicate to protect the number of records - $protected(n) = n + Laplace(1 / \varepsilon_N)$.
 
-Based on EQ1 and EQ2 we can:
+If a $\delta$ value is not provided, it will be inferred from the protected number of records:
+
+$\delta = \frac{1}{\ln(protected(N)) * N}$
+
+Besides, based on EQ1 and EQ2 we can:
 
 1. Call $\rho=(\sqrt{\varepsilon_M + \ln(2/\delta)} - \sqrt{\ln(2/\delta)})^2$
 2. Define $Q_{p}$ as the proportion of the privacy budget dedicated for finding $Q^{th}$ percentiles
@@ -203,6 +207,8 @@ $\sigma_k = p_k * \sigma = p_k * \sqrt{\frac{(\frac{1}{p_1^2} + \frac{1}{p_2^2} 
 
 To summarize, to control the allocation of the privacy budget $\varepsilon$, SDS expects the following inputs:
 
+- `Total privacy budget` = $\varepsilon$
+- `Delta` = $\delta$, which can also be inferred from the protected number of records
 - `Percentile epsilon proportion` = $Q_p$, where $0 < Q_p < 1$
 - `Number of records epsilon proportion` = $N_p$, where $0 < N_p < 1$
 - `Sigma proportions` = $[p_1, p_2, ..., p_k]$, where $p_k > 0$
