@@ -53,7 +53,7 @@ export const ContributionChart: FC<ContributionChartProps> = memo(
 		const nominalBoldScale = useNominalBoldScale()
 		const backgroundColor = useMemo(() => {
 			const normalColor = nominalScale[0]
-			const selectedColor = nominalBoldScale[1]
+			const selectedColor = nominalBoldScale[0]
 
 			return labels.map(l => (l === selectedKey ? selectedColor : normalColor))
 		}, [labels, nominalScale, nominalBoldScale, selectedKey])
