@@ -168,7 +168,7 @@ impl NoiseAggregator {
         let percentile_selector = DpPercentile::new(sensitivities);
         let allowed_sensitivity = percentile_selector
             .kth_percentile_quality_scores_iter(self.percentile_percentage)
-            .get_noisy_max(self.percentile_epsilon / (self.reporting_length as f64))
+            .get_noisy_max(self.percentile_epsilon)
             .unwrap_or(0);
 
         (max_sensitivity, allowed_sensitivity)
