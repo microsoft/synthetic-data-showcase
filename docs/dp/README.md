@@ -165,7 +165,7 @@ From [Differentially Private Marginals](./dp_marginals.pdf), to satisfy $(\varep
 
 (EQ1) $0.5 * R\varepsilon_Q^2 + 0.5 *\displaystyle\sum_{1}^{R} 1/\sigma_k^2 \leq (\sqrt{\varepsilon_M + \ln(2/\delta)} - \sqrt{\ln(2/\delta)})^2$, where the reported aggregate count will have noise added by $\sigma_{k} * \sqrt{\Delta_k} * N(0, 1)$.
 
-Assuming the total privacy budget to be $\varepsilon$ and $n$ the total number of records in the dataset, we then define:
+Assuming the total privacy budget to be $\varepsilon$, and $n$ to be the total number of records in the dataset, we then define:
 
 (EQ2) $\varepsilon = \varepsilon_M + \varepsilon_N$, where $\varepsilon_M$ is the portion of privacy budget we dedicate to the marginals EQ1 equation and $\varepsilon_N$ what we dedicate to protect the number of records - $protected(n) = n + Laplace(1 / \varepsilon_N)$.
 
