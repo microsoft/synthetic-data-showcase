@@ -102,6 +102,37 @@ impl NoiseParameters {
     }
 
     #[inline]
+    fn get_tolerance_from_delta(delta: f64) -> f64 {
+        assert!(delta < 1.0 && delta > 0.0, "delta must be between 0 and 1");
+
+        let mut n: i32 = 0;
+        let mut current_delta = delta;
+
+        while current_delta < 1.0 {
+            current_delta *= 10.0;
+            n += 1;
+        }
+
+        let delta_precision = 10.0_f64.powi(-n);
+
+        info!("delta precision is: 1e-{n} = {delta_precision}");
+
+        delta_precision
+    }
+
+    #[inline]
+    fn assert_tolerance(precision: f64, target_tolerance: f64) {
+        let tolerance_check = precision <= target_tolerance;
+
+        info!("tolerance check, expected: {precision} <= {target_tolerance} ==> {tolerance_check}");
+
+        assert!(
+            tolerance_check,
+            "something went wrong calculating DP sigmas"
+        );
+    }
+
+    #[inline]
     fn calc_percentile_epsilon_and_sigmas(
         reporting_length: usize,
         marginals_epsilon: f64,
@@ -126,9 +157,9 @@ impl NoiseParameters {
 
         info!("percentile epsilon = {percentile_epsilon}, calculated sigmas = {sigmas:?}");
 
-        assert!(
-            (lhs - rho).abs() <= DEFAULT_TOLERANCE,
-            "something went wrong calculating DP sigmas"
+        NoiseParameters::assert_tolerance(
+            (lhs - rho).abs(),
+            NoiseParameters::get_tolerance_from_delta(delta).min(DEFAULT_TOLERANCE),
         );
 
         (percentile_epsilon, sigmas)
