@@ -163,7 +163,7 @@ In order to decrease the noise, we can use a differentially-private percentile t
 
 From [Differentially Private Marginals](./dp_marginals.pdf), to satisfy $(\varepsilon, \delta)$-DP, the following inequality needs to hold:
 
-(EQ1) $0.5 * R\varepsilon_Q^2 + 0.5 *\displaystyle\sum_{1}^{R} 1/\sigma_k^2 \leq (\sqrt{\varepsilon_M + \ln(2/\delta)} - \sqrt{\ln(2/\delta)})^2$, where the reported aggregate count will have noise added by $\sigma_{k} * \sqrt{\Delta_k} * N(0, 1)$.
+(EQ1) $0.5 * R\varepsilon_Q^2 + 0.5 *\displaystyle\sum_{k=1}^{R} 1/\sigma_k^2 \leq (\sqrt{\varepsilon_M + \ln(2/\delta)} - \sqrt{\ln(2/\delta)})^2$, where the reported aggregate count will have noise added by $\sigma_{k} * \sqrt{\Delta_k} * N(0, 1)$.
 
 Assuming the total privacy budget to be $\varepsilon$, and $n$ to be the total number of records in the dataset, we then define:
 
@@ -180,7 +180,7 @@ Besides, based on EQ1 and EQ2 we can:
 3. Define $N_{p}$ the proportion of the total privacy budget dedicated for finding the protected number of records
 4. Call $\varepsilon_N = N_{p} * \varepsilon$ and $\varepsilon_M = \varepsilon - \varepsilon_N$
 
-From the above assumptions we know that (i) $\varepsilon_M = \varepsilon - N_{p} * \varepsilon = \varepsilon * (1 - N_{p})$. Then, in order to find $\varepsilon_Q$, and $\sigma_k$, we need to solve: (ii) $0.5 * R\varepsilon_Q^2  = \rho * Q_{p}$; and (iii) $0.5 *\displaystyle\sum_{1}^{R} 1/\sigma_i^2 = \rho * (1 - Q_{p})$.
+From the above assumptions we know that (i) $\varepsilon_M = \varepsilon - N_{p} * \varepsilon = \varepsilon * (1 - N_{p})$. Then, in order to find $\varepsilon_Q$, and $\sigma_k$, we need to solve: (ii) $0.5 * R\varepsilon_Q^2  = \rho * Q_{p}$; and (iii) $0.5 *\displaystyle\sum_{k=1}^{R} 1/\sigma_k^2 = \rho * (1 - Q_{p})$.
 
 (ii) directly tells us that $\varepsilon_Q = \sqrt{(2 * \rho * Q_{p}) / R}$ [3].
 
@@ -189,19 +189,19 @@ On the other hand, to solve (iii) and find the $\sigma_k$ values, SDS will propo
 - $\sigma_1 = p_1 * \sigma$
 - $\sigma_2 = p_2 * \sigma$
 - ...
-- $\sigma_k = p_k * \sigma$
+- $\sigma_R = p_R * \sigma$
 
 Thus:
 
-$(\frac{1}{\sigma_1^2} + \frac{1}{\sigma_2^2}+ ... + \frac{1}{\sigma_k^2}) = 2 * \rho * (1 - Q_{p})$
+$(\frac{1}{\sigma_1^2} + \frac{1}{\sigma_2^2}+ ... + \frac{1}{\sigma_R^2}) = 2 * \rho * (1 - Q_{p})$
 
-$(\frac{1}{p_1^2*\sigma^2} + \frac{1}{p_2^2*\sigma^2} + ... + \frac{1}{p_k^2*\sigma^2}) = 2 * \rho * (1 - Q_{p})$
+$(\frac{1}{p_1^2*\sigma^2} + \frac{1}{p_2^2*\sigma^2} + ... + \frac{1}{p_R^2*\sigma^2}) = 2 * \rho * (1 - Q_{p})$
 
-$\frac{1}{\sigma^2} * (\frac{1}{p_1^2} + \frac{1}{p_2^2} + ... + \frac{1}{p_k^2}) = 2 * \rho * (1 - Q_{p})$
+$\frac{1}{\sigma^2} * (\frac{1}{p_1^2} + \frac{1}{p_2^2} + ... + \frac{1}{p_R^2}) = 2 * \rho * (1 - Q_{p})$
 
-$\frac{1}{\sigma^2} = \frac{2 * \rho * (1 - Q_{p})}{(\frac{1}{p_1^2} + \frac{1}{p_2^2} + ... + \frac{1}{p_k^2})}$
+$\frac{1}{\sigma^2} = \frac{2 * \rho * (1 - Q_{p})}{(\frac{1}{p_1^2} + \frac{1}{p_2^2} + ... + \frac{1}{p_R^2})}$
 
-$\sigma = \sqrt{\frac{(\frac{1}{p_1^2} + \frac{1}{p_2^2} + ... + \frac{1}{p_k^2})}{2 * \rho * (1 - Q_{p})}}$
+$\sigma = \sqrt{\frac{(\frac{1}{p_1^2} + \frac{1}{p_2^2} + ... + \frac{1}{p_R^2})}{2 * \rho * (1 - Q_{p})}}$
 
 $\sigma_k = p_k * \sigma = p_k * \sqrt{\frac{(\frac{1}{p_1^2} + \frac{1}{p_2^2} + ... + \frac{1}{p_k^2})}{2 * \rho * (1 - Q_{p})}}$ [4]
 
