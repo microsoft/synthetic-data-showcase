@@ -16,12 +16,15 @@ use crate::processing::evaluator::preservation_by_length::PreservationByLengthBu
 /// Evaluates aggregated, sensitive and synthesized data
 pub struct Evaluator {}
 
-impl Evaluator {
+impl Default for Evaluator {
     /// Returns a new Evaluator
-    pub fn default() -> Evaluator {
-        Evaluator {}
+    #[inline]
+    fn default() -> Self {
+        Self {}
     }
+}
 
+impl Evaluator {
     fn calc_combinations_abs_error_sum_count_by_len(
         &self,
         sensitive_aggregated_data: &AggregatedData,

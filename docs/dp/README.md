@@ -163,43 +163,54 @@ In order to decrease the noise, we can use a differentially-private percentile t
 
 From [Differentially Private Marginals](./dp_marginals.pdf), to satisfy $(\varepsilon, \delta)$-DP, the following inequality needs to hold:
 
-$0.5 * R\varepsilon_Q^2 + 0.5 * \varepsilon_N^2 + 0.5 *\displaystyle\sum_{1}^{R} 1/\sigma_k^2 \leq \sqrt{\varepsilon + \ln(2/\delta)} - \sqrt{\ln(2/\delta)}$, where the reported aggregate count is `real_aggregate_count + ` $\sigma_{k} * \sqrt{\Delta_k} * N(0, 1)$ and the reported number of records is `real_number_of_records + ` $Laplace(1 / \varepsilon_N)$.
+(EQ1) $0.5 * R\varepsilon_Q^2 + 0.5 *\displaystyle\sum_{k=1}^{R} 1/\sigma_k^2 \leq (\sqrt{\varepsilon_M + \ln(2/\delta)} - \sqrt{\ln(2/\delta)})^2$, where the reported aggregate count will have noise added by $\sigma_{k} * \sqrt{\Delta_k} * N(0, 1)$.
 
-Based on the given inequality we can:
+Assuming the total privacy budget to be $\varepsilon$, and $n$ to be the total number of records in the dataset, we then define:
 
-1. Call $\rho=\sqrt{\varepsilon + \ln(2/\delta)} - \sqrt{\ln(2/\delta)}$
-2. Define $Q_{p}$ as the proportion of the total privacy budget dedicated for finding $Q^{th}$ percentiles
+(EQ2) $\varepsilon = \varepsilon_M + \varepsilon_N$, where $\varepsilon_M$ is the portion of privacy budget we dedicate to the marginals EQ1 equation and $\varepsilon_N$ what we dedicate to protect the number of records - $protected(n) = n + Laplace(1 / \varepsilon_N)$.
+
+If a $\delta$ value is not provided, it will be inferred from the protected number of records:
+
+$\delta = \frac{1}{protected(n) * \ln(protected(n))}$
+
+Besides, based on EQ1 and EQ2 we can:
+
+1. Call $\rho=(\sqrt{\varepsilon_M + \ln(2/\delta)} - \sqrt{\ln(2/\delta)})^2$
+2. Define $Q_{p}$ as the proportion of the privacy budget dedicated for finding $Q^{th}$ percentiles
 3. Define $N_{p}$ the proportion of the total privacy budget dedicated for finding the protected number of records
+4. Call $\varepsilon_N = N_{p} * \varepsilon$ and $\varepsilon_M = \varepsilon - \varepsilon_N$
 
-Then, in order to find $\varepsilon_Q$, $\varepsilon_N$ and $\sigma_k$, we need to solve: (i) $0.5 * R\varepsilon_Q^2  = \rho * Q_{p}$; (ii) $0.5 * \varepsilon_N^2  = \rho * N_{p}$; and (iii) $0.5 *\displaystyle\sum_{1}^{R} 1/\sigma_i^2 = \rho * (1 - Q_{p} - N_{p})$.
+From the above assumptions we know that (i) $\varepsilon_M = \varepsilon - N_{p} * \varepsilon = \varepsilon * (1 - N_{p})$. Then, in order to find $\varepsilon_Q$, and $\sigma_k$, we need to solve: (ii) $0.5 * R\varepsilon_Q^2  = \rho * Q_{p}$; and (iii) $0.5 *\displaystyle\sum_{k=1}^{R} 1/\sigma_k^2 = \rho * (1 - Q_{p})$.
 
-(i) directly tells us that $\varepsilon_Q = \sqrt{(2 * \rho * Q_{p}) / R}$ [3] and (ii) that $\varepsilon_N = \sqrt{2 * \rho * N_{p}}$.
+(ii) directly tells us that $\varepsilon_Q = \sqrt{(2 * \rho * Q_{p}) / R}$ [3].
 
 On the other hand, to solve (iii) and find the $\sigma_k$ values, SDS will proportionally split the privacy budget such that:
 
 - $\sigma_1 = p_1 * \sigma$
 - $\sigma_2 = p_2 * \sigma$
 - ...
-- $\sigma_k = p_k * \sigma$
+- $\sigma_R = p_R * \sigma$
 
 Thus:
 
-$(\frac{1}{\sigma_1^2} + \frac{1}{\sigma_2^2}+ ... + \frac{1}{\sigma_k^2}) = 2 * \rho * (1 - Q_{p} - N_{p})$
+$(\frac{1}{\sigma_1^2} + \frac{1}{\sigma_2^2}+ ... + \frac{1}{\sigma_R^2}) = 2 * \rho * (1 - Q_{p})$
 
-$(\frac{1}{p_1^2*\sigma^2} + \frac{1}{p_2^2*\sigma^2} + ... + \frac{1}{p_k^2*\sigma^2}) = 2 * \rho * (1 - Q_{p} - N_{p})$
+$(\frac{1}{p_1^2*\sigma^2} + \frac{1}{p_2^2*\sigma^2} + ... + \frac{1}{p_R^2*\sigma^2}) = 2 * \rho * (1 - Q_{p})$
 
-$\frac{1}{\sigma^2} * (\frac{1}{p_1^2} + \frac{1}{p_2^2} + ... + \frac{1}{p_k^2}) = 2 * \rho * (1 - Q_{p} - N_{p})$
+$\frac{1}{\sigma^2} * (\frac{1}{p_1^2} + \frac{1}{p_2^2} + ... + \frac{1}{p_R^2}) = 2 * \rho * (1 - Q_{p})$
 
-$\frac{1}{\sigma^2} = \frac{2 * \rho * (1 - Q_{p} - N_{p})}{(\frac{1}{p_1^2} + \frac{1}{p_2^2} + ... + \frac{1}{p_k^2})}$
+$\frac{1}{\sigma^2} = \frac{2 * \rho * (1 - Q_{p})}{(\frac{1}{p_1^2} + \frac{1}{p_2^2} + ... + \frac{1}{p_R^2})}$
 
-$\sigma = \sqrt{\frac{(\frac{1}{p_1^2} + \frac{1}{p_2^2} + ... + \frac{1}{p_k^2})}{2 * \rho * (1 - Q_{p} - N_{p})}}$
+$\sigma = \sqrt{\frac{(\frac{1}{p_1^2} + \frac{1}{p_2^2} + ... + \frac{1}{p_R^2})}{2 * \rho * (1 - Q_{p})}}$
 
-$\sigma_k = p_k * \sigma = p_k * \sqrt{\frac{(\frac{1}{p_1^2} + \frac{1}{p_2^2} + ... + \frac{1}{p_k^2})}{2 * \rho * (1 - Q_{p} - N_{p})}}$ [4]
+$\sigma_k = p_k * \sigma = p_k * \sqrt{\frac{(\frac{1}{p_1^2} + \frac{1}{p_2^2} + ... + \frac{1}{p_k^2})}{2 * \rho * (1 - Q_{p})}}$ [4]
 
 To summarize, to control the allocation of the privacy budget $\varepsilon$, SDS expects the following inputs:
 
-- `Percentile epsilon proportion` = $Q_p$, where $0 < Q_p < 1$ and $0 < Q_p + N_p < 1$
-- `Number of records epsilon proportion` = $N_p$, where $0 < N_p < 1$ and $0 < Q_p + N_p < 1$
+- `Total privacy budget` = $\varepsilon$
+- `Delta` = $\delta$, which can also be inferred from the protected number of records
+- `Percentile epsilon proportion` = $Q_p$, where $0 < Q_p < 1$
+- `Number of records epsilon proportion` = $N_p$, where $0 < N_p < 1$
 - `Sigma proportions` = $[p_1, p_2, ..., p_k]$, where $p_k > 0$
 
 To illustrate the sigma proportions, let's assume a reporting length of $3$. Then we could set:

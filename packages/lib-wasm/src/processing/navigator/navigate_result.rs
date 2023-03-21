@@ -20,7 +20,7 @@ use crate::{
         sds_processor::{HeaderNames, WasmSdsProcessor},
     },
     utils::js::{
-        JsAttributesIntersectionByColumn, JsHeaderNames, JsNavigateResult, JsResult,
+        to_js_value, JsAttributesIntersectionByColumn, JsHeaderNames, JsNavigateResult, JsResult,
         JsSelectedAttributesByColumn,
     },
 };
@@ -36,10 +36,10 @@ pub struct WasmNavigateResult {
     column_index_by_name: ColumnIndexByName,
 }
 
-impl WasmNavigateResult {
+impl Default for WasmNavigateResult {
     #[inline]
-    pub fn default() -> WasmNavigateResult {
-        WasmNavigateResult::new(
+    fn default() -> Self {
+        Self::new(
             HeaderNames::default(),
             Arc::new(DataBlock::default()),
             AttributeRowsByColumnMap::default(),
@@ -49,7 +49,9 @@ impl WasmNavigateResult {
             ColumnIndexByName::default(),
         )
     }
+}
 
+impl WasmNavigateResult {
     #[inline]
     pub fn new(
         header_names: HeaderNames,
@@ -248,8 +250,7 @@ impl WasmNavigateResult {
         set(
             &result,
             &"headerNames".into(),
-            &JsValue::from_serde(&self.header_names)
-                .map_err(|err| JsValue::from(err.to_string()))?,
+            &to_js_value(&self.header_names).map_err(|err| JsValue::from(err.to_string()))?,
         )?;
 
         Ok(JsValue::from(result).unchecked_into::<JsNavigateResult>())

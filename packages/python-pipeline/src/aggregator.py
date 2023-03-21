@@ -53,11 +53,11 @@ def aggregate(config):
     sds_processor = sds.SDSProcessor(
         sensitive_microdata_path,
         sensitive_microdata_delimiter,
-        subject_id,
         use_columns,
         multi_value_columns,
         sensitive_zeros,
-        max(record_limit, 0)
+        max(record_limit, 0),
+        subject_id
     )
 
     aggregated_data = sds_processor.aggregate(
@@ -75,20 +75,20 @@ def aggregate(config):
     aggregated_data.write_to_json(sensitive_aggregated_data_json)
 
     if dp_aggregates:
-        if not delta_factor:
-            delta_factor = math.log(sds_processor.number_of_records())
-
-        noise_delta = 1 / \
-            (delta_factor * sds_processor.number_of_records())
+        if delta_factor:
+            noise_delta = 1 / \
+                (delta_factor * sds_processor.number_of_records())
+        else:
+            noise_delta = None
 
         if noise_threshold_type == 'fixed':
             aggregated_data = sds_processor.aggregate_with_dp_fixed_threshold(
                 reporting_length,
                 sds.DpParameters(
                     noise_epsilon,
-                    noise_delta,
                     percentile_percentage,
                     percentile_epsilon_proportion,
+                    noise_delta,
                     sigma_proportions,
                     number_of_records_epsilon_proportion
                 ),
@@ -99,9 +99,9 @@ def aggregate(config):
                 reporting_length,
                 sds.DpParameters(
                     noise_epsilon,
-                    noise_delta,
                     percentile_percentage,
                     percentile_epsilon_proportion,
+                    noise_delta,
                     sigma_proportions,
                     number_of_records_epsilon_proportion
                 ),

@@ -27,11 +27,11 @@ pub struct RecordsAnalysis {
     pub percentage_of_records_with_risky_combinations: f64,
 }
 
-impl RecordsAnalysis {
-    #[inline]
+impl Default for RecordsAnalysis {
     /// Created a new RecordsAnalysis with default values
-    pub fn default() -> RecordsAnalysis {
-        RecordsAnalysis {
+    #[inline]
+    fn default() -> Self {
+        Self {
             number_of_records_with_unique_combinations: 0,
             percentage_of_records_with_unique_combinations: 0.0,
             number_of_records_with_rare_combinations: 0,
@@ -118,43 +118,52 @@ impl RecordsAnalysisData {
         } as f64;
         let records_analysis_by_len: RecordsAnalysisByLenMap = (1..=reporting_length)
             .map(|l| {
-                let mut ra = RecordsAnalysis::default();
-
-                ra.number_of_records_with_unique_combinations = records_with_unique_combs_by_len
-                    .get(&l)
-                    .map_or(0, |records| records.len());
-                ra.number_of_records_with_rare_combinations = records_with_rare_combs_by_len
+                let mut number_of_records_with_unique_combinations =
+                    records_with_unique_combs_by_len
+                        .get(&l)
+                        .map_or(0, |records| records.len());
+                let mut number_of_records_with_rare_combinations = records_with_rare_combs_by_len
                     .get(&l)
                     .map_or(0, |records| records.len());
 
                 if protect {
-                    ra.number_of_records_with_unique_combinations = uround_down(
-                        ra.number_of_records_with_unique_combinations as f64,
+                    number_of_records_with_unique_combinations = uround_down(
+                        number_of_records_with_unique_combinations as f64,
                         resolution as f64,
                     );
-                    ra.number_of_records_with_rare_combinations = uround_down(
-                        ra.number_of_records_with_rare_combinations as f64,
+                    number_of_records_with_rare_combinations = uround_down(
+                        number_of_records_with_rare_combinations as f64,
                         resolution as f64,
                     )
                 }
 
-                ra.percentage_of_records_with_unique_combinations = calc_percentage(
-                    ra.number_of_records_with_unique_combinations as f64,
+                let percentage_of_records_with_unique_combinations = calc_percentage(
+                    number_of_records_with_unique_combinations as f64,
                     total_number_of_records_f64,
                 );
-                ra.percentage_of_records_with_rare_combinations = calc_percentage(
-                    ra.number_of_records_with_rare_combinations as f64,
+                let percentage_of_records_with_rare_combinations = calc_percentage(
+                    number_of_records_with_rare_combinations as f64,
                     total_number_of_records_f64,
                 );
-                ra.number_of_records_with_risky_combinations = ra
-                    .number_of_records_with_unique_combinations
-                    + ra.number_of_records_with_rare_combinations;
-                ra.percentage_of_records_with_risky_combinations = calc_percentage(
-                    ra.number_of_records_with_risky_combinations as f64,
+                let number_of_records_with_risky_combinations =
+                    number_of_records_with_unique_combinations
+                        + number_of_records_with_rare_combinations;
+                let percentage_of_records_with_risky_combinations = calc_percentage(
+                    number_of_records_with_risky_combinations as f64,
                     total_number_of_records_f64,
                 );
 
-                (l, ra)
+                (
+                    l,
+                    RecordsAnalysis {
+                        number_of_records_with_unique_combinations,
+                        percentage_of_records_with_unique_combinations,
+                        number_of_records_with_rare_combinations,
+                        percentage_of_records_with_rare_combinations,
+                        number_of_records_with_risky_combinations,
+                        percentage_of_records_with_risky_combinations,
+                    },
+                )
             })
             .collect();
         RecordsAnalysisData {

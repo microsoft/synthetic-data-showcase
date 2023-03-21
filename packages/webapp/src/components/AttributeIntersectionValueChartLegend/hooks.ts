@@ -2,8 +2,13 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import { useThematic } from '@thematic/react'
 import { useMemo } from 'react'
+
+import {
+	useNominalBoldScale,
+	useNominalMutedScale,
+	useNominalScale,
+} from '~utils'
 
 export type BarColors = {
 	normal: string
@@ -12,26 +17,32 @@ export type BarColors = {
 }
 
 export function useEstimatedBarChartColors(): BarColors {
-	const thematic = useThematic()
+	const nominalScale = useNominalScale()
+	const nominalBoldScale = useNominalBoldScale()
+	const nominalMutedScale = useNominalMutedScale()
+
 	return useMemo(
 		() => ({
-			normal: thematic.scales().nominal().toArray()[0],
-			selected: thematic.scales().nominalBold().toArray()[0],
-			suppressed: thematic.scales().nominalMuted().toArray()[0],
+			normal: nominalScale[0],
+			selected: nominalBoldScale[0],
+			suppressed: nominalMutedScale[0],
 		}),
-		[thematic],
+		[nominalScale, nominalBoldScale, nominalMutedScale],
 	)
 }
 
 export function useActualBarChartColors(): BarColors {
-	const thematic = useThematic()
+	const nominalScale = useNominalScale()
+	const nominalBoldScale = useNominalBoldScale()
+	const nominalMutedScale = useNominalMutedScale()
+
 	return useMemo(
 		() => ({
-			normal: thematic.scales().nominal().toArray()[1],
-			selected: thematic.scales().nominalBold().toArray()[1],
-			suppressed: thematic.scales().nominalMuted().toArray()[1],
+			normal: nominalScale[1],
+			selected: nominalBoldScale[1],
+			suppressed: nominalMutedScale[1],
 		}),
-		[thematic],
+		[nominalScale, nominalBoldScale, nominalMutedScale],
 	)
 }
 

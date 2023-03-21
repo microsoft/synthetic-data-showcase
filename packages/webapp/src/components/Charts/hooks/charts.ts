@@ -3,7 +3,6 @@
  * Licensed under the MIT license. See LICENSE file in the project.
  */
 import { useThematic } from '@thematic/react'
-import type { _DeepPartialObject } from 'chart.js/types/utils'
 import type { Options } from 'chartjs-plugin-datalabels/types/options'
 import type { BaseSyntheticEvent, WheelEvent } from 'react'
 import { useCallback, useMemo } from 'react'
@@ -26,7 +25,7 @@ export interface ChartJsDatasetConfig {
 }
 
 export interface DataLabelsConfig {
-	datalabels?: _DeepPartialObject<Options>
+	datalabels?: Options
 }
 
 function useBarConfig(

@@ -29,15 +29,16 @@ pub struct WasmSdsProcessor {
     pub(crate) data_block: Arc<DataBlock>,
 }
 
-impl WasmSdsProcessor {
-    pub fn default() -> WasmSdsProcessor {
-        WasmSdsProcessor {
+impl Default for WasmSdsProcessor {
+    #[inline]
+    fn default() -> Self {
+        Self {
             data_block: Arc::new(DataBlock::default()),
         }
     }
 }
 
-#[wasm_bindgen(constructor)]
+#[wasm_bindgen]
 impl WasmSdsProcessor {
     #[inline]
     #[wasm_bindgen(constructor)]

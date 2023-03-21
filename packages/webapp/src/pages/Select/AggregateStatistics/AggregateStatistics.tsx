@@ -121,7 +121,7 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 								}
 								label={'Most linkable columns'}
 								containerHeight={220}
-								barHeight={10}
+								barHeight={30}
 								tooltipFormatter={columnTooltipFormatter}
 							/>
 						</ChartItem>
@@ -132,7 +132,7 @@ export const AggregateStatistics: FC = memo(function AggregateStatistics() {
 								}
 								label={'Most linkable attributes'}
 								containerHeight={220}
-								barHeight={10}
+								barHeight={30}
 								tooltipFormatter={attributeTooltipFormatter}
 							/>
 						</ChartItem>

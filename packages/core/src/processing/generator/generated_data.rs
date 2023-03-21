@@ -27,17 +27,19 @@ pub struct GeneratedData {
     pub multi_value_column_metadata_map: MultiValueColumnMetadataMap,
 }
 
-impl GeneratedData {
+impl Default for GeneratedData {
     /// Returns a new GeneratedData struct with default values
     #[inline]
-    pub fn default() -> GeneratedData {
-        GeneratedData {
+    fn default() -> Self {
+        Self {
             synthetic_data: RawData::default(),
             expansion_ratio: 0.0,
             multi_value_column_metadata_map: MultiValueColumnMetadataMap::default(),
         }
     }
+}
 
+impl GeneratedData {
     /// Returns a new GeneratedData struct
     /// # Arguments
     /// * `synthetic_data` - Synthesized data headers (index 0) and records indexes 1...

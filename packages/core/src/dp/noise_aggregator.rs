@@ -1,7 +1,4 @@
-use super::{
-    CombinationsByRecord, DpParameters, DpPercentile, NoisyCountThreshold,
-    DEFAULT_NUMBER_OF_RECORDS_EPSILON_PROPORTION,
-};
+use super::{CombinationsByRecord, DpParameters, DpPercentile, NoisyCountThreshold};
 use fnv::FnvHashSet;
 use itertools::Itertools;
 use log::{debug, info, warn};
@@ -9,14 +6,14 @@ use rand::{
     prelude::{Distribution as rand_dist, IteratorRandom},
     thread_rng,
 };
-use statrs::distribution::{ContinuousCDF, Laplace, Normal};
+use statrs::distribution::{ContinuousCDF, Normal};
 use std::sync::Arc;
 
 use crate::{
     data_block::{DataBlock, DataBlockValue},
     dp::{
+        noise_parameters::NoiseParameters,
         typedefs::{CombinationsCountMap, CombinationsCountMapByLen},
-        DEFAULT_TOLERANCE,
     },
     processing::aggregator::{
         AggregatedCount, AggregatedData, AggregatesCountMap, RecordsSensitivityByLen, RecordsSet,
@@ -39,82 +36,10 @@ pub struct NoiseAggregator {
     delta: f64,
     sigmas: Vec<f64>,
     threshold: NoisyCountThreshold,
-    number_of_records_epsilon: f64,
+    protected_number_of_records: Option<usize>,
 }
 
 impl NoiseAggregator {
-    #[inline]
-    fn calc_percentile_epsilon_number_of_records_epsilon_and_sigma_by_len(
-        reporting_length: usize,
-        epsilon: f64,
-        delta: f64,
-        percentile_epsilon_proportion: f64,
-        number_of_records_proportion: f64,
-        sigma_proportions: &Option<Vec<f64>>,
-    ) -> (f64, f64, Vec<f64>) {
-        let proportions = match sigma_proportions {
-            Some(proportions) => proportions.clone(),
-            None => {
-                let mut v = Vec::default();
-                v.resize_with(reporting_length, || 1.0);
-                v
-            }
-        };
-
-        info!(
-            "calculating percentile epsilon, number of records epsilon and sigma by len: total epsilon = {}, delta = {}, percentile_epsilon_proportion = {}, number_of_records_proportion = {}, sigma_proportions = {:?}",
-            epsilon,
-            delta,
-            percentile_epsilon_proportion,
-            number_of_records_proportion,
-            proportions
-        );
-
-        assert!(
-            reporting_length == proportions.len(),
-            "sigma proportions array size should match the reporting length",
-        );
-
-        assert!(
-            percentile_epsilon_proportion < 1.0 && percentile_epsilon_proportion > 0.0,
-            "percentile_epsilon_proportion must be > 0 and < 1"
-        );
-
-        assert!(
-            number_of_records_proportion < 1.0 && number_of_records_proportion > 0.0,
-            "number_of_records_proportion must be > 0 and < 1"
-        );
-
-        assert!(
-            number_of_records_proportion + percentile_epsilon_proportion < 1.0,
-            "(percentile_epsilon_proportion + number_of_records_proportion) must be > 0 and < 1"
-        );
-
-        let t = reporting_length as f64;
-        let rho = (epsilon + (2.0 / delta).ln()).sqrt() - (2.0 / delta).ln().sqrt();
-        let k: f64 = proportions.iter().map(|p| 1.0 / (p * p)).sum();
-        let percentile_epsilon = (2.0 * rho * percentile_epsilon_proportion / t).sqrt();
-        let number_of_records_epsilon = (2.0 * rho * number_of_records_proportion).sqrt();
-        let base_sigma = (k
-            / (2.0 * rho * (1.0 - percentile_epsilon_proportion - number_of_records_proportion)))
-            .sqrt();
-        let sigmas: Vec<f64> = proportions.iter().map(|p| p * base_sigma).collect();
-        let lhs = ((t * percentile_epsilon * percentile_epsilon) / 2.0)
-            + ((number_of_records_epsilon * number_of_records_epsilon) / 2.0)
-            + (sigmas.iter().map(|s| 1.0 / (s * s)).sum::<f64>() / 2.0);
-
-        info!("percentile epsilon = {}", percentile_epsilon);
-        info!("number of records epsilon = {}", number_of_records_epsilon);
-        info!("calculated sigmas = {:?}", sigmas);
-
-        assert!(
-            (lhs - rho).abs() <= DEFAULT_TOLERANCE,
-            "something went wrong calculating DP sigmas"
-        );
-
-        (percentile_epsilon, number_of_records_epsilon, sigmas)
-    }
-
     #[inline]
     fn gen_sorted_records(&self) -> Vec<Vec<Arc<DataBlockValue>>> {
         self.data_block
@@ -243,7 +168,7 @@ impl NoiseAggregator {
         let percentile_selector = DpPercentile::new(sensitivities);
         let allowed_sensitivity = percentile_selector
             .kth_percentile_quality_scores_iter(self.percentile_percentage)
-            .get_noisy_max(self.percentile_epsilon / (self.reporting_length as f64))
+            .get_noisy_max(self.percentile_epsilon)
             .unwrap_or(0);
 
         (max_sensitivity, allowed_sensitivity)
@@ -262,11 +187,15 @@ impl NoiseAggregator {
                     .choose_multiple(&mut thread_rng(), l1_sensitivity)
                     .drain(..)
                 {
-                    (*all_current_aggregates.get_mut(comb).unwrap()) += 1.0;
+                    (*all_current_aggregates
+                        .get_mut(comb)
+                        .expect("error getting combination count")) += 1.0;
                 }
             } else {
                 for comb in combinations.iter() {
-                    (*all_current_aggregates.get_mut(comb).unwrap()) += 1.0;
+                    (*all_current_aggregates
+                        .get_mut(comb)
+                        .expect("error getting combination count")) += 1.0;
                 }
             }
         }
@@ -274,7 +203,7 @@ impl NoiseAggregator {
 
     #[inline]
     fn add_gaussian_noise(all_current_aggregates: &mut CombinationsCountMap, current_sigma: f64) {
-        let noise = Normal::new(0.0, 1.0).unwrap();
+        let noise = Normal::new(0.0, 1.0).expect("error generating Normal noise");
 
         for count in all_current_aggregates.values_mut() {
             (*count) += current_sigma * noise.sample(&mut thread_rng());
@@ -287,7 +216,7 @@ impl NoiseAggregator {
             1.0 + (self.sigmas[0]
                 * l1_sensitivity.sqrt()
                 * Normal::new(0.0, 1.0)
-                    .unwrap()
+                    .expect("error creating Normal for inverse CDF")
                     .inverse_cdf((1.0 - (self.delta / 2.0)).powf(1.0 / l1_sensitivity)))
         } else {
             // thresholds should start at index 2 (1-counts needs to be fixed to guarantee DP)
@@ -301,7 +230,7 @@ impl NoiseAggregator {
                         * l1_sensitivity.sqrt()
                         // threshold values should be between 0 and 0.5
                         // we are dividing by 2 here to normalize it between 0 and 1.0
-                        * Normal::new(0.0, 1.0).unwrap().inverse_cdf(
+                        * Normal::new(0.0, 1.0).expect("error creating Normal for inverse CDF").inverse_cdf(
                             1.0 - (
                                 thresholds.get(&comb_len).cloned().unwrap_or(1.0) / 2.0
                             ).min(0.5),
@@ -365,25 +294,6 @@ impl NoiseAggregator {
     }
 
     #[inline]
-    pub fn protect_number_of_records(&self, number_of_records: usize) -> usize {
-        info!(
-            "protecting reported number of records with epsilon = {}",
-            self.number_of_records_epsilon
-        );
-
-        assert!(
-            self.number_of_records_epsilon > 0.0,
-            "number of records epsilon should be > 0"
-        );
-
-        ((number_of_records as f64)
-            + Laplace::new(0.0, 1.0 / self.number_of_records_epsilon)
-                .unwrap()
-                .sample(&mut thread_rng()))
-        .round() as usize
-    }
-
-    #[inline]
     pub fn build_aggregated_data(
         &self,
         mut noisy_aggregates_by_len: CombinationsCountMapByLen,
@@ -406,7 +316,7 @@ impl NoiseAggregator {
             self.data_block.headers.clone(),
             self.data_block.multi_value_column_metadata_map.clone(),
             self.data_block.number_of_records(),
-            Some(self.protect_number_of_records(self.data_block.number_of_records())),
+            self.protected_number_of_records,
             aggregates_count,
             RecordsSensitivityByLen::default(),
             self.reporting_length,
@@ -449,27 +359,27 @@ impl NoiseAggregator {
         dp_parameters: &DpParameters,
         threshold: NoisyCountThreshold,
     ) -> NoiseAggregator {
-        let (percentile_epsilon, number_of_records_epsilon, sigmas) =
-            NoiseAggregator::calc_percentile_epsilon_number_of_records_epsilon_and_sigma_by_len(
-                reporting_length,
-                dp_parameters.epsilon,
-                dp_parameters.delta,
-                dp_parameters.percentile_epsilon_proportion,
-                dp_parameters
-                    .number_of_records_epsilon_proportion
-                    .unwrap_or(DEFAULT_NUMBER_OF_RECORDS_EPSILON_PROPORTION),
-                &dp_parameters.sigma_proportions,
-            );
+        let noise_parameters = NoiseParameters::new(
+            reporting_length,
+            dp_parameters.epsilon,
+            &dp_parameters.delta,
+            dp_parameters.percentile_epsilon_proportion,
+            &dp_parameters.number_of_records_epsilon_proportion,
+            &dp_parameters.sigma_proportions,
+            data_block.number_of_records(),
+        );
+
+        info!("resulting noise parameters = {noise_parameters:?}");
 
         NoiseAggregator {
             data_block,
             reporting_length,
             percentile_percentage: dp_parameters.percentile_percentage,
-            percentile_epsilon,
-            delta: dp_parameters.delta,
-            sigmas,
+            percentile_epsilon: noise_parameters.percentile_epsilon,
+            delta: noise_parameters.delta,
+            sigmas: noise_parameters.sigmas,
             threshold,
-            number_of_records_epsilon,
+            protected_number_of_records: noise_parameters.protected_number_of_records,
         }
     }
 

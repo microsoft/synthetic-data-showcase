@@ -1,6 +1,6 @@
 [package]
 name = "sds-wasm"
-version = "1.8.6"
+version = "1.9.0"
 license = "MIT"
 description = "Web Assembly bindings for the sds-core library"
 repository = "https://github.com/microsoft/synthetic-data-showcase"
@@ -14,6 +14,7 @@ default = ["console_error_panic_hook"]
 
 [dependencies]
 wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
+serde_json = { version = "1.0" }
 log = { version = "0.4", features = ["std"] }
 csv = { version = "1.1" }
 web-sys = { version = "0.3", features = [ "console" ]}

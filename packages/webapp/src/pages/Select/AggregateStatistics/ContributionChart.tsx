@@ -11,6 +11,8 @@ import type { FC } from 'react'
 import { memo, useCallback, useMemo } from 'react'
 import { Bar } from 'react-chartjs-2'
 
+import { useNominalBoldScale, useNominalScale } from '~utils'
+
 import { ChartContainer } from './ContributionChart.styles.js'
 import type { ContributionChartProps } from './ContributionChart.types.js'
 
@@ -47,12 +49,14 @@ export const ContributionChart: FC<ContributionChartProps> = memo(
 			[labels, onClick],
 		)
 		const thematic = useThematic()
+		const nominalScale = useNominalScale()
+		const nominalBoldScale = useNominalBoldScale()
 		const backgroundColor = useMemo(() => {
-			const normalColor = thematic.scales().nominal().toArray()[0]
-			const selectedColor = thematic.scales().nominalBold().toArray()[0]
+			const normalColor = nominalScale[0]
+			const selectedColor = nominalBoldScale[0]
 
 			return labels.map(l => (l === selectedKey ? selectedColor : normalColor))
-		}, [labels, thematic, selectedKey])
+		}, [labels, nominalScale, nominalBoldScale, selectedKey])
 		const labelColors = useMemo(() => {
 			const greys = thematic.scales().greys().toArray()
 
@@ -67,70 +71,77 @@ export const ContributionChart: FC<ContributionChartProps> = memo(
 						maxHeight: containerHeight,
 					}}
 				>
-					<Bar
-						height={Math.max(barHeight * data.length, barHeight)}
-						data={{
-							labels: labels,
-							datasets: [
+					<div
+						style={{
+							height: Math.max(barHeight * data.length, barHeight),
+						}}
+					>
+						<Bar
+							data={{
+								labels: labels,
+								datasets: [
+									{
+										label: label,
+										data: data,
+										xAxisID: 'xAxis',
+										yAxisID: 'yAxis',
+										backgroundColor,
+									},
+								],
+							}}
+							plugins={[
+								ChartDataLabels as Plugin<'bar'>,
 								{
-									label: label,
-									data: data,
-									xAxisID: 'xAxis',
-									yAxisID: 'yAxis',
-									backgroundColor,
-								},
-							],
-						}}
-						plugins={[
-							ChartDataLabels as Plugin<'bar'>,
-							{
-								id: 'event-catcher',
-								beforeEvent(chart, args, _pluginOptions) {
-									// on hover at options will not handle well the case
-									// where the mouse leaves the bar
-									if (args.event.type === 'mousemove') {
-										const elements = chart.getActiveElements()
-										chart.canvas.style.cursor =
-											elements && elements[0] ? 'pointer' : 'default'
-									}
-								},
-							},
-						]}
-						options={{
-							plugins: {
-								legend: {
-									display: false,
-								},
-								datalabels: {
-									anchor: 'start',
-									align: 'end',
-									offset: 5,
-									formatter: value => `${value} %`,
-									color: labelColors,
-								},
-								tooltip: {
-									callbacks: {
-										label: tooltipFormatter,
+									id: 'event-catcher',
+									beforeEvent(chart, args, _pluginOptions) {
+										// on hover at options will not handle well the case
+										// where the mouse leaves the bar
+										if (args.event.type === 'mousemove') {
+											const elements = chart.getActiveElements()
+											chart.canvas.style.cursor =
+												elements && elements[0] ? 'pointer' : 'default'
+										}
 									},
 								},
-							},
-							indexAxis: 'y',
-							scales: {
-								xAxis: {
-									display: false,
-									grid: {
+							]}
+							options={{
+								responsive: true,
+								maintainAspectRatio: false,
+								plugins: {
+									legend: {
 										display: false,
 									},
-								},
-								yAxis: {
-									grid: {
-										display: false,
+									datalabels: {
+										anchor: 'start',
+										align: 'end',
+										offset: 5,
+										formatter: value => `${value} %`,
+										color: labelColors,
+									},
+									tooltip: {
+										callbacks: {
+											label: tooltipFormatter,
+										},
 									},
 								},
-							},
-							onClick: handleClick,
-						}}
-					/>
+								indexAxis: 'y',
+								scales: {
+									xAxis: {
+										display: false,
+										grid: {
+											display: false,
+										},
+									},
+									yAxis: {
+										grid: {
+											display: false,
+										},
+									},
+								},
+								onClick: handleClick,
+							}}
+						/>
+					</div>
 				</ChartContainer>
 			</FlexContainer>
 		)

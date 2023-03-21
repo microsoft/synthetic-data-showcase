@@ -11,7 +11,7 @@ use serde::Serialize;
 /// By default, the builder will be constructed with default values:
 ///     - reporting_length: 3
 ///     - epsilon: 4.0
-///     - delta: will be set in runtime to 1 / (ln(number_of_records) * number_of_records)
+///     - delta: will be set in runtime to `1 / (ln(protected_number_of_records) * protected_number_of_records)`
 ///     - percentile_percentage: 99
 ///     - percentile_epsilon_proportion: 0.01
 ///     - accuracy_mode: AccuracyMode.prioritize_long_combinations()
@@ -307,8 +307,8 @@ impl DpAggregateSeededParametersBuilder {
         }
 
         if let Some(delta) = self._delta {
-            if delta <= 0.0 {
-                return Err(PyValueError::new_err("delta must be > 0"));
+            if delta <= 0.0 || delta >= 1.0 {
+                return Err(PyValueError::new_err("delta must be > 0 and < 1"));
             }
         }
 
@@ -330,12 +330,6 @@ impl DpAggregateSeededParametersBuilder {
         {
             return Err(PyValueError::new_err(
                 "number_of_records_epsilon_proportion must be > 0 and < 1",
-            ));
-        }
-
-        if self._percentile_epsilon_proportion + self._number_of_records_epsilon_proportion >= 1.0 {
-            return Err(PyValueError::new_err(
-                "percentile_epsilon_proportion + number_of_records_epsilon_proportion must be < 1",
             ));
         }
 

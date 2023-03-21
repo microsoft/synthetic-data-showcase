@@ -33,16 +33,19 @@ pub struct DataBlock {
     pub records: DataBlockRecords,
 }
 
-impl DataBlock {
+impl Default for DataBlock {
     /// Returns a new DataBlock with default values
-    pub fn default() -> DataBlock {
-        DataBlock {
+    #[inline]
+    fn default() -> Self {
+        Self {
             headers: DataBlockHeaders::default(),
             multi_value_column_metadata_map: MultiValueColumnMetadataMap::default(),
             records: DataBlockRecords::default(),
         }
     }
+}
 
+impl DataBlock {
     /// Returns a new DataBlock
     /// # Arguments
     /// * `headers` - Vector of string representing the data headers

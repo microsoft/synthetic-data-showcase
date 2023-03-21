@@ -2,8 +2,8 @@
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */
-import type { FC, PropsWithChildren } from 'react'
-import React, { forwardRef, memo, useImperativeHandle, useMemo } from 'react'
+import type { FC } from 'react'
+import React, { forwardRef, memo, useImperativeHandle } from 'react'
 
 import { FileDropContext } from './FileDrop.context.js'
 import { useFileDrop } from './FileDrop.hooks.js'
@@ -15,25 +15,6 @@ export const FileDrop: FC<FileDropProps> = memo(
 		const { getRootProps, getInputProps, isDragActive, open } =
 			useFileDrop(props)
 		const classes = useFileDropStyles(props.slotClassNames)
-		const DivOverlay = useMemo(() => {
-			return (
-				props.divOverlay ??
-				((({ children }) => {
-					return <div className={classes.Overlay}>{children}</div>
-				}) as FC<
-					PropsWithChildren<{
-						/* nothing */
-					}>
-				>)
-			)
-		}, [props.divOverlay, classes])
-
-		const DragMessage = useMemo(() => {
-			return (
-				props.onDragMessage ??
-				(() => <span className={classes.OverlayMessage}>Drop files.</span>)
-			)
-		}, [props.onDragMessage, classes])
 
 		useImperativeHandle(ref, () => ({ open }), [open])
 
@@ -42,9 +23,11 @@ export const FileDrop: FC<FileDropProps> = memo(
 				<span {...getRootProps()}>
 					<input {...getInputProps()} />
 					{isDragActive && (
-						<DivOverlay>
-							<DragMessage />
-						</DivOverlay>
+						<div className={classes.Overlay}>
+							<span className={classes.OverlayMessage}>
+								{props.onDragMessage ?? 'Drop files.'}
+							</span>
+						</div>
 					)}
 					{props.children}
 				</span>
