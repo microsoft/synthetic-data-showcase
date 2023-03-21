@@ -1,6 +1,6 @@
 use crate::{
     processing::aggregator::WasmAggregateResult,
-    utils::js::{JsMicrodataStatistics, JsResult},
+    utils::js::{to_js_value, JsMicrodataStatistics, JsResult},
 };
 use sds_core::processing::{
     aggregator::{AggregatedCountByLenMap, AggregatedMetricByLenMap},
@@ -111,7 +111,7 @@ impl WasmMicrodataStatistics {
 
     #[wasm_bindgen(js_name = "toJs")]
     pub fn to_js(&self) -> JsResult<JsMicrodataStatistics> {
-        Ok(JsValue::from_serde(self)
+        Ok(to_js_value(self)
             .map_err(|err| JsValue::from(err.to_string()))?
             .unchecked_into::<JsMicrodataStatistics>())
     }

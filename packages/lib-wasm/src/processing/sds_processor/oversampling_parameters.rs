@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
-use crate::utils::js::JsOversamplingParameters;
+use crate::utils::js::{from_js_value, JsOversamplingParameters};
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -15,8 +15,6 @@ impl TryFrom<JsOversamplingParameters> for WasmOversamplingParameters {
     type Error = JsValue;
 
     fn try_from(js_oversampling_params: JsOversamplingParameters) -> Result<Self, Self::Error> {
-        js_oversampling_params
-            .into_serde::<WasmOversamplingParameters>()
-            .map_err(|err| JsValue::from(err.to_string()))
+        from_js_value(&js_oversampling_params).map_err(|err| JsValue::from(err.to_string()))
     }
 }
