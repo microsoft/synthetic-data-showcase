@@ -20,7 +20,7 @@ use crate::{
         sds_processor::{HeaderNames, WasmSdsProcessor},
     },
     utils::js::{
-        JsAttributesIntersectionByColumn, JsHeaderNames, JsNavigateResult, JsResult,
+        to_js_value, JsAttributesIntersectionByColumn, JsHeaderNames, JsNavigateResult, JsResult,
         JsSelectedAttributesByColumn,
     },
 };
@@ -250,8 +250,7 @@ impl WasmNavigateResult {
         set(
             &result,
             &"headerNames".into(),
-            &JsValue::from_serde(&self.header_names)
-                .map_err(|err| JsValue::from(err.to_string()))?,
+            &to_js_value(&self.header_names).map_err(|err| JsValue::from(err.to_string()))?,
         )?;
 
         Ok(JsValue::from(result).unchecked_into::<JsNavigateResult>())

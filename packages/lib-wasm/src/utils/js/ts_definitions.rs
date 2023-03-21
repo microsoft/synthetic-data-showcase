@@ -198,3 +198,19 @@ extern "C" {
 }
 
 pub type JsResult<T> = Result<T, JsValue>;
+
+#[allow(deprecated)]
+pub(crate) fn to_js_value<T: serde::ser::Serialize + ?Sized>(
+    value: &T,
+) -> serde_json::Result<JsValue> {
+    // TODO: allow deprecated until we migrate to serde-wasm-bindgen
+    JsValue::from_serde(value)
+}
+
+#[allow(deprecated)]
+pub(crate) fn from_js_value<T: for<'a> serde::de::Deserialize<'a>>(
+    value: &JsValue,
+) -> serde_json::Result<T> {
+    // TODO: allow deprecated until we migrate to serde-wasm-bindgen
+    value.into_serde::<T>()
+}

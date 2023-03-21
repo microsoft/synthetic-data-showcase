@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
-use crate::utils::js::JsBaseSynthesisParameters;
+use crate::utils::js::{from_js_value, JsBaseSynthesisParameters};
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -16,8 +16,6 @@ impl TryFrom<JsBaseSynthesisParameters> for WasmBaseSynthesisParameters {
     type Error = JsValue;
 
     fn try_from(js_base_params: JsBaseSynthesisParameters) -> Result<Self, Self::Error> {
-        js_base_params
-            .into_serde::<WasmBaseSynthesisParameters>()
-            .map_err(|err| JsValue::from(err.to_string()))
+        from_js_value(&js_base_params).map_err(|err| JsValue::from(err.to_string()))
     }
 }

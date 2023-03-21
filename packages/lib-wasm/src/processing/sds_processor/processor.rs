@@ -38,7 +38,7 @@ impl Default for WasmSdsProcessor {
     }
 }
 
-#[wasm_bindgen(constructor)]
+#[wasm_bindgen]
 impl WasmSdsProcessor {
     #[inline]
     #[wasm_bindgen(constructor)]
