@@ -24,7 +24,11 @@ const containerStyles: CSSProperties = {
 const defaultLinks: Array<PolicyLinkDetails> = [
 	{
 		name: 'Privacy & Cookies',
-		href: ' https://go.microsoft.com/fwlink/?LinkId=521839',
+		href: 'https://go.microsoft.com/fwlink/?LinkId=521839',
+	},
+	{
+		name: 'Consumer Health Privacy',
+		href: 'https://go.microsoft.com/fwlink/?LinkId=2259814',
 	},
 	{
 		name: 'Terms of Use',
