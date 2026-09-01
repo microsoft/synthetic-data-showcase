@@ -1,4 +1,4 @@
-import{ci as q,r as i,cj as se,ck as oe,b6 as a,cf as f,cl as j,cm as ae,bD as re,cn as le,co as ce,b$ as C,j as t,cp as ue,cq as de,cr as k,cs as me,ct as U,c7 as he,cu as w,cv as T,cw as F,c2 as V,c1 as ge,ab as A,a9 as P,O as L,Q as z,S as pe,a2 as N,ag as be,c9 as fe,cx as Ce,ce as $e,P as ve}from"./main-6eb3ce9b.js";/*!
+import{ci as q,r as i,cj as se,ck as oe,b6 as a,cf as f,cl as j,cm as ae,bD as re,cn as le,co as ce,b$ as C,j as t,cp as ue,cq as de,cr as k,cs as me,ct as U,c7 as he,cu as w,cv as T,cw as F,c2 as V,c1 as ge,ab as A,a9 as P,O as L,Q as z,S as pe,a2 as N,ag as be,c9 as fe,cx as Ce,ce as $e,P as ve}from"./main-dfbf7337.js";/*!
  * Copyright (c) Microsoft. All rights reserved.
  * Licensed under the MIT license. See LICENSE file in the project.
  */function ye(){const[e]=q();return i.useCallback(async(n,o,d,s)=>{if(e){const h=se(n).map(c=>c.name);return(await e.instance).generateAggregateStatistics(n.table.toCSV({delimiter:n.delimiter}),{delimiter:n.delimiter,subjectId:n.subjectId,useColumns:h,sensitiveZeros:n.headers.filter(c=>c.hasSensitiveZeros).map(c=>c.name),recordLimit:o,multiValueColumns:oe(n)},d,s)}},[e])}/*!
@@ -312,4 +312,4 @@ import{ci as q,r as i,cj as se,ck as oe,b6 as a,cf as f,cl as j,cm as ae,bD as r
 	height: 100%;
 	overflow-y: auto;
 `;export{it as SelectPage,it as default};
-//# sourceMappingURL=index-410aa8ce.js.map
+//# sourceMappingURL=index-9e73b447.js.map
