@@ -2,6 +2,10 @@
 	"name": "@sds/project",
 	"private": true,
 	"license": "MIT",
+	"resolutions": {
+		"lodash": "4.18.1",
+		"lodash-es": "4.18.1"
+	},
 	"scripts": {
 		"postinstall": "husky install",
 		"clean": "yarn workspaces foreach -pv run clean",
