@@ -4,8 +4,8 @@
 	"editor.formatOnSave": true,
 	"files.eol": "\n",
 	"editor.codeActionsOnSave": {
-		"source.fixAll": true
-	},
+        "source.fixAll": "explicit"
+    },
 	"javascript.preferences.importModuleSpecifier": "relative",
 	"javascript.preferences.importModuleSpecifierEnding": "js",
 	"typescript.preferences.importModuleSpecifier": "relative",
