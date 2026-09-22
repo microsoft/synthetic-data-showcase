@@ -1,8 +1,6 @@
-**This repository is the result of research efforts that are no longer active. It has been marked read-only on GitHub to preserve the public code, but is no longer maintained or accepting contributions.** 
+**This repository is the result of research efforts that are no longer active. It has been marked read-only on GitHub to preserve the public code, but is no longer maintained or accepting contributions.**
 
-[![Rust CI](https://github.com/microsoft/synthetic-data-showcase/actions/workflows/rust-ci.yml/badge.svg?branch=main&event=push)](https://github.com/microsoft/synthetic-data-showcase/actions/workflows/rust-ci.yml)
-[![Javascript CI](https://github.com/microsoft/synthetic-data-showcase/actions/workflows/javascript-ci.yml/badge.svg?branch=main&event=push)](https://github.com/microsoft/synthetic-data-showcase/actions/workflows/javascript-ci.yml)
-[![Python CI](https://github.com/microsoft/synthetic-data-showcase/actions/workflows/python-ci.yml/badge.svg?branch=main&event=push)](https://github.com/microsoft/synthetic-data-showcase/actions/workflows/python-ci.yml)
+**For active differential privacy projects, please see [ITK](https://github.com/microsoft/intelligence-toolkit), [Pac-Synth](https://github.com/microsoft/synthetic-data-showcase/tree/main/packages/lib-pacsynth), and [SmartNoise](https://smartnoise.org/).**
 
 # Synthetic data showcase
 
